@@ -354,6 +354,7 @@ def test_page_renders_the_registered_company_address(url_name, client):
         if url_name == "public_app:cookies"
         else settings.COMPANY_ADDRESS
     )
+    client.cookies["django_language"] = "ja"
 
     # Act
     content = client.get(reverse(url_name)).content.decode("utf-8")

@@ -24,8 +24,11 @@ each.
 """
 
 import importlib.metadata as importlib_metadata
+import json
 import unittest
+from pathlib import Path
 
+import pytest
 from django.contrib.auth.models import User
 from django.test import TestCase
 
@@ -41,6 +44,40 @@ def _installed_version_or_none(dist_name):
 
 
 _WRITER_PIP_VERSION = _installed_version_or_none("scitex-writer")
+_CARDS_PIP_VERSION = _installed_version_or_none("scitex-cards")
+
+
+def _leaf_manifest_pip_package(dotted: str) -> str | None:
+    """The ``pip_package`` the installed leaf manifest declares, if installed.
+
+    Tiles are built from the LEAF's own manifest now (no hub wrapper
+    manifest); the distribution name for the independent version lookup
+    comes from that same manifest.
+    """
+    import importlib.util
+
+    try:
+        spec = importlib.util.find_spec(dotted)
+    except (ImportError, ValueError):
+        return None
+    if spec is None or not spec.origin:
+        return None
+    manifest_path = Path(spec.origin).parent / "manifest.json"
+    if not manifest_path.is_file():
+        return None
+    try:
+        return json.loads(manifest_path.read_text()).get("pip_package")
+    except (json.JSONDecodeError, OSError):
+        return None
+
+
+def test_cards_leaf_manifest_names_the_canonical_distribution():
+    # Arrange — the distribution is named by the leaf manifest, never a hub literal.
+    pip_package = _leaf_manifest_pip_package("scitex_cards._django")
+    if pip_package is None:
+        pytest.skip("scitex-cards is not installed in this environment")
+    # Act / Assert — the rename is over; only the canonical name may remain.
+    assert pip_package == "scitex-cards"
 
 
 class GuestLauncherVersionResolutionTest(TestCase):
@@ -105,6 +142,21 @@ class GuestLauncherVersionResolutionTest(TestCase):
         writer_tile = self._tile(resp, "writer")
         # Assert
         assert writer_tile is not None and writer_tile["version"] == expected
+
+    @unittest.skipIf(
+        _CARDS_PIP_VERSION is None,
+        "scitex-cards is not installed in this environment",
+    )
+    def test_guest_launcher_cards_tile_shows_installed_pip_version(self):
+        # Arrange — resolve independently from the distribution named by the
+        # LEAF manifest (no hub wrapper manifest remains).
+        pip_package = _leaf_manifest_pip_package("scitex_cards._django")
+        expected = _installed_version_or_none(pip_package) if pip_package else None
+        # Act
+        resp = self._render_guest_after_authenticated()
+        cards_tile = self._tile(resp, "scitex-cards")
+        # Assert — no Cards version is hardcoded in Hub.
+        assert cards_tile is not None and cards_tile["version"] == expected
 
     def test_guest_launcher_hub_internal_home_tile_omits_version_label(self):
         # Arrange — "my_projects" (my_projects_app) ships no pip_package, so it must show

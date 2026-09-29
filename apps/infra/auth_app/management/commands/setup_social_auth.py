@@ -159,3 +159,12 @@ class Command(BaseCommand):
             f"   - ORCID: https://{domain}/auth/social/orcid/login/callback/"
         )
         self.stdout.write("\n4. Re-run this command after setting credentials")
+        self.stdout.write(
+            "\nNOTE (2026-09-17): this command is no longer REQUIRED to make\n"
+            "Google/ORCID buttons work. The provider apps are now built from\n"
+            "the credential settings directly (config/social_apps.py), so a\n"
+            "complete client id + secret pair is served the moment it is in the\n"
+            "environment — no database row needed, and where both exist the\n"
+            "settings are the ones served. This command remains for deployments\n"
+            "that configure providers ONLY through a SocialApp row."
+        )

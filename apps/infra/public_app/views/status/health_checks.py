@@ -319,12 +319,11 @@ def check_api_services(status_data):
     # never in doubt. Measured 2026-08-17: that unauthenticated check reported
     # `gitea_api: healthy` for roughly five weeks while EVERY authenticated call
     # returned 401, because the configured token had been rotated out from under
-    # the app and never written back. The whole visitor pool was quarantined and
-    # the one check that should have named the cause was green throughout.
+    # the app and never written back.
     #
     # A check that cannot fail is not a check. What the product depends on is
-    # being able to AUTHENTICATE to Gitea -- creating and purging repos for
-    # visitor slots -- so that is what this measures. /api/v1/user requires a
+    # being able to AUTHENTICATE to Gitea for repository operations, so that is
+    # what this measures. /api/v1/user requires a
     # valid token and returns 401 for a bad one, which is the signal that went
     # unreported.
     #
@@ -354,7 +353,7 @@ def check_api_services(status_data):
         if not gitea_token:
             gitea_auth_error = (
                 "SCITEX_HUB_GITEA_TOKEN is NOT configured, so authentication was "
-                "not tested — this reports reachability only. Visitor-slot resets "
+                "not tested — this reports reachability only. Repository operations "
                 "need a valid token and will fail without one."
             )
         elif response.status_code == 401:
@@ -363,7 +362,7 @@ def check_api_services(status_data):
             gitea_auth_error = (
                 "Gitea rejected SCITEX_HUB_GITEA_TOKEN (401). Gitea itself is up; "
                 "the configured token is invalid or was rotated without being "
-                "written back to the env. Visitor-slot resets will fail until it "
+                "written back to the env. Repository operations will fail until it "
                 "is replaced. Fix: deployment/host-setup/scripts/"
                 "regenerate-gitea-token.sh, then recreate django + the celery "
                 "services so they re-read the env."

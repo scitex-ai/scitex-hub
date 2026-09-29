@@ -34,12 +34,10 @@ permitted relocating the footer on a small screen — 「小さいサイズモ�
 ときにはどこかに逃がしてもいい」 — but not deleting it, and "relocated" only
 counts if something actually carries the links.
 
-UPDATE 2026-09-14 (Home + dock redesign). The operator asked for the footer to
-scroll into view above the dock on the phone Home as well. That is now safe:
-the app home body scrolls, and the site dock reserves its band as body padding,
-so the footer's last row clears the dock. The last tests in this file pin both
-halves. The hamburger Legal section stays, because deeper workspace pages still
-hide the footer on a phone.
+UPDATE 2026-09-17 (true overlay). The app home body scrolls beneath the dock;
+focus/terminal controls use scroll alignment rather than permanent body padding.
+The last tests in this file pin both halves. The hamburger Legal section stays,
+because deeper workspace pages still hide the footer on a phone.
 
 WHAT THIS MODEL DOES AND DOES NOT DO. It reads the template SOURCE and checks
 which `{% url %}` tags appear inside the mobile menu container and at what
@@ -174,56 +172,51 @@ def _css(relpath: str) -> str:
     return re.sub(r"/\*.*?\*/", "", css, flags=re.DOTALL)
 
 
-def test_the_mobile_menu_reserves_the_dock_band():
-    """The menu must pad its scroll end past the fixed dock.
+def test_the_mobile_menu_scrolls_terminal_controls_clear_of_the_dock():
+    """The fixed menu aligns focused/last rows without reserving blank space.
 
-    The menu is `position: fixed; bottom: 0`, so it runs to the viewport edge,
-    and the dock floats over its last band while sitting later in the DOM — so
-    the dock paints on top and eats taps there.
-
-    Measured on production at 390px with this branch's Legal section rendered:
-    scrolled fully down, `a[href="/contact/"]` sat at y 784..828 and
-    elementFromPoint at its centre returned the dock. The menu could only scroll
-    21px — nowhere near enough to lift a 44px row clear of a 64px dock — so the
-    last legal entry was permanently untappable.
-
-    Without this rule the Legal section still PASSES every other test in this
-    file — present in the menu, at depth 0 — while its last entry cannot be
-    tapped. That is exactly the "renders but is unreachable" failure this whole
-    branch exists to remove, so it gets its own guard.
-
-    2026-09-14: the dock became the SITE dock on every page (.site-dock), so the
-    reservation is keyed on it.
+    The menu and launcher are independent fixed overlays. A permanent bottom
+    padding made every open menu shorter even when the launcher was moved or
+    minimized. Scroll alignment instead affects only browser-driven scrolling.
     """
     # Arrange
     css = _css("static/shared/css/components/header/14-responsive.css")
     # Act
-    reserves_band = re.search(
-        r":has\(\.site-dock\)[^{]*\.mobile-header-menu\s*\{[^}]*padding-bottom",
+    menu_rule = re.search(
+        r"body:has\([^{}]*\.site-dock[^{}]*\)[^{]*"
+        r"\.mobile-header-menu\s*\{([^}]*)\}",
         css,
     )
+    focus_rules = re.findall(
+        r"\.mobile-header-menu[^{}]*:focus-visible[^}]*\{([^}]*)\}", css
+    )
     # Assert
-    assert reserves_band is not None
+    assert menu_rule is not None
+    assert "scroll-padding-bottom" in menu_rule.group(1)
+    assert "padding-bottom" not in menu_rule.group(1).replace(
+        "scroll-padding-bottom", ""
+    )
+    assert any("scroll-margin-bottom" in rule for rule in focus_rules)
 
 
-def test_the_page_reserves_the_dock_band_so_the_footer_clears_it():
-    """While the dock sits at the bottom, the body reserves its band.
-
-    This is what makes it safe to show the footer on the phone app home (see
-    the next test). The defect measured on 2026-08-10 was 特商法 and Cookies
-    rendering UNDER the fixed dock with no way to scroll them clear. With the
-    body padded by the dock's clearance, the end of the document, which is the
-    footer's last row, scrolls up to sit above the dock.
-    """
+def test_the_footer_uses_scroll_alignment_instead_of_dock_padding():
+    """Footer controls align on focus without shortening the whole page."""
     # Arrange
     css = _css("static/shared/css/components/site-dock.css")
     # Act
-    reserves = re.search(
-        r"body:has\(>\s*\.site-dock[^{]*\{[^}]*padding-bottom:\s*var\(--site-dock-clearance\)",
+    focus_alignment = re.search(
+        r"body:has\(>\s*\.site-dock[^{]*"
+        r":focus-visible[^}]*\{[^}]*scroll-margin-bottom",
+        css,
+    )
+    permanent_padding = re.search(
+        r"body:has\(>\s*\.site-dock[^{]*\{[^}]*"
+        r"(?<!scroll-)padding-bottom\s*:",
         css,
     )
     # Assert
-    assert reserves is not None
+    assert focus_alignment is not None
+    assert permanent_padding is None
 
 
 def test_the_phone_app_home_shows_the_footer():
@@ -232,9 +225,9 @@ def test_the_phone_app_home_shows_the_footer():
     This file used to assert the opposite. That was right while the launcher
     shell was pinned to 100dvh and the dock covered the footer's last links.
     Operator, 2026-09-14: swiping down on Home must reveal the footer above the
-    dock. Two things now make that safe. The app home body scrolls (global-base.css,
-    "App Home Override"), and the page reserves the dock band (previous test).
-    Deeper workspace pages still hide the footer on a phone.
+    dock. The app home body scrolls (global-base.css, "App Home Override"), and
+    focused terminal controls use scroll alignment (previous test). Deeper
+    workspace pages still hide the footer on a phone.
     """
     # Arrange
     css = _css("static/shared/css/components/footer.css")

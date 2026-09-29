@@ -1,8 +1,8 @@
 {% extends "auth_app/auth_base.html" %}
 
-{% load static %}
+{% load static i18n %}
 
-{% block title %}Logout - SciTeX{% endblock %}
+{% block title %}{% trans "Logout" %} - SciTeX{% endblock %}
 {% block auth_extra_css %}
     <link rel="stylesheet" href="{% static 'shared/css/components/forms/index.css' %}" />
     <style>
@@ -64,17 +64,16 @@
             <div class="logout-icon">
                 <i class="fas fa-check-circle"></i>
             </div>
-            <h1 class="logout-title h3">You've been logged out</h1>
+            <h1 class="logout-title h3">{% trans "You've been logged out" %}</h1>
             <p class="logout-message">
-                Thank you for using SciTeX. You have been successfully logged out of your
-                account.
+                {% trans "Thank you for using SciTeX. You have been successfully logged out of your account." %}
             </p>
             <div class="logout-actions">
                 <a href="{% url 'auth_app:login' %}" class="btn btn-primary">
-                    <i class="fas fa-sign-in-alt"></i> Log In Again
+                    <i class="fas fa-sign-in-alt"></i> {% trans "Log In Again" %}
                 </a>
                 <a href="/" class="btn btn-outline-secondary">
-                    <i class="fas fa-home"></i> Go to Homepage
+                    <i class="fas fa-home"></i> {% trans "Go to Homepage" %}
                 </a>
             </div>
         </div>

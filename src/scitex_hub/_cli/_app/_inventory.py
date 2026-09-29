@@ -40,7 +40,7 @@ def app_list(server, json_output) -> None:
         return
 
     if not apps:
-        console.print("[yellow]No apps found.[/yellow]")
+        console.warning("[yellow]No apps found.[/yellow]")
         return
 
     from rich.table import Table
@@ -59,7 +59,7 @@ def app_list(server, json_output) -> None:
             (a.get("ai_hint") or a.get("short_description", ""))[:60],
         )
 
-    console.print(table)
+    console.info(table)
 
 
 @app.command("show-current")
@@ -79,9 +79,9 @@ def app_current(json_output) -> None:
         emit_json({"current": name})
         return
     if name:
-        console.print(f"[cyan]{name}[/cyan]")
+        console.info(f"[cyan]{name}[/cyan]")
     else:
-        console.print("[yellow]No active app (SCITEX_CURRENT_APP not set)[/yellow]")
+        console.warning("[yellow]No active app (SCITEX_CURRENT_APP not set)[/yellow]")
 
 
 @app.command("show-info")
@@ -102,7 +102,7 @@ def app_info(app_name, json_output) -> None:
         if json_output:
             emit_json({"error": "app not found", "app": app_name})
         else:
-            console.print(f"[red]App not found:[/red] {app_name}")
+            console.error(f"[red]App not found:[/red] {app_name}")
         raise SystemExit(1)
 
     if json_output:
@@ -110,7 +110,7 @@ def app_info(app_name, json_output) -> None:
         return
 
     for key, val in info.items():
-        console.print(f"  [cyan]{key}:[/cyan] {val}")
+        console.info(f"  [cyan]{key}:[/cyan] {val}")
 
 
 # EOF

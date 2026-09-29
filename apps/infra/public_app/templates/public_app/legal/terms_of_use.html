@@ -195,6 +195,25 @@
                     <p>
                         {% trans "We do not review all User Content before it is posted on the platform, and cannot ensure prompt removal of objectionable User Content after it has been posted. Accordingly, we assume no liability for any action or inaction regarding User Content." %}
                     </p>
+                    <h2 id="compute-usage">{% trans "Compute Usage and Storage" %}</h2>
+                    <p>
+                        {% trans "The platform gives you shared compute and separate storage areas with different visibility. Where you put your data determines who can read it, so please choose deliberately." %}
+                    </p>
+                    <h3 id="shared-temporary-space">{% trans "Shared Temporary Space (/tmp)" %}</h3>
+                    <p>
+                        {% trans "/tmp is shared and readable by other users. It is mode 1777 with the sticky bit: anyone can read and traverse it, and the sticky bit only prevents one user from deleting another user's files. Treat it as transient working space. Do not place confidential or personal data there." %}
+                    </p>
+                    <h3 id="private-working-storage">{% trans "Private Working Storage (/scratch/&lt;user&gt;)" %}</h3>
+                    <p>
+                        {% trans "Your own directory under /scratch is private to you (mode 0700). Working data belongs there." %}
+                    </p>
+                    <h3 id="why-the-distinction-exists">{% trans "Why the Distinction Exists" %}</h3>
+                    <p>
+                        {% trans "The root filesystem is the small volume, while /scratch is the large one. Bulk work should therefore not be performed under your home directory or in /tmp." %}
+                    </p>
+                    <p>
+                        {% trans "You are responsible for where you place your data. If you expose data by placing it in shared temporary space, that exposure is yours to own. This section exists so the difference is stated rather than silent." %}
+                    </p>
                     <h2 id="prohibited-activities">{% trans "Prohibited Activities" %}</h2>
                     <p>
                         {% trans "You may not access or use the platform for any purpose other than that for which we make the platform available. The platform may not be used in connection with any commercial endeavors except those that are specifically endorsed or approved by us." %}

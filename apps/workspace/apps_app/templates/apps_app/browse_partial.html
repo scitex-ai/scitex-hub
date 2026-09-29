@@ -1,17 +1,17 @@
-{% load static %}
+{% load static i18n %}
 
 <link rel="stylesheet" href="{% static 'apps_app/css/apps.css' %}" />
 <div class="apps-container">
     <section class="apps-sdk-guide" aria-labelledby="apps-sdk-guide-title">
         <div class="apps-sdk-guide-icon" aria-hidden="true"><i class="fas fa-cubes"></i></div>
         <div class="apps-sdk-guide-copy">
-            <span class="apps-sdk-guide-kicker">Build for SciTeX</span>
+            <span class="apps-sdk-guide-kicker">{% trans "Build for SciTeX" %}</span>
             <h2 id="apps-sdk-guide-title">SciTeX™ SDK</h2>
-            <p><code>scitex-app</code> and <code>scitex-ui</code> form one SDK for local, cloud, and self-hosted apps.</p>
+            <p>{% blocktrans %}<code>scitex-app</code> and <code>scitex-ui</code> form one SDK for local, cloud, and self-hosted apps.{% endblocktrans %}</p>
         </div>
         <div class="apps-sdk-guide-actions">
-            <a href="/apps/create/" class="apps-sdk-guide-primary"><i class="fas fa-plus" aria-hidden="true"></i> Create an app</a>
-            <a href="https://github.com/scitex-ai/scitex-app" class="apps-sdk-guide-secondary" target="_blank" rel="noopener">SDK documentation <i class="fas fa-arrow-up-right-from-square" aria-hidden="true"></i></a>
+            <a href="/apps/create/" class="apps-sdk-guide-primary"><i class="fas fa-plus" aria-hidden="true"></i> {% trans "Create an app" %}</a>
+            <a href="https://github.com/scitex-ai/scitex-app" class="apps-sdk-guide-secondary" target="_blank" rel="noopener">{% trans "SDK documentation" %} <i class="fas fa-arrow-up-right-from-square" aria-hidden="true"></i></a>
         </div>
     </section>
     <!-- Registry org banner -->
@@ -19,17 +19,17 @@
         <a href="/{{ apps_org }}/" class="apps-org-banner">
             <i class="fas fa-rocket" aria-hidden="true"></i>
             <span class="apps-org-banner-text">
-                <strong>{{ apps_org }}</strong> — Publish your apps to the community registry and share with everyone
+                <strong>{{ apps_org }}</strong> — {% trans "Publish your apps to the community registry and share with everyone" %}
             </span>
             <i class="fas fa-chevron-right apps-org-banner-arrow" aria-hidden="true"></i>
         </a>
     {% endif %}
     <!-- Top bar: category filter tabs, search, sort -->
     <div class="apps-topbar">
-        <nav class="apps-category-tabs" aria-label="App categories">
-            <button type="button" class="apps-cat-tab active" data-filter-category="">All</button>
+        <nav class="apps-category-tabs" aria-label="{% trans 'App categories' %}">
+            <button type="button" class="apps-cat-tab active" data-filter-category="">{% trans "All" %}</button>
             {% for cat_key, cat_label in categories %}
-                <button type="button" class="apps-cat-tab" data-filter-category="{{ cat_key }}">{{ cat_label }}</button>
+                <button type="button" class="apps-cat-tab" data-filter-category="{{ cat_key }}">{% trans cat_label %}</button>
             {% endfor %}
         </nav>
         <div class="apps-search-sort">
@@ -38,20 +38,20 @@
                 <input type="text"
                        id="ap-search-input"
                        class="apps-search-input"
-                       placeholder="Search apps... (Ctrl+K)"
-                       aria-label="Search apps" />
+                       placeholder="{% trans 'Search apps... (Ctrl+K)' %}"
+                       aria-label="{% trans 'Search apps' %}" />
                 <button type="button"
                         class="apps-search-clear"
                         id="ap-search-clear"
                         style="display:none"
-                        aria-label="Clear search">
+                        aria-label="{% trans 'Clear search' %}">
                     <i class="fas fa-times" aria-hidden="true"></i>
                 </button>
             </div>
-            <select id="ap-sort-select" class="apps-sort-select" aria-label="Sort apps">
-                <option value="popular" selected>Popular</option>
-                <option value="newest">Newest</option>
-                <option value="rating">Rating</option>
+            <select id="ap-sort-select" class="apps-sort-select" aria-label="{% trans 'Sort apps' %}">
+                <option value="popular" selected>{% trans "Popular" %}</option>
+                <option value="newest">{% trans "Newest" %}</option>
+                <option value="rating">{% trans "Rating" context "sort option" %}</option>
             </select>
         </div>
     </div>
@@ -59,7 +59,7 @@
     {% if dev_modules %}
         <div class="apps-private-section">
             <h3 class="apps-private-heading">
-                <i class="fas fa-lock"></i> My Private Apps
+                <i class="fas fa-lock"></i> {% trans "My Private Apps" %}
             </h3>
             <div class="apps-grid apps-private-grid">
                 {% for mod_item in dev_modules %}
@@ -70,7 +70,7 @@
     {% endif %}
     <!-- Public Apps section -->
     <h3 class="apps-section-heading">
-        <i class="fas fa-globe"></i> Public Apps
+        <i class="fas fa-globe"></i> {% trans "Public Apps" %}
     </h3>
     <!-- Module grid (always contains ALL modules; filtering is client-side) -->
     <div class="apps-grid" id="ap-grid">
@@ -80,8 +80,8 @@
     </div>
     <div class="apps-empty-state" id="ap-empty" style="display:none">
         <i class="fas fa-store-slash" aria-hidden="true"></i>
-        <p class="apps-empty-title">No apps found</p>
-        <p class="apps-empty-description" id="ap-empty-desc">No apps match your search.</p>
+        <p class="apps-empty-title">{% trans "No apps found" %}</p>
+        <p class="apps-empty-description" id="ap-empty-desc">{% trans "No apps match your search." %}</p>
     </div>
 </div>
 <script>

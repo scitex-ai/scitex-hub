@@ -12,10 +12,6 @@ value itself is never serialized). All policy lives in
 from django.http import JsonResponse
 from django.views.decorators.http import require_http_methods
 
-from apps.infra.project_app.services.visitor_pool.session_role import (
-    ROLE_READONLY_VISITOR,
-    get_session_role,
-)
 from apps.workspace.console_app.services.terminal_provider import (
     AI_PROVIDER_SETTINGS_URL,
     DEFAULT_PROVIDER,
@@ -26,17 +22,10 @@ from apps.workspace.console_app.services.terminal_provider import (
 @require_http_methods(["GET"])
 def api_terminal_providers(request):
     """List selectable terminal providers for the current session."""
-    role = get_session_role(request)
     picker_enabled = getattr(request.user, "is_authenticated", False)
     reason = ""
     if not picker_enabled:
         reason = "Sign in to use an alternative model provider."
-    elif role == ROLE_READONLY_VISITOR:
-        picker_enabled = False
-        reason = (
-            "Read-only visitor sessions cannot use API-key providers — "
-            "sign up or log in to use your own key."
-        )
 
     stored_services: set = set()
     if picker_enabled:

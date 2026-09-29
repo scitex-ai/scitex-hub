@@ -7,6 +7,7 @@ from apps.infra.llm_app.views.chat import (
     api_tts_relay,
 )
 from apps.infra.llm_app.views.context import api_eval_js, api_get_context, api_ui_action
+from apps.infra.llm_app.views.funded import api_funded_chat_allowance
 from apps.infra.llm_app.views.providers import (
     api_add_provider,
     api_available_providers,
@@ -48,6 +49,7 @@ __all__ = [
     "api_get_usage",
     "api_chat",
     "api_chat_stream",
+    "api_funded_chat_allowance",
     "api_current_model",
     "api_tts",
     "api_tts_relay",

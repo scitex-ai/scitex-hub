@@ -3,12 +3,14 @@ Collaboration Views
 Handles project invitations, members, and permissions.
 """
 
-from django.shortcuts import render, redirect, get_object_or_404
-from django.contrib.auth.decorators import login_required
-from django.contrib import messages
-from django.contrib.auth.models import User
-from apps.infra.project_app.models import Project, ProjectInvitation
 import logging
+
+from django.contrib import messages
+from django.contrib.auth.decorators import login_required
+from django.contrib.auth.models import User
+from django.shortcuts import get_object_or_404, redirect, render
+
+from apps.infra.project_app.models import Project, ProjectInvitation
 
 logger = logging.getLogger(__name__)
 
@@ -41,66 +43,120 @@ def project_members(request, username, slug):
     return render(request, "project_app/project_members.html", context)
 
 
+def _invite_response(callable_, kwargs: dict, status: int | None = None):
+    """Apply the invite route's response hygiene in one place.
+
+    no-store:    the page names a project for one person; do not cache it.
+    noindex:     an invitation URL must never be indexed or followed.
+    no-referrer: the token is in the URL, and the shell loads third-party assets
+                 (fonts, icon CDN), so without this the token rides along in the
+                 Referer header to origins that have no business seeing it.
+    """
+    if "request" in kwargs:
+        response = callable_(**kwargs)
+    else:
+        response = callable_(kwargs["redirect_to"], status=status or 303)
+    response["Cache-Control"] = "no-store"
+    response["X-Robots-Tag"] = "noindex, nofollow"
+    response["Referrer-Policy"] = "no-referrer"
+    return response
+
+
+def _invitation_state(invitation, is_recipient: bool) -> str:
+    """Which honest state the invitation is in, from the recipient's point of view.
+
+    ``not_yours`` comes first and deliberately: a stranger holding someone else's
+    link must not learn whether it is pending, expired or already answered.
+    """
+    if not is_recipient:
+        return "not_yours"
+    if invitation.status == "accepted":
+        return "already_accepted"
+    if invitation.status == "declined":
+        return "already_declined"
+    if invitation.is_expired():
+        return "expired"
+    return "review"
+
+
 @login_required
 def accept_invitation(request, token):
-    """Accept a project collaboration invitation."""
-    try:
-        invitation = get_object_or_404(ProjectInvitation, token=token)
+    """Review first, then accept — never join just because a link was opened.
 
-        # Check if invitation is for current user
-        if invitation.invited_user != request.user:
+    Card: hub-project-collaboration-invite-links-20260917. SSOT §9: "A recipient
+    signs in or creates and verifies their own SciTeX account, reviews the project
+    and role, then explicitly accepts. Opening the link or completing signup does
+    not silently join the project."
+
+    This used to accept on GET, so a single page load created the membership and
+    dropped the recipient inside the project: a prefetch, a link scanner or a
+    mis-click joined on their behalf. GET now renders the review; only POST accepts.
+    """
+    invitation = get_object_or_404(ProjectInvitation, token=token)
+    is_recipient = invitation.invited_user_id == request.user.id
+
+    if request.method == "POST":
+        if not is_recipient:
             messages.error(request, "This invitation is not for you")
-            return redirect("/")
-
-        # Check if expired
+            return _invite_response(redirect, {"redirect_to": "/"})
         if invitation.is_expired():
             messages.error(request, "This invitation has expired")
-            return redirect("/")
-
-        # Accept invitation
+            return _invite_response(redirect, {"redirect_to": "/"})
         if invitation.accept():
             messages.success(
                 request, f"You're now a collaborator on {invitation.project.name}!"
             )
-            # Redirect to project
-            return redirect(
-                f"/{invitation.project.owner.username}/{invitation.project.slug}/"
-            )
-        else:
-            messages.error(request, "Invitation has already been responded to")
-            return redirect("/")
+            target = f"/{invitation.project.owner.username}/{invitation.project.slug}/"
+            return _invite_response(redirect, {"redirect_to": target})
+        messages.error(request, "Invitation has already been responded to")
+        return _invite_response(redirect, {"redirect_to": "/"})
 
-    except Exception as e:
-        logger.error(f"Error accepting invitation: {e}")
-        messages.error(request, "Error accepting invitation")
-        return redirect("/")
+    state = _invitation_state(invitation, is_recipient)
+    context = {"state": state, "token": token}
+    if is_recipient:
+        # Only the named recipient sees what is on offer, and only what they need
+        # to decide: no files, no activity, no member list before they accept.
+        context.update(
+            {
+                "project_name": invitation.project.name,
+                "inviter_name": invitation.invited_by.username,
+                "role": invitation.get_role_display(),
+                "permission_level": invitation.get_permission_level_display(),
+                "expires_at": invitation.expires_at,
+                "accept_url": f"/invitations/{token}/accept/",
+                "decline_url": f"/invitations/{token}/decline/",
+            }
+        )
+    return _invite_response(
+        render,
+        {
+            "request": request,
+            "template_name": "project_app/invitation_review.html",
+            "context": context,
+        },
+    )
 
 
 @login_required
 def decline_invitation(request, token):
-    """Decline a project collaboration invitation."""
-    try:
-        invitation = get_object_or_404(ProjectInvitation, token=token)
+    """Decline an invitation (POST only — declining is a state change too)."""
+    invitation = get_object_or_404(ProjectInvitation, token=token)
 
-        # Check if invitation is for current user
-        if invitation.invited_user != request.user:
-            messages.error(request, "This invitation is not for you")
-            return redirect("/")
+    if invitation.invited_user_id != request.user.id:
+        messages.error(request, "This invitation is not for you")
+        return _invite_response(redirect, {"redirect_to": "/"})
 
-        # Decline invitation
-        if invitation.decline():
-            messages.success(
-                request, f"Invitation to {invitation.project.name} declined"
-            )
-        else:
-            messages.error(request, "Invitation has already been responded to")
+    if request.method != "POST":
+        return _invite_response(
+            redirect, {"redirect_to": f"/invitations/{token}/accept/"}
+        )
 
-        return redirect("/")
+    if invitation.decline():
+        messages.success(request, f"Invitation to {invitation.project.name} declined")
+    else:
+        messages.error(request, "Invitation has already been responded to")
 
-    except Exception as e:
-        logger.error(f"Error declining invitation: {e}")
-        messages.error(request, "Error declining invitation")
-        return redirect("/")
+    return _invite_response(redirect, {"redirect_to": "/"})
 
 
 # EOF

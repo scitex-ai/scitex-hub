@@ -18,7 +18,6 @@ lifecycle — from literature to manuscript — under your own control.
    sync
    mcp
    app_platform
-   visitor_pool_security
    api/index
 
 Indices and tables

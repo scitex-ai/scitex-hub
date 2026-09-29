@@ -52,6 +52,14 @@ function switchTab(tabName: string): void {
     el.classList.toggle("active", el.dataset.tab === tabName);
   });
 
+  // Signal the citation-graph service health probe that the Citations tab is
+  // active — identical to scholar-tab-switcher.ts. scholar_unified.html loads
+  // THIS initializer (not the switcher), so without it the probe never fires
+  // and the capability is wrongly shown as unchecked.
+  document
+    .querySelector('.scholar-tab.active[data-tab="graph"]')
+    ?.dispatchEvent(new Event("scholar:tab-activated"));
+
   // Trigger resize after layout is applied (rAF ensures CSS computed)
   requestAnimationFrame(function () {
     window.dispatchEvent(new Event("resize"));

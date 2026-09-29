@@ -15,8 +15,6 @@
  * added here would silently never load. server_status.html links charts.css
  * directly with {% static %}; that filename exists in only one tree, so the
  * finder falls through to it deterministically. */
-@import url("./visitor-pool.css");
-@import url("./slots.css");
 @import url("./responsive.css");
 @import url("./architecture.css");
 @import url("./versions.css");

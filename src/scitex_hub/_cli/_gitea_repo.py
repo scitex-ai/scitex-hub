@@ -271,7 +271,20 @@ def delete(repository, login, yes, dry_run):
         )
         sys.exit(2)
     import requests
-    import yaml
+
+    # PS-233: PyYAML ships in the optional `[all]` extra, so the import is
+    # guarded rather than declared. Deleting a repo cannot proceed without the
+    # tea config, so absence degrades to a clear error + non-zero exit — never
+    # a silent pass.
+    try:
+        import yaml
+    except ImportError:
+        click.echo(
+            "Error: PyYAML is required to read the tea config. "
+            "Install it with: pip install 'scitex-hub[all]'",
+            err=True,
+        )
+        sys.exit(1)
 
     config_path = Path.home() / ".config" / "tea" / "config.yml"
     if not config_path.exists():

@@ -18,8 +18,16 @@ from pathlib import Path
 
 from django.http import Http404
 from django.shortcuts import render
+from django.utils.html import escape
+from django.utils.translation import get_language
 from django.utils.translation import gettext as _
 
+from .demo_video_languages import (
+    default_captions,
+    default_language,
+    initial_src,
+    languages_for,
+)
 from .pages_data import (
     OG_BASE_URL,
     VIDEO_CATALOG,
@@ -238,11 +246,31 @@ def video_player(request, video_id):
             "video_ja_mobile_url": video.get("ja_mobile_url", ""),
             "video_narrated": video.get("narrated", False),
             "video_playback_rate": video.get("playback_rate", 4),
+            # The language switch needs every rendition with its own video and
+            # caption file; the flat keys above stay for the OG tags and links.
+            **_language_context(video),
             "video_id": video_id,
             "og_url": page_url,
             "og_image": og_image,
         },
     )
+
+
+def _language_context(video: dict) -> dict:
+    """Template context for the position-preserving language switch."""
+    renditions = languages_for(video)
+    site_language = get_language() or "en"
+    return {
+        "video_languages": renditions,
+        # JSON in an attribute, so it is escaped for HTML and parsed by the player.
+        "video_languages_json": escape(json.dumps(renditions, ensure_ascii=False)),
+        "video_default_language": default_language(renditions, site_language),
+        # The <source> the browser starts on, so "active language" and "playing file"
+        # cannot disagree: a Japanese visitor used to get JA highlighted over the EN
+        # file, and the verifier had no check that would notice.
+        "video_initial_url": initial_src(renditions, site_language),
+        "video_default_captions": default_captions(renditions, site_language),
+    }
 
 
 def publications(request):

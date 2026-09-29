@@ -55,25 +55,17 @@
                             <i class="fas fa-eye" id="togglePasswordIcon"></i>
                         </button>
                     </div>
-                    <!-- Password Requirements (hint for remembering registered password) -->
-                    <div class="password-rules" id="password-requirements" style="margin-top: 0.5rem">
-                        <div class="password-rules-title">{% trans "Password Requirements:" %}</div>
-                        <div class="password-rule invalid" id="rule-length">
-                            <i class="fas fa-times"></i> {% trans "At least 8 characters" %}
-                        </div>
-                        <div class="password-rule invalid" id="rule-lowercase">
-                            <i class="fas fa-times"></i> {% trans "At least one lowercase letter" %}
-                        </div>
-                        <div class="password-rule invalid" id="rule-uppercase">
-                            <i class="fas fa-times"></i> {% trans "At least one uppercase letter" %}
-                        </div>
-                        <div class="password-rule invalid" id="rule-number">
-                            <i class="fas fa-times"></i> {% trans "At least one number" %}
-                        </div>
-                        <div class="password-rule invalid" id="rule-special">
-                            <i class="fas fa-times"></i> {% trans "At least one special character" %} (!@#$%^&amp;*)
-                        </div>
-                    </div>
+                    {% comment %}
+                    NO password requirements here, deliberately. A returning user
+                    is entering a password they already have; the rules state
+                    what a NEW password must contain, and a visitor whose
+                    password predates them read five red crosses and concluded
+                    their correct password was wrong. Sign-in enforces no such
+                    rule. The panel and its focus/typing handler were removed
+                    2026-09-17; the requirements belong to signup.html, where a
+                    password is being created.
+
+                    {% endcomment %}
                 </div>
                 <div class="d-flex justify-content-between align-items-center mb-3">
                     <div class="form-check">
@@ -186,49 +178,9 @@
     }
   });
 
-  // Password requirements validation - hidden by default, shown on focus
-  document.addEventListener("DOMContentLoaded", function () {
-    const passwordInput = document.getElementById("password");
-    const requirements = document.getElementById("password-requirements");
-    const ruleLength = document.getElementById("rule-length");
-    const ruleLowercase = document.getElementById("rule-lowercase");
-    const ruleUppercase = document.getElementById("rule-uppercase");
-    const ruleNumber = document.getElementById("rule-number");
-    const ruleSpecial = document.getElementById("rule-special");
-
-    if (requirements) {
-      requirements.classList.add("hidden");
-    }
-
-    function updatePasswordRule(element, isValid) {
-      element.classList.remove("valid", "invalid");
-      element.classList.add(isValid ? "valid" : "invalid");
-      element.querySelector("i").className = isValid ? "fas fa-check" : "fas fa-times";
-    }
-
-    passwordInput.addEventListener("focus", function () {
-      if (requirements) requirements.classList.remove("hidden");
-    });
-
-    passwordInput.addEventListener("blur", function () {
-      // Hide requirements on blur (especially important on mobile
-      // where the box can overlay the Sign In button)
-      setTimeout(function () {
-        if (requirements) requirements.classList.add("hidden");
-      }, 200);
-    });
-
-    passwordInput.addEventListener("input", function () {
-      const password = this.value;
-      if (requirements) requirements.classList.remove("hidden");
-      if (ruleLength && ruleLowercase && ruleUppercase && ruleNumber && ruleSpecial) {
-        updatePasswordRule(ruleLength, password.length >= 8);
-        updatePasswordRule(ruleLowercase, /[a-z]/.test(password));
-        updatePasswordRule(ruleUppercase, /[A-Z]/.test(password));
-        updatePasswordRule(ruleNumber, /\d/.test(password));
-        updatePasswordRule(ruleSpecial, /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(password));
-      }
-    });
-  });
+  // The requirements handler that used to live here is gone with the panel it
+  // drove. It reacted to focus/blur/typing on the sign-in password field to
+  // colour five CREATION rules, which do not apply to an existing password —
+  // see the note in the markup above.
     </script>
 {% endblock %}

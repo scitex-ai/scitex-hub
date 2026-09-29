@@ -46,6 +46,11 @@ from .legal import (
     tokushoho_en,
 )
 
+# Staff-only internal demo library (card hub-internal-demo-video-library-20260917):
+# the index is staff-gated inside the view, and the media route serves the same
+# directory so internal recordings never need a public static URL.
+from .internal_demos import internal_demo_media, internal_demos
+
 # Information pages
 from .pages import (
     about,
@@ -79,16 +84,6 @@ from .status import (
     server_status_api,
     status_api,
     versions_api,
-    visitor_enter,
-    visitor_expired,
-    visitor_fill_slots_api,
-    visitor_free_slots_api,
-    visitor_heartbeat_api,
-    visitor_pool_full,
-    visitor_pool_initialize_api,
-    visitor_resources_api,
-    visitor_restart_session,
-    visitor_status,
 )
 
 # Utility views
@@ -104,6 +99,8 @@ __all__ = [
     "demos",
     "open_source",
     "video_player",
+    "internal_demos",
+    "internal_demo_media",
     "publications",
     "fundraising",
     "pricing",
@@ -128,6 +125,8 @@ __all__ = [
     "cancel_subscription",
     "open_billing_portal",
     # Status
+    "public_status_view",
+    "public_status_api",
     "server_status",
     "server_status_api",
     "status_api",
@@ -137,16 +136,6 @@ __all__ = [
     "server_metrics_export_csv",
     "server_metrics_series_api",
     "versions_api",
-    "visitor_status",
-    "visitor_enter",
-    "visitor_restart_session",
-    "visitor_expired",
-    "visitor_pool_full",
-    "visitor_pool_initialize_api",
-    "visitor_fill_slots_api",
-    "visitor_free_slots_api",
-    "visitor_heartbeat_api",
-    "visitor_resources_api",
     # API
     "api_docs",
     "api_docs_section",

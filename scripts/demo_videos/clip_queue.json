@@ -1,0 +1,87 @@
+{
+  "schema": "scitex.demo-video.clip-queue/1",
+  "purpose": "One real development clip per visible green slice. Clips are added as they become recordable; nobody waits for a monolithic journey.",
+  "clip_budget_seconds": {"min": 30, "max": 90},
+  "access_requirements": {
+    "public": "no session needed",
+    "session": "needs a working signed-in storageState against the dev server",
+    "operator": "the operator must drive it: a verification code or a card number is outside what the agent may type"
+  },
+  "items": [
+    {
+      "order": 1,
+      "scenario": "signup",
+      "title": "Sign up and first sign in",
+      "access": "operator",
+      "status": "blocked",
+      "blocker": "signup sends a verification code and may reach Stripe: the operator drives this one",
+      "scenario_file": null
+    },
+    {
+      "order": 2,
+      "scenario": "projects",
+      "title": "Create your first project",
+      "access": "session",
+      "status": "recorded",
+      "evidence": "/scratch/beta-video-projects-20260917 (EN/JA, desktop+mobile, commit fe3e39190098)",
+      "scenario_file": "scripts/demo_videos/scenarios/projects.yaml"
+    },
+    {
+      "order": 3,
+      "scenario": "scholar",
+      "title": "Scholar search and library",
+      "access": "session",
+      "status": "authored",
+      "blocker": "recording needs a working signed-in session; the provisioned storageState is Secure and bound to a Cloudflare hostname, so it never reaches the dev server",
+      "scenario_file": "scripts/demo_videos/scenarios/scholar.yaml"
+    },
+    {
+      "order": 4,
+      "scenario": "figrecipe-round-trip",
+      "title": "Stats/FigRecipe project round-trip",
+      "access": "session",
+      "status": "authored",
+      "blocker": "same session blocker; the inner FigRecipe controls are not in this repo, so only the app-mount shell can be asserted (registered contract figrecipe-app-mount)",
+      "scenario_file": "scripts/demo_videos/scenarios/figrecipe-round-trip.yaml"
+    },
+    {
+      "order": 5,
+      "scenario": "writer",
+      "title": "Writer first section and PDF export",
+      "access": "session",
+      "status": "authored",
+      "blocker": "same session blocker",
+      "scenario_file": "scripts/demo_videos/scenarios/writer.yaml"
+    },
+    {
+      "order": 6,
+      "scenario": "agents",
+      "title": "Run an agent from the hub",
+      "access": "session",
+      "status": "not-authored",
+      "blocker": "no scenario yet: needs a working signed-in path to discover the real hooks rather than guess them"
+    },
+    {
+      "order": 7,
+      "scenario": "cards",
+      "title": "Cards: a task from creation to done",
+      "access": "session",
+      "status": "not-authored",
+      "blocker": "no scenario yet; the cards surface is internal, so an outer staff/operator gate applies"
+    },
+    {
+      "order": 8,
+      "scenario": "demos-public",
+      "title": "The public demos page",
+      "access": "public",
+      "status": "recorded",
+      "evidence": "/uvwork/tmp/demos-smoke (EN/JA, commit c55de2439) and /uvwork/tmp/demos-mobile (390x844)",
+      "scenario_file": "scripts/demo_videos/scenarios/smoke-public-demos.yaml"
+    }
+  ],
+  "notes": [
+    "A clip is queued only against a working development path: an authored scenario with no working access is 'authored', not 'recorded'.",
+    "Every render registers as Draft with its commit, date and known defects; only a person moves it to Approved after watching.",
+    "A rejected clip stays in the catalog as history; a re-render becomes a new clip."
+  ]
+}

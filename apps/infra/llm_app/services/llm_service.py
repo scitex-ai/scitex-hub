@@ -4,7 +4,16 @@ from typing import Any, Dict, Optional
 from django.utils import timezone
 
 from apps.infra.integrations_app.models import IntegrationConnection
+from apps.infra.llm_app.funded_chat.errors import (
+    classify_provider_exception,
+    provider_error_payload,
+)
 from apps.infra.llm_app.models import LLMUsageLog
+
+
+def _sanitized_error_reference(exc: BaseException) -> str:
+    classified = classify_provider_exception(exc)
+    return f"{classified.category}:{classified.support_id}"
 
 
 class LLMProviderError(Exception):
@@ -164,7 +173,7 @@ class UserLLMService:
                 response_time_ms=response_time_ms,
                 estimated_cost_usd=0,
                 success=False,
-                error_message=str(e),
+                error_message=_sanitized_error_reference(e),
             )
             raise
 
@@ -306,7 +315,7 @@ class UserLLMService:
                 response_time_ms=response_time_ms,
                 estimated_cost_usd=0,
                 success=False,
-                error_message=str(e),
+                error_message=_sanitized_error_reference(e),
             )
             raise
 
@@ -447,9 +456,15 @@ class UserLLMService:
                 response_time_ms=response_time_ms,
                 estimated_cost_usd=0,
                 success=False,
-                error_message=str(e),
+                error_message=_sanitized_error_reference(e),
             )
-            yield {"type": "error", "error": str(e)}
+            payload = provider_error_payload(
+                e,
+                remaining=None,
+                reset_at="",
+                model=litellm_model,
+            )
+            yield {"type": "error", **payload}
 
     def get_usage_stats(self, days: int = 30) -> Dict[str, Any]:
         """Get usage statistics for the connection."""

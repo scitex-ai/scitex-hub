@@ -23,10 +23,7 @@ export interface WriterConfig {
   projectName?: string | null; // Project name for display
   manuscriptId?: number | null; // Manuscript ID for WebSocket connections
   username: string | null;
-  visitorUsername?: string | null; // Allocated visitor user (e.g., "visitor-015")
   projectSlug: string | null;
-  isDemo: boolean;
-  isVisitor: boolean;
   writerInitialized: boolean;
   documentType?: string; // Current document type (manuscript, shared, supplementary, revision)
   csrfToken?: string;

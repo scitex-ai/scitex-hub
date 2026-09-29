@@ -5,7 +5,7 @@
 WHY THIS EXISTS: status.scitex.ai is a Cloudflare Worker at the edge, so it
 survives the outage it reports on — but from outside it can only ever see "does
 the URL answer". Everything the operator actually reads on /server-status/
-(containers, disk, queues, visitor slots) lives inside the hub. This endpoint is
+(containers, disk and queues) lives inside the hub. This endpoint is
 the one door through which the edge can see it.
 
 WHY IT REUSES THE PAGE'S COLLECTOR RATHER THAN RE-CHECKING: ``_collect_status_data``
@@ -50,7 +50,7 @@ SCHEMA = "scitex-hub.status/1"
 
 # NON-ADMIN REDACTION (site audit 2026-09-14). The full payload carries host CPU /
 # memory / disk / network counters, container images, internal URLs, ports, SSH
-# banners, package versions, visitor usernames and raw error strings that can
+# banners, package versions and raw error strings that can
 # name hosts and paths. A non-admin (including the anonymous status.scitex.ai
 # Worker) keeps the SAME declared shape but only per-service STATE: name, status,
 # health_class. Sections that are host detail in their entirety are dropped.

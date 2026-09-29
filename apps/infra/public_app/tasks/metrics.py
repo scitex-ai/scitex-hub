@@ -68,18 +68,6 @@ def _get_docker_count() -> int | None:
         return None
 
 
-def _get_visitor_pool_status() -> tuple[int | None, int | None]:
-    """Get visitor pool allocation status."""
-    try:
-        from apps.infra.project_app.services.visitor_pool import VisitorPool
-
-        pool_status = VisitorPool.get_pool_status()
-        return pool_status["allocated"], pool_status["total"]
-    except Exception as e:
-        logger.debug(f"Could not get visitor pool status: {e}")
-        return None, None
-
-
 def _get_active_users_count() -> int | None:
     """Count active logged-in users from sessions."""
     try:
@@ -159,7 +147,6 @@ def collect_server_metrics(self):
             _get_service_status()
         )
         docker_services_running = _get_docker_count()
-        visitor_pool_allocated, visitor_pool_total = _get_visitor_pool_status()
         active_users_count = _get_active_users_count()
         gpu_percent = _get_gpu_percent()
 
@@ -185,8 +172,6 @@ def collect_server_metrics(self):
             gitea_ssh_status=gitea_ssh_status,
             database_status=database_status,
             redis_status=redis_status,
-            visitor_pool_allocated=visitor_pool_allocated,
-            visitor_pool_total=visitor_pool_total,
             active_users_count=active_users_count,
             gpu_percent=gpu_percent,
         )

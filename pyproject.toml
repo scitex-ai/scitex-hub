@@ -1,6 +1,6 @@
 [project]
 name = "scitex-hub"
-version = "0.20.0-alpha"
+version = "0.21.0"
 description = "SciTeX Hub - Deployment and management CLI for SciTeX"
 readme = "README.md"
 license = "AGPL-3.0-only"
@@ -35,6 +35,11 @@ dependencies = [
     # `ImportError: No module named 'requests'`.
     # Card: hub-audit-cli-runs-only-when-its-deps-happen-to-be-installed-20260809
     "requests>=2.31",
+    # PS-220 requires shippable source to route human-facing output through
+    # scitex-logging (src/scitex_hub/_logging.py is hub's one factory for it),
+    # and an unguarded runtime import must resolve from
+    # `[project.dependencies]` — not from an extra a minimal install skips.
+    "scitex-logging>=0.1.0",
     # 0.2.10 is the first release where `scitex_app.appmaker.init_app`
     # emits the nested-package layout + `[tool.hatch.build.targets.wheel]
     # packages=["<name>"]` block in the generated pyproject (scitex-app
@@ -69,7 +74,9 @@ dependencies = [
     "scitex-session>=0.1.6",
     # >=2.43.0: the root->workspace contract (PR #389). The hub hands leaves the
     # project root; older writers compose root/00_shared and fail to compile.
-    "scitex-writer>=2.43.1",
+    # >=2.43.6: PDF provenance follows the running source tree and the
+    # compile/re-vendor paths share one version-stamp template.
+    "scitex-writer>=2.43.6",
     # >=1.9.0 is a MOUNT requirement, not a feature preference. Below it the
     # leaf's client JS builds API urls from the SITE ROOT
     # (static/scholar/js/graph/citation-graph.js: fetch("/api/graph/health")),
@@ -85,7 +92,9 @@ dependencies = [
     # bound to 0.0.0.0, DEBUG defaults False, no "*". /api/health no longer
     # returns db_available / db_path (hub has no reader — measured). Verified
     # by scholar from a throwaway venv against PyPI 1.10.0.
-    "scitex-scholar>=1.10.0",
+    # 1.12.0 supplies the optional graph capability report consumed by Hub.
+    # 1.13.0 supplies storage.master_* (leaf owns MASTER writes; hub thin).
+    "scitex-scholar>=1.13.0",
     # THE FOUR SIBLINGS HUB IMPORTS BUT NEVER DECLARED — measured 2026-09-03/04
     # inside the dev image built from `.[all]` (sha256:70be677c04bf): hub's
     # `all` extra pulls the umbrella BARE (`scitex>=2.29.3`, below), whose base
@@ -255,6 +264,14 @@ dependencies = [
     # install. Declaring the package we actually import keeps STT honest;
     # unifying TTS onto the same import is a separate change.
     "scitex-audio>=0.2.13",
+    # >=0.2.0 is a MOUNT requirement: the first release carrying
+    # `scitex_sdk.creator` (the App Creator wizard: STARTERS/app_module_name
+    # SSOT + login-gated `scitex_sdk.creator.urls`). Hub mounts that urlconf
+    # at /create-app/ (config/urls.py) and imports the starter definitions
+    # from it (apps_app/services/app_create.py) instead of keeping its own
+    # copy. Measured 2026-09-27: 0.2.0 declares no `scitex.apps` entry point,
+    # so the generic plugin mount cannot discover it — the mount is explicit.
+    "scitex-sdk>=0.2.0",
     "gitpython>=3.1.51",
 ]
 
@@ -458,6 +475,12 @@ all = [
     # added by scitex-ui PR #228 and 0.20.3 is the first release after 0.20.2
     # (release list read 2026-09-14; scitex-ui confirmed 0.20.3 on PyPI 10:05Z).
     #
+    # RAISED 0.20.3 -> 0.21.0 on 2026-09-14: first release with the
+    # `scitex_project_picker` template tag + `scitex_ui.project_scope` (#232) and
+    # the `scitex_js_catalog` gettext tag (#231), which hub's project picker uses.
+    # RAISED 0.21.0 -> 0.22.0 on 2026-09-16: first stable release with the
+    # Command Registry and global/app-mode keymap API consumed by Settings >
+    # Keyboard Shortcuts. Older wheels cannot import scitex_ui.keymap.
     # RAISED 0.21.0 -> 0.22.0 on 2026-09-15: exact first release whose
     # `scitex_project_picker` loads canonical js/app/project-selector.js and whose
     # `.stx-app-header__slot--project-selector` owns left/phone placement. Hub
@@ -467,6 +490,7 @@ all = [
     "dearpygui>=1.11",
     "cairosvg>=2.9.0",
     "Pillow>=12.1.1",
+    "pypdf>=4.0",
     # --- MCP server surface ---
     "fastmcp>=2.0.0",
     "pyyaml>=6.0",
@@ -514,7 +538,8 @@ dev = [
     # renders a blank — or unusable — gallery. Checked before pinning: the
     # PUBLISHED 0.34.6 wheel was downloaded and inspected, and carries 56 .csv
     # + 1 .npz under figrecipe/_django/gallery_templates/.
-    "figrecipe>=0.34.6",
+    # >=0.34.8 adds recorder/style correctness warnings validated with this alpha.
+    "figrecipe>=0.34.8",
     "joblib",
     "flask",
     # PS-210: `[all]` ships these and the test suite imports them
@@ -576,6 +601,11 @@ dev = [
     # entry -- read it there rather than duplicating it here, so there is one
     # place to correct when the next token moves. RAISED 0.16.0 -> 0.20.3 on
     # 2026-09-14 in lockstep with [all] (--app-accent-agents). RAISED 0.20.3 ->
+    # 0.21.0 the same day in lockstep with [all] (project picker, gettext tag).
+    # RAISED 0.21.0 -> 0.22.0 in lockstep with [all] (Command Registry + keymap
+    # API, Settings > Keyboard Shortcuts); scitex_ui.keymap does not exist below
+    # it. test_shell_pane_contract_floor.py sweeps every group, so the two
+    # copies cannot drift.
     # 0.22.0 on 2026-09-15 in lockstep with [all] (canonical selector entry/slot).
     "scitex-ui>=0.22.0",
 ]

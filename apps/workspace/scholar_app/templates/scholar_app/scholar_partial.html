@@ -50,7 +50,7 @@
                prior state, and it is how anything gets INTO the Library.
             {% endcomment %}
             <a href="#search" class="scholar-tab" data-tab="search">
-                <i class="fas fa-search"></i> Search databases
+                <i class="fas fa-search"></i> Search from DBs
             </a>
             <a href="#library" class="scholar-tab" data-tab="library">
                 <i class="fas fa-book-reader"></i> Library
@@ -60,7 +60,11 @@
                 <i class="fas fa-project-diagram"></i> Citation Graph
             </a>
         </nav>
-        <div class="pane-header-actions"></div>
+        <div class="pane-header-actions">
+            {% if user.is_authenticated %}
+            {% include "scholar_app/partials/project_picker.html" %}
+            {% endif %}
+        </div>
     </div>
     <div class="pane-content">
         <!-- Search Tab -->

@@ -4,17 +4,18 @@
 Routing Tests
 
 Verify route behavior:
-- Visitor (unauthenticated) routes redirect to landing
+- Signed-out user routes redirect to landing
 - Authenticated routes reach the hub/dashboard
 """
 
 import pytest
+
 from tests.e2e.playwright.page_ready import wait_for_page_ready
 
 # WHY THESE TESTS DO NOT WAIT FOR `networkidle`
 #
 # `networkidle` means "500 ms with zero requests in flight". A SciTeX page
-# held by a pooled visitor session runs a heartbeat/countdown poller for as
+# held by a synthetic registered user session runs a heartbeat/countdown poller for as
 # long as the page is open (PoolAllocator.extend_session_on_activity), so
 # that condition never arrives and the wait always times out. The page is
 # fine; the question is unanswerable.
@@ -32,7 +33,7 @@ from tests.e2e.playwright.page_ready import wait_for_page_ready
 # of them can hide a broken page.
 
 
-class TestVisitorRouting:
+class TestSignedOutRouting:
     """Unauthenticated users are redirected to landing page."""
 
     @pytest.mark.parametrize(
@@ -44,7 +45,7 @@ class TestVisitorRouting:
             "/dashboard/",
         ],
     )
-    def test_visitor_redirected_to_landing(self, desktop_page, pw_base_url, path):
+    def test_signed_out_user_redirected_to_landing(self, desktop_page, pw_base_url, path):
         """Unauthenticated access to protected routes redirects to landing or login."""
         desktop_page.goto(path)
         wait_for_page_ready(desktop_page)
@@ -55,7 +56,7 @@ class TestVisitorRouting:
         is_login = "/auth/login" in url or "/login" in url
         assert (
             is_landing or is_login
-        ), f"Visitor at {path} was not redirected. Current URL: {url}"
+        ), f"Signed-out user at {path} was not redirected. Current URL: {url}"
 
     def test_landing_accessible_without_auth(self, desktop_page, pw_base_url):
         """Landing page is accessible without authentication."""
@@ -71,12 +72,12 @@ class TestVisitorRouting:
 class TestAuthenticatedRouting:
     """Authenticated users can access the hub and app routes."""
 
-    def test_auth_user_reaches_hub(self, visitor_desktop_page, pw_base_url, screenshot):
+    def test_auth_user_reaches_hub(self, authenticated_desktop_page, pw_base_url, screenshot):
         """Authenticated user navigating to / reaches hub or dashboard."""
-        visitor_desktop_page.goto("/")
-        wait_for_page_ready(visitor_desktop_page)
-        screenshot(visitor_desktop_page, "auth_hub")
-        url = visitor_desktop_page.url
+        authenticated_desktop_page.goto("/")
+        wait_for_page_ready(authenticated_desktop_page)
+        screenshot(authenticated_desktop_page, "auth_hub")
+        url = authenticated_desktop_page.url
 
         # Authenticated user should see hub, dashboard, or apps -- not login
         assert "/auth/login" not in url, f"Authenticated user was sent to login: {url}"
@@ -89,11 +90,11 @@ class TestAuthenticatedRouting:
             "/apps/workspace/",
         ],
     )
-    def test_auth_user_reaches_app(self, visitor_desktop_page, path):
+    def test_auth_user_reaches_app(self, authenticated_desktop_page, path):
         """Authenticated user can access app routes."""
-        resp = visitor_desktop_page.goto(path)
-        wait_for_page_ready(visitor_desktop_page)
-        url = visitor_desktop_page.url
+        resp = authenticated_desktop_page.goto(path)
+        wait_for_page_ready(authenticated_desktop_page)
+        url = authenticated_desktop_page.url
 
         # Should not be redirected to login
         assert (

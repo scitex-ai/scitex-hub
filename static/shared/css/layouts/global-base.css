@@ -344,3 +344,32 @@ body.workspace-page.app-home .workspace-layout {
     font-size: 1.25rem;
   }
 }
+
+/* Alpha strip: honest beta posture, top of every non-embed page. Slim,
+   high-contrast, dismissible by nobody — it stays while ALPHA_RELEASE is on. */
+.stx-alpha-strip {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem 0.9rem;
+  padding: 0.4rem 1rem;
+  background: #3a2b00;
+  color: #ffe9b3;
+  font-size: 0.8rem;
+  line-height: 1.4;
+  text-align: center;
+}
+.stx-alpha-strip-badge {
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  background: #ffb300;
+  color: #241c00;
+  border-radius: 0.3rem;
+  padding: 0.05rem 0.5rem;
+}
+.stx-alpha-strip a {
+  color: #ffd970;
+  text-decoration: underline;
+}

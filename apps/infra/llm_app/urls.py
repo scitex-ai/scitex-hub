@@ -34,6 +34,11 @@ urlpatterns = [
     # AI chat with MCP tools
     path("api/chat/", views.api_chat, name="api_chat"),
     path("api/chat/stream/", views.api_chat_stream, name="api_chat_stream"),
+    path(
+        "api/chat/funded-allowance/",
+        views.api_funded_chat_allowance,
+        name="api_funded_chat_allowance",
+    ),
     path("api/model/", views.api_current_model, name="api_current_model"),
     # Text-to-speech: returns audio/mpeg bytes for browser playback
     path("api/tts/", views.api_tts, name="api_tts"),

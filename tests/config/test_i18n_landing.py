@@ -50,6 +50,8 @@ PROJECT_ROOT = Path(__file__).resolve().parents[2]
 HERO_TEMPLATE = "public_app/landing_partials/landing_hero.html"
 DEMOS_TEMPLATE = "public_app/landing_partials/landing_demos.html"
 COMMITMENT_TEMPLATE = "public_app/landing_partials/landing_commitment.html"
+OSS_TEMPLATE = "public_app/landing_partials/landing_opensource.html"
+MODULES_TEMPLATE = "public_app/landing_partials/landing_modules.html"
 SWITCHER_TEMPLATE = "global_base_partials/language_switcher.html"
 
 # One string per surface, chosen because each proves a DIFFERENT link in the
@@ -329,6 +331,14 @@ PARTIAL_CASES = [
     (COMMITMENT_TEMPLATE, "科学への私たちの約束", "Our Commitment to Science"),
     (COMMITMENT_TEMPLATE, "研究者お一人おひとりへ", "To Individual Researchers"),
     (COMMITMENT_TEMPLATE, "利益よりも科学を優先します", "Prioritize science over profit"),
+    # Open-source org + research demo section (owner ask 2026-09-27).
+    (OSS_TEMPLATE, "スタック全体がオープンソース", "The whole stack is open source"),
+    (OSS_TEMPLATE, "研究デモ", "Research demo"),
+    (OSS_TEMPLATE, "その他のデモ動画", "More demo videos"),
+    (OSS_TEMPLATE, "40分で見る研究の一連の流れ", "Watch a full research cycle in 40 minutes"),
+    (OSS_TEMPLATE, "フル版デモ——40分で最初から最後まで", "Full-length demo — 40 minutes, end to end."),
+    # App Store forward-looking line in the SDK section (owner ask 2026-09-27).
+    (MODULES_TEMPLATE, "まだ利用できません", "not yet available"),
 ]
 
 

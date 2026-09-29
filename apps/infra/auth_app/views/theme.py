@@ -2,21 +2,13 @@
 # -*- coding: utf-8 -*-
 """Theme preference API views.
 
-Theme resolution contract (card hub-theme-default-must-be-dark):
+Theme resolution contract:
 
 - The BASE default is DARK for every first visit, on every viewport.
 - Only a REGISTERED user's saved profile preference is served as a
   preference (``source: "profile"``); everything else is served as a
   default (``source: "default"``) so the client can let an explicit
   prior localStorage choice win over it.
-- Visitor-pool sessions (writable ``visitor-NNN`` slots and the shared
-  ``readonly-visitor``) are RECYCLED accounts: their profile rows carry
-  whatever theme a PREVIOUS visitor happened to save, not this
-  visitor's preference. Serving that row as a saved preference is how
-  one stale ``light`` poisoned every later visitor allocated the same
-  slot (prod measurement 2026-07-22). Visitors therefore always get
-  the defaults, and their toggles are never persisted onto the shared
-  account (the choice still sticks per-browser via localStorage).
 """
 from __future__ import annotations
 
@@ -24,8 +16,6 @@ import json
 
 from django.http import JsonResponse
 from django.views.decorators.http import require_POST
-
-from apps.infra.project_app.services.visitor_pool import is_visitor_session
 
 from ..models import UserProfile
 
@@ -59,19 +49,6 @@ def api_save_theme_preference(request):
             {"success": False, "error": "Not authenticated"}, status=401
         )
 
-    if is_visitor_session(request):
-        # A visitor's toggle must NOT be written onto the recycled pool
-        # account — it would become the NEXT visitor's "preference".
-        # The choice still sticks for this browser via localStorage
-        # (the client writes localStorage before calling this API).
-        return JsonResponse(
-            {
-                "success": True,
-                "persisted": False,
-                "scope": "browser",
-                "reason": "visitor-session",
-            }
-        )
 
     try:
         data = json.loads(request.body)
@@ -134,12 +111,9 @@ def api_get_theme_preference(request):
         "source": "profile" | "default"
     }
 
-    ``source: "profile"`` only for a REGISTERED user's saved row.
-    Anonymous AND visitor-pool sessions get the dark defaults: a
-    recycled pool account's profile row is a previous visitor's
-    leftover, never this visitor's preference.
+    ``source: "profile"`` only for an authenticated user's saved row.
     """
-    if not request.user.is_authenticated or is_visitor_session(request):
+    if not request.user.is_authenticated:
         return JsonResponse(dict(_DEFAULT_THEME_RESPONSE))
 
     try:

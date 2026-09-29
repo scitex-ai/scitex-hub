@@ -1,0 +1,80 @@
+{% load i18n %}
+{# Project invitation review — shown BEFORE anything is joined.                    #}
+{# Card: hub-project-collaboration-invite-links-20260917 · SSOT §9.                 #}
+{#                                                                                 #}
+{# The recipient reviews what is offered and explicitly accepts; opening the link   #}
+{# (or finishing signup) must not join them. Only POST accepts or declines, and     #}
+{# a non-recipient is told nothing about the project.                               #}
+<!DOCTYPE html>
+<html lang="{{ LANGUAGE_CODE|default:'en' }}" data-theme="dark">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    {# An invitation URL must never be indexed, and must not be cached: it names #}
+    {# a project for one person. The view sets the same thing as response headers. #}
+    <meta name="robots" content="noindex, nofollow">
+    <title>{% trans "Project invitation" %} · SciTeX</title>
+</head>
+<body>
+<main class="invite-review"
+      data-invite-review="true"
+      data-invite-state="{{ state }}"
+      style="max-width:640px;margin:0 auto;padding:2rem 1rem;">
+    <h1 class="invite-review-title">
+        {% if state == 'review' %}{% trans "You have been invited to a project" %}
+        {% elif state == 'not_yours' %}{% trans "This invitation is not for your account" %}
+        {% elif state == 'expired' %}{% trans "This invitation has expired" %}
+        {% elif state == 'already_accepted' %}{% trans "You have already accepted this invitation" %}
+        {% else %}{% trans "This invitation is no longer pending" %}{% endif %}
+    </h1>
+
+    {% if state == 'review' %}
+        <p class="invite-review-lead">
+            {% blocktrans with inviter=inviter_name project=project_name %}{{ inviter }} invited you to collaborate on {{ project }}.{% endblocktrans %}
+        </p>
+        <dl class="invite-review-facts">
+            <dt>{% trans "Project" %}</dt><dd data-invite-fact="project">{{ project_name }}</dd>
+            <dt>{% trans "Invited by" %}</dt><dd data-invite-fact="inviter">{{ inviter_name }}</dd>
+            <dt>{% trans "Role" %}</dt><dd data-invite-fact="role">{{ role }}</dd>
+            <dt>{% trans "Access" %}</dt><dd data-invite-fact="access">{{ permission_level }}</dd>
+            <dt>{% trans "Expires" %}</dt><dd data-invite-fact="expires">{{ expires_at }}</dd>
+        </dl>
+        <p class="invite-review-note">
+            {% trans "Nothing has been shared with you yet: you will see the project and its files only after you accept." %}
+        </p>
+        <div class="invite-review-actions">
+            {# POST, not a link: accepting is a state change and must not be a GET. #}
+            <form method="post" action="{{ accept_url }}">
+                {% csrf_token %}
+                <button type="submit" data-invite-action="accept">
+                    {% blocktrans with project=project_name %}Accept and open {{ project }}{% endblocktrans %}
+                </button>
+            </form>
+            <form method="post" action="{{ decline_url }}">
+                {% csrf_token %}
+                <button type="submit" data-invite-action="decline">{% trans "Decline" %}</button>
+            </form>
+        </div>
+
+    {% elif state == 'not_yours' %}
+        <p class="invite-review-lead">
+            {% trans "It was sent to a different SciTeX account. Sign in with that account, or ask the project owner to invite this one." %}
+        </p>
+
+    {% elif state == 'expired' %}
+        <p class="invite-review-lead">
+            {% trans "Invitations are time-limited. Ask the project owner for a new one." %}
+        </p>
+
+    {% else %}
+        <p class="invite-review-lead">
+            {% trans "There is nothing left to do here." %}
+        </p>
+    {% endif %}
+
+    <p class="invite-review-help">
+        <a href="/">{% trans "Back to SciTeX" %}</a>
+    </p>
+</main>
+</body>
+</html>

@@ -25,6 +25,40 @@ from apps.infra.public_app.pricing import (
 PROJECT_ROOT = Path(__file__).resolve().parents[3]
 
 
+def _section_row(rows: list, group_prefixes: str | tuple, label: str) -> list:
+    """Cells of `label` inside the section whose group starts with prefix.
+
+    "CPU" labels two rows (Resources quota vs COMPUTE rate); bare
+    by_label lookups silently resolve to whichever comes last. Prefixes
+    is a tuple under translation.override (EN + JA group names).
+    """
+    if isinstance(group_prefixes, str):
+        group_prefixes = (group_prefixes,)
+    current_group = None
+    for r in rows:
+        if "group" in r:
+            current_group = r["group"]
+        elif r.get("label") == label and str(current_group).startswith(
+            group_prefixes
+        ):
+            return r["cells"]
+    raise AssertionError(f"no {label!r} row under {group_prefixes!r}")
+
+
+def _section_rows(rows: list, group_prefixes: str | tuple) -> list:
+    """All labeled rows inside the section, in order."""
+    if isinstance(group_prefixes, str):
+        group_prefixes = (group_prefixes,)
+    current_group = None
+    out = []
+    for r in rows:
+        if "group" in r:
+            current_group = r["group"]
+        elif str(current_group).startswith(group_prefixes):
+            out.append(r)
+    return out
+
+
 @pytest.fixture(scope="module", autouse=True)
 def compiled_catalogs():
     """Compile locale/**/*.po -> .mo before any JA assertion reads a catalog.
@@ -166,7 +200,7 @@ def test_the_subscription_rows_show_flat_usd() -> None:
         for d in days
     ]
     # Assert
-    assert prices == [("$19/mo", "$39/mo")] * len(days)
+    assert prices == [("無料", "$19/mo", "$39/mo")] * len(days)
 
 
 @translation.override("ja")
@@ -178,7 +212,7 @@ def test_the_academic_cloud_label_translates_to_japanese() -> None:
     # Act
     label = translate_dynamic(by_id["subscription-student"]["label"])
     # Assert
-    assert label == "SciTeX Cloud Academic（学術）"
+    assert label == "SciTeX Cloud Pro - Academic（学術）"
 
 
 def test_every_catalogue_attribute_renders_as_one_phrase() -> None:
@@ -210,16 +244,25 @@ def test_the_subscription_rows_state_what_they_include() -> None:
         "含まれる量を超えたストレージと送信は従量課金",
         "月間の利用上限を利用者が設定（近日提供）",
     )
-    # Act
+    # Act: the paid rows carry the full §2 list; the Free row is exempt —
+    # it has no trial, no 32 GB, no metered overage — but must say no card.
     missing = [
         (row["id"], needle)
         for row in published_price_rows(today=date(2026, 9, 2))
-        if row["category"] == "subscription"
+        if row["category"] == "subscription" and row["id"] != "subscription-free"
         for needle in needles
         if needle not in "、".join(row["included"])
     ]
+    free_included = "、".join(
+        item
+        for row in published_price_rows(today=date(2026, 9, 2))
+        if row["id"] == "subscription-free"
+        for item in row["included"]
+    )
     # Assert
     assert missing == []
+    assert "クレジットカードの登録は不要" in free_included
+    assert "Cool ストレージ 2 GB 込み" in free_included
 
 
 @translation.override("ja")
@@ -230,3 +273,229 @@ def test_only_the_academic_cloud_row_states_an_eligibility_rule() -> None:
     eligible = [r["id"] for r in rows if any(i.startswith("対象: ") for i in r["included"])]
     # Assert
     assert eligible == ["subscription-student"]
+
+
+@translation.override("ja")
+def test_percent_notes_render_japanese_not_english_fallback() -> None:
+    """Django's {% trans %} looks literals up DOUBLED (value.replace("%","%%")).
+
+    A single-% msgid in django.po therefore misses SILENTLY and the page shows
+    English (measured live 2026-08-23 for "100% open-source", and again for
+    these two notes). The repo convention: template keeps single %, .po msgid
+    carries %%, msgstr single %. This test renders the tag the way the
+    template does, so a reverted msgid fails HERE instead of on the live page.
+    """
+    from django.template import Context, Template
+
+    cases = {
+        "Academic users get Pro at 50% off with a university email address.":
+            "50%オフ",
+        "Pay-as-you-go (PAYG) usage beyond your plan is billed at provider "
+        "cost plus a 20% service fee.":
+            "20%のサービス料",
+    }
+    for literal, ja_needle in cases.items():
+        rendered = Template('{% load i18n %}{% trans "' + literal + '" %}').render(
+            Context()
+        )
+        assert ja_needle in rendered, (
+            f"{{% trans {literal!r} %}} rendered English under ja: {rendered!r}. "
+            "The django.po msgid must carry %% (doubled percent)."
+        )
+
+
+def test_self_hosted_license_group_contrasts_agpl_vs_commercial() -> None:
+    """The Non-AGPL incentives (commercial use, support, SLA) render from
+    BOTH self-hosted rows' SSOT license_terms — never typed in the template.
+    """
+    from apps.infra.public_app.pricing import plan_comparison
+
+    rows = plan_comparison()["rows"]
+    by_label = {r["label"]: r["cells"] for r in rows if "label" in r}
+    assert by_label["Commercial use"] == [
+        "—",
+        "—",
+        "Source disclosure required",
+        "No restrictions",
+    ]
+    assert by_label["Support"] == ["—", "—", "Community", "Included"]
+    assert by_label["SLA"] == ["—", "—", "—", "Included"]
+
+
+def test_metered_rates_and_api_rows_come_from_the_ssot() -> None:
+    """CPU/RAM/GPU rates, API keys and API services render from rate_card —
+    the table can never disagree with the pricing page's rate list.
+    """
+    from apps.infra.public_app.pricing import plan_comparison
+
+    rows = plan_comparison()["rows"]
+    by_label = {r["label"]: r["cells"] for r in rows if "label" in r}
+    # The COMPUTE section's CPU/Memory rows: the per-hour unit says metered,
+    # so the labels stay bare. Scoped by section — Resources has its own CPU.
+    compute_rows = {}
+    current_group = None
+    for r in rows:
+        if "group" in r:
+            current_group = r["group"]
+        elif current_group == "Compute (Coming soon)":
+            compute_rows[r["label"]] = r
+    assert compute_rows["CPU"]["cells"][0] == "$0.05 / CPU Unit-hour"
+    assert compute_rows["CPU"]["cells"][2] == "—"  # self-hosted: your hardware
+    assert compute_rows["Memory"]["cells"][0] == "$0.005 / GiB-hour"
+    # One row per GPU class (a combined cell became an unreadable tower
+    # on narrow displays); VRAM lives in the class names, not its own row.
+    assert by_label["RTX 4090 class"][0] == "$0.70 / GPU-hour"
+    assert by_label["A100 80 GB class"][0] == "$2.00 / GPU-hour"
+    assert by_label["B200 class"][0] == "$7.00 / GPU-hour"
+    assert "VRAM" not in by_label
+    # The included-GPU row is separate from the metered per-class rows.
+    assert by_label["GPU"][0] == "No GPU"
+    # Only short price rows opt into mobile nowrap; sentence cells wrap.
+    nowrap = {
+        r["label"]: r.get("nowrap", False) for r in rows if "label" in r
+    }
+    assert compute_rows["CPU"].get("nowrap", False) is True
+    assert nowrap["RTX 4090 class"] is True
+    assert nowrap["API keys"] is True
+    assert nowrap["Applications"] is False
+    assert nowrap["Compute credits"] is False
+    assert by_label["API keys"] == [
+        "Standard rate limits",
+        "Priority rate limits",
+        "—",
+        "—",
+    ]
+    apps = by_label["Applications"]
+    assert "no separate fee" in apps[0]
+    assert "20% service fee" not in apps[0]
+    assert "(Coming soon)" in apps[0]
+    assert "Scholar" not in apps[0] and "Writer" not in apps[0]
+    assert apps[2] == "—"
+    groups = [r["group"] for r in rows if "group" in r]
+    assert "Compute (Coming soon)" in groups
+    assert "Applications" in groups
+    # License terms read as Storage rows without their own header — they get
+    # one, so Commercial use / Support / SLA scan as license terms.
+    assert "Self-hosted license" in groups
+    license_idx = groups.index("Self-hosted license")
+    storage_idx = next(
+        i for i, g in enumerate(groups) if g.startswith("Storage")
+    )
+    assert storage_idx < license_idx
+    # Self-hosted columns collapse repetition: one spanned cell per run,
+    # never a wall of identical lines (see the STORAGE screenshot).
+    storage_rows = _section_rows(rows, ("Storage",))
+    hosted_spans = [
+        (r.get("rs2"), r.get("rs3")) for r in storage_rows
+    ]
+    assert hosted_spans[0] == (4, 4)
+    assert all(r.get("skip2") and r.get("skip3") for r in storage_rows[1:])
+    agents = by_label["Agents"]
+    assert "model API × 110%" in agents[0]
+    assert agents[2] == "—"
+    model_api = by_label["Model API"]
+    assert "metered compute rates" in model_api[0]
+
+
+@translation.override("ja")
+def test_license_and_notes_render_japanese() -> None:
+    """New compare-table strings must not silently fall back to English."""
+    from apps.infra.public_app.pricing import plan_comparison
+
+    comp = plan_comparison()
+    rows = comp["rows"]
+    by_label = {r["label"]: r["cells"] for r in rows if "label" in r}
+    comm_use = next(r["cells"] for r in rows if "cells" in r and r["cells"][2:] == ["ソース開示が必要", "制限なし"])
+    assert comm_use[:2] == ["—", "—"]
+    resources_cpu = _section_row(rows, ("Resources", "リソース"), "CPU")
+    assert resources_cpu[2] == "ご自身のハードウェア"
+    notes = " ".join(comp["notes"])
+    assert "VRAMの単独料金はありません" in notes
+    assert "コンピュートクレジットは、" in notes
+
+
+@translation.override("ja")
+def test_metered_and_api_rows_render_japanese() -> None:
+    from apps.infra.public_app.pricing import plan_comparison
+
+    rows = plan_comparison()["rows"]
+    cells = [str(c) for r in rows if "cells" in r for c in r["cells"]]
+    text = " ".join(cells)
+    assert "CPUユニット時間" in text
+    assert "標準レート制限" in text
+    assert "優先レート制限" in text
+    assert "従量コンピュート料金に準じる" in text
+
+
+def test_table_notes_come_from_the_ssot() -> None:
+    """Footnotes stay minimal: credit value, VRAM bundling, speed honesty.
+
+    Tier meanings and speeds live under the tier names in the row labels,
+    the academic discount lives in the Pro price cell — the bottom of the
+    table keeps only what fits no cell. Self-hosted resource cells stay a
+    short line, not a repeated paragraph.
+    """
+    from apps.infra.public_app.pricing import plan_comparison
+
+    comp = plan_comparison()
+    notes = comp["notes"]
+    assert any("$1" in n and "Compute Credit" in n for n in notes)
+    assert any("no separate VRAM rate" in n for n in notes)
+    assert any("approximate live measurements" in n for n in notes)
+    assert not any("storage:" in n for n in notes)
+    rows = comp["rows"]
+    by_label = {r["label"]: r["cells"] for r in rows if "label" in r}
+    # "CPU" labels two rows (Resources quota vs COMPUTE rate) — scope it.
+    resources_cpu = _section_row(rows, "Resources", "CPU")
+    assert resources_cpu[2] == "Your own hardware"
+    assert resources_cpu[1] == "2 (+ optional)"
+    assert by_label["RAM"][1] == "8 GB (+ optional)"
+    hot_key = next(k for k in by_label if k.startswith("Hot"))
+    hot_cells = by_label[hot_key]
+    assert hot_cells[1] == "Optional" and hot_cells[0] == "—"
+    priority_row = next(r for r in rows if r.get("label") == "Queue priority")
+    assert priority_row["cells"] == [
+        "Standard queue",
+        "Priority queue",
+        "—",
+        "—",
+    ]
+    cool_key = next(k for k in by_label if k.startswith("Cool"))
+    assert by_label[cool_key][2] == "Your own hardware"
+    assert not any(
+        "Runs on your own hardware" in c
+        for r in rows if "cells" in r for c in r["cells"]
+    )
+    price_row = next(r for r in rows if r.get("label") == "Price")
+    assert "academic (50% off)" in price_row["cells"][1]
+    assert price_row["code"] == "price"
+    coupon_row = next(r for r in rows if r.get("label") == "Coupons")
+    assert coupon_row["cells"] == [
+        "—",
+        "Coupon codes accepted (Coming soon)",
+        "—",
+        "On request",
+    ]
+    # The input + Apply render inside this column's cell (1=Pro) — the row
+    # carries the marker so the template never matches translated labels.
+    assert coupon_row["code"] == "coupons"
+    assert coupon_row["coupon_input_col"] == 1
+    hot_key = next(k for k in by_label if k.startswith("Hot"))
+    assert "tier-speed" in hot_key and "tier-sub" in hot_key
+    cols = comp["columns"]
+    assert [c["label"] for c in cols] == [
+        "SciTeX™ Cloud Free",
+        "SciTeX™ Cloud Pro",
+        "SciTeX™ Self-Hosted (AGPL)",
+        "SciTeX™ Self-Hosted (Enterprise)",
+    ]
+    assert [c["recommended"] for c in cols] == [False, True, False, False]
+    assert all(c["cta_label"] and c["cta_url"] for c in cols)
+    assert cols[2]["cta_external"] is True
+    assert comp["coupon_codes"] == [
+        {
+            "code": "ACADEMIC50",
+            "description": "Academic — 50% off Pro",
+            "price": "$19/mo",
+        }
+    ]

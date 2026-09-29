@@ -122,4 +122,60 @@ class JWTBearerToSessionMiddleware:
         request._dont_enforce_csrf_checks = True
 
 
+class OnboardingGateMiddleware:
+    """Hold a verified-but-unpaid account on the funnel's payment step.
+
+    Card: hub-signup-email-stripe-funnel-20260917. PR #934 review, blocker 1.
+
+    THE DEFECT THIS CLOSES. Verification activated and logged the account in and
+    deleted the only record that it was mid-signup, so nothing anywhere — not
+    middleware, not a product entry check — could tell a half-finished signup
+    from a finished one. The account could request ``/``, ``/<username>/`` or any
+    leaf app and simply skip the payment step. "Activate after the card" was
+    template copy, not a rule.
+
+    THE RULE NOW. Every authenticated request from an account whose durable
+    authority still says PAYMENT is classified by
+    :mod:`apps.infra.accounts_app.funnel`. Exempt mounts pass through (the step
+    itself, account settings, sign-out, legal pages, assets, infrastructure);
+    everything else is refused — a redirect for a browser, a 402 JSON body for
+    an API caller.
+
+    WHAT IT DELIBERATELY DOES NOT DO. It does not gate anonymous traffic (public
+    marketing pages are not this middleware's business), it never gates staff or
+    superusers (an operator locked out of the product they run is an outage),
+    and it does not gate accounts that have no authority row at all — every
+    account created before this funnel is outside it. The requirement itself is
+    computed by :func:`apps.infra.auth_app.onboarding.payment_required`, so the
+    "no provider configured" case is decided once, in one place, rather than
+    being re-derived here.
+    """
+
+    sync_capable = True
+    async_capable = False
+
+    def __init__(self, get_response):
+        self.get_response = get_response
+
+    def __call__(self, request):
+        user = getattr(request, "user", None)
+        if user is None or not user.is_authenticated:
+            return self.get_response(request)
+        if user.is_staff or user.is_superuser:
+            return self.get_response(request)
+
+        # Local imports: this module is imported by settings, which is imported
+        # before the app registry is ready to hand out models.
+        from apps.infra.auth_app.onboarding import payment_required
+
+        if not payment_required(user):
+            return self.get_response(request)
+
+        from .funnel import gated_response_for, request_is_gated
+
+        if request_is_gated(request.path):
+            return gated_response_for(request)
+        return self.get_response(request)
+
+
 # EOF

@@ -11,7 +11,7 @@
   "license": "AGPL-3.0",
   "keyboard_shortcut": "H",
   "order": 10,
-  "accent_color": "my_projects",
+  "accent_color": "home",
   "body_class": "my-projects-page",
   "partial_template": "my_projects_app/index_partial.html",
   "context_builder": "apps.workspace.my_projects_app.views.index.build_hub_context",

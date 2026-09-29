@@ -1,7 +1,7 @@
 /**
  * Dev Tools TypeScript
  * Functions for footer dev toolbar (DEBUG mode only)
- * Handles visitor pool management: init, fill slots, free slots
+ * Handles development-only maintenance actions.
  */
 
 // Get CSRF token from cookie
@@ -22,9 +22,9 @@ function getCsrfToken(): string {
 }
 
 /**
- * Helper: POST to a visitor pool API endpoint with button feedback
+ * POST to a development endpoint with button feedback.
  */
-async function visitorPoolAction(
+async function devToolAction(
   btnId: string,
   url: string,
   originalIcon: string,
@@ -98,43 +98,10 @@ async function visitorPoolAction(
   }
 }
 
-// Initialize Visitor Pool (Dev only)
-async function initVisitorPool(): Promise<void> {
-  await visitorPoolAction(
-    "init-visitor-pool-btn",
-    "/api/visitor-pool/initialize/",
-    "fa-users-cog",
-    (data) =>
-      `Visitor Pool Initialized!\n\nReset: ${data.reset || 0} directories\nCreated: ${data.created} visitors\nTotal: ${data.total} slots\nFree: ${data.free} available`,
-  );
-}
-
-// Fill all visitor slots to trigger read-only mode (Dev only)
-async function fillVisitorSlots(): Promise<void> {
-  await visitorPoolAction(
-    "fill-visitor-slots-btn",
-    "/api/visitor-pool/fill-slots/",
-    "fa-user-lock",
-    (data) =>
-      `Visitor Slots Filled!\n\n${data.filled} slots filled.\n${data.message}`,
-  );
-}
-
-// Free all visitor slots (Dev only)
-async function freeVisitorSlots(): Promise<void> {
-  await visitorPoolAction(
-    "free-visitor-slots-btn",
-    "/api/visitor-pool/free-slots/",
-    "fa-user-check",
-    (data) =>
-      `Visitor Slots Freed!\n\n${data.freed} slots freed.\n${data.message}`,
-  );
-}
-
 // Cancel all SLURM jobs (Dev only)
 async function cancelAllJobs(): Promise<void> {
   if (!confirm("Cancel ALL SLURM jobs?")) return;
-  await visitorPoolAction(
+  await devToolAction(
     "cancel-all-jobs-btn",
     "/dev/api/cancel-all-jobs/",
     "fa-ban",
@@ -142,8 +109,5 @@ async function cancelAllJobs(): Promise<void> {
   );
 }
 
-// Make functions available globally for onclick handlers in footer
-(window as any).initVisitorPool = initVisitorPool;
-(window as any).fillVisitorSlots = fillVisitorSlots;
-(window as any).freeVisitorSlots = freeVisitorSlots;
+// Make the function available globally for the footer's onclick handler.
 (window as any).cancelAllJobs = cancelAllJobs;

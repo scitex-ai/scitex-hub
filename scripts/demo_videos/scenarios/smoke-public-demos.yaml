@@ -1,0 +1,58 @@
+# Pipeline smoke tour of the PUBLIC demos pages.
+#
+# This is not a published guide: it is not in VIDEO_CATALOG and its files are not
+# copied to the media volume. It exists so the whole pipeline — narration, cues,
+# burned captions, mp4, thumbnail, manifest, watch gate — can be exercised and
+# verified on a machine with no demo account, because every step below is
+# reachable signed out.
+#
+# The demos page has no translations of its own (no {% trans %} in
+# pages/demos.html), so the Japanese rendition is the "narration language differs
+# from the UI language" case the spec describes: it is recorded with the UI in
+# English and the manifest says so, instead of pretending the page is Japanese.
+app: smoke-demos
+title:
+  en: Watch a narrated guide
+  ja: ナレーション付きガイドを見る
+languages:
+  en: {locale: en}
+  ja: {locale: en}
+viewports: [desktop, mobile]
+sign_in: false
+steps:
+  - action: goto
+    value: /demos/
+    chapter:
+      en: Demos
+      ja: デモ
+    narration:
+      en: Short guides show one workflow at a time. This is the demos page.
+      ja: 短いガイドでは、ひとつの流れを順番に見られます。ここはデモのページです。
+    hold: 1.2
+  - action: goto
+    value: /demos/watch/guide-create-first-project/
+    chapter:
+      en: The guide
+      ja: ガイドを開く
+    narration:
+      en: Open the guide that creates a project, and watch it with narration and captions.
+      ja: プロジェクトを作るガイドを開きます。ナレーションと字幕つきで再生できます。
+    hold: 1.5
+  - action: click
+    selector: '[data-speed="2"]'
+    chapter:
+      en: Speed
+      ja: 再生速度
+    narration:
+      en: The speed buttons play the same recording faster.
+      ja: 再生速度のボタンで、同じ録画を速く再生できます。
+    hold: 1.5
+  - action: scroll
+    value: "300"
+    chapter:
+      en: The other language
+      ja: もう一方の言語
+    narration:
+      en: Below the video, the same guide is offered in the other language.
+      ja: 動画の下には、もう一方の言語の同じガイドがあります。
+    hold: 1.0

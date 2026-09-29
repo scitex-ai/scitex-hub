@@ -141,11 +141,21 @@ def billing_checkout(request):
 @csrf_exempt
 @require_POST
 def stripe_webhook(request):
-    """Billing-provider webhook: signature-verified, recorded, then applied.
+    """Billing-provider webhook: verified, deduplicated, then applied ONCE.
 
     CSRF-exempt (the provider cannot send a CSRF token), so the signature is
-    the only authentication. Events are recorded idempotently in
-    ``BillingEvent`` before the provider applies them to cards/subscriptions.
+    the only authentication. Three separate gates, in order, and each one closes
+    a distinct hole:
+
+    1. SIGNATURE — the payload is genuine (unchanged).
+    2. TEST/LIVE CONSISTENCY — the event's ``livemode`` must agree with the
+       configured key (PR #934 review, blocker 5). A live event delivered to a
+       test-configured deployment is a misconfiguration or a replay, and applying
+       it would move real entitlement from a test-signed payload.
+    3. IDEMPOTENT PROCESSING — the event is recorded, then CLAIMED atomically,
+       applied, and marked done (blocker 6). A retry of an applied event is
+       acknowledged without re-applying it; a retry of a FAILED event is allowed
+       through, because that is what retrying is for.
     """
     provider = get_billing_provider()
     try:
@@ -177,14 +187,62 @@ def stripe_webhook(request):
             status=400,
         )
 
-    from ..models import BillingEvent
+    from ..services import webhook_processing
+    from ..services.billing_provider import event_matches_key_environment
 
-    _, created = BillingEvent.objects.get_or_create(
-        event_id=event_id,
-        defaults={"event_type": event_type, "payload": event},
+    if not event_matches_key_environment(event, settings.STRIPE_SECRET_KEY):
+        # Recorded for the operator, then refused: this event must never touch
+        # entitlement, and "why did nothing happen?" needs an answer in the data.
+        row, _ = webhook_processing.record_event(event)
+        webhook_processing.release_event(
+            "livemode does not match the configured Stripe key", row=row
+        )
+        logger.error(
+            "Refusing webhook %s: livemode=%r does not match the configured key",
+            event_id,
+            event.get("livemode"),
+        )
+        return JsonResponse(
+            {
+                "error": "mode_mismatch",
+                "detail": (
+                    "This event's livemode does not match the configured Stripe "
+                    "key; it was recorded and not applied."
+                ),
+            },
+            status=400,
+        )
+
+    row, created = webhook_processing.record_event(event)
+    claimed = webhook_processing.claim_event(event_id)
+    if claimed is None:
+        # Already applied, or another worker holds a live claim. Both are a
+        # successful delivery from the provider's point of view: answering
+        # non-2xx here would make Stripe retry an event we have already handled.
+        return JsonResponse(
+            {
+                "received": True,
+                "created": created,
+                "processed": False,
+                "status": row.status,
+            }
+        )
+
+    try:
+        provider.handle_event(event)
+    except Exception as exc:
+        webhook_processing.release_event(exc, row=claimed)
+        logger.exception("Webhook %s failed; left claimable for retry", event_id)
+        raise
+    webhook_processing.complete_event(row=claimed)
+    return JsonResponse(
+        {
+            "received": True,
+            "created": created,
+            "processed": True,
+            "attempts": claimed.attempts,
+        }
     )
-    provider.handle_event(event)
-    return JsonResponse({"received": True, "created": created})
 
 
 def _billing_settings_url(request, **query):
@@ -194,22 +252,64 @@ def _billing_settings_url(request, **query):
     return request.build_absolute_uri(url)
 
 
+def _payment_step_url(request, **query):
+    """The FUNNEL's return address (PR #934 review, blocker 3).
+
+    The provider used to send the browser back to the generic billing page, so
+    the success/cancel notices the payment step renders were unreachable — the
+    step never saw its own outcome, and success never moved anyone on to the
+    product.
+    """
+    from apps.infra.accounts_app.funnel import payment_step_url
+
+    url = payment_step_url(**query)
+    return request.build_absolute_uri(url)
+
+
 @login_required
 @require_POST
 def start_card_setup(request):
     """Send the user to the provider's hosted card form (setup, no charge).
 
     The card becomes usable only when the signed completion webhook arrives.
+    The plan posted here must be on the deployment's allowlist (blocker 5) and
+    is bound to the provider session's metadata, so the webhook activates the
+    plan the user was actually shown.
     """
+    from apps.infra.accounts_app.payment_step import funnel_plan
+    from apps.infra.auth_app.onboarding import state_for
+
+    if state_for(request.user) is None:
+        # Not a funnel account: this endpoint exists for the signup step, and an
+        # established account adds a card from billing settings instead.
+        messages.error(request, _("Use billing settings to add or change a card."))
+        return redirect("accounts_app:billing")
+
+    row = funnel_plan(request.user, requested_id=request.POST.get("plan") or None)
+    if row is None:
+        messages.error(
+            request,
+            _(
+                "We could not determine which plan to set up. Nothing has been "
+                "charged. Please try again, or contact support."
+            ),
+        )
+        return redirect("accounts_app:payment_step")
+
     try:
         hosted_url = get_billing_provider().start_card_setup(
             request.user,
-            success_url=_billing_settings_url(request, setup="success"),
-            cancel_url=_billing_settings_url(request, setup="cancelled"),
+            pricing_id=row["id"],
+            success_url=_payment_step_url(request, setup="complete"),
+            cancel_url=_payment_step_url(request, setup="cancelled"),
         )
     except BillingNotConfigured as exc:
         return _service_unavailable(str(exc))
+    except BillingOperationRefused as exc:
+        messages.error(request, str(exc))
+        return redirect("accounts_app:payment_step")
     return redirect(hosted_url)
+
 
 
 @login_required

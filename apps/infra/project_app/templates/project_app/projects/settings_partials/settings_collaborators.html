@@ -1,3 +1,4 @@
+{% load i18n %}
 <!-- Collaborators Section -->
 <div class="settings-section" id="collaborators">
     <div class="settings-section-header">
@@ -6,6 +7,20 @@
     </div>
     <!-- Pending Invitations -->
     {% if project.invitations.all %}
+        {% comment %}The three steps the recipient actually goes through. Card
+           hub-project-collaboration-invite-links-20260917 / SSOT §9: the same
+           simple pattern as referrals — a copyable URL and three clear steps —
+           and explicitly NOT a silent join.{% endcomment %}
+        <div class="invite-steps" data-invite-steps="true">
+            <h6 style="color: var(--color-fg-muted);
+                       font-size: 12px;
+                       margin-bottom: 8px">HOW AN INVITE WORKS</h6>
+            <ol class="invite-steps-list">
+                <li>{% trans "They sign in, or create and verify their own SciTeX account." %}</li>
+                <li>{% trans "They review the project and the role you offered." %}</li>
+                <li>{% trans "They accept explicitly. Opening the link does not join them." %}</li>
+            </ol>
+        </div>
         <div style="margin-bottom: 16px">
             <h6 style="color: var(--color-fg-muted);
                        font-size: 12px;
@@ -19,7 +34,8 @@
                                 border: 1px solid var(--color-border-default);
                                 border-radius: 6px;
                                 margin-bottom: 8px;
-                                background: var(--color-attention-subtle)">
+                                background: var(--color-attention-subtle)"
+                         data-invitation="{{ invitation.invited_user.username }}">
                         <div style="display: flex; align-items: center; gap: 12px">
                             <div style="width: 32px;
                                         height: 32px;
@@ -32,7 +48,10 @@
                                         font-weight: 600">{{ invitation.invited_user.username|slice:":1"|upper }}</div>
                             <div>
                                 <div style="font-weight: 600; color: var(--color-fg-default)">{{ invitation.invited_user.username }}</div>
-                                <div style="font-size: 12px; color: var(--color-fg-muted)">Pending • {{ invitation.role|title }}</div>
+                                <div style="font-size: 12px; color: var(--color-fg-muted)">
+                                    Pending • {{ invitation.role|title }} • {{ invitation.permission_level|title }}
+                                    {% if invitation.expires_at %}• expires {{ invitation.expires_at }}{% endif %}
+                                </div>
                             </div>
                         </div>
                         <button type="submit"
@@ -42,10 +61,51 @@
                                 style="padding: 4px 12px;
                                        font-size: 12px">Cancel</button>
                     </div>
+                    {% comment %}The owner can hand the link over directly (Slack, email of their
+                       own) instead of relying on our mail. It is the same opaque
+                       token; it grants nothing on its own.{% endcomment %}
+                    <div class="invite-link-row" data-invite-link="{{ invitation.token }}">
+                        <label class="invite-link-label"
+                               for="invite-link-{{ invitation.token }}">{% trans "Invitation link" %}</label>
+                        <input type="text"
+                               readonly
+                               id="invite-link-{{ invitation.token }}"
+                               class="invite-link-input"
+                               value="/invitations/{{ invitation.token }}/accept/"
+                               onclick="this.select()">
+                        <button type="button"
+                                class="btn btn-sm invite-link-copy"
+                                data-copy-invite-link="invite-link-{{ invitation.token }}">{% trans "Copy" %}</button>
+                        <p class="invite-link-note">
+                            {% trans "Anyone can open it, but only the invited account can accept — and only after signing in. It expires; do not post it publicly." %}
+                        </p>
+                    </div>
                 {% endif %}
             {% endfor %}
         </div>
     {% endif %}
+{# hook-bypass: inline-script — copying must not depend on the JS bundle loading #}
+<script>
+(function () {
+    function wire(btn) {
+        if (btn.dataset.copyWired === "true") return;
+        btn.dataset.copyWired = "true";
+        btn.addEventListener("click", function () {
+            var input = document.getElementById(btn.getAttribute("data-copy-invite-link"));
+            if (!input) return;
+            input.select();
+            var done = function () { btn.dataset.copied = "true"; };
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                navigator.clipboard.writeText(input.value).then(done, done);
+            } else {
+                try { document.execCommand("copy"); } catch (e) { /* the field is selected; manual copy works */ }
+                done();
+            }
+        });
+    }
+    document.querySelectorAll("[data-copy-invite-link]").forEach(wire);
+})();
+</script>
 <!-- Current Collaborators -->
 {% if project.memberships.count > 0 %}
     <div style="margin-bottom: 16px">

@@ -147,7 +147,7 @@ def token_create(user, password, scopes, name, server, save, dry_run, yes):
     try:
         resp = requests.post(f"{server_url}/api/me/token/", json=body, timeout=20)
     except requests.ConnectionError:
-        console.print(f"[red]Cannot reach {server_url}. Check --server.[/red]")
+        console.error(f"[red]Cannot reach {server_url}. Check --server.[/red]")
         sys.exit(1)
 
     if resp.status_code == 201:
@@ -158,10 +158,10 @@ def token_create(user, password, scopes, name, server, save, dry_run, yes):
             p.parent.mkdir(parents=True, exist_ok=True)
             p.write_text(json.dumps({"server": server_url, "access": token_value}))
             p.chmod(0o600)
-            console.print(
+            console.success(
                 f"[green]Token created.[/green] Cached at [cyan]{p}[/cyan] (mode 600)."
             )
-            console.print(
+            console.info(
                 f"  prefix: [cyan]{data.get('prefix', '')}[/cyan]   "
                 f"scopes: [cyan]{','.join(data.get('scopes', []))}[/cyan]"
             )
@@ -174,19 +174,19 @@ def token_create(user, password, scopes, name, server, save, dry_run, yes):
         return
 
     if resp.status_code == 401:
-        console.print("[red]Authentication failed.[/red] Wrong username or password.")
+        console.error("[red]Authentication failed.[/red] Wrong username or password.")
         sys.exit(1)
     if resp.status_code == 400:
         try:
             err = resp.json().get("error", resp.text)
         except ValueError:
             err = resp.text
-        console.print(f"[red]Bad request:[/red] {err}")
+        console.error(f"[red]Bad request:[/red] {err}")
         sys.exit(2)
     if resp.status_code == 429:
-        console.print("[red]Too many attempts.[/red] Rate-limited; try again later.")
+        console.error("[red]Too many attempts.[/red] Rate-limited; try again later.")
         sys.exit(1)
-    console.print(
+    console.error(
         f"[red]Unexpected response[/red] HTTP {resp.status_code}: {resp.text[:200]}"
     )
     sys.exit(1)
@@ -214,7 +214,7 @@ def token_list(server, as_json):
     cached = _read_cached_token() or {}
     bearer = cached.get("access")
     if not bearer:
-        console.print(
+        console.error(
             "[red]No cached token.[/red] Run `scitex-hub account token create` first."
         )
         sys.exit(2)
@@ -226,11 +226,11 @@ def token_list(server, as_json):
             timeout=15,
         )
     except requests.ConnectionError:
-        console.print(f"[red]Cannot reach {server_url}.[/red]")
+        console.error(f"[red]Cannot reach {server_url}.[/red]")
         sys.exit(1)
 
     if resp.status_code != 200:
-        console.print(f"[red]HTTP {resp.status_code}:[/red] {resp.text[:200]}")
+        console.error(f"[red]HTTP {resp.status_code}:[/red] {resp.text[:200]}")
         sys.exit(1)
 
     rows = resp.json().get("tokens", [])
@@ -239,7 +239,7 @@ def token_list(server, as_json):
         return
 
     if not rows:
-        console.print("[yellow]No tokens.[/yellow]")
+        console.warning("[yellow]No tokens.[/yellow]")
         return
 
     from rich.table import Table
@@ -265,7 +265,7 @@ def token_list(server, as_json):
             str(row.get("created_at", ""))[:19],
             str(row.get("last_used_at", "") or "")[:19],
         )
-    console.print(table)
+    console.info(table)
 
 
 @token.command("revoke")
@@ -306,7 +306,7 @@ def token_revoke(token_id, server, yes, dry_run):
         return
 
     if not yes:
-        console.print(
+        console.error(
             f"[red]error[/red]: pass --yes/-y to confirm: revoke token id={token_id}"
         )
         sys.exit(2)
@@ -315,7 +315,7 @@ def token_revoke(token_id, server, yes, dry_run):
     cached = _read_cached_token() or {}
     bearer = cached.get("access")
     if not bearer:
-        console.print("[red]No cached token.[/red]")
+        console.error("[red]No cached token.[/red]")
         sys.exit(2)
 
     try:
@@ -325,16 +325,16 @@ def token_revoke(token_id, server, yes, dry_run):
             timeout=15,
         )
     except requests.ConnectionError:
-        console.print(f"[red]Cannot reach {server_url}.[/red]")
+        console.error(f"[red]Cannot reach {server_url}.[/red]")
         sys.exit(1)
 
     if resp.status_code == 204:
-        console.print(f"[green]Token id={token_id} revoked.[/green]")
+        console.success(f"[green]Token id={token_id} revoked.[/green]")
         return
     if resp.status_code == 404:
-        console.print(f"[red]Token id={token_id} not found.[/red]")
+        console.error(f"[red]Token id={token_id} not found.[/red]")
         sys.exit(1)
-    console.print(f"[red]HTTP {resp.status_code}:[/red] {resp.text[:200]}")
+    console.error(f"[red]HTTP {resp.status_code}:[/red] {resp.text[:200]}")
     sys.exit(1)
 
 

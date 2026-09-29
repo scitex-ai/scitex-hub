@@ -23,6 +23,17 @@ from django.db import connection, transaction
 from django.shortcuts import render
 from django.utils.translation import gettext as _
 
+# 40-minute full-research demo (owner ask 2026-09-27, resolved: the real URLs).
+# media/videos/scitex-automated-research-demo.mp4 is 2613s (~44min) and already
+# the VIDEO_CATALOG entry "scitex-automated-research", so the landing embed,
+# the watch page, and the demos index all point at the same file.
+RESEARCH_DEMO_VIDEO_URL = (
+    "https://scitex.ai/media/videos/scitex-automated-research-demo.mp4"
+)
+RESEARCH_DEMO_POSTER_URL = (
+    "https://scitex.ai/media/videos/scitex-automated-research-demo-thumbnail.png"
+)
+
 # Pip package names for ecosystem table (scitex-hub uses SCITEX_HUB_VERSION from context processor)
 _ECOSYSTEM_PACKAGES = [
     "scitex",
@@ -84,13 +95,12 @@ def index(request):
     """
     Cloud app index view - Landing page for all users.
 
-    Shows the landing page to all visitors, including authenticated users.
-    Visitor auto-login is handled by VisitorAutoLoginMiddleware.
+    Shows the landing page to signed-out and authenticated users.
 
     non_atomic_requests: Disables ATOMIC_REQUESTS for this read-only view.
     In ASGI mode (Daphne), middleware and views run in different threads,
-    so the middleware's visitor-allocation DB operations can leave the
-    thread-local connection dirty via PgBouncer (transaction pool mode).
+    so middleware DB operations can leave the thread-local connection dirty
+    via PgBouncer (transaction pool mode).
     Without the atomic wrapper, individual template queries can succeed
     even if earlier ones fail, preventing cascading 500 errors on startup.
     """
@@ -104,7 +114,7 @@ def index(request):
     # closed" rather than reconnecting, and the transaction's work is lost.
     if not connection.in_atomic_block:
         connection.close()
-    from ..pricing import load_pricing, tier_rows
+    from ..pricing import load_pricing, tier_rows, plan_comparison
 
     # Two-plan landing row (operator 2026-09-12): the Free pane is dropped —
     # Cloud (Academic / Non-Academic switcher) + On-Prem (AGPL / Custom).
@@ -121,6 +131,27 @@ def index(request):
         "onprem_tier": onprem_tier,
         "tax_note": load_pricing().get("tax_note", ""),
         "pricing_notes": load_pricing()["notes"],
+        # Unified plans table (Pricing + Compare plans merged): one matrix,
+        # per-column CTAs, Pro recommended. SSOT-rendered, never hand-typed.
+        "plan_comparison": plan_comparison(),
+        # 40-minute research demo block (owner ask 2026-09-27): the native
+        # embed, the watch page, and the demos index share one media file.
+        "research_demo_url": RESEARCH_DEMO_VIDEO_URL,
+        "research_demo_poster_url": RESEARCH_DEMO_POSTER_URL,
+        # Minimal shell: the landing has no workspace panes, so the base
+        # template skips workspace-only JS (tree, viewer, sidebar, modules).
+        # Smaller download for anonymous visitors; the app shell is untouched.
+        "minimal_shell": True,
+        # Per-page meta: the head partial is {% include %}d, so it cannot see
+        # {% block %} overrides — description travels as context instead.
+        "META_DESCRIPTION_OVERRIDE": (
+            "Connect literature, files, analysis, figures, writing, "
+            "and compute in one SciTeX project context."
+        ),
+        "OG_DESCRIPTION_OVERRIDE": (
+            "Connect literature, files, analysis, figures, writing, "
+            "and compute in one SciTeX project context."
+        ),
     }
     return render(request, "public_app/landing.html", context)
 

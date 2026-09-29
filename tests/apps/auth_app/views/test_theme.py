@@ -5,12 +5,6 @@
 Theme resolution contract (card hub-theme-default-must-be-dark):
 
 - Anonymous / first-visit default is DARK (``source: "default"``).
-- Visitor-pool sessions (``visitor-NNN`` and the shared
-  ``readonly-visitor``) are RECYCLED accounts — their profile rows are a
-  previous visitor's leftover, so get-theme must serve the dark defaults
-  (never the recycled row) and save-theme must never persist onto the
-  shared account. This is the prod 2026-07-22 desktop-light bug: one
-  stale ``light`` row poisoned every visitor allocated that slot.
 - A REGISTERED user's saved preference keeps winning
   (``source: "profile"``).
 """
@@ -48,20 +42,7 @@ def anon_get(client):
     return client.get(GET_THEME).json()
 
 
-@pytest.fixture
-def poisoned_visitor_get(client, django_user_model):
-    """get-theme as a visitor slot whose recycled profile row says light."""
-    _login_with_saved_theme(client, django_user_model, "visitor-003", "light")
-    return client.get(GET_THEME).json()
 
-
-@pytest.fixture
-def poisoned_readonly_get(client, django_user_model):
-    """get-theme as the shared readonly-visitor with a stale light row."""
-    _login_with_saved_theme(
-        client, django_user_model, "readonly-visitor", "light"
-    )
-    return client.get(GET_THEME).json()
 
 
 @pytest.fixture
@@ -71,18 +52,6 @@ def registered_light_get(client, django_user_model):
     return client.get(GET_THEME).json()
 
 
-@pytest.fixture
-def visitor_save(client, django_user_model):
-    """save-theme(light) as a visitor slot whose profile row is dark."""
-    visitor = _login_with_saved_theme(
-        client, django_user_model, "visitor-007", "dark"
-    )
-    resp = client.post(
-        SAVE_THEME,
-        data=json.dumps({"theme": "light"}),
-        content_type="application/json",
-    )
-    return visitor, resp
 
 
 @pytest.fixture
@@ -110,42 +79,6 @@ class TestGetThemeAnonymous:
     def test_anonymous_source_is_default(self, anon_get):
         # Arrange
         data = anon_get
-        # Act
-        source = data["source"]
-        # Assert
-        assert source == "default"
-
-
-class TestGetThemeVisitor:
-    def test_visitor_slot_theme_is_dark_not_recycled_row(
-        self, poisoned_visitor_get
-    ):
-        # Arrange
-        data = poisoned_visitor_get
-        # Act
-        theme = data["theme"]
-        # Assert
-        assert theme == "dark"
-
-    def test_visitor_slot_source_is_default(self, poisoned_visitor_get):
-        # Arrange
-        data = poisoned_visitor_get
-        # Act
-        source = data["source"]
-        # Assert
-        assert source == "default"
-
-    def test_readonly_visitor_theme_is_dark(self, poisoned_readonly_get):
-        # Arrange
-        data = poisoned_readonly_get
-        # Act
-        theme = data["theme"]
-        # Assert
-        assert theme == "dark"
-
-    def test_readonly_visitor_source_is_default(self, poisoned_readonly_get):
-        # Arrange
-        data = poisoned_readonly_get
         # Act
         source = data["source"]
         # Assert
@@ -193,40 +126,6 @@ class TestSaveThemeAnonymous:
         )
         # Assert
         assert resp.status_code == 401
-
-
-class TestSaveThemeVisitor:
-    def test_visitor_save_reports_success(self, visitor_save):
-        # Arrange
-        _, resp = visitor_save
-        # Act
-        data = resp.json()
-        # Assert
-        assert data["success"] is True
-
-    def test_visitor_save_is_not_persisted(self, visitor_save):
-        # Arrange
-        _, resp = visitor_save
-        # Act
-        data = resp.json()
-        # Assert
-        assert data["persisted"] is False
-
-    def test_visitor_save_reason_is_visitor_session(self, visitor_save):
-        # Arrange
-        _, resp = visitor_save
-        # Act
-        data = resp.json()
-        # Assert
-        assert data["reason"] == "visitor-session"
-
-    def test_visitor_save_leaves_pool_account_row_untouched(self, visitor_save):
-        # Arrange
-        visitor, _ = visitor_save
-        # Act
-        visitor.refresh_from_db()
-        # Assert
-        assert visitor.auth_profile.theme_preference == "dark"
 
 
 class TestSaveThemeRegistered:

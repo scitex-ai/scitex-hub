@@ -10,34 +10,15 @@ Automatically deletes Gitea repositories when Django projects are deleted.
 """
 
 import logging
-from django.db.models.signals import post_save, post_delete
+
+from django.db.models.signals import post_delete, post_save
 from django.dispatch import receiver
+
 from ..models import Project
 from .project_initialization import _clone_gitea_repo_to_data_dir
 
 logger = logging.getLogger(__name__)
 
-
-def _quarantine_visitor_slot_for(username: str, reason: str) -> None:
-    """Quarantine the visitor slot behind ``username`` (visitor-NNN).
-
-    Used when a surviving Gitea repo cannot be removed for a visitor
-    project — the slot must never be redistributed while the previous
-    visitor's repo exists.
-    """
-    try:
-        visitor_number = int(username.split("-", 1)[1])
-    except (IndexError, ValueError):
-        logger.error(f"Cannot parse visitor number from username: {username}")
-        return
-
-    from apps.infra.project_app.services.visitor_pool.slot_lifecycle import (
-        get_or_create_allocation,
-        quarantine_slot,
-    )
-
-    allocation = get_or_create_allocation(visitor_number)
-    quarantine_slot(allocation, reason)
 
 
 @receiver(post_save, sender=Project)
@@ -57,8 +38,9 @@ def create_gitea_repository(sender, instance, created, **kwargs):
 
     # Gitea integration is always enabled (core feature)
     try:
-        from apps.infra.gitea_app.api_client import GiteaClient, GiteaAPIError
         import requests.exceptions
+
+        from apps.infra.gitea_app.api_client import GiteaAPIError, GiteaClient
 
         # Initialize Gitea client
         try:
@@ -89,45 +71,13 @@ def create_gitea_repository(sender, instance, created, **kwargs):
                 owner=instance.owner.username, repo=repo_name
             )
 
-            # SECURITY (visitor-slot isolation audit, gap #4): a visitor
-            # project must NEVER adopt a pre-existing repo. Visitor repos
-            # live at a STABLE path (visitor-NNN/default-project) across
-            # slot rotations, so a surviving repo contains the PREVIOUS
-            # visitor's pushed commits. Hard-delete it and recreate
-            # fresh; if deletion fails, quarantine the slot and link no
-            # repo at all.
-            if instance.owner.username.startswith("visitor-"):
-                logger.critical(
-                    f"Visitor project {instance.owner.username}/{repo_name} found a "
-                    f"surviving Gitea repo — refusing adoption, hard-deleting it"
-                )
-                try:
-                    client.delete_repository(
-                        owner=instance.owner.username, repo=repo_name
-                    )
-                except Exception as delete_error:
-                    logger.critical(
-                        f"Could not delete surviving visitor repo "
-                        f"{instance.owner.username}/{repo_name}: {delete_error} — "
-                        f"quarantining the slot"
-                    )
-                    _quarantine_visitor_slot_for(
-                        instance.owner.username,
-                        f"surviving Gitea repo {repo_name} could not be deleted: "
-                        f"{delete_error}",
-                    )
-                    return
-                # Fall through to fresh repo creation below.
-            else:
-                logger.info(
-                    f"Gitea repository already exists: {instance.owner.username}/{repo_name}"
-                )
-
-                # Update project with Gitea info
-                instance.gitea_repo_url = existing_repo.get("html_url", "")
-                instance.gitea_clone_url = existing_repo.get("clone_url", "")
-                instance.save(update_fields=["gitea_repo_url", "gitea_clone_url"])
-                return
+            logger.info(
+                f"Gitea repository already exists: {instance.owner.username}/{repo_name}"
+            )
+            instance.gitea_repo_url = existing_repo.get("html_url", "")
+            instance.gitea_clone_url = existing_repo.get("clone_url", "")
+            instance.save(update_fields=["gitea_repo_url", "gitea_clone_url"])
+            return
 
         except (
             requests.exceptions.ConnectionError,
@@ -142,12 +92,12 @@ def create_gitea_repository(sender, instance, created, **kwargs):
             pass
 
         # Ensure Gitea user exists before creating repository
+        from apps.infra.gitea_app.exceptions import (
+            GiteaConnectionError,
+            GiteaUserCreationError,
+        )
         from apps.infra.gitea_app.services.gitea_sync_service import (
             ensure_gitea_user_exists,
-        )
-        from apps.infra.gitea_app.exceptions import (
-            GiteaUserCreationError,
-            GiteaConnectionError,
         )
 
         try:
@@ -163,7 +113,7 @@ def create_gitea_repository(sender, instance, created, **kwargs):
             return
         except GiteaUserCreationError as e:
             logger.error(f"Failed to create Gitea user {instance.owner.username}: {e}")
-            logger.error(f"Cannot create repository without Gitea user account")
+            logger.error("Cannot create repository without Gitea user account")
             return
 
         # Create repository in Gitea under the project owner
@@ -250,8 +200,9 @@ def delete_gitea_repository(sender, instance, **kwargs):
         return
 
     try:
-        from apps.infra.gitea_app.api_client import GiteaClient, GiteaAPIError
         import requests.exceptions
+
+        from apps.infra.gitea_app.api_client import GiteaAPIError, GiteaClient
 
         logger.info(f"Deleting Gitea repository for project {instance.slug}")
 

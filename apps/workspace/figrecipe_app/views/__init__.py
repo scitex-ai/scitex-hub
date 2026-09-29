@@ -2,7 +2,6 @@
 
 import logging
 
-from django.contrib.auth.decorators import login_required
 from django.shortcuts import redirect, render
 
 from apps.infra.project_app.services.project_scope import project_for_scope_app
@@ -13,21 +12,10 @@ logger = logging.getLogger(__name__)
 def figure_editor(request, figrecipe_embedded=False):
     """Main figure editor — mounts figrecipe React editor.
 
-    If visitor pool is exhausted, redirect to visitor-pool-full page.
+    Requires an authenticated account.
     """
     if not request.user.is_authenticated:
-        user_agent = request.META.get("HTTP_USER_AGENT", "")
-        is_browser = any(
-            browser in user_agent
-            for browser in ["Mozilla", "Chrome", "Safari", "Firefox", "Edge", "Opera"]
-        )
-        if is_browser:
-            return redirect("public_app:visitor_pool_full")
-        return render(
-            request,
-            "figrecipe_app/editor.html",
-            {"is_visitor": True, "figrecipe_embedded": figrecipe_embedded},
-        )
+        return redirect("auth_app:signup")
 
     context = {
         "module_name": "FigRecipe",
@@ -41,9 +29,6 @@ def figure_editor(request, figrecipe_embedded=False):
         "bridge_entry_name": "figrecipe_app/figrecipe-bridge-init",
     }
 
-    if request.user.username.startswith("visitor-"):
-        context["is_demo"] = True
-        context["visitor_username"] = request.user.username
 
     # Project-scope pilot: ?project=owner/slug wins, else the last visited project.
     current_project = project_for_scope_app(request)
@@ -65,9 +50,6 @@ def build_figrecipe_context(request, current_project=None):
         "bridge_entry_name": "figrecipe_app/figrecipe-bridge-init",
         "current_project": current_project,
     }
-    if request.user.is_authenticated and request.user.username.startswith("visitor-"):
-        context["is_demo"] = True
-        context["visitor_username"] = request.user.username
     if not current_project:
         context["needs_project_creation"] = True
     return context

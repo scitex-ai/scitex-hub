@@ -5,7 +5,8 @@
 """Main CLI entry point for scitex-hub."""
 
 import click
-from rich.console import Console
+
+from scitex_hub._logging import get_console
 
 from .. import __version__
 from .._dev_preview._cli import dev_preview
@@ -19,6 +20,7 @@ from .app import app  # noqa: F401
 from .completion import completion_group as completion
 from .context import context as context_group
 from .deploy import deploy
+from .dev import dev
 from .docker import docker
 from .gitea import gitea
 from .mcp import mcp
@@ -27,7 +29,7 @@ from .setup import setup
 from .status import logs, status
 from .workspace import workspace  # noqa: F401
 
-console = Console()
+console = get_console(__name__)
 
 CONTEXT_SETTINGS = {"help_option_names": ["-h", "--help"]}
 
@@ -66,17 +68,17 @@ def _print_recursive_help(ctx, param, value):
 
     def _print_command_help(cmd, prefix: str, parent_ctx):
         """Recursively print help for a command and its subcommands."""
-        console.print(f"\n[bold cyan]━━━ {prefix} ━━━[/bold cyan]")
+        console.info(f"\n[bold cyan]━━━ {prefix} ━━━[/bold cyan]")
         sub_ctx = click.Context(cmd, info_name=prefix.split()[-1], parent=parent_ctx)
-        console.print(cmd.get_help(sub_ctx))
+        console.info(cmd.get_help(sub_ctx))
 
         if isinstance(cmd, click.Group):
             for sub_name, sub_cmd in sorted(cmd.commands.items()):
                 _print_command_help(sub_cmd, f"{prefix} {sub_name}", sub_ctx)
 
     # Print main help
-    console.print("[bold cyan]━━━ scitex-hub ━━━[/bold cyan]")
-    console.print(ctx.get_help())
+    console.info("[bold cyan]━━━ scitex-hub ━━━[/bold cyan]")
+    console.info(ctx.get_help())
 
     # Print all subcommands recursively
     for name, cmd in sorted(main.commands.items()):
@@ -166,6 +168,7 @@ main.add_command(mcp)
 # every 2 min on compute-03 (see scitex_hub._jobs). Service, like docker/mcp:
 # it operates infrastructure, not project data.
 main.add_command(dev_preview)
+main.add_command(dev)
 main.add_command(context_group, "context")
 
 main.add_command(status)

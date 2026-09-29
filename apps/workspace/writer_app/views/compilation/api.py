@@ -1,11 +1,13 @@
 """API endpoints for compilation operations."""
 
-from django.http import JsonResponse
-from django.views.decorators.http import require_http_methods
-from ...decorators import writer_auth_required, writer_project_access_required
-from ...services import CompilerService
 import json
 import logging
+
+from django.http import JsonResponse
+from django.views.decorators.http import require_http_methods
+
+from ...decorators import writer_auth_required
+from ...services import CompilerService
 
 logger = logging.getLogger(__name__)
 
@@ -41,29 +43,14 @@ def compilation_api(request):
                 {"success": False, "error": "Project not found"}, status=404
             )
 
-        # Check project access for visitors
-        if hasattr(request, "is_visitor") and request.is_visitor:
-            from apps.infra.project_app.services.visitor_pool import VisitorPool
-
-            visitor_project_id = request.session.get(VisitorPool.SESSION_KEY_PROJECT_ID)
-            if project.id != visitor_project_id:
-                return JsonResponse(
-                    {
-                        "success": False,
-                        "error": "Visitors can only compile their default project",
-                    },
-                    status=403,
-                )
-        else:
-            # Authenticated user must own the project
-            if project.owner != request.effective_user:
-                return JsonResponse(
-                    {
-                        "success": False,
-                        "error": "You don't have access to this project",
-                    },
-                    status=403,
-                )
+        if not project.can_edit(request.effective_user):
+            return JsonResponse(
+                {
+                    "success": False,
+                    "error": "You don't have access to this project",
+                },
+                status=403,
+            )
 
         compilation_service = CompilerService(project_id, request.effective_user.id)
         result = compilation_service.compile(doc_type)

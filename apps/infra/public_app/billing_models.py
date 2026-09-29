@@ -7,16 +7,35 @@ from django.db import models
 class BillingEvent(models.Model):
     """Minimal record of signature-verified Stripe webhook events.
 
-    Scaffold only — entitlement logic (mapping events to subscriptions)
-    is a separate card (hub-billing-entitlement-minimal). ``event_id``
-    is the Stripe event id (``evt_...``) and is unique so webhook
-    retries stay idempotent.
+    ``event_id`` is the Stripe event id (``evt_...``) and is unique, so a
+    RETRY of the same event can be recognised. Recognising it is only half the
+    job: PR #934 review, blocker 6, was that ``get_or_create`` deduplicated the
+    ROW while the handler ran unconditionally afterwards, so a replayed event
+    re-ran its side effects. ``status`` is what makes processing idempotent
+    instead of merely recording idempotent — see
+    ``apps.infra.public_app.services.webhook_processing``, which implements the
+    claim/complete/release protocol and is the only thing that may move it.
     """
+
+    class Status(models.TextChoices):
+        RECEIVED = "received", "Received, not yet processed"
+        PROCESSING = "processing", "Claimed by a worker"
+        PROCESSED = "processed", "Applied to local state"
+        FAILED = "failed", "Last attempt raised; a retry may claim it"
 
     event_id = models.CharField(max_length=255, unique=True)
     event_type = models.CharField(max_length=255)
     payload = models.JSONField()
     received_at = models.DateTimeField(auto_now_add=True)
+    #: Refreshed on every state change, so it doubles as the CLAIM timestamp the
+    #: stale-claim lease is measured against (see ``webhook_processing``).
+    updated_at = models.DateTimeField(auto_now=True)
+    status = models.CharField(max_length=16, choices=Status.choices, default=Status.RECEIVED)
+    #: How many times a worker has claimed this event. Visible in the admin so a
+    #: poison event is obvious rather than merely retried forever.
+    attempts = models.PositiveIntegerField(default=0)
+    processed_at = models.DateTimeField(null=True, blank=True)
+    last_error = models.TextField(blank=True, default="")
 
     class Meta:
         ordering = ["-received_at"]
@@ -24,7 +43,65 @@ class BillingEvent(models.Model):
         verbose_name_plural = "Billing Events"
 
     def __str__(self):
-        return f"{self.event_type} ({self.event_id})"
+        return f"{self.event_type} ({self.event_id}) [{self.status}]"
+
+    @property
+    def is_processed(self) -> bool:
+        return self.status == self.Status.PROCESSED
+
+
+class BillingSetupSession(models.Model):
+    """The ONE hosted card-setup attempt an account has in flight.
+
+    PR #934 review, blocker 4. ``start_card_setup`` created a Stripe customer and
+    a Checkout session on every POST, so two clicks before the webhook arrived
+    produced two customers, two sessions and two different customer ids — with
+    the account's later subscription attributable to whichever one won. Nothing
+    was persistent, so nothing could be reused, and no Stripe idempotency key was
+    supplied either.
+
+    This row is that persistence: one per account (``OneToOne``), carrying the
+    customer id, the CURRENT open session and a monotonic ``attempt`` counter.
+    The provider calls in :mod:`apps.infra.public_app.services.stripe_setup` take
+    a lock on it and derive their Stripe idempotency keys from it, which is what
+    makes the second click return the FIRST session instead of minting a second.
+    """
+
+    class Status(models.TextChoices):
+        #: A hosted page is open and can still be returned to at no cost.
+        OPEN = "open", "Open"
+        #: The provider confirmed it (the card is saved and activation ran).
+        COMPLETED = "completed", "Completed"
+        #: The user came back without finishing; a retry opens a new attempt.
+        CANCELLED = "cancelled", "Cancelled"
+        #: The provider call failed; the account may retry.
+        FAILED = "failed", "Failed"
+
+    user = models.OneToOneField(
+        User, on_delete=models.CASCADE, related_name="billing_setup"
+    )
+    provider = models.CharField(max_length=32, default="stripe")
+    #: The allowlisted pricing.json row this attempt is for. Part of the
+    #: idempotency key, so changing plan cannot reuse the old session.
+    pricing_id = models.CharField(max_length=64, blank=True, default="")
+    #: How many hosted sessions this account has been given. Part of the Stripe
+    #: idempotency key, so retries reuse one session and a genuine retry does not
+    #: collide with it.
+    attempt = models.PositiveIntegerField(default=0)
+    stripe_customer_id = models.CharField(max_length=255, blank=True, default="")
+    session_id = models.CharField(max_length=255, blank=True, default="")
+    session_url = models.TextField(blank=True, default="")
+    status = models.CharField(max_length=16, choices=Status.choices, default=Status.OPEN)
+    completed_at = models.DateTimeField(null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = "Billing Setup Session"
+        verbose_name_plural = "Billing Setup Sessions"
+
+    def __str__(self):
+        return f"{self.user.username} — attempt {self.attempt} ({self.status})"
 
 
 class PaymentMethod(models.Model):
@@ -86,6 +163,12 @@ class PlanSubscription(models.Model):
     status = models.CharField(max_length=32, default="incomplete")
     cancel_at_period_end = models.BooleanField(default=False)
     current_period_end = models.DateTimeField(null=True, blank=True)
+    #: The PROVIDER's own trial boundaries (Stripe ``trial_start``/``trial_end``).
+    #: Written only from provider responses — see
+    #: ``billing_provider.confirmed_trial_window``, which is the only thing the
+    #: funnel is allowed to quote a date from (PR #934 review, blocker 2).
+    trial_start = models.DateTimeField(null=True, blank=True)
+    trial_end = models.DateTimeField(null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 

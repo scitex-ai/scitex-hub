@@ -87,11 +87,37 @@ export function loadCompiledPDF(sectionId: string): void {
                         <small style="opacity: 0.7;">Combining all enabled sections into a single document.</small>
                     </div>
                 `;
-        // Auto-start compilation (delay to ensure editor is initialized)
-        setTimeout(() => {
-          if (typeof (window as any).compileManuscript === "function") {
-            (window as any).compileManuscript();
+        // Auto-start compilation (delay to ensure editor is initialized).
+        // handlePreviewClick is the real preview path; compileManuscript may
+        // be undefined (or a stub) depending on init order, so chain with a
+        // single retry and never leave the spinner hanging forever.
+        const fireAutoCompile = (): boolean => {
+          const w = window as any;
+          if (typeof w.handlePreviewClick === "function") {
+            w.handlePreviewClick();
+            return true;
           }
+          if (typeof w.compileManuscript === "function") {
+            w.compileManuscript();
+            return true;
+          }
+          return false;
+        };
+        setTimeout(() => {
+          if (fireAutoCompile()) return;
+          setTimeout(() => {
+            if (fireAutoCompile()) return;
+            console.warn(
+              "[Writer] No compile handler ready; user can retry via Compile Preview.",
+            );
+            textPreview.innerHTML = `
+                    <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; padding: 2rem; text-align: center; color: var(--color-fg-muted);">
+                        <i class="fas fa-exclamation-triangle fa-3x mb-3 text-warning"></i>
+                        <h5 style="color: var(--color-fg-default);">Preview Not Started</h5>
+                        <p>Automatic compilation did not start. Press <strong>Compile Preview</strong> in the Details panel to build the PDF.</p>
+                    </div>
+                `;
+          }, 2000);
         }, 500);
         return;
       }

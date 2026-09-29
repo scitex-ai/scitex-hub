@@ -194,7 +194,11 @@ export function setupCardSelectionHandlers(card: HTMLElement): void {
     ".paper-select, .paper-select-checkbox",
   ) as HTMLInputElement | null;
 
-  // Click on card body toggles selection (not on checkbox or links)
+  // Click on card body toggles selection (not on checkbox or links).
+  // NOTE: the checkbox itself must NOT be re-toggled here: the browser
+  // already toggles it natively and fires change (which syncs state via
+  // the handler below). Re-toggling reverts the native toggle — the card
+  // looks clicked but never checks.
   card.addEventListener("click", (e: MouseEvent) => {
     const target = e.target as HTMLElement;
     // Ignore clicks on checkbox, links, and buttons
@@ -206,15 +210,11 @@ export function setupCardSelectionHandlers(card: HTMLElement): void {
     }
 
     if (checkbox) {
-      // Ctrl+click for multi-select, otherwise toggle
-      if (!e.ctrlKey && !e.metaKey) {
-        // Single click without ctrl - just toggle this card
-        checkbox.checked = !checkbox.checked;
-      } else {
-        // Ctrl+click - toggle without deselecting others
-        checkbox.checked = !checkbox.checked;
-      }
-      updateCardSelectedState(card, checkbox.checked);
+      // Card body click: set .checked directly + dispatch change so every
+      // listener (visual state, toolbar) stays in sync. checkbox.click() is
+      // unreliable here (synthetic click never dispatches on these nodes).
+      checkbox.checked = !checkbox.checked;
+      checkbox.dispatchEvent(new Event("change", { bubbles: true }));
     }
   });
 
@@ -275,9 +275,15 @@ export function toggleSelectAll(selectAll: boolean): void {
     const checkbox = card.querySelector(
       ".paper-select, .paper-select-checkbox",
     ) as HTMLInputElement | null;
-    if (checkbox) {
+    if (checkbox && checkbox.checked !== selectAll) {
+      // Set .checked directly, then dispatch change manually.
+      // Rationale: checkbox.click() is unreliable here — the click event
+      // never dispatches (no listener fires, no toggle), while trusted
+      // (real mouse) clicks work fine. Direct assignment + explicit change
+      // dispatch keeps per-card listeners, toolbar state, and card visual
+      // state in sync deterministically.
       checkbox.checked = selectAll;
-      updateCardSelectedState(card as HTMLElement, selectAll);
+      checkbox.dispatchEvent(new Event("change", { bubbles: true }));
     }
   });
   updateToolbarState();

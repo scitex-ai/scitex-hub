@@ -12,7 +12,9 @@ register = template.Library()
 
 # Tile names wrap with `word-break: keep-all` (grid.css), which forbids breaks
 # inside a katakana run; <wbr> marks where a long compound may split instead.
-_KATAKANA_COMPOUND_JOIN = re.compile(r"(?<=[゠-ヿ])(?=プロジェクト|ストア)")
+_KATAKANA_COMPOUND_JOIN = re.compile(
+    r"(?<=[゠-ヿ])(?=プロジェクト|ストア|クリエイター)"
+)
 
 
 @register.filter

@@ -6,8 +6,9 @@
 import sys
 
 import click
-from rich.console import Console
 from rich.table import Table
+
+from scitex_hub._logging import get_console
 
 from ._flags import (
     confirm_or_abort,
@@ -17,7 +18,7 @@ from ._flags import (
     print_dry_run,
 )
 
-console = Console()
+console = get_console(__name__)
 
 
 @click.group()
@@ -53,7 +54,7 @@ def project_list(json_output):
         if json_output:
             emit_json({"success": False, "error": str(e)})
             raise SystemExit(1)
-        console.print(f"[red]Error: {e}[/red]")
+        console.error(f"[red]Error: {e}[/red]")
         raise SystemExit(1)
 
     if json_output:
@@ -61,7 +62,7 @@ def project_list(json_output):
         return
 
     if not projects:
-        console.print("[yellow]No projects found.[/yellow]")
+        console.warning("[yellow]No projects found.[/yellow]")
         return
 
     table = Table(title="Projects")
@@ -74,7 +75,7 @@ def project_list(json_output):
             p.get("description", ""),
             str(p.get("created_at", ""))[:10],
         )
-    console.print(table)
+    console.info(table)
 
 
 @project.command("create")
@@ -105,9 +106,9 @@ def project_create(name, description, template, dry_run, yes):
 
     try:
         result = _create(name, description=description, template=template)
-        console.print(f"[green]Created project: {result.get('message', name)}[/green]")
+        console.success(f"[green]Created project: {result.get('message', name)}[/green]")
     except RuntimeError as e:
-        console.print(f"[red]Error: {e}[/red]")
+        console.error(f"[red]Error: {e}[/red]")
         raise SystemExit(1)
 
 
@@ -146,9 +147,9 @@ def project_delete(slug, dry_run, yes):
 
     try:
         _delete(slug)
-        console.print(f"[green]Deleted project: {slug}[/green]")
+        console.success(f"[green]Deleted project: {slug}[/green]")
     except RuntimeError as e:
-        console.print(f"[red]Error: {e}[/red]")
+        console.error(f"[red]Error: {e}[/red]")
         raise SystemExit(1)
 
 
@@ -179,9 +180,9 @@ def project_rename(slug, new_name, dry_run, yes):
 
     try:
         _rename(slug, new_name)
-        console.print(f"[green]Renamed '{slug}' to '{new_name}'[/green]")
+        console.success(f"[green]Renamed '{slug}' to '{new_name}'[/green]")
     except RuntimeError as e:
-        console.print(f"[red]Error: {e}[/red]")
+        console.error(f"[red]Error: {e}[/red]")
         raise SystemExit(1)
 
 

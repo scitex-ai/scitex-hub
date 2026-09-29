@@ -59,6 +59,25 @@
   text-decoration: none;
 }
 
+.launcher-active-project {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 6px;
+  margin: 0 4px 12px;
+  color: var(--workspace-text-muted, var(--text-muted));
+  font-size: 12px;
+  text-decoration: none;
+}
+
+.launcher-active-project strong {
+  color: var(--workspace-text-primary, var(--text-primary));
+  font-weight: 600;
+}
+
+.launcher-active-project:hover strong {
+  text-decoration: underline;
+}
+
 /* ---------- Section head ---------- */
 .launcher-section-head {
   display: flex;

@@ -187,11 +187,7 @@ DESIGN_SECTIONS = {
         "description": "Workspace pane structure, resizers, highlighters, and sizing rules.",
         "partial": "dev_app/design_partial/stx-shell-layout.html",
     },
-    "visitor-system": {
-        "title": "Visitor System",
-        "description": "Anonymous visitor pool, session management, and read-only fallback.",
-        "partial": "dev_app/design_partial/visitor-system.html",
-    },
+
 }
 
 

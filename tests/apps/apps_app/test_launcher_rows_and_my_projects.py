@@ -134,6 +134,14 @@ class GridLauncherTest(TestCase):
         # Assert
         assert labels.get("my_projects") == "My Projects"
 
+    def test_mobile_dock_offers_my_projects(self):
+        # Arrange
+        self.client.force_login(self.staff)
+        # Act
+        response = self.client.get("/apps/my-projects/")
+        # Assert
+        assert b'data-dock-item="my_projects"' in response.content
+
     def test_mobile_menu_does_not_duplicate_my_projects(self):
         # Arrange
         self.client.force_login(self.staff)

@@ -21,6 +21,10 @@ import type { SessionsPanel } from "./sessions-panel";
 import { ImageInputManager } from "./image-input";
 import { SketchCanvas } from "./sketch-canvas";
 import { WebcamCapture } from "./webcam-capture";
+import {
+  parentNavigationPath,
+  postParentNavigation,
+} from "../_site-dock/embed-navigation";
 
 interface AiContext {
   page?: string;
@@ -384,6 +388,7 @@ export class AIPanelChatMode {
         headers: {
           "Content-Type": "application/json",
           "X-CSRFToken": getCsrfToken(),
+          "Idempotency-Key": crypto.randomUUID(),
         },
         body: JSON.stringify({
           prompt,
@@ -401,13 +406,30 @@ export class AIPanelChatMode {
             settings_url?: string;
           };
           const msg = data.error ?? `Request failed: ${resp.status}`;
-          if (data.settings_url) {
+          const settingsPath = parentNavigationPath(
+            data.settings_url,
+            window.location.origin,
+          );
+          if (settingsPath) {
             errEl.textContent = msg + " ";
             const link = document.createElement("a");
-            link.href = data.settings_url;
+            link.href = settingsPath;
             link.className = "stx-shell-ai-error-action";
             link.textContent = "Set up an AI provider";
             link.setAttribute("aria-label", "Open Settings, AI Providers");
+            link.addEventListener("click", (event) => {
+              if (
+                event.button !== 0 ||
+                event.metaKey ||
+                event.ctrlKey ||
+                event.shiftKey ||
+                event.altKey
+              )
+                return;
+              if (postParentNavigation(settingsPath)) {
+                event.preventDefault();
+              }
+            });
             errEl.appendChild(link);
           } else {
             errEl.textContent = msg;

@@ -137,36 +137,21 @@ def validate_provider_request(provider_id, user, project_owner) -> str:
     * default (``anthropic-oauth``) — allowed for every session that can
       open a terminal at all (auth is handled by the existing access
       check, this gate adds nothing for the default).
-    * key-based providers — authenticated users only; the shared
-      ``readonly-visitor`` account is rejected (it must never share one
-      stored key across all readonly visitors); writable ``visitor-NNN``
-      slots may use their own stored key; and the requester must BE the
-      project owner, because the PTY runs as the owner and injecting any
+    * key-based providers — authenticated users only; the requester must BE
+      the project owner, because the PTY runs as the owner and injecting any
       other account's key into the owner's environment would leak it.
     """
-    from apps.infra.project_app.services.visitor_pool.session_role import (
-        ROLE_READONLY_VISITOR,
-        get_user_role,
-    )
-
     provider_id = normalize_provider(provider_id)
     if provider_id == DEFAULT_PROVIDER:
         return provider_id
 
     label = TERMINAL_PROVIDERS[provider_id]["label"]
-    role = get_user_role(user)
-
     if user is None or not getattr(user, "is_authenticated", False):
         raise ProviderNotAllowedError(
             f"Provider '{label}' needs your own API key — sign in first, "
             f"then add the key at {AI_PROVIDER_SETTINGS_URL}."
         )
-    if role == ROLE_READONLY_VISITOR:
-        raise ProviderNotAllowedError(
-            "Read-only visitor sessions cannot use API-key providers — "
-            "the shared read-only account stores no keys. Sign up or log "
-            "in to use your own key."
-        )
+
     if project_owner is not None and user.pk != project_owner.pk:
         raise ProviderNotAllowedError(
             f"Provider '{label}' runs on your own API key, but this "

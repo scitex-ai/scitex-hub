@@ -42,7 +42,7 @@ import threading
 
 import pytest
 
-from tests.e2e.playwright.conftest import pooled_visitor_context
+from tests.e2e.playwright.conftest import screenshot_test_context
 from tests.e2e.playwright.content_check import (
     BrowserProblemLog,
     body_text_problem,
@@ -467,18 +467,10 @@ def test_screenshot_readiness_does_not_wait_for_global_load():
     assert [kind for kind, *_rest in page.calls] == ["function", "timeout"]
 
 
-def test_pooled_screenshot_context_blocks_service_worker_navigation_cache(
-    monkeypatch,
-):
+def test_screenshot_context_blocks_service_worker_navigation_cache():
     class RecordingContext:
-        def __init__(self):
-            self.cookies = None
-
         def set_default_timeout(self, timeout):
             self.timeout = timeout
-
-        def add_cookies(self, cookies):
-            self.cookies = cookies
 
         def close(self):
             pass
@@ -492,29 +484,19 @@ def test_pooled_screenshot_context_blocks_service_worker_navigation_cache(
             self.options = options
             return self.context
 
-    # A deterministic key so the injected cookie is assertable. The conftest
-    # reads this env var (it refuses an empty/malformed one).
-    monkeypatch.setenv("SCITEX_SCREENSHOT_SESSION", "a" * 32)
-
     browser = RecordingBrowser()
-    fixture = pooled_visitor_context.__wrapped__(browser, "http://127.0.0.1:8000")
+    fixture = screenshot_test_context.__wrapped__(
+        browser,
+        "http://127.0.0.1:8000",
+        "/tmp/synthetic-user-state.json",
+    )
 
     next(fixture)
     fixture.close()
 
     # The context opts out of service-worker-driven navigation caching.
     assert browser.options["service_workers"] == "block"
-    # The pooled-visitor sessionid cookie is injected into the context, so
-    # every photographed page renders as a real visitor (not anonymous).
-    cookies = browser.context.cookies
-    assert cookies is not None
-    assert cookies == [
-        {
-            "name": "sessionid",
-            "value": "a" * 32,
-            "url": "http://127.0.0.1:8000",
-        }
-    ]
+    assert browser.options["storage_state"] == "/tmp/synthetic-user-state.json"
 
 
 # EOF

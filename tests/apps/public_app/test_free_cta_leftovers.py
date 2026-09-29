@@ -3,8 +3,8 @@
 """No "free" signup CTAs outlive #813's card-required rule.
 
 Card hub-card-required-copy-leftovers-20260914: features.html, products/hub.html,
-release_note.html, the premium_subscription view and the console visitor
-button still said "Get Started Free" / "Start Free Trial" / "Sign up free".
+release_note.html, the premium_subscription view, and the console templates
+still said "Get Started Free" / "Start Free Trial" / "Sign up free".
 They now reuse #813's "Start your 30-day trial".
 """
 
@@ -28,7 +28,6 @@ LEFTOVER_SOURCES = (
     "apps/infra/public_app/views/landing.py",
     "apps/workspace/console_app/templates/console_app/workspace.html",
     "apps/workspace/console_app/templates/console_app/console_partial.html",
-    "apps/workspace/console_app/static/console_app/ts/_workspace/auth/VisitorManager.ts",
 )
 
 

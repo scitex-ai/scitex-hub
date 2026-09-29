@@ -48,8 +48,20 @@ class MovingCursor:
         self.y = height / 2
 
     def glide_to(self, locator, duration_seconds: float = 0.7) -> None:
-        locator.scroll_into_view_if_needed()
-        box = locator.bounding_box()
+        """Glide the mouse to a target — and never fail the render doing it.
+
+        The cursor is decoration; the action that follows it is the point. A row that
+        gets re-rendered between the lookup and the move detaches the element, and
+        Playwright's own click/fill auto-wait already handles that. Measured
+        2026-09-17: the project tree refreshes right after a project is created, and a
+        detached row killed a signed-in render at the "open a file" step before the
+        click was ever attempted. So a stale target costs the glide and nothing else.
+        """
+        try:
+            locator.scroll_into_view_if_needed(timeout=5_000)
+            box = locator.bounding_box()
+        except Exception:
+            return
         if box is None:
             return
         target_x = box["x"] + box["width"] / 2

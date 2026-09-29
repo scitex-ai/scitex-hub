@@ -25,9 +25,7 @@ def workspace_context(request):
     if path == "/landing/":
         is_ws = False
 
-    # Root "/" is workspace for all authenticated users — including visitor
-    # sessions (visitor-* and readonly-visitor get the guest-mode launcher,
-    # card hub-visitor-ux-allapps). Only true anonymous stays non-workspace.
+    # Root "/" is a workspace only for authenticated users.
     if path == "/" and not request.user.is_authenticated:
         is_ws = False
 
@@ -143,6 +141,7 @@ def _is_user_profile_path(path: str) -> bool:
         "files",
         "accounts",
         "public",
+        "internal",
         "invite",
         "dev",
         "docs",
@@ -166,10 +165,7 @@ def _is_user_profile_path(path: str) -> bool:
         "api-keys",
         "api-docs",
         "server-status",
-        "visitor-status",
-        "visitor-expired",
-        "visitor-restart",
-        "visitor-pool-full",
+
         "__reload__",
         # --- Public marketing / legal / auth routes -------------------------
         # Measured missing 2026-08-15 on production, signed in as test-user:
@@ -183,7 +179,7 @@ def _is_user_profile_path(path: str) -> bool:
         # For a disclosure whose whole purpose is that prescribed information be
         # displayed, "renders but cannot be scrolled to" is not cosmetic.
         #
-        # It only happened when SIGNED IN — anonymous visitors take another
+        # It only happened when signed in — signed-out users take another
         # branch and get a working footer — so every casual check looked fine.
         "tokushoho",
         "tokushoho-en",
@@ -258,7 +254,7 @@ def _filter_modules_for_user(request, modules):
         #    ModuleConfig objects from the registry, not per-request copies. So
         #    one authenticated request clobbered them for the whole process, and
         #    the "0.1.0" then leaked into renders that never run this code at
-        #    all — which is why anonymous/guest launchers showed it too.
+        #    all — which is why signed-out launchers showed it too.
         #
         # The registry value is already correct. Leave it alone.
     except Exception:
@@ -277,7 +273,7 @@ def _filter_modules_for_user(request, modules):
 
     # Show modules unless explicitly disabled via installation record
     visible = []
-    for idx, mod in enumerate(modules):
+    for mod in modules:
         inst = installations.get(mod.name)
         if inst is None:
             if not mod.default_enabled:

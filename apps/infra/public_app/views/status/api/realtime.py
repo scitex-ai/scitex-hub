@@ -50,18 +50,6 @@ def server_status_api(request):
             round(disk_io.write_bytes / (1024**2), 2) if disk_io else 0
         )
 
-        # Visitor pool status
-        try:
-            from apps.infra.project_app.services.visitor_pool import VisitorPool
-
-            pool_status = VisitorPool.get_pool_status()
-            data["visitor_pool_allocated"] = pool_status["allocated"]
-            data["visitor_pool_total"] = pool_status["total"]
-        except Exception as e:
-            logger.debug(f"Could not get visitor pool status: {e}")
-            data["visitor_pool_allocated"] = None
-            data["visitor_pool_total"] = None
-
         # Active users count and total users
         try:
             from django.contrib.auth import get_user_model

@@ -115,16 +115,18 @@
  * @variant password-rules - Container for password requirements list
  * @variant password-rules-title - Title for requirements section
  * @variant password-rule - Individual requirement item
+ * @variant password-rule.neutral - Requirement is not judged yet (no input to judge)
  * @variant password-rule.valid - Requirement is fulfilled (green check)
  * @variant password-rule.invalid - Requirement is not fulfilled (red X)
  *
  * @state default - Red with X icon (unfulfilled requirement)
+ * @state neutral - Muted with a dot: the field is untouched, so there is no verdict
  * @state valid - Green with check icon (fulfilled requirement)
  *
  * @example
  * <div class="password-rules">
  *   <div class="password-rules-title">Password Requirements:</div>
- *   <div class="password-rule invalid"><i class="fas fa-times"></i> At least 8 characters</div>
+ *   <div class="password-rule neutral"><i class="fas fa-circle"></i> At least 8 characters</div>
  *   <div class="password-rule valid"><i class="fas fa-check"></i> At least one lowercase letter</div>
  * </div>
  */
@@ -161,6 +163,12 @@
   transition: color 0.3s ease;
   /* Default state: Red (unfulfilled) */
   color: var(--status-error);
+}
+
+/* Untouched: no verdict has been reached yet, so none is shown. Kept in step
+   with forms/password.css, which the auth pages load. */
+.password-rule.neutral {
+  color: var(--text-muted, #8b949e);
 }
 
 .password-rule.valid {

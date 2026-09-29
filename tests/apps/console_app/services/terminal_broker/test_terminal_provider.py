@@ -5,7 +5,7 @@
 Covers the Option A model-agnostic terminal sessions surface:
 registry validation (unknown provider rejected), env-injection
 composition (correct vars, key sourced server-side, absent for
-anthropic-oauth), readonly-visitor gating, and no-key fail-loud.
+anthropic-oauth), and no-key fail-loud.
 
 No mocks (STX-NM001): collaborators are injected — the key lookup is a
 hand-rolled fake callable, PTY chdir runs against a real tmp_path, and
@@ -326,34 +326,8 @@ class TestRoleGating:
         with pytest.raises(ProviderNotAllowedError):
             act()
 
-    def test_gate_rejects_keyed_provider_for_readonly_visitor(self):
-        # Arrange — the shared readonly account (VisitorPool constant)
-        readonly = _user(username="readonly-visitor", pk=99)
-        # Act
-        act = partial(validate_provider_request, "deepseek", readonly, readonly)
-        # Assert
-        with pytest.raises(ProviderNotAllowedError):
-            act()
 
-    def test_gate_readonly_rejection_explains_read_only_state(self):
-        # Arrange
-        readonly = _user(username="readonly-visitor", pk=99)
-        # Act
-        try:
-            validate_provider_request("deepseek", readonly, readonly)
-            message = ""
-        except ProviderNotAllowedError as exc:
-            message = str(exc)
-        # Assert
-        assert "read-only" in message.lower()
 
-    def test_gate_allows_default_provider_for_readonly_visitor(self):
-        # Arrange
-        readonly = _user(username="readonly-visitor", pk=99)
-        # Act
-        provider = validate_provider_request("anthropic-oauth", readonly, readonly)
-        # Assert
-        assert provider == DEFAULT_PROVIDER
 
     def test_gate_rejects_keyed_provider_for_non_owner_collaborator(self):
         # Arrange
@@ -373,13 +347,6 @@ class TestRoleGating:
         # Assert
         assert provider == "deepseek"
 
-    def test_gate_allows_keyed_provider_for_writable_visitor_slot(self):
-        # Arrange — visitor-NNN slots use their OWN stored key
-        visitor = _user("visitor-007", pk=7)
-        # Act
-        provider = validate_provider_request("deepseek", visitor, visitor)
-        # Assert
-        assert provider == "deepseek"
 
     def test_gate_rejects_unknown_provider_id_for_owner(self):
         # Arrange

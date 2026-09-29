@@ -13,17 +13,27 @@ import pytest
 class TestRegistryManifestLoading:
     """Phase 1: Registry loads ModuleConfig from manifest.json files."""
 
-    def test_loads_all_builtin_modules(self):
-        # get_all_modules() returns one ModuleConfig per builtin manifest path,
-        # so the count is derived from the registry's manifest list rather than
-        # a hardcoded number that drifts whenever an app is added/removed.
+    def test_loads_every_builtin_manifest(self):
         from apps.infra.workspace_app.registry import (
             _BUILTIN_MANIFEST_PATHS,
+            _BUILTIN_MODULES,
+        )
+
+        assert len(_BUILTIN_MODULES) == len(_BUILTIN_MANIFEST_PATHS)
+
+    def test_loads_each_builtin_module_once(self):
+        # get_all_modules() also includes runtime-discovered entry-point apps.
+        # A published optional package must not make this builtin integrity
+        # check fail merely because the environment now contains one more app.
+        from apps.infra.workspace_app.registry import (
+            _BUILTIN_MODULES,
             get_all_modules,
         )
 
-        modules = get_all_modules()
-        assert len(modules) == len(_BUILTIN_MANIFEST_PATHS)
+        registered_names = [module.name for module in get_all_modules()]
+        assert all(
+            registered_names.count(module.name) == 1 for module in _BUILTIN_MODULES
+        )
 
     def test_module_names(self):
         from apps.infra.workspace_app.registry import get_module_names
@@ -129,15 +139,13 @@ class TestAppManagementAPI:
             os.environ.pop("SCITEX_CURRENT_APP", None)
 
     def test_list_all_from_registry(self):
-        from apps.infra.workspace_app.registry import _BUILTIN_MANIFEST_PATHS
+        from apps.infra.workspace_app.registry import get_all_modules
         from scitex_hub.appmaker import list_all
 
         apps = list_all()
-        # One entry per builtin manifest (derived, not a hardcoded count that
-        # drifts as apps are added/removed).
-        assert len(apps) == len(_BUILTIN_MANIFEST_PATHS)
-        names = {a["name"] for a in apps}
-        assert {"writer", "scholar"} <= names
+        assert [app["name"] for app in apps] == [
+            module.name for module in get_all_modules()
+        ]
 
     def test_get_info_from_registry(self):
         from scitex_hub.appmaker import get_info

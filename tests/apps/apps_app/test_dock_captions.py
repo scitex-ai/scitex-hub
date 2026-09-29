@@ -61,13 +61,13 @@ def test_my_projects_is_captioned_projects_in_the_dock():
     assert caption == "Projects"
 
 
-def test_app_store_is_captioned_apps_in_the_dock():
+def test_app_store_is_captioned_app_store_in_the_dock():
     # Arrange
     item = DockItem(key="store", label="App Store", icon="", url="/apps/store/")
     # Act
     caption = item.caption
     # Assert
-    assert caption == "Apps"
+    assert caption == "App Store"
 
 
 def test_other_apps_are_captioned_with_their_name():
@@ -81,7 +81,7 @@ def test_other_apps_are_captioned_with_their_name():
 
 @pytest.mark.parametrize(
     ("caption", "expected"),
-    [("Home", "ホーム"), ("Projects", "プロジェクト"), ("Chat", "チャット"), ("Apps", "アプリ")],
+    [("Home", "ホーム"), ("Projects", "プロジェクト"), ("Chat", "チャット"), ("App Store", "アプリストア")],
 )
 def test_dock_caption_is_translated_to_japanese(compiled_catalogs, caption, expected):
     # Arrange
@@ -143,6 +143,17 @@ def test_phone_dock_icon_matches_the_phone_tile_icon():
     )
     # Assert
     assert sizes[0] == sizes[1]
+
+
+def test_desktop_dock_keeps_the_canonical_dock_icon_size():
+    # The dock now deliberately uses one layout/icon scale at every width;
+    # Home's launcher may scale its own grid up on wide screens.
+    # Arrange
+    dock = _media_block(_dock_css(), "@media (min-width: 0px)")
+    # Act
+    size = re.search(r"--site-dock-icon:\s*(\d+)px", dock).group(1)
+    # Assert
+    assert size == "60"
 
 
 def test_desktop_uses_the_canonical_mobile_dock_icon_size():

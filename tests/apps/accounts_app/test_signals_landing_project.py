@@ -1,17 +1,25 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 # File: tests/apps/accounts_app/test_signals_landing_project.py
-"""A new profile lands on a real project, never on the shell-config one.
+"""The dotfiles project is provisioned, but it is never the user's project.
 
-The home project holds bashrc, gitconfig and screenrc. It is a real feature
-for a signed-in user and the wrong first screen for anyone else: landing there
-shows a stranger our shell dotfiles and nothing about research.
+The home project holds bashrc, gitconfig and screenrc. It is a real feature for
+a signed-in user and the wrong first screen for anyone else: landing there shows
+a stranger our shell dotfiles and nothing about research.
 
-Measured on production 2026-08-16 — every visitor workspace already held both
-projects on disk, and the visitor was landed on the shell one, so
-/apps/writer/ rendered "dotfiles · Writer", 0 words and a blank manuscript
-while the seeded demo sat unopened beside it. The content was never missing;
-the pointer was wrong. These tests pin the pointer.
+History, because this file has now pinned two opposite rules:
+
+* Measured on production 2026-08-16: the visitor was landed on the shell
+  project, so ``/apps/writer/`` rendered "dotfiles · Writer", 0 words and a
+  blank manuscript while a seeded demo sat unopened beside it. The first
+  version of this file therefore forced the pointer onto any NON-home project.
+* That fix still *chose for the user*, and for a brand-new account owning
+  nothing else it still chose the shell project. Card
+  ``hub-first-login-project-workspace-onboarding-20260917`` closes the class:
+  ONLY an explicit choice may become active, so the pointer stays empty and the
+  first-login welcome asks. See ``accounts_app.onboarding``.
+
+These tests pin the second rule. They need the database gate, like before.
 """
 
 import pytest
@@ -46,81 +54,70 @@ def user_with_demo(user):
     return user
 
 
-def test_landing_project_is_not_the_home_project(user_with_demo):
-    # Arrange: the demo exists alongside the home project
-    ensure_home_project(user_with_demo)
-    user_with_demo.profile.refresh_from_db()
-    # Act
-    landing = user_with_demo.profile.last_active_repository
-    # Assert
-    assert landing.is_home is False, (
-        "the profile landed on the shell-config project; a visitor would see "
-        "bashrc and gitconfig instead of the demo"
-    )
-
-
-def test_landing_project_is_the_demo(user_with_demo):
-    # Arrange
-    ensure_home_project(user_with_demo)
-    user_with_demo.profile.refresh_from_db()
-    # Act
-    landing = user_with_demo.profile.last_active_repository
-    # Assert
-    assert landing.slug == "default-project"
-
-
 def test_home_project_is_still_created(user_with_demo):
-    """Preferring the demo must not stop the home project existing."""
-    # Arrange
+    """Provisioning is unchanged: the dotfiles project still exists."""
     ensure_home_project(user_with_demo)
-    # Act
     homes = Project.objects.filter(owner=user_with_demo, is_home=True).count()
-    # Assert
     assert homes == 1
 
 
-def test_home_project_is_the_fallback_when_nothing_else_exists(user):
-    """With no other project, the home one is better than none."""
-    # Arrange: no demo project for this user
+def test_no_project_is_adopted_when_the_profile_has_no_choice(user_with_demo):
+    """The demo is there and remains unopened — the user chooses, not the code."""
+    ensure_home_project(user_with_demo)
+    user_with_demo.profile.refresh_from_db()
+    assert user_with_demo.profile.last_active_repository is None, (
+        "a project became active without the user choosing it"
+    )
+
+
+def test_the_home_project_is_not_adopted_either(user):
+    """With nothing else on disk, the shell project is still not the workspace."""
     ensure_home_project(user)
     user.profile.refresh_from_db()
-    # Act
-    landing = user.profile.last_active_repository
-    # Assert
-    assert landing is not None and landing.is_home is True
+    assert user.profile.last_active_repository is None
 
 
 def test_an_existing_choice_is_not_overwritten(user_with_demo):
     """last_active_repository means 'where they were'; do not rewrite a choice."""
-    # Arrange: the user is already sitting on the home project deliberately.
-    # The post_save signal on User already created it, so fetch it rather than
-    # creating a second one (Project is unique per (name, owner) and (owner, slug)).
-    home = Project.objects.get(owner=user_with_demo, is_home=True)
-    user_with_demo.profile.last_active_repository = home
+    chosen = Project.objects.get(owner=user_with_demo, slug="default-project")
+    user_with_demo.profile.last_active_repository = chosen
     user_with_demo.profile.save()
     ensure_home_project(user_with_demo)
     user_with_demo.profile.refresh_from_db()
-    # Act
-    landing = user_with_demo.profile.last_active_repository
-    # Assert
-    assert landing.pk == home.pk
+    assert user_with_demo.profile.last_active_repository_id == chosen.pk
 
 
-def test_repair_runs_even_when_the_home_project_already_exists(user_with_demo):
-    """A profile provisioned before the demo existed is fixed on next login."""
-    # Arrange: home project present, profile still pointing nowhere.
-    # The post_save signal on User already created the home project, which IS
-    # this test's precondition — get() raises DoesNotExist if that ever stops
-    # being true, so the precondition stays guarded without a second assert.
-    Project.objects.get(owner=user_with_demo, is_home=True)
+def test_get_active_project_returns_the_explicit_choice(user_with_demo):
+    chosen = Project.objects.get(owner=user_with_demo, slug="default-project")
+    user_with_demo.profile.last_active_repository = chosen
+    user_with_demo.profile.save()
+
+    assert user_with_demo.profile.get_active_project().pk == chosen.pk
+
+
+def test_get_active_project_does_not_invent_one(user_with_demo):
+    """It used to pick and persist the first owned project on read."""
     user_with_demo.profile.last_active_repository = None
     user_with_demo.profile.save()
-    ensure_home_project(user_with_demo)
+
+    assert user_with_demo.profile.get_active_project() is None
     user_with_demo.profile.refresh_from_db()
-    # Act
-    landing = user_with_demo.profile.last_active_repository
-    # Assert
-    assert landing is not None and landing.is_home is False
+    assert user_with_demo.profile.last_active_repository is None
+
+
+def test_get_active_project_drops_a_reference_the_user_does_not_own(user_with_demo):
+    """A stale cross-user pointer is cleared, never substituted."""
+    User = get_user_model()
+    other = User.objects.create_user(username="visitor-998", password="x")
+    foreign = Project.objects.create(
+        name="Not Yours", slug="not-yours", owner=other, visibility="private"
+    )
+    user_with_demo.profile.last_active_repository = foreign
+    user_with_demo.profile.save()
+
+    assert user_with_demo.profile.get_active_project() is None
+    user_with_demo.profile.refresh_from_db()
+    assert user_with_demo.profile.last_active_repository_id is None
 
 
 # EOF

@@ -10,9 +10,10 @@ throughout the subpackage for consistent rich-rendering.
 from __future__ import annotations
 
 import click
-from rich.console import Console
 
-console = Console()
+from scitex_hub._logging import get_console
+
+console = get_console(__name__)
 
 
 @click.group()

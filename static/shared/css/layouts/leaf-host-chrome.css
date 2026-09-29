@@ -1,11 +1,34 @@
 /**
  * @component Leaf Host Chrome
- * @description Site header, themed page ground and dock clearance for leaf apps
+ * @description Site header and themed page ground for leaf apps
  *   rendered in scitex-ui's standalone shell (injected by SiteContentFrameMiddleware).
  * @category Layouts
  * @file /static/shared/css/layouts/leaf-host-chrome.css
  * @darkmode true
  */
+
+/* The standalone shell loads no hub bundle, so the injected real hub header
+ * (global_header.html) gets its hub CSS here, in hub's own cascade order
+ * (mirrors static/shared/css/common.css). Paths stay relative so any
+ * STATIC_URL prefix survives. variables.css re-exports scitex-ui's own
+ * primitives, so the header reads the same tokens as on hub pages. */
+@import url("../primitives/variables.css");
+@import url("../components/header/00-header.css");
+@import url("../components/header/01-container.css");
+@import url("../components/header/02-layout.css");
+@import url("../components/header/03-logo.css");
+@import url("../components/header/04-nav-icons.css");
+@import url("../components/header/05-search-bar.css");
+@import url("../components/header/06-navigation.css");
+@import url("../components/header/07-action-buttons.css");
+@import url("../components/header/08-theme-toggle.css");
+@import url("../components/header/09-icon-buttons.css");
+@import url("../components/header/10-user-menu.css");
+@import url("../components/header/11-dropdown-menu.css");
+@import url("../components/header/12-project-selector.css");
+@import url("../components/header/13-jump-buttons.css");
+@import url("../components/header/14-responsive.css");
+@import url("../components/header/16-search-modal.css");
 
 html,
 body,
@@ -57,9 +80,10 @@ body.workspace-page {
   white-space: nowrap;
 }
 
-/* The page scrolls past the fixed dock instead of ending under it. */
+/* The fixed dock is an overlay; only the physical device inset belongs to the
+   page's layout. */
 body:has(> .stx-leaf-site-header) {
-  padding-bottom: var(--site-dock-clearance, 0px);
+  padding-bottom: env(safe-area-inset-bottom, 0px);
 }
 
 @media (min-width: 1024px) {
@@ -69,7 +93,44 @@ body:has(> .stx-leaf-site-header) {
   }
 
   body:has(> .stx-leaf-site-header) > .workspace-three-col {
-    height: calc(100vh - 65px - var(--site-dock-clearance, 0px));
-    max-height: calc(100vh - 65px - var(--site-dock-clearance, 0px));
+    height: calc(100vh - 65px);
+    max-height: calc(100vh - 65px);
+  }
+}
+
+/* ---- Leaf-hosted REAL hub header (global_header.html) ---------------------
+ * The rules above serve the legacy title-only substitute; the middleware now
+ * injects hub's own .global-header instead. What the shell cannot provide:
+ * - search triggers are disabled server-side (no hub JS bundle on the
+ *   shell): render them dimmed, never as a live control;
+ * - the AI-assistant toggle needs the hub AI-chat bundle: hide it rather
+ *   than ship a dead button (anonymous shells never render it anyway).
+ * The hamburger menu needs nothing extra: its fail-safe wiring is inline.
+ */
+body > .global-header .header-search[disabled],
+body > .global-header .header-search-mobile-trigger[disabled] {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+body > .global-header #stx-shell-ai-fab {
+  display: none;
+}
+
+/* Same desktop frame and shell-height offset as the substitute had: the real
+   header inner is also 64px, so the 65px offset still applies. */
+body:has(> .global-header) {
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+@media (min-width: 1024px) {
+  body > .global-header .global-header-inner {
+    width: var(--site-content-max-width, 90vw);
+    margin-inline: auto;
+  }
+
+  body:has(> .global-header) > .workspace-three-col {
+    height: calc(100vh - 65px);
+    max-height: calc(100vh - 65px);
   }
 }

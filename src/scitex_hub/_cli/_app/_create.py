@@ -88,19 +88,19 @@ def app_create(name, description, template, app_category, dry_run, yes):
             app_category=app_category,
         )
     except ValueError as e:
-        console.print(f"[red]Error: {e}[/red]")
+        console.error(f"[red]Error: {e}[/red]")
         raise SystemExit(2)
     except RuntimeError as e:
-        console.print(f"[red]Error: {e}[/red]")
+        console.error(f"[red]Error: {e}[/red]")
         raise SystemExit(1)
 
     msg = result.get("message", name)
-    console.print(f"[green]Created app project: {msg}[/green]")
+    console.success(f"[green]Created app project: {msg}[/green]")
     final_slug = result.get("slug", "")
     if final_slug:
-        console.print(f"  slug:         [cyan]{final_slug}[/cyan]")
+        console.info(f"  slug:         [cyan]{final_slug}[/cyan]")
     sub_cat = result.get("app_category") or "<unset>"
-    console.print(f"  app_category: [cyan]{sub_cat}[/cyan]")
+    console.info(f"  app_category: [cyan]{sub_cat}[/cyan]")
 
 
 # EOF

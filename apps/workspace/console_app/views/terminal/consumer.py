@@ -15,8 +15,10 @@ import termios
 from channels.generic.websocket import AsyncWebsocketConsumer
 
 from apps.infra.project_app.models import Project
+from apps.workspace.console_app.views.terminal.pty_children import (
+    reap_registered_children,
+)
 
-from .config import USER_DATA_ROOT
 from .consumer_events import ChannelEventsMixin
 
 logger = logging.getLogger(__name__)
@@ -33,10 +35,6 @@ async def _check_broker():
     except Exception:
         return False
 
-
-from apps.workspace.console_app.views.terminal.pty_children import (
-    reap_registered_children,
-)
 
 # Fallback: SIGCHLD handler for direct pty.fork() mode
 def _sigchld_handler(signum, frame):
@@ -150,17 +148,14 @@ class TerminalConsumer(ChannelEventsMixin, AsyncWebsocketConsumer):
                     Project.objects.select_related("owner").get, id=project_id
                 )
 
-            # Check permissions
-            if self.user.is_authenticated:
-                has_access = self.user == self.project.owner or await asyncio.to_thread(
+            # Session values never confer identity: private compute requires an
+            # authenticated owner/collaborator.
+            has_access = self.user.is_authenticated and (
+                self.user == self.project.owner
+                or await asyncio.to_thread(
                     lambda: self.user in self.project.collaborators.all()
                 )
-            else:
-                session = self.scope.get("session", {})
-                visitor_project_id = session.get("visitor_project_id")
-                has_access = (
-                    visitor_project_id and int(project_id) == visitor_project_id
-                )
+            )
 
             if not has_access:
                 await self.accept()

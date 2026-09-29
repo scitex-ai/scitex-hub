@@ -1,4 +1,6 @@
 {% extends "global_base.html" %}
+{% load i18n %}
+{% load static %}
 
 {% block title %}{{ video_title }} - SciTeX Demo{% endblock %}
 {% block meta_description %}{{ video_description }}{% endblock %}
@@ -117,6 +119,30 @@
             font-size: 1rem;
             line-height: 1.6;
         }
+
+        .language-switch {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+            margin-top: 1rem;
+        }
+
+        .language-switch-label {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: var(--text-secondary);
+        }
+
+        .language-switch-status {
+            margin: 0.5rem 0 0;
+            min-height: 1.2em;
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+        }
     </style>
 {% endblock %}
 {% block content %}
@@ -133,13 +159,36 @@
             <video id="demo-video"
                    controls
                    {% if not video_narrated %}autoplay muted{% endif %}
-                   data-default-speed="{{ video_playback_rate }}">
-                <source src="{{ video_url }}" type="video/mp4" />
+                   data-default-speed="{{ video_playback_rate }}"
+                   data-default-language="{{ video_default_language }}"
+                   data-default-captions="{{ video_default_captions }}"
+                   data-languages="{{ video_languages_json }}">
+                <source src="{{ video_initial_url|default:video_url }}" type="video/mp4" />
                 {% if video_captions_url %}<track kind="captions" src="{{ video_captions_url }}" srclang="en" label="English" />{% endif %}
                 {% if video_ja_captions_url %}<track kind="captions" src="{{ video_ja_captions_url }}" srclang="ja" label="日本語" />{% endif %}
                 Your browser does not support the video tag.
             </video>
         </div>
+        {% if video_languages|length > 1 %}
+            <div class="language-switch" role="group"
+                 aria-label="{% blocktranslate %}Narration and subtitle language{% endblocktranslate %}">
+                <span class="language-switch-label">
+                    <i class="fas fa-language" aria-hidden="true"></i>
+                    {% blocktranslate %}Language{% endblocktranslate %}
+                </span>
+                {% for language in video_languages %}
+                    <button type="button"
+                            class="speed-btn language-switch-btn{% if language.code == video_default_language %} is-active{% endif %}"
+                            data-demo-lang="{{ language.code }}"
+                            lang="{{ language.language }}"
+                            aria-pressed="{% if language.code == video_default_language %}true{% else %}false{% endif %}"
+                            {% if language.note %}title="{{ language.note }}"{% endif %}>
+                        {{ language.label }}{% if not language.canonical %} ({{ language.ui_locale|upper }} UI){% endif %}
+                    </button>
+                {% endfor %}
+            </div>
+            <p id="demo-video-language-status" class="language-switch-status" role="status" aria-live="polite"></p>
+        {% endif %}
         <div class="speed-controls">
             <button class="speed-btn" data-speed="1">x1</button>
             <button class="speed-btn" data-speed="2">x2</button>
@@ -201,4 +250,6 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 });
     </script>
+    {# Switches the narration/subtitle language without losing the viewer's place. #}
+    <script src="{% static 'public_app/js/demo-video-player.js' %}" defer></script>
 {% endblock %}

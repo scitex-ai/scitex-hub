@@ -69,7 +69,7 @@ class VerifyCodeForm(forms.Form):
                 "class": "form-control",
                 "placeholder": "000000",
                 "pattern": "[0-9]{6}",
-                "autocomplete": "off",
+                "autocomplete": "one-time-code",
             }
         ),
     )
@@ -114,24 +114,21 @@ class SignupForm(forms.Form):
     username = forms.CharField(
         max_length=150,
         widget=forms.TextInput(
-            attrs={"class": "form-control", "placeholder": "Choose a username"}
+            attrs={"class": "form-control", "autocomplete": "username",
+                "placeholder": "Choose a username"}
         ),
     )
     email = forms.EmailField(
         widget=forms.EmailInput(
-            attrs={"class": "form-control", "placeholder": "your.email@example.com"}
+            attrs={"class": "form-control", "autocomplete": "email",
+                "placeholder": "your.email@example.com"}
         )
     )
     password = forms.CharField(
         widget=forms.PasswordInput(
-            attrs={"class": "form-control", "placeholder": "Create a strong password"}
+            attrs={"class": "form-control", "autocomplete": "new-password",
+                "placeholder": "Create a strong password"}
         )
-    )
-    password2 = forms.CharField(
-        widget=forms.PasswordInput(
-            attrs={"class": "form-control", "placeholder": "Confirm your password"}
-        ),
-        label="Confirm Password",
     )
     agree_terms = forms.BooleanField(
         required=True,
@@ -156,17 +153,6 @@ class SignupForm(forms.Form):
         if User.objects.filter(email=email).exists():
             raise forms.ValidationError("An account with this email already exists.")
         return email
-
-    def clean(self):
-        """Validate passwords match."""
-        cleaned_data = super().clean()
-        password = cleaned_data.get("password")
-        password2 = cleaned_data.get("password2")
-
-        if password and password2 and password != password2:
-            raise forms.ValidationError("Passwords do not match.")
-
-        return cleaned_data
 
 
 class LoginForm(forms.Form):

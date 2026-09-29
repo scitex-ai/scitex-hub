@@ -164,7 +164,7 @@ def _effective_body_style(body_classes: frozenset) -> dict:
 def _is_viewport_locked(body_classes: frozenset) -> bool:
     """Pinned to the viewport with no way to scroll to overflow."""
     style = _effective_body_style(body_classes)
-    capped = style.get("max-height") == VIEWPORT_LOCKING["max-height"]
+    capped = style.get("max-height") in {"100vh", "100dvh"}
     scroll = style.get("overflow-y", style.get("overflow", ""))
     return capped and scroll == VIEWPORT_LOCKING["overflow"]
 

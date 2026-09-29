@@ -1,19 +1,43 @@
 """The Storage leaf's volumes provider hands out only the requester's own dirs.
 
-Real ORM, real request objects; no mocks.
+The provider lives at
+``apps.workspace.apps_app.services.plugin_volumes.user_volumes`` — generic
+hub infrastructure (user -> workspace mapping) consumed via
+``SCITEX_STORAGE_VOLUMES_PROVIDER`` by any leaf that measures storage. It
+names no plugin.
+
+Real request objects; stub users; the compute-identity lookup stubbed with
+``unittest.mock``; no ORM (this dev container's database role cannot create
+test databases).
 """
 
-from django.contrib.auth.models import AnonymousUser, User
-from django.test import RequestFactory, TestCase
+from types import SimpleNamespace
+from unittest import mock
 
-from apps.workspace.storage_app.volumes import user_volumes
+from django.contrib.auth.models import AnonymousUser
+from django.test import RequestFactory
+
+from apps.workspace.apps_app.services.plugin_volumes import user_volumes
 
 
-class StorageVolumesProviderTests(TestCase):
+def _request(user, path="/apps/storage/"):
+    request = RequestFactory().get(path)
+    request.user = user
+    return request
+
+
+def _no_compute_identity():
+    from apps.workspace.console_app.models import ComputeIdentity
+
+    manager = mock.Mock()
+    manager.filter.return_value.first.return_value = None
+    return mock.patch.object(ComputeIdentity, "objects", manager)
+
+
+class StorageVolumesProviderTests:
     def test_anonymous_gets_no_volumes(self):
         # Arrange
-        request = RequestFactory().get("/apps/storage/")
-        request.user = AnonymousUser()
+        request = _request(AnonymousUser())
         # Act
         volumes = user_volumes(request)
         # Assert
@@ -21,20 +45,38 @@ class StorageVolumesProviderTests(TestCase):
 
     def test_workspace_volume_is_the_users_own_data_root(self):
         # Arrange
-        user = User.objects.create_user("vol_alice", password="x")
-        request = RequestFactory().get("/apps/storage/")
-        request.user = user
+        user = SimpleNamespace(username="vol_alice", is_authenticated=True)
+        request = _request(user)
         # Act
-        paths = [v["path"] for v in user_volumes(request)]
+        with _no_compute_identity():
+            volumes = user_volumes(request)
         # Assert
-        assert paths[0].endswith("/data/users/vol_alice")
+        assert [v["key"] for v in volumes] == ["workspace"]
+        assert volumes[0]["path"].endswith("/data/users/vol_alice")
 
     def test_no_compute_home_without_a_compute_identity(self):
         # Arrange
-        user = User.objects.create_user("vol_bob", password="x")
-        request = RequestFactory().get("/apps/storage/")
-        request.user = user
+        user = SimpleNamespace(username="vol_bob", is_authenticated=True)
+        request = _request(user)
         # Act
-        keys = [v["key"] for v in user_volumes(request)]
+        with _no_compute_identity():
+            volumes = user_volumes(request)
         # Assert
-        assert "compute-home" not in keys
+        assert "compute-home" not in [v["key"] for v in volumes]
+
+    def test_compute_home_appears_with_a_compute_identity(self):
+        # Arrange
+        from apps.workspace.console_app.models import ComputeIdentity
+
+        user = SimpleNamespace(username="vol_cara", is_authenticated=True)
+        request = _request(user)
+        identity = SimpleNamespace(username="cara-compute")
+        manager = mock.Mock()
+        manager.filter.return_value.first.return_value = identity
+        # Act
+        with mock.patch.object(ComputeIdentity, "objects", manager):
+            volumes = user_volumes(request)
+        # Assert
+        by_key = {v["key"]: v for v in volumes}
+        assert set(by_key) == {"workspace", "compute-home"}
+        assert by_key["compute-home"]["path"].endswith("cara-compute")

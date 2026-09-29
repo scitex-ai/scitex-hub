@@ -48,29 +48,29 @@ def doctor(server):
     """
     p = _token_cache_path()
     hard_fail = False
-    console.print(f"[bold]token.json:[/bold] {p}")
+    console.info(f"[bold]token.json:[/bold] {p}")
 
     if not p.exists():
-        console.print("  [red]✗[/red] does not exist")
+        console.error("  [red]✗[/red] does not exist")
         sys.exit(1)
-    console.print("  [green]✓[/green] exists")
+    console.success("  [green]✓[/green] exists")
 
     mode = p.stat().st_mode & 0o777
     if mode == 0o600:
-        console.print(f"  [green]✓[/green] mode 0o{mode:o}")
+        console.success(f"  [green]✓[/green] mode 0o{mode:o}")
     else:
-        console.print(f"  [yellow]![/yellow] mode 0o{mode:o} (recommended: 0o600)")
+        console.warning(f"  [yellow]![/yellow] mode 0o{mode:o} (recommended: 0o600)")
 
     cached = _read_cached_token()
     if cached is None:
-        console.print("  [red]✗[/red] unreadable / invalid JSON")
+        console.error("  [red]✗[/red] unreadable / invalid JSON")
         sys.exit(1)
-    console.print("  [green]✓[/green] parses as JSON")
+    console.success("  [green]✓[/green] parses as JSON")
 
     if "server" not in cached or "access" not in cached:
-        console.print("  [red]✗[/red] missing 'server' or 'access' key")
+        console.error("  [red]✗[/red] missing 'server' or 'access' key")
         sys.exit(1)
-    console.print(
+    console.success(
         f"  [green]✓[/green] server={cached['server']} "
         f"access=<{len(cached.get('access', ''))} chars>"
     )
@@ -85,22 +85,22 @@ def doctor(server):
             timeout=10,
         )
     except requests.ConnectionError:
-        console.print(f"  [red]✗[/red] cannot reach {server_url}")
+        console.error(f"  [red]✗[/red] cannot reach {server_url}")
         sys.exit(1)
 
     if resp.status_code == 200:
         username = resp.json().get("username", "?")
-        console.print(f"  [green]✓[/green] /api/me/ → 200 as [cyan]{username}[/cyan]")
+        console.success(f"  [green]✓[/green] /api/me/ → 200 as [cyan]{username}[/cyan]")
     elif resp.status_code == 401:
-        console.print("  [red]✗[/red] /api/me/ → 401 (token expired/invalid)")
+        console.error("  [red]✗[/red] /api/me/ → 401 (token expired/invalid)")
         hard_fail = True
     else:
-        console.print(f"  [red]✗[/red] /api/me/ → HTTP {resp.status_code}")
+        console.error(f"  [red]✗[/red] /api/me/ → HTTP {resp.status_code}")
         hard_fail = True
 
     if hard_fail:
         sys.exit(1)
-    console.print("[green]All checks passed.[/green]")
+    console.success("[green]All checks passed.[/green]")
 
 
 # EOF

@@ -10,13 +10,14 @@ window so external tooling that still hardcodes the old path keeps working.
 from __future__ import annotations
 
 import json
-import logging
 from pathlib import Path
 from typing import Any, Optional
 
+import scitex_logging as slogging
+
 from .._config._local_state_fallback import local_state
 
-logger = logging.getLogger(__name__)
+logger = slogging.getLogger(__name__)
 
 
 def _default_prefs_path() -> Path:

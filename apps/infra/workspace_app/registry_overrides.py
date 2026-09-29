@@ -34,4 +34,8 @@ _CLEW_SVG_TAB = (
 
 MANIFEST_OVERRIDES: dict[str, dict] = {
     "clew": {"icon_svg_tab": _CLEW_SVG_TAB, "icon_svg_nav": _CLEW_SVG_NAV},
+    # Stats verified working end-to-end (operator 2026-09-26): Calculate
+    # returns real statistics (t, p, effect size, power, APA line, plot).
+    # The app is project-scoped; keep the scope pin, drop the gate.
+    "stats": {"scope": "project", "availability": "available"},
 }

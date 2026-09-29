@@ -104,6 +104,13 @@ def configure(base_dir: Path) -> dict:
         "STATIC_ROOT": base_dir / "staticfiles",
         "STATICFILES_DIRS": [base_dir / "static", base_dir / ".jsbuild"],
         "MEDIA_ROOT": base_dir / "media",
+        # The staff-only demo library. Deliberately NOT under MEDIA_ROOT: the
+        # deployment serves MEDIA_URL to anyone who knows the path (config/urls.py
+        # dev static() and the prod fallback), and these are the renders that are
+        # not publishable yet — an unwatched language, a scenario that moved, media
+        # someone replaced by hand. They are read through
+        # views/internal_demos.py, which is staff-gated.
+        "DEMO_VIDEO_LIBRARY_DIR": base_dir / "internal_demos",
     }
 
 

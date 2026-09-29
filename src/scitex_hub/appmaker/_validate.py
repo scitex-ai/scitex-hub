@@ -3,11 +3,12 @@
 from __future__ import annotations
 
 import json
-import logging
 import re
 from pathlib import Path
 
-logger = logging.getLogger(__name__)
+import scitex_logging as slogging
+
+logger = slogging.getLogger(__name__)
 
 REQUIRED_FILES = [
     "apps.py",

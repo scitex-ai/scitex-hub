@@ -29,8 +29,6 @@ export interface PageHeightInput {
   scrollY: number;
   viewportHeight: number;
   viewportWidth: number;
-  /** Dock rect top relative to the viewport; null when it does not bound the page. */
-  dockTop: number | null;
   dotsRoom: number;
   /** Updated in place: carries the shortest height across calls at one width. */
   viewport: ViewportMemory;
@@ -44,11 +42,9 @@ export function pageHeightFor(input: PageHeightInput): number {
   } else {
     mem.minHeight = Math.min(mem.minHeight, input.viewportHeight);
   }
-  // The dock is fixed to the viewport bottom, so its distance from the bottom
-  // edge is what carries over to the shorter viewport.
-  const belowFloor =
-    input.dockTop === null ? 0 : input.viewportHeight - input.dockTop;
-  const floor = mem.minHeight - belowFloor;
+  // A fixed launcher is a true overlay. Page geometry always uses the viewport
+  // floor; the dock may paint above it but never shortens the app surface.
+  const floor = mem.minHeight;
   const gridTop = input.gridTop + Math.max(0, input.scrollY);
   return Math.max(MIN_PAGE_HEIGHT, floor - gridTop - input.dotsRoom - 8);
 }

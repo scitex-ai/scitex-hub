@@ -153,17 +153,24 @@
    ========================= */
 
 .input-group {
-  /* Layout - ensure flexbox behavior */
+  /* Layout - ensure flexbox behavior. nowrap is the actual eye-mark fix:
+     Bootstrap leaves flex-wrap:wrap on .input-group, so the full-width
+     password input pushes the toggle button onto its own line. */
   display: flex;
+  flex-wrap: nowrap;
+  align-items: stretch;
 }
 
 .input-group .form-control {
   /* Layout */
-  flex: 1;
+  flex: 1 1 auto;
+  width: 1%;
+  min-width: 0;
 }
 
 .input-group .btn {
-  /* Layout - remove left border radius for attached appearance */
+  /* Layout - never shrink/wrap away from the input; attached appearance */
+  flex: 0 0 auto;
   border-top-left-radius: 0;
   border-bottom-left-radius: 0;
 }
@@ -286,3 +293,22 @@
 /* =========================
    END OF AUTH.CSS
    ========================= */
+
+/* ---------------------------------------------------------------------------
+ * The funnel's primary and secondary actions (card
+ * hub-signup-email-stripe-funnel-20260917).
+ *
+ * Measured on the running Hub before this rule:
+ *   "Create Account" (step 1)  939x42 at 1440   197x33 at 390
+ *   "Verify Email"   (step 2)  444x50 at 1440   211x37 at 390
+ *   "Resend Code"    (step 2)  130x44 at 1440    97x35 at 390
+ * The platform's touch floor is 44px (SSOT section 4) and the smallest screens had
+ * the smallest versions of the controls that carry the funnel.
+ * ------------------------------------------------------------------------- */
+.btn.auth-primary-cta,
+.btn.auth-secondary-cta {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 44px;
+}

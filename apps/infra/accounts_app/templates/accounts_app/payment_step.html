@@ -1,0 +1,149 @@
+{% extends "auth_app/auth_base.html" %}
+{% load i18n static %}
+
+{% block title %}{% trans "Add your payment method" %} - SciTeX{% endblock %}
+
+{% block extra_css %}
+    <link rel="stylesheet" href="{% static 'shared/css/components/payment-step.css' %}?v={{ build_id }}" />
+{% endblock %}
+
+{% block auth_content %}
+    {# The payment step, after the email is verified and before anything is     #}
+    {# charged. Card entry happens on the provider's hosted page: SciTeX never   #}
+    {# renders a PAN/CVC field, and the webhook — not this page — owns           #}
+    {# entitlement (card hub-signup-email-stripe-funnel-20260917).               #}
+    {#                                                                          #}
+    {# Every way a person can leave the provider's page has a state here:       #}
+    {# activated (provider-confirmed) -> the first project; processing (3DS or  #}
+    {# a webhook still in flight); setup_cancelled / setup_failed -> one        #}
+    {# continue action again; not_open / plan_unset -> why there is no action.  #}
+    <div class="payment-step" data-payment-step="true" data-payment-state="{{ state }}">
+        <ol class="payment-steps" aria-label="{% trans 'Signup progress' %}">
+            <li class="payment-steps-item is-done">{% trans "Account" %}</li>
+            <li class="payment-steps-item is-done">{% trans "Email verified" %}</li>
+            <li class="payment-steps-item {% if state == 'activated' %}is-done{% else %}is-current{% endif %}"
+                {% if state != 'activated' %}aria-current="step"{% endif %}>
+                {% trans "Payment method" %}
+            </li>
+        </ol>
+
+        {% if state == 'activated' %}
+            {# The provider confirmed a trialing subscription: the funnel is DONE. #}
+            {# The next step is the first product, not another settings page.      #}
+            <h1 class="payment-step-title">{% trans "Your trial has started" %}</h1>
+            <p class="payment-step-lead">
+                {% blocktrans with plan=plan_label %}{{ plan }} is active. Nothing has been charged, and your first charge is on {{ first_charge_on }}.{% endblocktrans %}
+            </p>
+            <dl class="payment-step-terms">
+                <dt>{% trans "Trial ends" %}</dt>
+                <dd data-payment-disclosure="trial-end">{{ trial_ends_on }}</dd>
+                <dt>{% trans "First charge" %}</dt>
+                <dd data-payment-disclosure="first-charge">{{ first_charge_on }}</dd>
+                <dt>{% trans "Cancellation" %}</dt>
+                <dd data-payment-disclosure="cancellation">{{ cancellation }}</dd>
+            </dl>
+            <a class="payment-step-continue"
+               href="{{ first_product_url }}"
+               data-payment-action="first-product">
+                {% trans "Create your first project" %}
+            </a>
+            <p class="payment-step-fineprint">
+                <a class="payment-step-secondary" href="{% url 'accounts_app:billing' %}">
+                    {% trans "Manage billing and cards" %}
+                </a>
+            </p>
+
+        {% elif state == 'processing' %}
+            {# A card is stored but the provider has not confirmed the trial yet. #}
+            {# This is the 3-D Secure / asynchronous case: the browser came back  #}
+            {# before the webhook did. Nothing is wrong and nothing is lost.      #}
+            <h1 class="payment-step-title">{% trans "Confirming your payment method" %}</h1>
+            <p class="payment-step-lead">
+                {% trans "We have your card and are waiting for the payment provider to confirm it. Nothing has been charged and nothing is due today." %}
+            </p>
+            <p class="payment-step-fineprint" data-payment-retry="true">
+                {% trans "This page updates by itself — no need to do anything, and please do not enter your card again." %}
+            </p>
+
+        {% elif state == 'not_open' %}
+            <h1 class="payment-step-title">{% trans "Activation is waiting on payment setup" %}</h1>
+            <p class="payment-step-lead">
+                {% trans "Your email is verified, but we cannot take a payment method yet, so your trial has not started. Nothing is due, and there is nothing you can do here to unblock it." %}
+            </p>
+            <p class="payment-step-fineprint" data-payment-retry="true">
+                {% trans "We keep retrying this automatically and will show this step again the moment payment setup is available." %}
+            </p>
+
+        {% elif state == 'plan_unset' %}
+            <h1 class="payment-step-title">{% trans "Your plan is not set up yet" %}</h1>
+            <p class="payment-step-lead">
+                {% trans "We will not guess which plan you signed up for, so there is no price to show you. Nothing has been charged, and your account stays verified while this is sorted out." %}
+            </p>
+
+        {% else %}
+            {% if state == 'setup_cancelled' %}
+                <p class="payment-step-notice" data-payment-notice="setup_cancelled">
+                    {% trans "You left the secure card page before finishing. You have not been charged, and your account is not in trouble — nothing was created." %}
+                </p>
+            {% elif state == 'setup_failed' %}
+                <p class="payment-step-notice" data-payment-notice="setup_failed">
+                    {% trans "We could not open the secure card page. You have not been charged and nothing was created. Please try again." %}
+                </p>
+            {% endif %}
+
+            <h1 class="payment-step-title">{% trans "Start your 30-day SciTeX Cloud trial" %}</h1>
+            <p class="payment-step-lead">
+                {% blocktrans with plan=plan_label %}{{ plan }} — {{ price_per_month }} per month, and $0.00 due today.{% endblocktrans %}
+            </p>
+
+            <dl class="payment-step-terms">
+                <dt>{% trans "Plan" %}</dt>
+                <dd data-payment-disclosure="plan">{{ plan_label }}</dd>
+                <dt>{% trans "Price" %}</dt>
+                <dd data-payment-disclosure="price">{{ price_per_month }}{% trans " / month (USD)" %}</dd>
+                <dt>{% trans "Due today" %}</dt>
+                <dd data-payment-disclosure="due-today">{{ due_today }}</dd>
+                <dt>{% trans "Trial ends" %}</dt>
+                <dd data-payment-disclosure="trial-end">{{ trial_ends_on }}</dd>
+                <dt>{% trans "First charge" %}</dt>
+                <dd data-payment-disclosure="first-charge">{{ first_charge_on }}</dd>
+                <dt>{% trans "Renewal" %}</dt>
+                <dd data-payment-disclosure="renewal">{{ renewal }}</dd>
+                <dt>{% trans "Cancellation" %}</dt>
+                <dd data-payment-disclosure="cancellation">{{ cancellation }}</dd>
+                <dt>{% trans "Tax" %}</dt>
+                <dd data-payment-disclosure="tax">{{ tax }}</dd>
+            </dl>
+
+            <p class="payment-step-card-note">
+                <i class="fas fa-lock" aria-hidden="true"></i>
+                {% trans "Your card number and CVC are entered on the payment provider's secure page. SciTeX never sees or stores them." %}
+            </p>
+
+            {# POST to the setup endpoint. The plan is bound server-side (checked  #}
+            {# against the deployment's allowlist) and carried in the provider     #}
+            {# session's metadata, so the webhook activates what was shown here.   #}
+            {# The double-submit guard is the module shared/utils/submit-guard.ts, #}
+            {# wired from the shell body scripts on `data-submit-guard="true"`;    #}
+            {# the SERVER owns idempotency (one customer, one open session).       #}
+            {# This branch is exactly ACTIONABLE_STATES (pending, cancelled,       #}
+            {# failed): every one of them has the same single way forward.         #}
+            <form method="post"
+                  action="{% url 'public_app:billing_start_setup' %}"
+                  class="payment-step-form"
+                  data-submit-guard="true">
+                {% csrf_token %}
+                <input type="hidden" name="plan" value="{{ pricing_id }}" />
+                <button type="submit"
+                        class="payment-step-continue"
+                        data-busy-label="{% trans 'Opening secure checkout…' %}"
+                        data-payment-action="continue">
+                    {% trans "Continue to secure Stripe" %}
+                </button>
+            </form>
+            <p class="payment-step-fineprint">
+                {% blocktrans %}You can cancel any time before the trial ends and you will not be charged.{% endblocktrans %}
+            </p>
+        {% endif %}
+    </div>
+{% endblock %}
