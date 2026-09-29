@@ -49,6 +49,7 @@ services:
       - ../../../../socialia:/socialia:cached
       - ../../../../scitex-ui:/scitex-ui:cached
       - ../../../../scitex-app:/scitex-app:cached
+      - ../../../../scitex-sdk:/scitex-sdk:cached
       - ../../../../scitex-plt:/scitex-plt:cached
       - ../../../../scitex-audio:/scitex-audio:cached
       - ../../../../scitex-dev:/scitex-dev:cached
@@ -339,6 +340,7 @@ services:
       - ../../../../socialia:/socialia:cached
       - ../../../../scitex-ui:/scitex-ui:cached
       - ../../../../scitex-app:/scitex-app:cached
+      - ../../../../scitex-sdk:/scitex-sdk:cached
       - ../../../../scitex-plt:/scitex-plt:cached
       - ../../../../scitex-audio:/scitex-audio:cached
       - ../../../../scitex-dev:/scitex-dev:cached
@@ -466,6 +468,7 @@ services:
       - ../../../../socialia:/socialia:cached
       - ../../../../scitex-ui:/scitex-ui:cached
       - ../../../../scitex-app:/scitex-app:cached
+      - ../../../../scitex-sdk:/scitex-sdk:cached
       - ../../../../scitex-plt:/scitex-plt:cached
       - ../../../../scitex-audio:/scitex-audio:cached
       - ../../../../scitex-dev:/scitex-dev:cached
