@@ -151,6 +151,16 @@ class TestServicesGet:
         pages, one pricing.json, two disjoint price sets. The operator's words
         on seeing it: 「値段はめちゃくちゃだった」.
 
+        SCOPE (SSOT Provisional v1.0, 2026-09-14): this page no longer renders
+        a per-row included list — the redesign moved included detail into the
+        shared partials (the Cloud Academic/Standard list, the rate card, the
+        policies), while /tokushoho/ keeps the full per-row legal disclosure.
+        So the PRICE of every row is asserted here (the agreement this guard
+        exists for), but included ITEMS only for the Cloud rows, through the
+        same shared_included() helper the page renders. Asserting Free /
+        Self-Hosted / service-row prose here would re-pin a layout the SSOT
+        deliberately removed; that prose is covered on /tokushoho/.
+
         The price rows are computed in the SAME language the page renders in
         (EN by default; JA only after explicit selection) — otherwise a
         JA-formatted price (「月額 1,490円」) is compared against an
@@ -158,7 +168,8 @@ class TestServicesGet:
         asserted below.
         """
         # Arrange
-        from apps.infra.public_app.pricing import published_price_rows
+        from apps.infra.public_app.pricing import published_price_rows, tier_rows
+        from apps.infra.public_app.pricing_pages import shared_included
 
         def assert_catalogue_on_page(content, lang):
             # price / price_note / included items are language-dependent — the
@@ -170,7 +181,13 @@ class TestServicesGet:
             # impossible. The price is the row's identity.
             with translation.override(lang):
                 rows = published_price_rows()
+                cloud = next(t for t in tier_rows() if t["id"] == "cloud")
+                cloud_included = shared_included(cloud["rows"])
             assert rows, "Control: an empty catalogue would satisfy the loop below vacuously."
+            assert cloud_included, (
+                "Control: shared_included() returned nothing, so the included-"
+                "items loop below would pass vacuously."
+            )
             for row in rows:
                 assert row["price"] in content, (
                     f"price {row['price']!r} (tier {row['label']!r}) not on the {lang} /services/ page"
@@ -179,10 +196,10 @@ class TestServicesGet:
                     assert row["price_note"] in content, (
                         f"{row['label']}: {row['price_note']!r} not on /services/ ({lang})"
                     )
-                for item in row["included"]:
-                    assert item in content, (
-                        f"{row['label']}: included item {item!r} not on /services/ ({lang})"
-                    )
+            for item in cloud_included:
+                assert item in content, (
+                    f"Cloud included item {item!r} not on /services/ ({lang})"
+                )
 
         # Act/Assert — EN default (no cookie)
         en_content = client.get(services_url).content.decode()

@@ -37,8 +37,27 @@ from apps.infra.public_app.views.legal import _tokushoho_context
 TEMPLATE = "public_app/legal/tokushoho.html"
 
 #: Real rendered column text, taken from the shipped catalogue so the synthetic
-#: row carries the same shapes and phrasings a real row does.
-_REAL = published_price_rows()[0]
+#: row carries the same shapes and phrasings a real row does. This must be a
+#: row whose storage / compute-credit / overage columns are ALL non-empty:
+#: rows()[0] used to qualify, until the catalogue gained a leading Free row
+#: with no overage attribute (SSOT Provisional v1.0) — its "" overage made
+#: html.count("") return len(html)+1 and every [overage] case fail for no
+#: product reason. Selecting by shape instead of position keeps the fixture
+#: on a genuine three-column row whatever the catalogue order becomes.
+def _first_fully_dedicated_row():
+    for candidate in published_price_rows():
+        if candidate["storage"] and candidate["compute_credit"] and candidate["overage"]:
+            return candidate
+    raise AssertionError(
+        "Control: no catalogue row has all three dedicated columns "
+        "(storage / compute_credit / overage) non-empty, so the synthetic "
+        "dedicated-only row below cannot be built from real column text. "
+        "Fix pricing.json; do not weaken these tests."
+    )
+
+
+_REAL = _first_fully_dedicated_row()
+assert _REAL["storage"] and _REAL["compute_credit"] and _REAL["overage"]
 STORAGE = _REAL["storage"]
 COMPUTE_CREDIT = _REAL["compute_credit"]
 OVERAGE = _REAL["overage"]
