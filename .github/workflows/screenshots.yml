@@ -39,7 +39,10 @@ concurrency:
 jobs:
   screenshots:
     name: Capture product screenshots
-    runs-on: ubuntu-latest
+    runs-on: >-
+      ${{ (github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name != github.repository)
+          && fromJSON('["ubuntu-latest"]')
+          || fromJSON('["self-hosted","Linux","X64","scitex-ci"]') }}
     # Raised 30 -> 45 on 2026-09-06. The capture was being killed at 22-24
     # min on every develop push (runs 34030453842 / 34031946558 / 34039423420),
     # with ~6 min of setup ahead of it, so 30 was simply below the work.
@@ -80,6 +83,15 @@ jobs:
           --health-retries 5
 
     steps:
+      # Backstop for the runs-on predicate: never check out fork code on our hardware.
+      - name: Refuse to run fork-authored code on self-hosted infrastructure
+        if: >-
+          github.event_name == 'pull_request' &&
+          github.event.pull_request.head.repo.full_name != github.repository &&
+          runner.environment == 'self-hosted'
+        run: |
+          echo "::error::Fork-authored code is not run on self-hosted runners."
+          exit 1
       - name: Checkout code
         uses: actions/checkout@v4
 
