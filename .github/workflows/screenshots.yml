@@ -64,8 +64,15 @@ jobs:
           POSTGRES_DB: scitex_test
           POSTGRES_USER: scitex
           POSTGRES_PASSWORD: scitex_test_pass  # pragma: allowlist secret
+        # Random host port (no fixed bind): parallel jobs sharing one
+        # self-hosted host collide on a fixed 5432 bind (measured on
+        # scitex-ci-04: 'failed to bind host port 0.0.0.0:5432/tcp: address
+        # already in use'). Same pattern as pytest-matrix. The job reaches
+        # postgres on localhost via job.services.postgres.ports below, which
+        # resolves on both the hosted fork path and the self-hosted path
+        # (neither runs inside a job container, so localhost is correct).
         ports:
-          - 5432:5432
+          - 5432
         options: >-
           --health-cmd pg_isready
           --health-interval 10s
@@ -74,8 +81,11 @@ jobs:
 
       redis:
         image: redis:7-alpine
+        # Random host port, same reason as postgres above: a fixed 6379 bind
+        # collides the same way when jobs share a host. Reached on localhost
+        # via job.services.redis.ports below.
         ports:
-          - 6379:6379
+          - 6379
         options: >-
           --health-cmd "redis-cli ping"
           --health-interval 10s
@@ -151,8 +161,8 @@ jobs:
           SCITEX_HUB_DB_USER_DEV: scitex
           SCITEX_HUB_DB_PASSWORD_DEV: scitex_test_pass  # pragma: allowlist secret
           SCITEX_HUB_DB_HOST_DEV: localhost
-          SCITEX_HUB_DB_PORT_DEV: "5432"
-          SCITEX_HUB_REDIS_URL: redis://localhost:6379/0
+          SCITEX_HUB_DB_PORT_DEV: ${{ job.services.postgres.ports['5432'] }}
+          SCITEX_HUB_REDIS_URL: redis://localhost:${{ job.services.redis.ports['6379'] }}/0
           SCITEX_HUB_ENV: development
           SCITEX_HUB_GITEA_SSH_PORT_DEV: "2222"
           SCITEX_HUB_USER_DATA_ROOT: ${{ runner.temp }}/scitex-users
@@ -295,8 +305,8 @@ jobs:
           SCITEX_HUB_DB_USER_DEV: scitex
           SCITEX_HUB_DB_PASSWORD_DEV: scitex_test_pass  # pragma: allowlist secret
           SCITEX_HUB_DB_HOST_DEV: localhost
-          SCITEX_HUB_DB_PORT_DEV: "5432"
-          SCITEX_HUB_REDIS_URL: redis://localhost:6379/0
+          SCITEX_HUB_DB_PORT_DEV: ${{ job.services.postgres.ports['5432'] }}
+          SCITEX_HUB_REDIS_URL: redis://localhost:${{ job.services.redis.ports['6379'] }}/0
           SCITEX_HUB_ENV: development
           SCITEX_HUB_GITEA_SSH_PORT_DEV: "2222"
           SCITEX_HUB_USER_DATA_ROOT: ${{ runner.temp }}/scitex-users
