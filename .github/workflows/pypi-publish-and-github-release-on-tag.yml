@@ -34,7 +34,10 @@ jobs:
     # Plain Python, no privileged step — the same shape the push/PR pytest
     # matrix already runs green on this pool, so this one is migrated rather
     # than exempted.
-    runs-on: ubuntu-latest
+    runs-on: >-
+      ${{ (github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name != github.repository)
+          && fromJSON('["ubuntu-latest"]')
+          || fromJSON('["self-hosted","Linux","X64","scitex-ci"]') }}
     strategy:
       fail-fast: false
       matrix:
@@ -56,6 +59,15 @@ jobs:
           --health-timeout 5s
           --health-retries 5
     steps:
+      # Backstop for the runs-on predicate: never check out fork code on our hardware.
+      - name: Refuse to run fork-authored code on self-hosted infrastructure
+        if: >-
+          github.event_name == 'pull_request' &&
+          github.event.pull_request.head.repo.full_name != github.repository &&
+          runner.environment == 'self-hosted'
+        run: |
+          echo "::error::Fork-authored code is not run on self-hosted runners."
+          exit 1
       - name: Resolve version
         id: ver
         run: |
@@ -112,10 +124,22 @@ jobs:
   build:
     needs: test
     # Same reasoning as `test`: a pure `python -m build`, nothing privileged.
-    runs-on: ubuntu-latest
+    runs-on: >-
+      ${{ (github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name != github.repository)
+          && fromJSON('["ubuntu-latest"]')
+          || fromJSON('["self-hosted","Linux","X64","scitex-ci"]') }}
     outputs:
       version: ${{ steps.ver.outputs.version }}
     steps:
+      # Backstop for the runs-on predicate: never check out fork code on our hardware.
+      - name: Refuse to run fork-authored code on self-hosted infrastructure
+        if: >-
+          github.event_name == 'pull_request' &&
+          github.event.pull_request.head.repo.full_name != github.repository &&
+          runner.environment == 'self-hosted'
+        run: |
+          echo "::error::Fork-authored code is not run on self-hosted runners."
+          exit 1
       - name: Resolve version
         id: ver
         run: |
@@ -147,13 +171,25 @@ jobs:
 
   publish:
     needs: build
-    runs-on: ubuntu-latest
+    runs-on: >-
+      ${{ (github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name != github.repository)
+          && fromJSON('["ubuntu-latest"]')
+          || fromJSON('["self-hosted","Linux","X64","scitex-ci"]') }}
     environment:
       name: pypi
       url: https://pypi.org/p/scitex-hub
     permissions:
       id-token: write
     steps:
+      # Backstop for the runs-on predicate: never check out fork code on our hardware.
+      - name: Refuse to run fork-authored code on self-hosted infrastructure
+        if: >-
+          github.event_name == 'pull_request' &&
+          github.event.pull_request.head.repo.full_name != github.repository &&
+          runner.environment == 'self-hosted'
+        run: |
+          echo "::error::Fork-authored code is not run on self-hosted runners."
+          exit 1
       - uses: actions/download-artifact@v4
         with:
           name: dist
@@ -162,10 +198,22 @@ jobs:
 
   release:
     needs: [build, publish]
-    runs-on: ubuntu-latest
+    runs-on: >-
+      ${{ (github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name != github.repository)
+          && fromJSON('["ubuntu-latest"]')
+          || fromJSON('["self-hosted","Linux","X64","scitex-ci"]') }}
     permissions:
       contents: write
     steps:
+      # Backstop for the runs-on predicate: never check out fork code on our hardware.
+      - name: Refuse to run fork-authored code on self-hosted infrastructure
+        if: >-
+          github.event_name == 'pull_request' &&
+          github.event.pull_request.head.repo.full_name != github.repository &&
+          runner.environment == 'self-hosted'
+        run: |
+          echo "::error::Fork-authored code is not run on self-hosted runners."
+          exit 1
       - uses: actions/checkout@v4
         with:
           ref: ${{ needs.build.outputs.version }}
@@ -199,11 +247,23 @@ jobs:
     # commit. Branch-protected mains require PR review; this job tries
     # admin-merge but leaves the PR open if that isn't allowed.
     needs: publish
-    runs-on: ubuntu-latest
+    runs-on: >-
+      ${{ (github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name != github.repository)
+          && fromJSON('["ubuntu-latest"]')
+          || fromJSON('["self-hosted","Linux","X64","scitex-ci"]') }}
     permissions:
       contents: write
       pull-requests: write
     steps:
+      # Backstop for the runs-on predicate: never check out fork code on our hardware.
+      - name: Refuse to run fork-authored code on self-hosted infrastructure
+        if: >-
+          github.event_name == 'pull_request' &&
+          github.event.pull_request.head.repo.full_name != github.repository &&
+          runner.environment == 'self-hosted'
+        run: |
+          echo "::error::Fork-authored code is not run on self-hosted runners."
+          exit 1
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0

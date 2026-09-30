@@ -39,7 +39,10 @@ concurrency:
 jobs:
   screenshots:
     name: Capture product screenshots
-    runs-on: ubuntu-latest
+    runs-on: >-
+      ${{ (github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name != github.repository)
+          && fromJSON('["ubuntu-latest"]')
+          || fromJSON('["self-hosted","Linux","X64","scitex-ci"]') }}
     # Raised 30 -> 45 on 2026-09-06. The capture was being killed at 22-24
     # min on every develop push (runs 34030453842 / 34031946558 / 34039423420),
     # with ~6 min of setup ahead of it, so 30 was simply below the work.
@@ -61,8 +64,15 @@ jobs:
           POSTGRES_DB: scitex_test
           POSTGRES_USER: scitex
           POSTGRES_PASSWORD: scitex_test_pass  # pragma: allowlist secret
+        # Random host port (no fixed bind): parallel jobs sharing one
+        # self-hosted host collide on a fixed 5432 bind (measured on
+        # scitex-ci-04: 'failed to bind host port 0.0.0.0:5432/tcp: address
+        # already in use'). Same pattern as pytest-matrix. The job reaches
+        # postgres on localhost via job.services.postgres.ports below, which
+        # resolves on both the hosted fork path and the self-hosted path
+        # (neither runs inside a job container, so localhost is correct).
         ports:
-          - 5432:5432
+          - 5432
         options: >-
           --health-cmd pg_isready
           --health-interval 10s
@@ -71,8 +81,11 @@ jobs:
 
       redis:
         image: redis:7-alpine
+        # Random host port, same reason as postgres above: a fixed 6379 bind
+        # collides the same way when jobs share a host. Reached on localhost
+        # via job.services.redis.ports below.
         ports:
-          - 6379:6379
+          - 6379
         options: >-
           --health-cmd "redis-cli ping"
           --health-interval 10s
@@ -80,6 +93,15 @@ jobs:
           --health-retries 5
 
     steps:
+      # Backstop for the runs-on predicate: never check out fork code on our hardware.
+      - name: Refuse to run fork-authored code on self-hosted infrastructure
+        if: >-
+          github.event_name == 'pull_request' &&
+          github.event.pull_request.head.repo.full_name != github.repository &&
+          runner.environment == 'self-hosted'
+        run: |
+          echo "::error::Fork-authored code is not run on self-hosted runners."
+          exit 1
       - name: Checkout code
         uses: actions/checkout@v4
 
@@ -139,8 +161,8 @@ jobs:
           SCITEX_HUB_DB_USER_DEV: scitex
           SCITEX_HUB_DB_PASSWORD_DEV: scitex_test_pass  # pragma: allowlist secret
           SCITEX_HUB_DB_HOST_DEV: localhost
-          SCITEX_HUB_DB_PORT_DEV: "5432"
-          SCITEX_HUB_REDIS_URL: redis://localhost:6379/0
+          SCITEX_HUB_DB_PORT_DEV: ${{ job.services.postgres.ports['5432'] }}
+          SCITEX_HUB_REDIS_URL: redis://localhost:${{ job.services.redis.ports['6379'] }}/0
           SCITEX_HUB_ENV: development
           SCITEX_HUB_GITEA_SSH_PORT_DEV: "2222"
           SCITEX_HUB_USER_DATA_ROOT: ${{ runner.temp }}/scitex-users
@@ -283,8 +305,8 @@ jobs:
           SCITEX_HUB_DB_USER_DEV: scitex
           SCITEX_HUB_DB_PASSWORD_DEV: scitex_test_pass  # pragma: allowlist secret
           SCITEX_HUB_DB_HOST_DEV: localhost
-          SCITEX_HUB_DB_PORT_DEV: "5432"
-          SCITEX_HUB_REDIS_URL: redis://localhost:6379/0
+          SCITEX_HUB_DB_PORT_DEV: ${{ job.services.postgres.ports['5432'] }}
+          SCITEX_HUB_REDIS_URL: redis://localhost:${{ job.services.redis.ports['6379'] }}/0
           SCITEX_HUB_ENV: development
           SCITEX_HUB_GITEA_SSH_PORT_DEV: "2222"
           SCITEX_HUB_USER_DATA_ROOT: ${{ runner.temp }}/scitex-users

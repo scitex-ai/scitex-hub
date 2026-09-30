@@ -22,7 +22,17 @@ concurrency:
 jobs:
   playwright-mobile:
     name: Playwright Mobile E2E
-    runs-on: ubuntu-latest
+    # Same-repo runs: the scitex-docker pool, NOT scitex-ci. This job declares
+    # postgres/redis service containers, which the runner provisions with the
+    # Docker CLI during "Set up job" — before any step runs, so no step can
+    # install around a missing one. Measured 2026-09-30 (run 36656451264,
+    # job 109701727498 on scitex-ci-02): 'docker: command not found'. The
+    # scitex-docker pool is the one tests.yml's and pytest-matrix's
+    # service-container jobs already use. Fork PRs: hosted VM, unchanged.
+    runs-on: >-
+      ${{ (github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name != github.repository)
+          && fromJSON('["ubuntu-latest"]')
+          || fromJSON('["self-hosted","Linux","X64","scitex-docker"]') }}
     timeout-minutes: 30
 
     services:
@@ -32,8 +42,12 @@ jobs:
           POSTGRES_DB: scitex_test
           POSTGRES_USER: scitex
           POSTGRES_PASSWORD: scitex_test_pass  # pragma: allowlist secret
+        # Random host port (no fixed bind): the docker host runs parallel jobs
+        # that collide on a fixed 5432 bind (same failure screenshots.yml hit
+        # on scitex-ci-04). Reached on localhost via
+        # job.services.postgres.ports below.
         ports:
-          - 5432:5432
+          - 5432
         options: >-
           --health-cmd pg_isready
           --health-interval 10s
@@ -42,8 +56,9 @@ jobs:
 
       redis:
         image: redis:7-alpine
+        # Random host port, same reason as postgres above.
         ports:
-          - 6379:6379
+          - 6379
         options: >-
           --health-cmd "redis-cli ping"
           --health-interval 10s
@@ -51,6 +66,15 @@ jobs:
           --health-retries 5
 
     steps:
+      # Backstop for the runs-on predicate: never check out fork code on our hardware.
+      - name: Refuse to run fork-authored code on self-hosted infrastructure
+        if: >-
+          github.event_name == 'pull_request' &&
+          github.event.pull_request.head.repo.full_name != github.repository &&
+          runner.environment == 'self-hosted'
+        run: |
+          echo "::error::Fork-authored code is not run on self-hosted runners."
+          exit 1
       - name: Checkout code
         uses: actions/checkout@v4
 
@@ -93,8 +117,8 @@ jobs:
           SCITEX_HUB_DB_USER_DEV: scitex
           SCITEX_HUB_DB_PASSWORD_DEV: scitex_test_pass  # pragma: allowlist secret
           SCITEX_HUB_DB_HOST_DEV: localhost
-          SCITEX_HUB_DB_PORT_DEV: "5432"
-          SCITEX_HUB_REDIS_URL: redis://localhost:6379/0
+          SCITEX_HUB_DB_PORT_DEV: ${{ job.services.postgres.ports['5432'] }}
+          SCITEX_HUB_REDIS_URL: redis://localhost:${{ job.services.redis.ports['6379'] }}/0
           SCITEX_HUB_ENV: development
           SCITEX_HUB_GITEA_SSH_PORT_DEV: "2222"
           # THIS RUNNER HAS NO VITE DEV SERVER. Without this line the job serves
@@ -241,8 +265,8 @@ jobs:
           SCITEX_HUB_DB_USER_DEV: scitex
           SCITEX_HUB_DB_PASSWORD_DEV: scitex_test_pass  # pragma: allowlist secret
           SCITEX_HUB_DB_HOST_DEV: localhost
-          SCITEX_HUB_DB_PORT_DEV: "5432"
-          SCITEX_HUB_REDIS_URL: redis://localhost:6379/0
+          SCITEX_HUB_DB_PORT_DEV: ${{ job.services.postgres.ports['5432'] }}
+          SCITEX_HUB_REDIS_URL: redis://localhost:${{ job.services.redis.ports['6379'] }}/0
           SCITEX_HUB_ENV: development
           SCITEX_HUB_GITEA_SSH_PORT_DEV: "2222"
           SCITEX_BASE_URL: http://127.0.0.1:8000
