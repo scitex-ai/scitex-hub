@@ -18,8 +18,8 @@ DOCKERFILE = REPO / "deployment/docker/docker_prod/Dockerfile.prod"
 ROOT_INIT = REPO / "deployment/docker/common/scripts/root-init.sh"
 IMAGE_RUNTIME = REPO / "deployment/docker/common/scripts/image-runtime.sh"
 VERIFIER = REPO / "scripts/deploy/verify_image_dependency_contract.py"
-IMAGE_SERVICES = ("django", "celery_worker", "celery_worker_vis", "celery_beat")
-WORKER_SERVICES = ("celery_worker", "celery_worker_vis", "celery_beat")
+IMAGE_SERVICES = ("django", "celery_worker", "celery_beat")
+WORKER_SERVICES = ("celery_worker", "celery_beat")
 
 
 def _verifier_module():

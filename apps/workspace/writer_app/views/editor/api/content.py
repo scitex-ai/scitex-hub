@@ -184,6 +184,10 @@ def section_view(request, project_id, section_name):
                     )
 
 
+                try:
+                    relative_path = file_path.relative_to(writer_service.writer_dir)
+                except ValueError:
+                    relative_path = None
                 return JsonResponse(
                     {
                         "success": True,
@@ -191,7 +195,9 @@ def section_view(request, project_id, section_name):
                         "section_name": name,
                         "section_id": section_name,
                         "doc_type": doc_type,
-                        "file_path": str(file_path) if file_path.exists() else None,
+                        # Workspace-relative on purpose: an absolute server
+                        # path must never leave the host in a response.
+                        "file_path": str(relative_path) if relative_path is not None and file_path.exists() else None,
                         # Additive: lets a caller tell "empty because unwritten"
                         # from "empty because the author emptied it".
                         "missing": was_missing,

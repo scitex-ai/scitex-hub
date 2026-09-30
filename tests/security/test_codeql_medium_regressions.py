@@ -48,7 +48,6 @@ def test_exception_details_are_not_returned_by_remediated_views():
         "apps/workspace/console_app/job_api_views.py",
         "apps/infra/public_app/views/status/api/realtime.py",
         "apps/infra/public_app/views/status/api/history.py",
-        "apps/infra/public_app/views/status/visitor.py",
         "apps/infra/workspace_api/views/file_content.py",
         "apps/workspace/apps_app/views/api.py",
         "apps/workspace/apps_app/views/app_create.py",
