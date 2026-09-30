@@ -42,7 +42,8 @@ EXPECTED_PRIMARY_TAGLINE = "Open-source Ecosystem for Scientific Research"
 
 # The developer footer links an ANONYMOUS visitor sees, in the order they
 # render ("Docs" added by the operator 2026-09-12 when the hero Docs button was
-# moved to the footer). "Web API Tests" and "Design System" point at /dev/,
+# moved to the footer; "Self-Hosting Guide" moved into Developers 2026-09-25).
+# "Web API Tests" and "Design System" point at /dev/,
 # which is admin-only on prod, so they render for staff only (site audit
 # 2026-09-14); see tests/apps/dev_app/test_dev_app_admin_only.py.
 EXPECTED_DEVELOPER_LINKS = (
@@ -51,6 +52,7 @@ EXPECTED_DEVELOPER_LINKS = (
     "Releases",
     "Bug Reports",
     "Server Status",
+    "Self-Hosting Guide",
 )
 
 FOOTER_CSS = Path(settings.BASE_DIR) / "static/shared/css/components/footer.css"

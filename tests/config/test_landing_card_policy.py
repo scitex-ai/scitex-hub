@@ -80,6 +80,7 @@ def _empty_response(_request, **_kwargs):
 
 # Minimal URL contract for whole-template rendering without importing optional
 # workspace packages. Reversal is presentation plumbing, not this policy.
+# ("open_source": the landing open-source section links it since #1007.)
 _PUBLIC_NAMES = (
     "about",
     "api_docs",
@@ -88,6 +89,7 @@ _PUBLIC_NAMES = (
     "cookies",
     "demos",
     "donate",
+    "open_source",
     "pricing",
     "privacy",
     "publications",

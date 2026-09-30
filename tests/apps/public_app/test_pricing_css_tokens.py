@@ -29,6 +29,11 @@ PROJECT_ROOT = Path(__file__).resolve().parents[3]
 
 PRICING_CSS = PROJECT_ROOT / "apps" / "infra" / "public_app" / "static" / "public_app" / "css" / "landing" / "11-pricing.css"
 LANDING_CSS_DIR = PRICING_CSS.parent
+# landing-reference-v2.css lives next to landing/, not inside it, but
+# landing.html loads it on the same page (reference V2 integration #958) and
+# its :root defines the --landing-* palette the pricing file references
+# (refs added deliberately with matching fallbacks in the beta polish).
+REFERENCE_V2_CSS = PRICING_CSS.parent.parent / "landing-reference-v2.css"
 PRIMITIVES = PROJECT_ROOT / "static" / "shared" / "css" / "primitives" / "variables.css"
 # The scitex-ui package ships the actual token definitions; the hub repo's
 # variables.css only @import's them. Read the installed package directly so the
@@ -68,6 +73,8 @@ def _defined_tokens() -> set[str]:
 
     for css in LANDING_CSS_DIR.glob("*.css"):
         scan(css)
+    # Sibling stylesheet loaded by landing.html alongside the landing/ bundle.
+    scan(REFERENCE_V2_CSS)
     scan(PRIMITIVES)
     # bootstrap-override layout/typography can define layout tokens
     override_dir = PROJECT_ROOT / "static" / "shared" / "css" / "base" / "bootstrap-override"
