@@ -174,7 +174,13 @@ def test_the_surface_shows_all_six_facts_to_the_reader():
 def test_the_only_action_is_an_explicit_continue_to_the_provider():
     html = _render()
 
-    form = re.search(r"<form[^>]*action=\"([^\"]+)\"[^>]*>(.*?)</form>", html, re.S)
+    # The header carries its own language-switcher form (#996), so the step's
+    # continue form is selected by its payment action, not by page order.
+    forms = list(re.finditer(r"<form[^>]*action=\"([^\"]+)\"[^>]*>(.*?)</form>", html, re.S))
+    assert forms, "no forms at all"
+    payment_forms = [m for m in forms if 'data-payment-action=' in m.group(0)]
+    assert len(payment_forms) == 1, "the step must offer exactly one payment action"
+    form = payment_forms[0]
     assert form, "no continue form"
     assert form.group(1) == "/billing/start-setup/", form.group(1)
     assert 'data-payment-action="continue"' in form.group(0)
@@ -302,7 +308,15 @@ class TestPaymentStepRoute:
         if in_funnel:
             from apps.infra.auth_app.onboarding import begin_social_signup
 
-            begin_social_signup(user, "email")
+            row = begin_social_signup(user, "email")
+            # #1018 defaults newcomers to the free plan, which the payment
+            # step short-circuits straight to the product (302). These probes
+            # measure the paid/plan_unset branches, where the plan is
+            # determined by the deployment's configured prices — so the
+            # helper leaves the funnel row plan-less, as it was before #1018.
+            if row.pricing_id:
+                row.pricing_id = ""
+                row.save(update_fields=["pricing_id", "updated_at"])
         return user
 
     def test_the_step_requires_a_signed_in_user(self):
