@@ -107,7 +107,12 @@ def test_leaf_manifest_declares_the_login_boundary():
     import importlib.util
     import json
 
-    spec = importlib.util.find_spec("scitex_storage._django")
+    try:
+        spec = importlib.util.find_spec("scitex_storage._django")
+    except ModuleNotFoundError:
+        # find_spec raises when the parent package is absent; that is the
+        # same "leaf not installed" state as spec-is-None — skip, not fail.
+        spec = None
     if spec is None or not spec.origin:
         pytest.skip("scitex-storage not installed")
 

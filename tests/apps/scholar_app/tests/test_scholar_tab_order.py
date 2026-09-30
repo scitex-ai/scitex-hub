@@ -52,7 +52,9 @@ SCHOLAR_URL = "/apps/scholar/"
 # act on with no prior state, and it is how anything gets INTO the Library.
 FIRST_TAB = "search"
 EXPECTED_TABS = ["search", "library", "graph"]
-SEARCH_LABEL = "Search databases"
+# Deliberate product wording from #1000 (102d9fe36): the tab reads
+# "Search from DBs" (long label) / "Search" (short), not "Search databases".
+SEARCH_LABEL = "Search from DBs"
 
 _NAV_RE = re.compile(
     r'<nav[^>]*class="[^"]*scholar-tabs[^"]*"[^>]*>(.*?)</nav>',
