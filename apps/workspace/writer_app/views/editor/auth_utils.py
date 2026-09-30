@@ -2,11 +2,21 @@
 # -*- coding: utf-8 -*-
 """Authenticated project authorization utilities for Writer API views."""
 
+import logging
 from functools import wraps
 
 from django.http import JsonResponse
 
 from apps.infra.project_app.models import Project
+from apps.security import safe_log_field
+
+# Security-audit channel for auth denials involving untrusted input.
+# Deliberately NOT under ``apps.workspace.writer_app``: that logger sets
+# propagate=False (file routing), which would hide the record from the root
+# handlers (console, and pytest's caplog). Auth-denial records must stay
+# observable as one escaped physical line; auth_app's module loggers already
+# work this way (unconfigured namespaces propagate to root).
+audit_logger = logging.getLogger("apps.security.auth")
 
 # Methods that cannot modify a project. Anything else needs write authority,
 # which is what makes a read-only collaborator read-only.
@@ -106,8 +116,16 @@ def user_can_write_project(request, project):
 
 
 def get_user_for_request(request, project_id):
-    """Return the authenticated caller; anonymous sessions never imply identity."""
-    del project_id  # retained in the signature for existing call sites
+    """Return the authenticated caller; anonymous sessions never imply identity.
+
+    ``project_id`` is never trusted for identity; it is audit-logged through
+    ``safe_log_field`` so a denied anonymous attempt stays traceable without
+    allowing log injection.
+    """
     if request.user.is_authenticated:
         return request.user, False
+    audit_logger.warning(
+        "[Auth] Anonymous request denied for project %s",
+        safe_log_field(project_id),
+    )
     return None, False
