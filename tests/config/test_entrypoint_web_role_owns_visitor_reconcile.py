@@ -1,8 +1,27 @@
-"""Entrypoint role gate for visitor-pool boot reconciliation.
+"""Web-role ownership of boot mutations in the container entrypoints.
 
-The visitor reconcile quarantines every slot before dispatching the safe re-clean.
-It therefore belongs to web boot only: running it while restarting the worker that
-must consume those tasks creates a circular dependency and leaves the pool down.
+HISTORY. Visitor-slot allocation used to run at boot, and this file pinned
+that ONLY the web container ran it (``create_visitor_pool`` /
+``reconcile_visitor_slots`` guarded by ``IS_WEB_ROLE``): running the
+reconcile from the worker that must consume those tasks is a circular
+dependency that leaves the pool down.
+
+RETIREMENT. Anonymous visitor allocation was then retired from the product
+(b3ca29027 "fix(deploy): retire visitor-pool boot lifecycle", completed by
+dab365317 "[verified] refactor: complete visitor runtime removal", which
+also deleted the ``celery_worker_vis`` service). The ABSENCE of every
+visitor command in every shipped entrypoint is now pinned by
+``tests/develop/test_visitor_retirement_contract.py`` — asserting their
+presence here would directly contradict it.
+
+What this file still owns: the surviving contract underneath.
+
+- Every dev/prod entrypoint sources the shared role library and takes its
+  role from ``is_web_role`` (no per-entrypoint role heuristics).
+- Every remaining compose service routes to the expected role
+  (``celery_worker_vis`` is gone with the visitor runtime).
+- ``is_web_role`` itself: unknown commands fail closed (the old
+  not-celery heuristic classified ``python manage.py shell`` as web).
 """
 
 from pathlib import Path
@@ -26,18 +45,8 @@ COMPOSE_CASES = (
     ("deployment/docker/docker_dev/docker-compose.yml", "celery_beat", False),
     ("deployment/docker/docker_prod/docker-compose.yml", "django", True),
     ("deployment/docker/docker_prod/docker-compose.yml", "celery_worker", False),
-    ("deployment/docker/docker_prod/docker-compose.yml", "celery_worker_vis", False),
     ("deployment/docker/docker_prod/docker-compose.yml", "celery_beat", False),
 )
-
-OLD_UNSAFE_DEV_BLOCK = """
-# Initialize Visitor Pool
-# ============================================
-python manage.py create_visitor_pool --verbosity 0
-python manage.py reconcile_visitor_slots --async
-# ============================================
-# Initialize Test User
-"""
 
 
 def _command_argv(command):
@@ -54,52 +63,13 @@ def _is_web_role(*argv: str) -> bool:
     return result.returncode == 0
 
 
-def _visitor_block(script: str) -> str:
-    marker = "# Initialize Visitor Pool"
-    separator = "# ============================================"
-    if marker not in script:
-        return ""
-    block = script.split(marker, 1)[1]
-    # Skip the separator that closes this heading, then stop at the next one.
-    block = block.split(separator, 1)[1]
-    return block.split(separator, 1)[0]
-
-
-def _visitor_role_violations(script: str) -> list[str]:
-    """Reject pool mutations not enclosed by the explicit web-role branch."""
-    block = _visitor_block(script)
-    live = [line.strip() for line in block.splitlines() if not line.lstrip().startswith("#")]
-    mutations = [
-        index
-        for index, line in enumerate(live)
-        if "manage.py create_visitor_pool" in line
-        or "manage.py reconcile_visitor_slots" in line
-    ]
-    guards = [
-        index
-        for index, line in enumerate(live)
-        if line == 'if [ "$IS_WEB_ROLE" = true ]; then'
-    ]
-    if not mutations:
-        return ["visitor-pool create/reconcile commands are missing"]
-    if not guards or guards[0] > min(mutations):
-        return ["visitor-pool mutation is not guarded by IS_WEB_ROLE"]
-    if not any(index > max(mutations) and live[index] == "else" for index in range(len(live))):
-        return ["non-web roles have no explicit visitor-pool skip branch"]
-    return []
-
-
 @pytest.mark.parametrize("entrypoint", ENTRYPOINTS, ids=lambda path: path.parent.name)
-def test_every_dev_and_prod_entrypoint_guards_pool_mutation_by_web_role(entrypoint):
+def test_every_dev_and_prod_entrypoint_takes_its_role_from_the_shared_library(
+    entrypoint,
+):
     script = entrypoint.read_text(encoding="utf-8")
     assert "service_role.src" in script
-    assert _visitor_role_violations(script) == []
-
-
-def test_source_checker_rejects_the_old_unconditional_dev_block():
-    assert _visitor_role_violations(OLD_UNSAFE_DEV_BLOCK) == [
-        "visitor-pool mutation is not guarded by IS_WEB_ROLE"
-    ]
+    assert "is_web_role" in script
 
 
 @pytest.mark.parametrize(

@@ -16,15 +16,35 @@ so it reaches those upstream views without forking them.
 
 These are pure unit tests of the processor function against a bare
 ``RequestFactory`` request — no DB, no scitex-ui/scitex-storage/scitex-cards
-needed, since the processor only inspects ``request.path``. One assertion
+needed. The processor resolves mounted prefixes from the plugin registry
+(``plugin_mount_prefixes``), so every test here runs under a SYNTHETIC
+mount table via the ``PLUGIN_MOUNT_TABLE_OVERRIDE`` setting — the same seam
+``tests/apps/apps_app/test_plugin_mount_guards.py`` drives the guard with.
+Results therefore do not depend on which optional plugin packages happen to
+be installed in the environment (Storage, for example, is an optional
+plugin mount since 082a0c51f, not a built-in). One assertion
 per test (STX-TQ007).
 """
 
 from __future__ import annotations
 
+import pytest
 from django.test import RequestFactory
 
 from config.context_processors import mounted_app_launcher
+
+#: Storage- and cards-shaped standalone mounts. Storage stands in for any
+#: optional plugin mount: the point under test is the processor's scoping,
+#: not which plugins this environment installed.
+SYNTHETIC_MOUNT_TABLE = [
+    ("/apps/storage/", "Storage", {"login_required": True}),
+    ("/apps/cards/", "Cards", {"login_required": True}),
+]
+
+
+@pytest.fixture(autouse=True)
+def _synthetic_plugin_mounts(settings):
+    settings.PLUGIN_MOUNT_TABLE_OVERRIDE = SYNTHETIC_MOUNT_TABLE
 
 
 def test_storage_path_gets_a_launcher_back_to_the_store():

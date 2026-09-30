@@ -131,7 +131,18 @@ def _mount_table():
 
 
 def plugin_mount_prefixes():
-    """Route prefixes of every plugin mount (hub chrome may scope by these)."""
+    """Route prefixes of every plugin mount (hub chrome may scope by these).
+
+    Honors ``PLUGIN_MOUNT_TABLE_OVERRIDE`` like :func:`_mount_table`, so
+    tests can drive the whole mount surface (guard + chrome) with synthetic
+    tables and no optional plugin package installed. Unset in production,
+    where the live plugin manifests are the source.
+    """
+    from django.conf import settings
+
+    override = getattr(settings, "PLUGIN_MOUNT_TABLE_OVERRIDE", None)
+    if override is not None:
+        return tuple(prefix for prefix, _label, _policy in override)
     try:
         from scitex_app.plugins import mount_route
 

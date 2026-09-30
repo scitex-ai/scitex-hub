@@ -62,20 +62,46 @@ def test_anonymous_user_cannot_install_agents(client):
 
 
 @pytest.mark.django_db
-def test_cards_dependency_hold_blocks_install_and_toggle(client):
+def test_cards_staff_gate_holds_at_the_mount_not_the_store(client):
+    """Cards is installable from the store; the board itself stays staff-gated.
+
+    History: the pre-plugin ``todo_app`` wrapper held Cards back with a
+    ``coming_soon`` availability (store 409 on install AND toggle). The
+    generic plugin mount (082a0c51f "mount agents/cards/storage exclusively
+    through the generic plugin mount") deleted that wrapper, and migration
+    0023 removed its stale catalog row. The hold now lives where the data
+    lives: the leaf's own manifest declares a staff ``audience``, enforced
+    for every signed-in non-staff user by ``PluginMountGuardMiddleware``.
+    """
     user = User.objects.create_user("cards-held-user")
-    client.force_login(user)
+    staff = User.objects.create_user("cards-staff-user", is_staff=True)
     ensure_builtin_modules()
 
-    install = client.post("/apps/store/api/todo/install/")
-    toggle = client.post("/apps/store/api/todo/toggle/")
+    # The retired per-app wrapper stays gone: no registry entry recreates it.
+    assert not AppsModule.objects.filter(module_name="todo").exists()
+    cards = AppsModule.objects.get(module_name="scitex-cards")
+    assert cards.visibility == "public"
 
-    assert (install.status_code, toggle.status_code) == (409, 409)
-    assert not ModuleInstallation.objects.filter(
-        user=user, module__module_name="todo"
+    # The store no longer holds Cards back: install and toggle succeed.
+    client.force_login(user)
+    install = client.post("/apps/store/api/scitex-cards/install/")
+    toggle = client.post("/apps/store/api/scitex-cards/toggle/")
+    assert (install.status_code, toggle.status_code) == (200, 200)
+    assert ModuleInstallation.objects.filter(
+        user=user, module__module_name="scitex-cards"
     ).exists()
-    launcher = client.get("/")
-    assert b"canonical per-tenant store verification" in launcher.content
+
+    # The board itself holds: a plain user gets the generic restricted page
+    # (no board data), while staff pass the audience gate. Navigations send
+    # ``Accept: text/html`` (the guard's only generic nav-vs-fetch signal).
+    board = client.get("/apps/cards/", HTTP_ACCEPT="text/html")
+    assert board.status_code == 403
+    assert 'data-own-scope-app="restricted"' in board.content.decode()
+
+    client.force_login(staff)
+    assert (
+        client.get("/apps/cards/", HTTP_ACCEPT="text/html").status_code != 403
+    )
 
 
 @pytest.mark.django_db
@@ -128,18 +154,49 @@ def test_staff_route_still_reaches_upstream(client, monkeypatch):
     assert response.json()["identity"] == "agents-staff"
 
 
-def test_agents_manifest_is_public_free_install_and_cards_names_blocker():
+def test_cards_names_its_blocker_in_its_own_manifest():
+    """Cards is a public tile with no registry-level hold; it gates itself.
+
+    The old hub-side ``todo_app`` wrapper held Cards back with a
+    ``coming_soon`` availability whose reason named "scitex-cards 0.53.1"
+    and the per-tenant store check. The generic plugin mount (082a0c51f)
+    deleted that wrapper: Cards now names its blocker itself — a staff
+    ``audience`` in its OWN manifest, enforced by the generic mount guard
+    (the floor pin lives on in pyproject's ``[all]`` extra).
+    """
+    from apps.infra.workspace_app import registry
+    from scitex_app.plugins import loaded_plugin_configs
+
+    # No hub-side manifests: the wrappers are gone and must not come back.
+    assert not (registry._APPS_ROOT / "workspace/agents_app/manifest.json").exists()
+    assert not (registry._APPS_ROOT / "workspace/todo_app/manifest.json").exists()
+
+    # Cards ships in every env (pyproject [all] floor).
+    cards = registry.get_module("scitex-cards")
+    assert cards is not None
+    assert cards.visibility == "public"
+    assert cards.availability in ("", "available")
+
+    manifests = {
+        (config.manifest.get("slug") or ""): dict(config.manifest)
+        for config in loaded_plugin_configs()
+    }
+    assert "scitex-cards" in manifests
+    assert manifests["scitex-cards"]["mount_policy"]["audience"] == "staff"
+
+
+def test_agents_manifest_is_public_free_install():
+    """Agents stays a public tile with no hold anywhere in its chain.
+
+    Read through the plugin mechanism that replaced the deleted hub-side
+    ``workspace/agents_app/manifest.json`` (082a0c51f): the launcher lists
+    the tile from the plugin's OWN manifest. Skipped where the package is
+    not installed (absent from CI's matrix venv).
+    """
     from apps.infra.workspace_app import registry
 
-    agents = registry._manifest_to_module_config(
-        registry._load_manifest(registry._APPS_ROOT / "workspace/agents_app/manifest.json")
-    )
-    cards = registry._manifest_to_module_config(
-        registry._load_manifest(registry._APPS_ROOT / "workspace/todo_app/manifest.json")
-    )
-
+    agents = registry.get_module("agents")
+    if agents is None:
+        pytest.skip("agents plugin is not installed in this environment")
     assert agents.visibility == "public"
-    assert agents.builtin is False and agents.availability == "available"
-    assert cards.availability == "coming_soon"
-    assert "scitex-cards 0.53.1" in cards.availability_reason
-    assert "per-tenant store" in cards.availability_reason
+    assert agents.availability in ("", "available")

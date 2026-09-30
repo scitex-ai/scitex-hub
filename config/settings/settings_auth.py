@@ -7,8 +7,6 @@ import socket
 from urllib.parse import urlparse
 from datetime import timedelta
 
-import scitex as stx
-
 from config.social_apps import orcid_base_domain, with_credential_apps
 
 # ---------------------------------------
