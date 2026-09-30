@@ -255,7 +255,11 @@ class TestTokushohoPage:
             "日割りの返金はありません",
             "お支払い済みの期間の末日までご利用いただけます",
             "個別対応します",
-            "SciTeX Cloud Academic（学術）",
+            # SSOT Provisional v1.0 (2026-09-14) renamed the tiers: the page
+            # renders the catalogue label "SciTeX Cloud Pro - Academic" (JA
+            # "SciTeX Cloud Pro - Academic（学術）"); the pre-SSOT business
+            # name "SciTeX Cloud Academic（学術）" appears nowhere by design.
+            "SciTeX Cloud Pro - Academic（学術）",
         ):
             assert needle in content, f"{needle!r} missing from the 特商法 page"
         # The old "free 30 days then auto-bill on day 31" model is gone.

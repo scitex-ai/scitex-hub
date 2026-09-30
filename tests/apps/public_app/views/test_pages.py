@@ -114,8 +114,16 @@ class TestVideoCatalogStructure:
         for pattern in required_patterns:
             assert re.search(pattern, content), f"Missing pattern: {pattern}"
 
-    def test_thumbnails_are_png(self):
-        """Thumbnails should be PNG files."""
+    def test_thumbnails_are_web_images(self):
+        """Thumbnails should be PNG or JPEG files at absolute paths.
+
+        The catalogue was PNG-only until the Clew concept clip (2026-09-25)
+        pointed at its real poster frame, a photographic JPG shared with the
+        landing <video poster>. JPEG is the conventional format for such
+        posters (and for og:image); demanding PNG would bloat a 35 KB photo
+        with no product benefit. The guard that remains: every thumbnail is
+        an absolute-path web image, not a relative path or a non-image.
+        """
         pages_data_path = os.path.join(
             os.path.dirname(__file__),
             "../../../../apps/infra/public_app/views/pages_data.py",
@@ -130,7 +138,7 @@ class TestVideoCatalogStructure:
         # Find all thumbnail definitions that are not None
         thumbnails = re.findall(r'"thumbnail":\s*"([^"]+)"', content)
         for thumb in thumbnails:
-            assert thumb.endswith(".png"), f"Thumbnail should be PNG: {thumb}"
+            assert thumb.endswith((".png", ".jpg", ".jpeg")), f"Thumbnail should be PNG or JPEG: {thumb}"
             assert thumb.startswith("/"), f"Thumbnail should be absolute path: {thumb}"
 
 

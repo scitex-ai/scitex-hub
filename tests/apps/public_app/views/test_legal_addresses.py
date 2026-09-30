@@ -348,12 +348,14 @@ def test_page_carrying_the_address_returns_http_200(url_name, client):
 @pytest.mark.parametrize("url_name", PAGES_CARRYING_THE_ADDRESS)
 def test_page_renders_the_registered_company_address(url_name, client):
     """The real address must reach the rendered page, not just the template."""
-    # Arrange
-    expected = (
-        "Shizuoka City Co-Creation Space"
-        if url_name == "public_app:cookies"
-        else settings.COMPANY_ADDRESS
-    )
+    # Arrange: the django_language=ja cookie below forces the Japanese branch
+    # of every language-conditional template, so the language-appropriate
+    # address on BOTH pages is the Japanese registered address
+    # (settings.COMPANY_ADDRESS): /tokushoho/ via the view's forced-ja render,
+    # /cookies/ via its {% if LANGUAGE_CODE|slice:":2" == "ja" %} branch,
+    # which prints {{ COMPANY_ADDRESS }}. The English "Shizuoka City
+    # Co-Creation Space" block renders only under the EN branch (no cookie).
+    expected = settings.COMPANY_ADDRESS
     client.cookies["django_language"] = "ja"
 
     # Act
