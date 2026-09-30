@@ -68,6 +68,9 @@ ALLOWED = {
     "SciTeX Clew",
     "Scholar",
     "Writer",
+    # Stats is the Stats app's product name (carousel slide added #1011), kept
+    # in romaji inside the JA catalog too ("5枚中5枚目：Stats") like Scholar.
+    "Stats",
     "Console",
     "FigRecipe",
     "Hub",
