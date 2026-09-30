@@ -19,10 +19,15 @@ _REPO_ROOT = Path(__file__).resolve().parents[3]
 def test_dock_chat_item_carries_the_float_toggle_hook():
     # Arrange
     item = DockItem(key="chat", label="Chat", icon="fas fa-comment", url="/chat/")
-    # Act
+    # Act — the dock chrome renders when the dock is enabled (#997 gated it
+    # on site_dock_enabled instead of a non-empty item list).
     html = render_to_string(
         "global_base_partials/site_dock.html",
-        {"site_dock_items": [item], "site_dock_capacity": 5},
+        {
+            "site_dock_items": [item],
+            "site_dock_capacity": 5,
+            "site_dock_enabled": True,
+        },
     )
     # Assert
     assert "data-dock-chat-toggle" in html

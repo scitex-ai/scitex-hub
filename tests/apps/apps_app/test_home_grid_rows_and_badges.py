@@ -161,8 +161,12 @@ class HomePagesTest(TestCase):
         groups = self._groups()
         # Act
         names = [c.get("name") for c in groups[0]["cells"] if not c.get("is_planned")]
-        # Assert
-        assert names == ["my_projects", "agents", "scitex-cards", "storage"]
+        # Assert — Storage is an optional plugin tile: it renders only where
+        # scitex-storage is installed (plugin-only discovery, no dead tiles).
+        expected = ["my_projects", "agents", "scitex-cards"]
+        if registry.get_module("storage") is not None:
+            expected.append("storage")
+        assert names == expected
 
     def test_files_is_an_internal_service_not_a_launcher_app(self):
         # Arrange
@@ -178,8 +182,13 @@ class HomePagesTest(TestCase):
         groups = self._groups()
         # Act
         first_row = [cell.get("name") for cell in groups[0]["cells"][:4]]
-        # Assert
-        assert first_row == ["my_projects", "agents", "scitex-cards", "storage"]
+        # Assert — without the optional Storage plugin installed the row
+        # holds the three installed infrastructure apps (same conditional
+        # as test_foundation_group_has_one_project_entry_and_infrastructure).
+        expected = ["my_projects", "agents", "scitex-cards"]
+        if registry.get_module("storage") is not None:
+            expected.append("storage")
+        assert first_row == expected
 
     def test_stats_slot_is_real_only_when_its_leaf_route_is_mounted(self):
         # A legacy scitex_modules entry point can exist without a Django mount.
@@ -198,11 +207,13 @@ class HomePagesTest(TestCase):
             for c in groups[1]["cells"]
             if not c.get("is_planned") or c.get("name") == "stats"
         ]
-        # Assert
+        # Assert — Stats sits ahead of FigRecipe since the tools/research
+        # split (launcher_order.py Work group; same order as
+        # EXPECTED_TILE_ORDER in test_launcher_rows_and_my_projects.py).
         assert cells == [
             ("scholar", False),
-            ("figrecipe", False),
             ("stats", not stats_is_real),
+            ("figrecipe", False),
             ("writer", False),
             ("chat", False),
             ("create-app", False),
@@ -218,12 +229,14 @@ class HomePagesTest(TestCase):
 
     def test_work_group_follows_the_research_lifecycle(self):
         # Proposed 2026-09-14 (Telegram 6040): showing work outside.
+        # Stats runs ahead of FigRecipe since the 2026-09-15 tools/research
+        # split (same order as EXPECTED_TILE_ORDER).
         # Arrange
         groups = self._groups()
         # Act
         names = [c.get("name") for c in groups[1]["cells"]]
         # Assert
-        assert names[:4] == ["scholar", "figrecipe", "stats", "writer"]
+        assert names[:4] == ["scholar", "stats", "figrecipe", "writer"]
 
     def test_publication_group_holds_public_projects_and_hides_slides(self):
         # Arrange
@@ -287,11 +300,14 @@ class HomePagesTest(TestCase):
         # Act
         pairs = dict(re.findall(r'data-module="([^"]+)"\s+data-group="(\w+)"', content))
         # Assert
-        assert (pairs.get("storage"), pairs.get("chat"), pairs.get("store")) == (
-            "foundation",
+        assert (pairs.get("chat"), pairs.get("store")) == (
             "work",
             "system",
         )
+        # Storage is an optional plugin tile: pin its group whenever the
+        # tile renders (i.e. where scitex-storage is installed).
+        if pairs.get("storage") is not None:
+            assert pairs["storage"] == "foundation"
 
     def test_group_tints_exist_for_both_themes(self):
         # Arrange
