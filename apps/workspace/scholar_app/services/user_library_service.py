@@ -144,6 +144,17 @@ class UserLibraryService:
         scitex-scholar#182) the identical symlink is created manually.
         """
         project_path = Path(project_path)
+        # Contract from #1029: a scaffold placeholder with no content is safe
+        # to adopt. The leaf's link_project_tree (1.13.0) refuses ANY existing
+        # path without --force, so clear an empty dir BEFORE delegating —
+        # otherwise the refactor to leaf verbs (#1030) regresses the adoption
+        # the hub already promised. Non-empty dirs still refuse via the leaf.
+        _link = project_path / ".scitex" / "scholar" / "library"
+        try:
+            if _link.is_dir() and not _link.is_symlink() and not any(_link.iterdir()):
+                _link.rmdir()
+        except OSError:
+            pass
         try:
             from scitex_scholar.cli._project_tree import link_project_tree
 
@@ -151,6 +162,21 @@ class UserLibraryService:
                 return link_project_tree(
                     project_path, library_root=self.library_path
                 )
+            except FileExistsError:
+                # Raced or missed the pre-check above: adopt an empty
+                # placeholder now, then retry once. Anything with content
+                # still refuses.
+                try:
+                    if _link.is_dir() and not _link.is_symlink() and not any(
+                        _link.iterdir()
+                    ):
+                        _link.rmdir()
+                        return link_project_tree(
+                            project_path, library_root=self.library_path
+                        )
+                except OSError:
+                    pass
+                raise
             except TypeError:  # leaf predates library_root: same link, manual
                 target = self.library_path.resolve()
                 link_parent = project_path / ".scitex" / "scholar"

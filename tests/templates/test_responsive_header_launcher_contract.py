@@ -58,8 +58,13 @@ def test_shared_hamburger_keeps_a_44px_target_outside_mobile_media_query():
     base = _rule(css, ".mobile-hamburger")
 
     assert "display: flex" in base
-    assert re.search(r"width\s*:\s*44px", base)
-    assert re.search(r"height\s*:\s*44px", base)
+    # Minimum 44px touch target (WCAG/Apple guideline), not exactly 44px:
+    # beta polish f71d3ea0e deliberately enlarged it to 52px, which keeps
+    # — exceeds — the contract. Pin the floor, not the size.
+    width = re.search(r"width\s*:\s*(\d+)px", base)
+    height = re.search(r"height\s*:\s*(\d+)px", base)
+    assert width and int(width.group(1)) >= 44, base
+    assert height and int(height.group(1)) >= 44, base
     assert css.index(".mobile-hamburger {") < css.index("@media (max-width: 768px)")
 
 

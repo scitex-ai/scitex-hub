@@ -207,9 +207,14 @@ class TestNewVerifiedUserOwnsNothingYet(TestCase):
         user = self._verified_user("first-login-dotfiles")
 
         user.profile.refresh_from_db()
-        assert Project.objects.filter(owner=user, is_home=True).exists(), (
-            "precondition: the dotfiles project is provisioned"
-        )
+        # Operator 2026-09-27 dropped dotfiles seeding (signals.py): new users
+        # start empty, so existence is not guaranteed. The contract is that no
+        # project — dotfiles included — becomes active on its own.
+        dotfiles = Project.objects.filter(owner=user, is_home=True).first()
+        if dotfiles is not None:
+            assert user.profile.last_active_repository_id != dotfiles.pk, (
+                "the dotfiles project became active without being chosen"
+            )
         assert user.profile.last_active_repository is None
 
     def test_the_root_route_asks_instead_of_landing_them_in_a_project(self):

@@ -77,7 +77,34 @@ def section_view(request, project_id, section_name):
             try:
                 doc_type = request.GET.get("doc_type", category)
 
-                file_path = _section_target(writer_service, name, doc_type)
+                try:
+                    file_path = _section_target(writer_service, name, doc_type)
+                except RuntimeError as exc:
+                    # The containment check itself touches writer_dir, which
+                    # raises when the project directory is not on disk yet
+                    # (Writer scaffolds lazily via initialize-workspace). That
+                    # ordinary registered-project state must answer like the
+                    # guarded read below, not as a 500. Real errors re-raise.
+                    if not _workspace_is_not_ready(exc):
+                        raise
+                    logger.info(
+                        "[SectionView GET] workspace not ready for project "
+                        "%s (%s); serving empty content",
+                        safe_log_field(project_id),
+                        safe_log_field(exc),
+                    )
+                    return JsonResponse(
+                        {
+                            "success": True,
+                            "content": "",
+                            "section_name": name,
+                            "section_id": section_name,
+                            "doc_type": doc_type,
+                            "file_path": None,
+                            "missing": True,
+                            "workspace_ready": False,
+                        }
+                    )
                 if file_path is None:
                     return JsonResponse(
                         {"success": False, "error": "Invalid section path"}, status=400
@@ -228,7 +255,24 @@ def section_view(request, project_id, section_name):
                         status=400,
                     )
 
-                if _section_target(writer_service, name, doc_type) is None:
+                try:
+                    target = _section_target(writer_service, name, doc_type)
+                except RuntimeError as exc:
+                    # Same ordinary state on the containment check: nowhere to
+                    # write yet. Refuse with 409, not a 500; real errors
+                    # re-raise into the 500 handler below.
+                    if not _workspace_is_not_ready(exc):
+                        raise
+                    logger.info(f"[SectionView POST] workspace not on disk: {exc}")
+                    return JsonResponse(
+                        {
+                            "success": False,
+                            "error": "workspace not initialized for this project",
+                            "workspace_ready": False,
+                        },
+                        status=409,
+                    )
+                if target is None:
                     return JsonResponse(
                         {"success": False, "error": "Invalid section path"}, status=400
                     )
@@ -249,7 +293,9 @@ def section_view(request, project_id, section_name):
                     # Same state on the write side: there is nowhere to write
                     # yet. A refusal the caller can act on, not a 5xx — the
                     # workspace is created by initialize-workspace, and the
-                    # client can retry once it is.
+                    # client can retry once it is. Real errors re-raise.
+                    if not _workspace_is_not_ready(exc):
+                        raise
                     logger.info(f"[SectionView POST] workspace not on disk: {exc}")
                     return JsonResponse(
                         {
