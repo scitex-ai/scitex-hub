@@ -111,6 +111,21 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Prepare pinned yq build input
+        run: |
+          set -euo pipefail
+          # Match the dev image's yq version; the prod Dockerfile expects a
+          # host-prepared binary, which is intentionally absent from Git.
+          mkdir -p deployment/docker/docker_prod/bin
+          curl --fail --location --retry 3 \
+            https://github.com/mikefarah/yq/releases/download/v4.44.3/yq_linux_amd64 \
+            --output deployment/docker/docker_prod/bin/yq_linux_amd64
+          printf '%s  %s\n' \
+            a2c097180dd884a8d50c956ee16a9cec070f30a7947cf4ebf87d5f36213e9ed7 \
+            deployment/docker/docker_prod/bin/yq_linux_amd64 | sha256sum --check -
+          chmod 755 deployment/docker/docker_prod/bin/yq_linux_amd64
+          deployment/docker/docker_prod/bin/yq_linux_amd64 --version
+
       - name: Build full prod image (scitex floor re-resolved fresh)
         id: build
         run: |

@@ -438,7 +438,10 @@ def with_plugin_apps(entries: list[str], plugins=None) -> list[str]:
     broken wheel costs its own app, not hub startup.
     """
     try:
-        from scitex_app.plugins import discover_plugin_apps, installed_app_paths
+        from scitex_sdk.app import plugins as app_plugins
+
+        discover_plugin_apps = app_plugins.discover_plugin_apps
+        installed_app_paths = app_plugins.installed_app_paths
     except ImportError:
         return entries
     usable = []

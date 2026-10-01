@@ -46,6 +46,27 @@ class LlmAppConfig(AppConfig):
                 raise
             except Exception as e:
                 logger.warning(f"Error loading skill from {module_name}: {e}")
+            self._register_manifest_skill(app_config)
+
+    @staticmethod
+    def _register_manifest_skill(app_config):
+        """Leaf skill metadata needs no Hub import or app-specific registration."""
+        from apps.infra.llm_app.skills.registry import (
+            Skill,
+            get_skill_source,
+            register,
+        )
+
+        manifest = getattr(app_config, "manifest", {}) or {}
+        declaration = manifest.get("agent_skill")
+        if declaration is None:
+            return
+        if not isinstance(declaration, dict):
+            raise ValueError(f"{app_config.name}: agent_skill must be an object")
+        skill = Skill(**declaration)
+        if get_skill_source(skill.app_name) == f"{app_config.name}.skill":
+            return  # Preserve the same app's explicit legacy registration.
+        register(skill, source=f"{app_config.name}.manifest")
 
     @staticmethod
     def _prewarm_providers():

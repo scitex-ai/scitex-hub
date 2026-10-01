@@ -52,6 +52,8 @@ def get_reserved_usernames():
             "profile",
             "account",
             "login",
+            "livez",
+            "maintenance-ready",
             "logout",
             "signup",
             "register",

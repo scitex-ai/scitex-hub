@@ -200,7 +200,6 @@ _BUILTIN_MANIFEST_PATHS: list[str] = [
     "workspace/writer_app/manifest.json",
     "workspace/scholar_app/manifest.json",
     "workspace/figrecipe_app/manifest.json",
-    "workspace/clew_app/manifest.json",
     # NOTE: infra/public_app/manifest.json is intentionally NOT listed here.
     # It declares name="tools", which collided with workspace/tools_app
     # (also name="tools") once tools_app gained its own manifest in 20279c9e
@@ -314,8 +313,8 @@ def _manifest_to_module_config(data: dict) -> ModuleConfig:
         app_name=data["app_name"],
         icon_fa=data.get("icon", ""),
         icon_badge=data.get("icon_badge", ""),
-        icon_svg_tab=overrides.get("icon_svg_tab", ""),
-        icon_svg_nav=overrides.get("icon_svg_nav", ""),
+        icon_svg_tab=effective_data.get("icon_svg_tab", ""),
+        icon_svg_nav=effective_data.get("icon_svg_nav", ""),
         partial_template=data.get("partial_template", ""),
         renders_ui=data.get("renders_ui", True),
         context_builder=data.get("context_builder", ""),

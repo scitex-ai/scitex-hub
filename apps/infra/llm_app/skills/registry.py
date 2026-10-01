@@ -87,7 +87,7 @@ class DuplicateSkillError(ValueError):
     """
 
 
-def register(skill: Skill) -> None:
+def register(skill: Skill, *, source: str | None = None) -> None:
     """Register a skill. Called from each app's skill.py.
 
     Raises on a duplicate ``app_name`` from a different module. Two apps once
@@ -95,7 +95,7 @@ def register(skill: Skill) -> None:
     the second silently replaced the first, so one app was simply absent from
     the assistant's map with nothing to show for it.
     """
-    source = sys._getframe(1).f_globals.get("__name__", "<unknown>")
+    source = source or sys._getframe(1).f_globals.get("__name__", "<unknown>")
     previous = _registry_source.get(skill.app_name)
     if previous is not None and previous != source:
         raise DuplicateSkillError(
@@ -110,6 +110,11 @@ def register(skill: Skill) -> None:
 
 def get_skill(app_name: str) -> Skill | None:
     return _registry.get(app_name)
+
+
+def get_skill_source(app_name: str) -> str | None:
+    """Return registration ownership for generic manifest discovery."""
+    return _registry_source.get(app_name)
 
 
 def get_skill_for_page(page: str) -> Skill | None:

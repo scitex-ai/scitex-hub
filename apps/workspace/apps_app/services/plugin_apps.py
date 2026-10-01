@@ -9,10 +9,11 @@ launcher tile from its manifest. Contract: scitex_app.plugins.
 
 from __future__ import annotations
 
-import logging
 from importlib.util import find_spec
 
-logger = logging.getLogger(__name__)
+from scitex_logging import getLogger
+
+logger = getLogger(__name__)
 
 
 def _module_exists(dotted: str) -> bool:
@@ -24,7 +25,9 @@ def _module_exists(dotted: str) -> bool:
 
 def _configs() -> list:
     try:
-        from scitex_app.plugins import loaded_plugin_configs
+        from scitex_sdk.app import plugins
+
+        loaded_plugin_configs = plugins.loaded_plugin_configs
     except ImportError:
         return []
     try:
@@ -86,12 +89,15 @@ def plugin_urlpatterns(existing) -> list:
     whole urlconf on first resolve (lazy, so the optional package stays
     import-safe and startup pays nothing extra).
     """
-    from django.urls import include, path
-    from django.urls.resolvers import RoutePattern, URLResolver
     from functools import cached_property
 
+    from django.urls import include, path
+    from django.urls.resolvers import RoutePattern, URLResolver
+
     try:
-        from scitex_app.plugins import mount_route  # type: ignore[import-not-found]
+        from scitex_sdk.app import plugins
+
+        mount_route = plugins.mount_route
     except ImportError:
         # scitex-app is an optional integration surface. Released wheels that
         # predate the plugin API must still boot the Hub; no discovered plugin
@@ -129,8 +135,11 @@ def plugin_urlpatterns(existing) -> list:
 
 def plugin_module_config(config):
     """Launcher ModuleConfig built from the plugin's own manifest."""
+    from scitex_sdk.app import plugins
+
     from apps.infra.workspace_app.registry import _manifest_to_module_config
-    from scitex_app.plugins import mount_route
+
+    mount_route = plugins.mount_route
 
     manifest = dict(config.manifest)
     slug = manifest.get("slug") or config.label
@@ -140,9 +149,10 @@ def plugin_module_config(config):
         app_name=config.label,
         order=manifest.get("order", 90),
         ai_hint=manifest.get("ai_hint") or manifest.get("subtitle", ""),
-        # The app serves its own pages; there is no workspace partial.
-        partial_template="",
-        renders_ui=False,
+        # A leaf may also supply workspace content. The host renders the
+        # declared template/context without knowing any of its behavior.
+        partial_template=manifest.get("partial_template", ""),
+        renders_ui=bool(manifest.get("partial_template")),
     )
     module = _manifest_to_module_config(manifest)
     module.url = "/" + mount_route(config)

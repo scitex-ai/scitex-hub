@@ -119,7 +119,7 @@ def test_saved_search_isolation():
 @pytest.mark.django_db
 def test_clew_registration_isolation():
     """Clew hash registrations are per-user (unique_together enforces it)."""
-    from apps.workspace.clew_app.models import HashRegistration
+    from scitex_clew._django.models import HashRegistration
 
     a, b = _make_users()
     HashRegistration.objects.create(user=a, hash="a" * 64)

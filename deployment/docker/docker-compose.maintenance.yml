@@ -1,0 +1,14 @@
+# Optional overlay for an image that contains the maintenance admission gate.
+# Mount a trusted local DIRECTORY: atomic replacement cannot update a file bind.
+# Pre-create the directory and make it readable by the web container's UID.
+services:
+  django:
+    environment:
+      SCITEX_HUB_MAINTENANCE_FILE: /run/scitex-hub/operator/maintenance.json
+    volumes:
+      - type: bind
+        source: ${SCITEX_HUB_OPERATOR_STATE_DIR:?Set an existing operator-owned local directory}
+        target: /run/scitex-hub/operator
+        read_only: true
+        bind:
+          create_host_path: false

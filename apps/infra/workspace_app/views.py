@@ -197,15 +197,15 @@ def workspace_module_content(request, module):
         get_current_project(request) if request.user.is_authenticated else None
     )
 
-    ctx = mod_config.build_context(request, current_project)
-    return render(request, mod_config.partial_template, ctx)
+    from .content import render_module_content
+
+    return render_module_content(request, mod_config, current_project)
 
 
 def _serve_dev_module(request, module):
     """Serve a dev-installed app's partial template with sandboxed context."""
     from django.http import HttpResponse, HttpResponseNotFound
     from django.template import engines
-
     from scitex_app.paths import parse_dev_module_name
 
     from apps.workspace.apps_app.models import DevInstallation

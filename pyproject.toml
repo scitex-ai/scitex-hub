@@ -39,7 +39,9 @@ dependencies = [
     # scitex-logging (src/scitex_hub/_logging.py is hub's one factory for it),
     # and an unguarded runtime import must resolve from
     # `[project.dependencies]` — not from an extra a minimal install skips.
-    "scitex-logging>=0.1.0",
+    # 0.2.1 supplies the console API used by Hub. The published 0.1.0 wheel
+    # has get_level but no getConsole and cannot run the presentation adapter.
+    "scitex-logging>=0.2.1",
     # 0.2.10 is the first release where `scitex_app.appmaker.init_app`
     # emits the nested-package layout + `[tool.hatch.build.targets.wheel]
     # packages=["<name>"]` block in the generated pyproject (scitex-app
@@ -77,6 +79,9 @@ dependencies = [
     # >=2.43.6: PDF provenance follows the running source tree and the
     # compile/re-vendor paths share one version-stamp template.
     "scitex-writer>=2.43.6",
+    # Clew's project-scoped PostgreSQL schemas are exercised by the web adapter.
+    "scitex-clew[gui]>=0.21.0",
+    "psycopg[binary]>=3.1",
     # >=1.9.0 is a MOUNT requirement, not a feature preference. Below it the
     # leaf's client JS builds API urls from the SITE ROOT
     # (static/scholar/js/graph/citation-graph.js: fetch("/api/graph/health")),
@@ -271,7 +276,7 @@ dependencies = [
     # from it (apps_app/services/app_create.py) instead of keeping its own
     # copy. Measured 2026-09-27: 0.2.0 declares no `scitex.apps` entry point,
     # so the generic plugin mount cannot discover it — the mount is explicit.
-    "scitex-sdk>=0.2.0",
+    "scitex-sdk>=0.3.0",
     "gitpython>=3.1.51",
 ]
 

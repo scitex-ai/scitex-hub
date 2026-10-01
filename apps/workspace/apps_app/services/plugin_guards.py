@@ -48,7 +48,7 @@ from __future__ import annotations
 
 import logging
 import re
-from functools import cached_property, lru_cache
+from functools import lru_cache
 
 logger = logging.getLogger(__name__)
 
@@ -72,7 +72,9 @@ _MOUNT_POLICY_KEY = "mount_policy"
 
 def _configs() -> list:
     try:
-        from scitex_app.plugins import loaded_plugin_configs
+        from scitex_sdk.app import plugins
+
+        loaded_plugin_configs = plugins.loaded_plugin_configs
     except ImportError:
         return []
     try:
@@ -89,7 +91,9 @@ def _policy_of(config) -> dict:
 
 
 def _route_of(config) -> str:
-    from scitex_app.plugins import mount_route
+    from scitex_sdk.app import plugins
+
+    mount_route = plugins.mount_route
 
     return mount_route(config)
 
@@ -133,7 +137,9 @@ def _mount_table():
 def plugin_mount_prefixes():
     """Route prefixes of every plugin mount (hub chrome may scope by these)."""
     try:
-        from scitex_app.plugins import mount_route
+        from scitex_sdk.app import plugins
+
+        mount_route = plugins.mount_route
 
         return tuple(f"/{mount_route(c).strip('/')}/" for c in _configs())
     except Exception:

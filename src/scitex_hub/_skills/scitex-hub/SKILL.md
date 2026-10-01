@@ -1,9 +1,10 @@
 ---
 name: scitex-hub
 description: |
-  [WHAT] SciTeX Hub operational surface — 55 MCP tools across 6 categories — project_* (cloud project CRUD), repo_* (self-hosted Gitea clone/push/pull/PRs/issues), cloud_sdk_data/files/jobs_* (DataStore/FileVault/JobQueue SDK — submit compute jobs, upload/download files, CRUD records), api_* (Scholar paper search, CrossRef lookup, BibTeX enrichment, LaTeX compile via cloud), app_* (install/switch app plugins), onsite_* (in-browser Playwright on the live Django site).
-  [WHEN] Use whenever the user asks to create a cloud project, push/clone via Gitea, submit a cloud job, upload to FileVault, compile LaTeX on cloud, search papers via Scholar, enrich BibTeX, switch app plugin, deploy to staging/production, or mentions SciTeX Hub, Gitea, DataStore, FileVault, JobQueue, CloudClient.
-  [HOW] `pip install scitex-hub` then `import scitex_hub`; see leaf skills for details.
+  Operate and validate SciTeX Hub projects, hosting, leaf GUI plugins,
+  cloud jobs and deployment. Start with the relevant workflow below,
+  verify the actual code/runtime and authorized scope, then choose an
+  API, CLI, MCP or HTTP interface. Keep application behavior in its leaf.
 tags: [scitex-hub]
 allowed-tools: mcp__scitex__cloud_*
 primary_interface: mixed
@@ -19,11 +20,13 @@ interfaces:
 
 > **Interfaces:** Python ⭐ · CLI ⭐⭐⭐ · MCP ⭐⭐⭐ · Skills ⭐⭐ · Hook — · HTTP ⭐⭐
 
-> **Primary interfaces (two).** Both CLI and Python (or MCP) see heavy daily use — pick whichever fits the task.
+Begin with the relevant workflow below. It defines ownership, prerequisites,
+validation, and completion; then choose Python, CLI, MCP, or HTTP for its steps.
+Skill first means loading that workflow before choosing an interface.
 
 `scitex-hub` provides the operational surface for a SciTeX Hub
 deployment: a Django web platform, a `scitex-hub` CLI, an MCP server
-with ~55 tools, and a small Python API (`CloudClient`, `DockerManager`,
+and a small Python API (`CloudClient`, `DockerManager`,
 `health_check`, `get_environment`).
 
 ## Installation & import (two equivalent paths)
@@ -45,9 +48,6 @@ scitex.cloud.CloudClient(...)
 `import scitex.cloud` raises `ModuleNotFoundError`. To use the
 `scitex.cloud` form, also `pip install scitex`.
 
-See [../../general/02_interface-python-api.md] for the ecosystem-wide
-rule and empirical verification table.
-
 ## Sub-skills
 
 ### Mandatory leaves
@@ -55,7 +55,7 @@ rule and empirical verification table.
 - [02_quick-start.md](02_quick-start.md) — minimal create-project + push example
 - [03_python-api.md](03_python-api.md) — top-level Python surface
 - [04_cli-reference.md](04_cli-reference.md) — `scitex-hub` subcommand summary
-- [05_mcp-tools.md](05_mcp-tools.md) — ~55 MCP tools across 6 categories
+- [05_mcp-tools.md](05_mcp-tools.md) — MCP interfaces; check the running server's registrations
 
 ### Core (06–09, 19)
 - [06_python-api.md](06_python-api.md) — CloudClient, project_*, health_check (extended)
@@ -85,6 +85,9 @@ rule and empirical verification table.
 - [30_infrastructure.md](30_infrastructure.md) — Docker, setup, deploy, MCP server
 - [31_development-environment.md](31_development-environment.md) — Docker dev setup, hot reload, access URLs
 - [32_vite-frontend.md](32_vite-frontend.md) — Vite HMR, entry points, template tags
+- [35_clew-cloud-store.md](35_clew-cloud-store.md) — private Clew web stores, request scoping, synthetic end-to-end tests, and deployment limits
+- [36_leaf-gui-ownership.md](36_leaf-gui-ownership.md) — SDK boundaries and migration quality gates
+- [37_maintenance-mode.md](37_maintenance-mode.md) — request admission, trusted local state, and explicit job-draining limits
 
 ### User runbooks (40–49)
 - [40_user-publish-runbook.md](40_user-publish-runbook.md) — End-to-end USER walkthrough: PAT login → `project create --category app` → `app submit` → hub listing (agent-flow lives in a separate skill)

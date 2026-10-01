@@ -187,6 +187,7 @@ def test_root_help_places_dev_preview_under_service(runner: CliRunner):
         "mcp",
         "sdk",
         "dev-preview",
+        "maintenance",
     ]
 
 
