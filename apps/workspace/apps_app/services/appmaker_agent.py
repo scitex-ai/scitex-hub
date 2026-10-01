@@ -4,7 +4,7 @@
 
 Skills are plain named text blocks so another harness (e.g. Hermes) can load
 the same list instead of this module's flat system prompt. The chat itself
-streams through ``scitex_app._chat`` over the hub's bring-your-own-key
+streams through ``scitex_sdk.app._chat`` over the hub's bring-your-own-key
 provider registration (llm_app), never a hardcoded vendor.
 """
 
@@ -51,7 +51,7 @@ class Skill:
 
 def _read_sdk_skill(filename: str) -> str:
     try:
-        root = resources.files("scitex_app") / "_skills" / "scitex-app"
+        root = resources.files("scitex_sdk.app") / "_skills" / "scitex-app"
         return (root / filename).read_text(encoding="utf-8")
     except (FileNotFoundError, ModuleNotFoundError, OSError):
         logger.warning("[appmaker_agent] SDK skill %s not found", filename)
@@ -78,7 +78,7 @@ def build_system_prompt(skills: List[Skill], files: List[str]) -> str:
 
 
 class HubUserChatBackend:
-    """``scitex_app._chat.ChatBackend`` over the user's registered AI provider."""
+    """``scitex_sdk.app._chat.ChatBackend`` over the user's registered AI provider."""
 
     def __init__(self, model: str, api_key: Optional[str]):
         self._model = model

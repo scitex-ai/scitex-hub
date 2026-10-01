@@ -54,6 +54,6 @@ MIDDLEWARE = [
     "apps.infra.workspace_app.middleware_site_dock.SiteDockMiddleware",
     # Injects the Alt+I element inspector into HTML responses when
     # SCITEX_UI_ELEMENT_INSPECTOR is on (see settings_shared.py).
-    # Async-capable as of scitex-ui 0.6.1 — do not downgrade below that pin.
-    "scitex_ui.middleware.ElementInspectorMiddleware",
+    # SDK UI preserves the existing async-capable inspector implementation.
+    "scitex_sdk.ui.middleware.ElementInspectorMiddleware",
 ]

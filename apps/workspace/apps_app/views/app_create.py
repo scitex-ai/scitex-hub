@@ -112,7 +112,7 @@ def _json_body(request) -> dict:
 @login_required
 @require_POST
 def api_chat(request, slug):
-    from scitex_app._chat import sse_keepalive_wrap, stream_chat
+    from scitex_sdk.app._chat import sse_keepalive_wrap, stream_chat
 
     from ..services.appmaker_agent import (
         build_skills,

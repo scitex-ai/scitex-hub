@@ -47,7 +47,7 @@ _PLATFORM_APPS = frozenset(
         "comms_app",
         "files_app",
         "shared",
-        "scitex_ui",
+        "scitex_sdk",
     }
 )
 
@@ -186,6 +186,11 @@ def _is_dev_app_entry(entry_name: str) -> bool:
     return app_prefix not in _PLATFORM_APPS
 
 
+def _dev_server_path(source_path: str) -> str:
+    """Use Vite's filesystem route for installed package source files."""
+    return f"@fs{source_path}" if Path(source_path).is_absolute() else source_path
+
+
 def _manifest_miss(msg: str, entry_name: str) -> str:
     """Fail LOUD on a manifest-lookup miss — never silently ship a page
     with a missing script (the module pane would stay blank with zero
@@ -236,7 +241,7 @@ def vite_script(entry_name: str):
     # Platform entries
     # VITE_USE_BUILD=True: use built manifest even in dev (no Vite dev server needed)
     if settings.DEBUG and not getattr(settings, "VITE_USE_BUILD", False):
-        ts_path = _entry_to_ts_path(entry_name)
+        ts_path = _dev_server_path(_entry_to_ts_path(entry_name))
         port = getattr(settings, "VITE_HOST_PORT", 5173)
         return mark_safe(
             f'<script type="module">{{const s=document.createElement("script");s.type="module";'
@@ -351,7 +356,7 @@ def vite_asset_url(context, entry_name: str) -> str:
         )
 
     if settings.DEBUG and not getattr(settings, "VITE_USE_BUILD", False):
-        ts_path = _entry_to_ts_path(entry_name)
+        ts_path = _dev_server_path(_entry_to_ts_path(entry_name))
         port = getattr(settings, "VITE_HOST_PORT", 5173)
         request = context.get("request")
         scheme = request.scheme if request is not None else "http"
@@ -456,6 +461,16 @@ def _entry_to_ts_path(entry_name: str) -> str:
 
     if entry_name in _non_conventional:
         return _non_conventional[entry_name]
+
+    # SDK assets have a nested canonical namespace, rather than an app label.
+    if entry_name.startswith("scitex_sdk/ui/"):
+        from scitex_sdk import ui
+
+        rest = entry_name.removeprefix("scitex_sdk/ui/")
+        for suffix in (".ts", ".tsx"):
+            source = ui.get_static_dir() / "ts" / f"{rest}{suffix}"
+            if source.is_file():
+                return str(source.resolve())
 
     # Convention-based resolution
     parts = entry_name.split("/")

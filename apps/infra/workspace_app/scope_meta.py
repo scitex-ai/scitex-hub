@@ -40,7 +40,7 @@ from django.http import HttpResponse
 # the mount predates d8528de. Guard the import so a stale mount degrades to
 # "no marker" (the safe direction) rather than 500'ing every leaf page.
 try:
-    from scitex_app._app_scope import _inject_scope_meta
+    from scitex_sdk.app._app_scope import _inject_scope_meta
 except Exception:  # noqa: BLE001 - scitex-app not advanced to the contract yet
     _inject_scope_meta = None
 

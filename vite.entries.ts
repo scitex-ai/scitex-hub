@@ -5,7 +5,7 @@
  * Explicit overrides below handle entries where the template-referenced
  * name differs from the convention-based path.
  */
-import { execSync } from "child_process";
+import { discoverSdkFrontend } from "./vite.sdk";
 import { resolve } from "path";
 import * as path from "path";
 import * as fs from "fs";
@@ -81,33 +81,12 @@ function discoverAppEntries(rootDir: string): Record<string, string> {
   return entries;
 }
 
-/**
- * Discover TS entry points from pip-installed SciTeX packages.
- * Looks for static/<pkg_name>/ts/ in known package locations.
- */
-const PIP_PACKAGES_WITH_STATIC = ["scitex_ui"];
-
-function discoverPipEntries(rootDir: string): Record<string, string> {
-  const entries: Record<string, string> = {};
-
-  for (const pkgName of PIP_PACKAGES_WITH_STATIC) {
-    try {
-      const pkgDir = execSync(
-        `python3 -c "import ${pkgName}; import os; print(os.path.dirname(${pkgName}.__file__))"`,
-        { encoding: "utf-8" },
-      ).trim();
-      const tsDir = resolve(pkgDir, "static", pkgName, "ts");
-      if (fs.existsSync(tsDir)) {
-        Object.assign(
-          entries,
-          generateEntriesRecursive(pkgDir, `static/${pkgName}/ts`, pkgName),
-        );
-      }
-    } catch {
-      // Package not installed — skip silently
-    }
-  }
-  return entries;
+/** Discover shared SDK UI entries using its canonical static namespace. */
+function discoverSdkEntries(rootDir: string): Record<string, string> {
+  const frontend = discoverSdkFrontend(rootDir);
+  return frontend
+    ? generateEntriesRecursive(frontend.uiStatic, "ts", "scitex_sdk/ui")
+    : {};
 }
 
 /**
@@ -178,8 +157,8 @@ export function getEntryPoints(rootDir: string): Record<string, string> {
     // App-specific entries: auto-discovered from apps/infra/ and apps/workspace/
     ...discoverAppEntries(rootDir),
 
-    // Pip-installed SciTeX packages with static assets
-    ...discoverPipEntries(rootDir),
+    // Shared UI from the installed SDK or its source checkout
+    ...discoverSdkEntries(rootDir),
 
     // ── Explicit overrides ──────────────────────────────────────
     // These entries have template names that differ from convention.

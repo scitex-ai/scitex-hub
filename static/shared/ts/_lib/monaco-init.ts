@@ -7,4 +7,4 @@
 export {
   monaco,
   waitForMonaco,
-} from "scitex-ui/ts/app/monaco-editor/_MonacoLoader";
+} from "@scitex/sdk/ui/ts/app/monaco-editor/_MonacoLoader";

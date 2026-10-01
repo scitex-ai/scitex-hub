@@ -32,9 +32,9 @@
  * tokens undefined across 96 hub files, silently.
  */
 
-@import url("../../../scitex_ui/css/primitives/colors.css");
+@import url("../../../scitex_sdk/ui/css/primitives/colors.css");
 @import url("./project-app-accents.css");
-@import url("../../../scitex_ui/css/primitives/typography-vars.css");
-@import url("../../../scitex_ui/css/primitives/spacing.css");
+@import url("../../../scitex_sdk/ui/css/primitives/typography-vars.css");
+@import url("../../../scitex_sdk/ui/css/primitives/spacing.css");
 @import url("../utilities/effects.css");
-@import url("../../../scitex_ui/css/primitives/z-index.css");
+@import url("../../../scitex_sdk/ui/css/primitives/z-index.css");

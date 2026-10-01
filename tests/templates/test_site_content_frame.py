@@ -207,7 +207,7 @@ def test_standalone_leaf_tab_icon_is_the_hub_favicon():
 
     from config.context_processors import scitex_env
 
-    default_href = static("scitex_ui/img/scitex-favicon.svg")
+    default_href = static("scitex_sdk/ui/img/scitex-favicon.svg")
     html = STANDALONE_PAGE.replace("</head>", f'<link rel="icon" href="{default_href}" /></head>')
     request = RequestFactory().get("/")
     request.user = AnonymousUser()

@@ -3,42 +3,14 @@ import { defineConfig, Plugin } from "vite";
 import { resolve } from "path";
 import * as path from "path";
 import * as fs from "fs";
-import { execSync } from "child_process";
 import { createRequire } from "module";
 import { getEntryPoints } from "./vite.entries";
+import { discoverSdkFrontend, legacyUiAliases } from "./vite.sdk";
 
 const require = createRequire(import.meta.url);
 
-/**
- * Discover scitex-ui static directory from the Python environment.
- * Same pattern as figrecipe/vite.config.ts — works for pip and editable installs.
- */
-function discoverScitexUiStatic(): string | null {
-  if (process.env.SCITEX_UI_STATIC) {
-    return process.env.SCITEX_UI_STATIC;
-  }
-
-  // Prefer .apps/scitex-ui (has node_modules for npm deps like mermaid)
-  // then sibling ../scitex-ui, then pip-installed location
-  const candidates = [
-    resolve(__dirname, ".apps/scitex-ui/src/scitex_ui/static/scitex_ui"),
-    resolve(__dirname, "../scitex-ui/src/scitex_ui/static/scitex_ui"),
-  ];
-  for (const candidate of candidates) {
-    if (fs.existsSync(candidate)) return candidate;
-  }
-
-  try {
-    return execSync(
-      'python3 -c "import scitex_ui; print(scitex_ui.get_static_dir())"',
-      { encoding: "utf-8", timeout: 5000 },
-    ).trim();
-  } catch {
-    return null;
-  }
-}
-
-const SCITEX_UI_STATIC = discoverScitexUiStatic();
+const SDK_FRONTEND = discoverSdkFrontend(__dirname);
+const SCITEX_UI_STATIC = SDK_FRONTEND?.uiStatic ?? null;
 
 /** Discovered app bridge configuration. */
 interface AppBridgeInfo {
@@ -243,7 +215,7 @@ export default defineConfig(({ command }) => ({
     react({
       // Exclude external app sources from Fast Refresh (avoids preamble error).
       // esbuild still handles JSX via tsconfig "jsx": "react-jsx".
-      exclude: [/scitex.ui/, ...APP_BRIDGES.excludePatterns],
+      exclude: [/scitex.sdk/, ...APP_BRIDGES.excludePatterns],
     }),
     resolveStaticPaths(),
     resolveBridgedBareImports(),
@@ -303,18 +275,9 @@ export default defineConfig(({ command }) => ({
       // dagre / @xyflow/react (both imported from scitex-cards' bridged
       // layout.ts) are handled by the generic resolveBridgedBareImports()
       // plugin below instead of one-off aliases -- see its docstring.
-      // scitex-ui: shared component library (auto-discovered)
-      ...(SCITEX_UI_STATIC
-        ? {
-            "scitex-ui": SCITEX_UI_STATIC,
-            // @scitex/ui is the npm package name used by figrecipe's frontend
-            // imports like @scitex/ui/src/scitex_ui/static/... resolve from repo root
-            "@scitex/ui": resolve(SCITEX_UI_STATIC, "../../../.."),
-            // shared/css/primitives/variables.css @imports scitex-ui tokens by
-            // their collectstatic URL; lets the bundled head CSS resolve them.
-            "../../../scitex_ui/css": resolve(SCITEX_UI_STATIC, "css"),
-          }
-        : {}),
+      // Canonical @scitex/sdk imports use the package.json exports installed by npm.
+      // Legacy leaves still use these names until their own migration is reviewed.
+      ...(SDK_FRONTEND ? legacyUiAliases(SDK_FRONTEND) : {}),
       // Auto-discovered app bridges (e.g. "figrecipe-editor" → sibling repo)
       ...APP_BRIDGES.aliases,
     },
@@ -367,7 +330,7 @@ export default defineConfig(({ command }) => ({
     fs: {
       allow: [
         ".",
-        ...(SCITEX_UI_STATIC ? [SCITEX_UI_STATIC] : []),
+        ...(SDK_FRONTEND ? [SDK_FRONTEND.packageDir] : []),
         // Auto-discovered app repos
         ...APP_BRIDGES.fsAllow,
       ],

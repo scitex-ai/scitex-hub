@@ -42,29 +42,7 @@ dependencies = [
     # 0.2.1 supplies the console API used by Hub. The published 0.1.0 wheel
     # has get_level but no getConsole and cannot run the presentation adapter.
     "scitex-logging>=0.2.1",
-    # 0.2.10 is the first release where `scitex_app.appmaker.init_app`
-    # emits the nested-package layout + `[tool.hatch.build.targets.wheel]
-    # packages=["<name>"]` block in the generated pyproject (scitex-app
-    # PR #35, scitex-cloud PR #293 done-gate). Pre-0.2.10 the canonical
-    # CLI path `scitex-hub app init` shadowed our local _scaffold fix
-    # with the upstream flat-layout generator, breaking
-    # `pip_install_user_app` at install time. (0.2.9 was claimed by an
-    # orphan tag for an unrelated earlier release — jumping to 0.2.10.)
-    # >=0.11.0 (2026-09-03): `scitex_app.hosts_to_allow` becomes PUBLIC API —
-    # the interface-enumerating ALLOWED_HOSTS fix (scholar #137, copied into
-    # scitex-app by figrecipe #105 for 0.10.1, re-exported publicly in 0.11.0)
-    # so an app bound to 0.0.0.0 answers on its real addresses instead of 400.
-    # Also: appmaker.validate() no longer fails a build on advisory findings
-    # (a behaviour change). Verified by scitex-app against the PUBLISHED wheel
-    # in a clean venv (installed 0.11.0, public name True, alias same object).
-    # >=0.23.0 (2026-09-14): first published wheel carrying
-    # `scitex_app._app_scope._inject_scope_meta` (d8528de), which the hub bridge
-    # scope-meta injection (apps/infra/workspace_app/scope_meta.py, #801) calls.
-    # On 0.22.1 the guarded import falls back to "no marker" silently. Verified
-    # with uv against the published 0.23.0 wheel: import ok, function present.
-    # >=0.25.0 (2026-09-14): `scitex_app.i18n` (gettext settings + translations
-    # CLI, scitex-app #194) for the EN/JA leaf-app catalogs.
-    "scitex-app>=0.25.0",
+    # Shared App/UI contracts come from the required scitex-sdk>=0.3.0 below.
     "scitex-config>=0.3.6",
     # `scitex-session` is consumed via the umbrella as `scitex.session.INJECTED`
     # (settings_shared.py / settings_auth.py / config/routing.py).
@@ -399,98 +377,8 @@ all = [
     # ResolutionImpossible — see scitex-python#282, resolved). Floor at
     # 2.29.3 to skip the broken 2.29.0/2.29.1 entirely.
     "scitex>=2.29.3",
-    # >=0.8.0, and the floor is about what hub MOUNTS, not only what hub calls.
-    #
-    # 0.8.0 is where `shell_context()` grew its `panes` parameter (verified by
-    # reading branding.py at both tags: v0.7.1 has no such parameter, v0.8.0
-    # does). We mount upstream apps that pass it -- scitex_storage._django's
-    # `index` declares `panes={"ai": "unused", "files": "unused", "viewer":
-    # "unused"}` (scitex-storage PR #57) -- so on 0.6.x/0.7.x that call raises
-    # `TypeError: unexpected keyword argument 'panes'` AT REQUEST TIME and
-    # /apps/storage/ answers 500. It is a floor violation that presents as a
-    # broken page, several layers from the pin that permitted it.
-    #
-    # Hub itself calls `shell_context()` zero times, which is exactly why this
-    # was easy to miss: pip cannot derive the constraint either, because the
-    # mounted apps are installed EDITABLE from sibling checkouts at container
-    # start (deployment/docker/common/scripts/root-init.sh), so scitex-storage's
-    # own `scitex-ui>=0.8.0` never participates in resolution here. Nothing but
-    # this line enforces it, which is why it is a declared floor and not a
-    # comment. tests/config/test_shell_pane_contract_floor.py locks both halves.
-    #
-    # The previous floor's reason still holds and is not weakened: 0.6.0 never
-    # shipped middleware.py (merged after that release was cut) and anything
-    # older is sync-only, deadlocking daphne under ASGI. See scitex-ui PR #59
-    # and settings_shared.py's MIDDLEWARE entry.
-    #
-    # RAISED 0.8.0 -> 0.16.0 on 2026-08-18. A SECOND contract now rides on this
-    # floor, and it is the reason the number moved.
-    #
-    # This release stops forking scitex-ui's primitives and @imports them
-    # instead (static/shared/css/primitives/variables.css). That import makes
-    # the floor a statement about FILE CONTENT, not merely about a call
-    # signature -- and content has a failure mode the pane contract does not:
-    #
-    #   file absent                    -> @import 404s, page visibly unstyled   LOUD
-    #   file present, token absent     -> var() resolves to nothing             SILENT
-    #   file present, value stale      -> renders wrong, passes every check     SILENT
-    #
-    # Only the first of those is visible. The other two render a page that
-    # looks fine, so no test we own would have caught them.
-    #
-    # MEASURED 2026-08-18, reading `--text-link` out of the PUBLISHED WHEELS
-    # (pip download --no-cache-dir, then read the zip -- NOT the git tree, which
-    # is the substitution that let the upstream --accent defect ship). Control
-    # token `--text-primary` returned 2 declarations at every version, so an
-    # absence below is measured absence and not a broken read:
-    #
-    #   0.8.0   --text-link ABSENT
-    #   0.12.0  --text-link ABSENT
-    #   0.13.0  --text-link ABSENT
-    #   0.14.0  --text-link ABSENT
-    #   0.14.1  --text-link #2c5d8f / #58a6ff   <- FIRST release carrying it
-    #   0.14.2  --text-link #2c5d8f / #58a6ff
-    #   0.15.0  --text-link #2c5d8f / #58a6ff
-    #   0.16.0  --text-link #2c5d8f / #58a6ff   (via colors.css -> colors/_{light,dark}.css)
-    #
-    # So four releases at or above the OLD >=0.8.0 floor do not define the token
-    # at all. A resolver picking any of them lets the @import succeed, the page
-    # render, and hub sit at 2.36:1 link contrast against a 4.5:1 AA
-    # requirement -- which is the exact defect this release exists to remove,
-    # reintroduced through the floor and wearing a green build.
-    #
-    # WHY 0.16.0 AND NOT 0.14.1, which is all hub strictly needs: a floor is a
-    # contract read by people who will not know that hub does not load
-    # shell/theme.css. In 0.15.0 `--accent` is defined in the primitives layer
-    # but MISSING from shell/theme.css -- the two layers disagree, so the same
-    # token needs a different floor depending on which file you link. 0.16.0 is
-    # the first release good on every token in both layers. Naming a version
-    # that needs no caveat beats naming the minimum we can justify with one.
-    #
-    # CAUTION FOR WHOEVER RAISES THIS NEXT -- the boundary above is off by one
-    # from what two other agents independently reported today. Both concluded
-    # "first appears in 0.15.0" because both SAMPLED versions (0.14.0, then
-    # 0.15.0) and neither pulled 0.14.1, where it actually lands. scitex-ui has
-    # published 31 versions; a hand-picked subset produces a confident wrong
-    # boundary. Enumerate every release from the PyPI index, or do not quote a
-    # boundary at all.
-    #
-    # RAISED 0.16.0 -> 0.20.3 on 2026-09-14 for --app-accent-agents (the Agents
-    # launcher app, #803). Boundary is exact rather than sampled: the token was
-    # added by scitex-ui PR #228 and 0.20.3 is the first release after 0.20.2
-    # (release list read 2026-09-14; scitex-ui confirmed 0.20.3 on PyPI 10:05Z).
-    #
-    # RAISED 0.20.3 -> 0.21.0 on 2026-09-14: first release with the
-    # `scitex_project_picker` template tag + `scitex_ui.project_scope` (#232) and
-    # the `scitex_js_catalog` gettext tag (#231), which hub's project picker uses.
-    # RAISED 0.21.0 -> 0.22.0 on 2026-09-16: first stable release with the
-    # Command Registry and global/app-mode keymap API consumed by Settings >
-    # Keyboard Shortcuts. Older wheels cannot import scitex_ui.keymap.
-    # RAISED 0.21.0 -> 0.22.0 on 2026-09-15: exact first release whose
-    # `scitex_project_picker` loads canonical js/app/project-selector.js and whose
-    # `.stx-app-header__slot--project-selector` owns left/phone placement. Hub
-    # deliberately adds no consumer placement CSS; the source contract test locks it.
-    "scitex-ui>=0.22.0",
+    # UI pane, palette, picker and keymap contracts now come from the base SDK.
+    # Installed behavior remains checked by test_shell_pane_contract_floor.py.
     # --- GUI (dearpygui-based modules) ---
     "dearpygui>=1.11",
     "cairosvg>=2.9.0",
@@ -584,35 +472,8 @@ dev = [
     # skipped, they protect nothing while reading as protection.
     # Same rationale as the PS-210 block above.
     "scitex-cards>=0.53.1",
-    # Same floor as [all], and it must STAY the same — the two are swept
-    # together by tests/config/test_shell_pane_contract_floor.py, which reads
-    # every dependency group rather than one, precisely so the copies cannot
-    # drift apart unnoticed.
-    #
-    # Here in [dev] because tests/config/test_shell_pane_contract_floor.py
-    # imports scitex_ui UNGUARDED, and that is deliberate rather than an
-    # oversight. The alternative PS-210 offers is
-    # `pytest.importorskip("scitex_ui")`, which is the wrong remedy for THIS
-    # suite: the file exists to assert that the installed scitex-ui can honour
-    # the pane contract, so a skip when it is absent is the exact answer the
-    # gate must never give — an unrun check reading as a passing one. Declaring
-    # the dependency makes the test run instead of vanish. Same shape as the
-    # scitex-cards entry above.
-    #
-    # RAISED 0.8.0 -> 0.16.0 on 2026-08-18, in lockstep with the [all] entry.
-    # Do not raise one without the other: test_shell_pane_contract_floor.py
-    # sweeps EVERY dependency group precisely so these two copies cannot drift
-    # apart unnoticed. The measurement and the reasoning live on the [all]
-    # entry -- read it there rather than duplicating it here, so there is one
-    # place to correct when the next token moves. RAISED 0.16.0 -> 0.20.3 on
-    # 2026-09-14 in lockstep with [all] (--app-accent-agents). RAISED 0.20.3 ->
-    # 0.21.0 the same day in lockstep with [all] (project picker, gettext tag).
-    # RAISED 0.21.0 -> 0.22.0 in lockstep with [all] (Command Registry + keymap
-    # API, Settings > Keyboard Shortcuts); scitex_ui.keymap does not exist below
-    # it. test_shell_pane_contract_floor.py sweeps every group, so the two
-    # copies cannot drift.
-    # 0.22.0 on 2026-09-15 in lockstep with [all] (canonical selector entry/slot).
-    "scitex-ui>=0.22.0",
+    # The base SDK supplies the same shared UI for development and production.
+
 ]
 
 [project.scripts]

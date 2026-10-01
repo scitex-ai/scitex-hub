@@ -212,8 +212,8 @@ THIRD_PARTY_APPS = [
     "oauth2_provider",
 ]
 
-# Required: scitex_ui (available on PyPI as scitex-ui)
-THIRD_PARTY_APPS.append("scitex_ui")
+# Shared App/UI implementation is owned by the required SDK distribution.
+THIRD_PARTY_APPS.append("scitex_sdk.ui")
 
 # Optional upstream SciTeX apps (figrecipe / writer / storage / cards).
 # Which of them are installed, and which AppConfig path each one needs,

@@ -4,12 +4,8 @@ from __future__ import annotations
 
 from types import SimpleNamespace
 
-import pytest
 from django.urls import path
-
-pytest.importorskip("scitex_app.plugins", reason="released scitex-app has no plugin API")
-
-from scitex_app.plugins import PluginApp  # type: ignore[import-not-found]
+from scitex_sdk.app.plugins import PluginApp
 
 from apps.workspace.apps_app.services.plugin_apps import (
     _route_taken,
@@ -22,22 +18,23 @@ def _view(request):
     return None
 
 
-def test_plugin_replaces_hand_written_figrecipe_entry():
+def test_plugin_replaces_hand_written_writer_entry():
     # Arrange
-    plugins = [PluginApp("figrecipe", "figrecipe._django.apps.FigRecipeEditorConfig")]
+    # Writer is a required installed leaf; optional FigRecipe is not a test prerequisite.
+    plugins = [PluginApp("writer", "scitex_writer._django.apps.WriterEditorConfig")]
     # Act
-    merged = with_plugin_apps(["scitex_ui", "figrecipe._django"], plugins)
+    merged = with_plugin_apps(["scitex_sdk.ui", "scitex_writer._django"], plugins)
     # Assert
-    assert merged == ["scitex_ui", "figrecipe._django.apps.FigRecipeEditorConfig"]
+    assert merged == ["scitex_sdk.ui", "scitex_writer._django.apps.WriterEditorConfig"]
 
 
 def test_plugin_with_missing_module_is_skipped():
     # Arrange
     plugins = [PluginApp("ghost", "no_such_pkg_xyz.apps.GhostConfig")]
     # Act
-    merged = with_plugin_apps(["scitex_ui"], plugins)
+    merged = with_plugin_apps(["scitex_sdk.ui"], plugins)
     # Assert
-    assert merged == ["scitex_ui"]
+    assert merged == ["scitex_sdk.ui"]
 
 
 def test_route_the_hub_serves_is_not_remounted():

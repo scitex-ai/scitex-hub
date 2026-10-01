@@ -10,11 +10,9 @@ swap that looks harmless in review still fails here.
 
 from __future__ import annotations
 
-import importlib.util
 import re
 from pathlib import Path
 
-import pytest
 
 _REPO_ROOT = Path(__file__).resolve().parents[2]
 _INPUTS_CSS = _REPO_ROOT / "static" / "shared" / "css" / "components" / "forms" / "inputs.css"
@@ -24,10 +22,9 @@ _VAR_RE = re.compile(r"^var\(\s*(--[\w-]+)\s*(?:,\s*([^)]+))?\)$")
 
 
 def _palette_dir() -> Path:
-    spec = importlib.util.find_spec("scitex_ui")
-    if spec is None or not spec.origin:
-        pytest.skip("scitex_ui is not installed")
-    return Path(spec.origin).resolve().parent / "static" / "scitex_ui" / "css" / "primitives" / "colors"
+    from scitex_sdk import ui
+    return ui.get_static_dir() / "css/primitives/colors"
+
 
 
 def _dark_tokens() -> dict[str, str]:

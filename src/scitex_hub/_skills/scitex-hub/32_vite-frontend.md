@@ -56,8 +56,20 @@ const host = import.meta.env.VITE_HOST_IP || "localhost";
 
 This applies to WebSocket URLs, API base URLs, and any URL constructed in TypeScript that needs to reach the backend.
 
-## scitex-ui Integration
-Vite auto-discovers scitex-ui static directory:
-1. `.apps/scitex-ui/` (dev-installed, preferred)
-2. `../scitex-ui/` (sibling checkout)
-3. pip-installed location (fallback)
+## SDK UI integration
+
+The required `scitex-sdk>=0.3.0` owns UI sources and assets. Vite discovers
+`scitex_sdk.get_frontend_package_dir()` from the active Python environment,
+then checks SDK source checkouts under `.apps/scitex-sdk/` or `../scitex-sdk/`.
+Canonical imports use `@scitex/sdk/ui/...` and its package exports. The npm
+`file:` dependency must name that environment's frontend package directory;
+regenerate its lockfile after changing environments.
+
+`SCITEX_UI_STATIC` remains a trusted build override, but must point to
+`scitex_sdk/ui/static/scitex_sdk/ui` inside the SDK frontend package. Old
+`scitex-ui` and deep `@scitex/ui/src/scitex_ui/static/scitex_ui` aliases are a
+transitional bridge for uncutover leaf sources; both resolve only SDK files.
+Those leaf imports remain a migration gate, rather than a second UI owner.
+
+Shared Vite entry names start with `scitex_sdk/ui/`. Development uses Vite's
+`/@fs/` route for installed package files; production uses the built manifest.
