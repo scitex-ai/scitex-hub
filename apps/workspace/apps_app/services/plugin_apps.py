@@ -92,7 +92,7 @@ def plugin_urlpatterns(existing) -> list:
     from functools import cached_property
 
     from django.urls import include, path
-    from django.urls.resolvers import RoutePattern, URLResolver
+    from django.urls.resolvers import URLResolver
 
     try:
         from scitex_sdk.app import plugins
@@ -105,13 +105,12 @@ def plugin_urlpatterns(existing) -> list:
         return []
 
     class PluginMountResolver(URLResolver):
-        def __init__(self, route, urls_module):
-            urlconf_module, app_name, namespace = include(urls_module)
+        def __init__(self, mount):
             super().__init__(
-                RoutePattern(route),
-                urlconf_module,
-                app_name=app_name,
-                namespace=namespace,
+                mount.pattern,
+                mount.urlconf_name,
+                app_name=mount.app_name,
+                namespace=mount.namespace,
             )
 
         @cached_property
@@ -124,11 +123,28 @@ def plugin_urlpatterns(existing) -> list:
         urls_module = f"{config.name}.urls"
         if _route_taken(route, existing) or not _module_exists(urls_module):
             continue
-        if _login_required_policy(config):
-            patterns.append(PluginMountResolver(route, urls_module))
-            logger.info("[plugin_apps] mounted %s at /%s (login-gated)", config.name, route)
+        primary = path(route, include(urls_module))
+        if hasattr(primary.urlconf_name, "namespace_aliases"):
+            if not _module_exists("scitex_sdk.urls"):
+                from django.core.exceptions import ImproperlyConfigured
+
+                raise ImproperlyConfigured(
+                    "URL namespace aliases require a supporting SciTeX SDK"
+                )
+            from scitex_sdk.urls import mount_urlpatterns
+
+            mounts = mount_urlpatterns(
+                route, primary.urlconf_name, existing=[*existing, *patterns]
+            )
         else:
-            patterns.append(path(route, include(urls_module)))
+            mounts = [primary]
+        if _login_required_policy(config):
+            patterns.extend(PluginMountResolver(mount) for mount in mounts)
+            logger.info(
+                "[plugin_apps] mounted %s at /%s (login-gated)", config.name, route
+            )
+        else:
+            patterns.extend(mounts)
             logger.info("[plugin_apps] mounted %s at /%s", config.name, route)
     return patterns
 
