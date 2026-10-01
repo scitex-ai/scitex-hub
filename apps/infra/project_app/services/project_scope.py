@@ -1,6 +1,6 @@
 """Hub provider for the SciTeX SDK project picker (project-scope apps).
 
-Implements the SDK ``ProjectProvider`` contract (``scitex_ui.project_scope``)
+Implements the SDK ``ProjectProvider`` contract (``scitex_sdk.ui.project_scope``)
 structurally, so the hub does not need that release to import:
 
 - the listing is only projects the user can access: owned plus shared through
@@ -110,6 +110,28 @@ class HubProjectProvider:
 
     def project_id(self, project: Project) -> str:
         return project_key(project)
+
+    def canonical_project_id(self, request, selector: str) -> Optional[str]:
+        """Map a legacy positive integer PK through this user's access scope.
+
+        Picker entries and storage IDs remain owner/slug. A numeric selector
+        never expands access, includes an unrelated public project, or grants
+        write permission; SDK rechecks canonical-list membership afterward.
+        """
+        if (
+            not isinstance(selector, str)
+            or not selector.isascii()
+            or not selector.isdecimal()
+        ):
+            return None
+        # Hub uses Django BigAutoField. Bound conversion to its positive range.
+        if len(selector) > 19 or not 0 < int(selector) <= 2**63 - 1:
+            return None
+        user = getattr(request, "user", None)
+        if user is None or not getattr(user, "is_authenticated", False):
+            return None
+        project = accessible_projects(user).filter(pk=int(selector)).first()
+        return project_key(project) if project is not None else None
 
     def list_projects(self, request) -> list[ProjectEntry]:
         return [
