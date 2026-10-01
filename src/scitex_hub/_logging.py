@@ -93,7 +93,9 @@ class Console:
         self._name = name or DEFAULT_CONSOLE_NAME
 
     def _emit(self, level: str, renderable: Any) -> None:
-        getattr(slogging.getConsole(self._name), level)(_to_text(renderable))
+        getattr(
+            slogging.getConsole(self._name, level=slogging.get_level()), level
+        )(_to_text(renderable))
 
     def info(self, renderable: Any) -> None:
         """Emit *renderable* at INFO (``INFO:``)."""

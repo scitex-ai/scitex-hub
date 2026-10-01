@@ -19,14 +19,16 @@ from channels.routing import ProtocolTypeRouter, URLRouter
 from channels.security.websocket import AllowedHostsOriginValidator
 from django.core.asgi import get_asgi_application
 
+from apps.infra.public_app.middleware_maintenance import MaintenanceASGI
+
 settings_module = os.getenv("SCITEX_HUB_DJANGO_SETTINGS_MODULE") or "config.settings"
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", settings_module)
 django.setup()
 
 # Import routing after Django setup (must come after django.setup())
-from apps.workspace.console_app import routing as code_routing  # noqa: E402
 from apps.infra.llm_app import routing as llm_routing  # noqa: E402
 from apps.infra.project_app import routing as project_routing  # noqa: E402
+from apps.workspace.console_app import routing as code_routing  # noqa: E402
 from apps.workspace.writer_app import routing as writer_routing  # noqa: E402
 
 logger = logging.getLogger("config.asgi")
@@ -194,11 +196,13 @@ async def _http_router(scope, receive, send):
         await _django_http_app(scope, receive, send)
 
 
-application = ProtocolTypeRouter(
-    {
-        "http": _http_router,
-        "websocket": AllowedHostsOriginValidator(
-            AuthMiddlewareStack(URLRouter(websocket_urlpatterns))
-        ),
-    }
+application = MaintenanceASGI(
+    ProtocolTypeRouter(
+        {
+            "http": _http_router,
+            "websocket": AllowedHostsOriginValidator(
+                AuthMiddlewareStack(URLRouter(websocket_urlpatterns))
+            ),
+        }
+    )
 )
