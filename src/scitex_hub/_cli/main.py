@@ -23,6 +23,7 @@ from .deploy import deploy
 from .dev import dev
 from .docker import docker
 from .gitea import gitea
+from .maintenance import maintenance
 from .mcp import mcp
 from .sdk import sdk  # noqa: F401
 from .setup import setup
@@ -51,7 +52,7 @@ _ROOT_CATEGORIES = [
         ],
     ),
     ("Data & Sync", ["push-project", "pull-project", "gitea"]),
-    ("Service", ["docker", "mcp", "sdk", "dev-preview"]),
+    ("Service", ["docker", "mcp", "sdk", "dev-preview", "maintenance"]),
     ("Diagnostics", ["status", "logs"]),
     ("Introspection", ["list-python-apis", "skills", "docs", "dev"]),
     (
@@ -164,6 +165,7 @@ register_warn_alias(main, "deploy-project", target="deploy", remove_in="v0.20")
 main.add_command(docker)
 main.add_command(gitea)
 main.add_command(mcp)
+main.add_command(maintenance)
 # The develop-preview sync verb the scitex-hub-dev-preview-sync job runs
 # every 2 min on compute-03 (see scitex_hub._jobs). Service, like docker/mcp:
 # it operates infrastructure, not project data.

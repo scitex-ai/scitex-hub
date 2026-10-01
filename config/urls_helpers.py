@@ -41,6 +41,8 @@ def get_reserved_paths():
             "auth",
             "files",
             "healthz",
+            "livez",
+            "maintenance-ready",
             "favicon.ico",
             "robots.txt",
             "sitemap.xml",
@@ -80,7 +82,7 @@ def get_reserved_paths():
     if settings.DEBUG:
         reserved.update(["__reload__", "__debug__"])
 
-    return sorted(list(reserved))
+    return sorted(reserved)
 
 
 # Generate reserved paths at module level

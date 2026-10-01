@@ -8,6 +8,8 @@ comments on each entry.
 """
 
 MIDDLEWARE = [
+    # Protocol admission/probes precede redirects, sessions and leaf handlers.
+    "apps.infra.public_app.middleware_maintenance.MaintenanceMiddleware",
     "django.middleware.security.SecurityMiddleware",
     "whitenoise.middleware.WhiteNoiseMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",

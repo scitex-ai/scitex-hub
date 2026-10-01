@@ -39,7 +39,8 @@ dependencies = [
     # scitex-logging (src/scitex_hub/_logging.py is hub's one factory for it),
     # and an unguarded runtime import must resolve from
     # `[project.dependencies]` — not from an extra a minimal install skips.
-    "scitex-logging>=0.1.0",
+    # getConsole is available in the published 0.2.1 wheel.
+    "scitex-logging>=0.2.1",
     # 0.2.10 is the first release where `scitex_app.appmaker.init_app`
     # emits the nested-package layout + `[tool.hatch.build.targets.wheel]
     # packages=["<name>"]` block in the generated pyproject (scitex-app

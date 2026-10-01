@@ -269,6 +269,11 @@ SCITEX_HUB_INTERNAL_APPS_RELEASED = (
 # previous IP-based signal was client-forgeable (X-Forwarded-For).
 ONSITE_AUTH_SECRET = os.environ.get("SCITEX_HUB_ONSITE_SECRET", "")
 
+# Optional operator-owned LOCAL flag; independent of user storage. No setting
+# or absent flag preserves normal admission. Share its directory across web
+# processes; malformed/unreadable state returns maintenance rather than opening.
+SCITEX_HUB_MAINTENANCE_FILE = os.environ.get("SCITEX_HUB_MAINTENANCE_FILE", "")
+
 # The MIDDLEWARE stack (order-sensitive, commented per entry) lives in its own
 # module; imported under the same name so env modules can extend it.
 from .settings_middleware import MIDDLEWARE  # noqa: E402, F401
