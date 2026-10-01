@@ -53,18 +53,14 @@ def _resolve(spec: str, base: Path) -> Path | None:
     """Where a browser would look for ``spec`` imported from ``base``."""
     candidate = (base.parent / spec).resolve()
     parts = candidate.parts
-    if "scitex_ui" in parts:
-        # An installed-package asset. Anchor on the LAST "scitex_ui" segment:
-        # the installed layout is site-packages/scitex_ui/static/scitex_ui/...,
-        # so anchoring on the first re-prefixes a path already inside the
-        # package and resolves to nothing.
-        try:
-            import scitex_ui
-        except ImportError:
-            return None
-        pkg_static = (Path(scitex_ui.__file__).parent / "static").resolve()
-        last = len(parts) - 1 - parts[::-1].index("scitex_ui")
-        candidate = pkg_static / Path(*parts[last:])
+    sdk_segments = [
+        i for i in range(len(parts) - 1)
+        if parts[i:i + 2] == ("scitex_sdk", "ui")
+    ]
+    if sdk_segments:
+        from scitex_sdk import ui
+        candidate = ui.get_static_dir() / Path(*parts[sdk_segments[-1] + 2:])
+        return candidate if candidate.is_file() else None
     return candidate if candidate.is_file() else None
 
 

@@ -31,7 +31,6 @@
     "@xyflow/react": "^12.3.0",
     "dagre": "^0.8.5",
     "fabric": "^5.3.0",
-    "@scitex/ui": "file:../scitex-ui",
     "figrecipe-editor": "file:../figrecipe/src/figrecipe/_django/frontend",
     "mermaid": "11.16.1",
     "monaco-editor": "^0.45.0",
@@ -40,6 +39,7 @@
     "react-dom": "^18.3.1",
     "react-markdown": "^10.1.0",
     "typo-js": "^1.2.4",
-    "zustand": "^4.5.7"
+    "zustand": "^4.5.7",
+    "@scitex/sdk": "file:../scitex-sdk/src/scitex_sdk"
   }
 }

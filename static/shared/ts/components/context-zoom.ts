@@ -15,4 +15,4 @@ export {
   registerFontZoom,
   registerFontSizeZoom,
   bootstrapContextZoom,
-} from "scitex-ui/ts/utils/context-zoom";
+} from "@scitex/sdk/ui/ts/utils/context-zoom";

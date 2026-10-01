@@ -32,7 +32,7 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.staticfiles",
     "scitex_app",
-    "scitex_ui",
+    "scitex_sdk.ui",
     "tests.security.clew_store_settings.QuietOrganizationsApp",
     "tests.security.clew_store_settings.QuietProjectApp",
     "scitex_clew._django.apps.ClewAppConfig",

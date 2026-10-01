@@ -4,10 +4,8 @@
 from __future__ import annotations
 
 import re
-from importlib.util import find_spec
 from pathlib import Path
 
-import pytest
 
 from tests.tracked_source import TrackedSourceFile, tracked_source_files
 
@@ -64,20 +62,16 @@ def test_hub_templates_use_only_the_canonical_picker_tag() -> None:
 
 
 def test_installed_022_picker_loads_canonical_entry() -> None:
-    if find_spec("scitex_ui") is None:
-        pytest.skip("scitex-ui is not installed in this test environment")
-    import scitex_ui
+    from scitex_sdk import ui
 
-    template = Path(scitex_ui.__file__).parent / "templates/scitex_ui/_project_picker.html"
-    assert "scitex_ui/js/app/project-selector.js" in _text(template)
+    template = Path(ui.__file__).parent / "templates/scitex_sdk/ui/_project_picker.html"
+    assert "scitex_sdk/ui/js/app/project-selector.js" in _text(template)
 
 
 def test_responsive_contract_is_inherited_from_scitex_ui() -> None:
-    if find_spec("scitex_ui") is None:
-        pytest.skip("scitex-ui is not installed in this test environment")
-    import scitex_ui
+    from scitex_sdk import ui
 
-    css = Path(scitex_ui.__file__).parent / "static/scitex_ui/css/app/project-selector.css"
+    css = ui.get_static_dir() / "css/app/project-selector.css"
     text = re.sub(r"/\*.*?\*/", "", _text(css), flags=re.S)
     phone = text[text.index("@media (max-width: 600px)") :]
     assert all(contract in phone for contract in ("width: 100%", "order: 0", "height: 44px", "min-height: 44px", "max-height:"))

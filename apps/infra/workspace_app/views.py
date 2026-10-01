@@ -206,7 +206,7 @@ def _serve_dev_module(request, module):
     """Serve a dev-installed app's partial template with sandboxed context."""
     from django.http import HttpResponse, HttpResponseNotFound
     from django.template import engines
-    from scitex_app.paths import parse_dev_module_name
+    from scitex_sdk.app.paths import parse_dev_module_name
 
     from apps.workspace.apps_app.models import DevInstallation
     from apps.workspace.apps_app.services.dev_app_loader import resolve_dev_template

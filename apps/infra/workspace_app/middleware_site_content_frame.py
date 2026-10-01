@@ -21,7 +21,7 @@ logger = logging.getLogger(__name__)
 
 FRAME_STYLESHEET = "shared/css/layouts/site-content-frame.css"
 LEAF_CHROME_STYLESHEET = "shared/css/layouts/leaf-host-chrome.css"
-LEAF_DEFAULT_FAVICON = "scitex_ui/img/scitex-favicon.svg"
+LEAF_DEFAULT_FAVICON = "scitex_sdk/ui/img/scitex-favicon.svg"
 # Font Awesome ships from CDN on hub pages (global_head_styles.html); the
 # standalone shell brings none, and the header's hamburger/menu icons need it.
 FONT_AWESOME_HREF = (

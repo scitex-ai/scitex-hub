@@ -11,4 +11,4 @@ export {
   getCurrentThemeMode,
   setupMonacoThemeObserver,
   setupMonacoTheme,
-} from "scitex-ui/ts/app/monaco-editor/_MonacoTheme";
+} from "@scitex/sdk/ui/ts/app/monaco-editor/_MonacoTheme";

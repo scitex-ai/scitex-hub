@@ -266,21 +266,10 @@ def writer_api_base(request):
 
 
 try:
-    from scitex_ui.branding import launcher_context as _ui_launcher_context
+    from scitex_sdk.ui.branding import launcher_context as _ui_launcher_context
 except ImportError:
-    # scitex-ui is floor-pinned (>=0.16.0) in pyproject.toml, so a plain
-    # `pip install`/`uv pip install` picks up whatever the LATEST release on
-    # PyPI is -- not necessarily the exact version this file was written
-    # against. launcher_context() shipped in scitex-ui PR #162 (commit
-    # ee689b33e122, merged to scitex-ui's develop 2026-08-20), but the newest
-    # PyPI release at the time of THIS commit is 0.16.0 (published 2026-08-18,
-    # two days earlier) and does not have it yet. A hard `from ... import`
-    # would raise at Django startup and 500 every single page on any
-    # deployment still resolving to 0.16.0 -- unacceptable for one back-link.
-    # Falling back to building the same dict shape by hand keeps this inert
-    # (no launcher key changes) until scitex-ui publishes a release the floor
-    # pin picks up, at which point this starts calling the real validator
-    # with no hub-side change required.
+    # Preserve the existing optional launcher fallback for incomplete installs.
+    # Its canonical implementation is now supplied by the required SDK.
     _ui_launcher_context = None
 
 

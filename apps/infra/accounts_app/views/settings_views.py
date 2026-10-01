@@ -6,7 +6,7 @@ from django.contrib import messages
 from django.contrib.auth import get_user_model, update_session_auth_hash
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import redirect, render
-from scitex_ui.keymap import keymap_defaults
+from scitex_sdk.ui.keymap import keymap_defaults
 
 from apps.infra.accounts_app.keymap_preferences import (
     InvalidKeymapPreference,

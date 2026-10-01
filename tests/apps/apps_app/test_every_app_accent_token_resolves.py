@@ -151,44 +151,13 @@ def _resolve_import(spec: str, base: Path) -> Path | None:
     """
     candidate = (base.parent / spec).resolve()
     parts = candidate.parts
-    if "scitex_ui" in parts:
-        try:
-            import scitex_ui
-        except ImportError:
-            return None
-        pkg_static = (Path(scitex_ui.__file__).parent / "static").resolve()
-
-        # Map from the LAST "scitex_ui" segment, never the first.
-        #
-        # The installed layout contains that segment TWICE --
-        # ``site-packages/scitex_ui/static/scitex_ui/css/...`` -- so taking the
-        # first one re-prefixes a path that is already inside the package and
-        # yields ``<pkg>/static/scitex_ui/static/scitex_ui/css/...``, which
-        # resolves to nothing.
-        #
-        # Not hypothetical: it is exactly what a NESTED import hits. 0.16.0's
-        # colors.css is a barrel importing "./colors/_light.css" relative to
-        # ITSELF, i.e. relative to a file already in the package. Measured with
-        # the first-segment mapping and the regex fix already in place:
-        #
-        #     colors.css                      1069 bytes, resolved
-        #       UNRESOLVED: ./colors/_light.css
-        #       UNRESOLVED: ./colors/_dark.css
-        #
-        # Taking the last segment handles BOTH cases with one rule: a repo-side
-        # spec has one "scitex_ui" (first == last), and a package-side spec has
-        # two (last is the one inside ``static/``).
-        #
-        # ONE MECHANISM ON PURPOSE. This first shipped alongside an
-        # ``if candidate is already under pkg_static: use it as-is`` early
-        # return, which handles the nested case too. Both worked, so each hid
-        # the other: reverting either one alone left all 14 tests GREEN, and
-        # neither could be controlled. A mechanism whose removal changes nothing
-        # is untestable by construction, and two of them make the whole function
-        # untestable. The early return is gone; this line is now load-bearing
-        # and a control on it goes red.
-        last = len(parts) - 1 - parts[::-1].index("scitex_ui")
-        candidate = pkg_static / Path(*parts[last:])
+    sdk_segments = [
+        i for i in range(len(parts) - 1)
+        if parts[i:i + 2] == ("scitex_sdk", "ui")
+    ]
+    if sdk_segments:
+        from scitex_sdk import ui
+        candidate = ui.get_static_dir() / Path(*parts[sdk_segments[-1] + 2:])
         return candidate if candidate.is_file() else None
     try:
         candidate.relative_to(_STATIC_ROOT)

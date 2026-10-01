@@ -1,6 +1,6 @@
 """SciTeX App Tools — init, validate, develop, publish, and manage app plugins."""
 
-# Scaffold, validate, publish — canonical source is scitex-app (hard
+# Scaffold, validate, publish — canonical source is scitex_sdk.app (hard
 # runtime dep). The previous try/except fallback to a LOCAL copy of
 # _scaffold.py existed only because pre-scitex-app-0.2.10 the upstream
 # `scitex_app.appmaker.init_app` emitted a FLAT layout that broke
@@ -16,10 +16,10 @@
 # `_validate.py` is kept temporarily; it will be removed in the
 # validator-move follow-up (forward-port any hub-specific enhancements
 # into scitex-app's _validate.py, then delete the local copy here).
-from scitex_app.appmaker import init_app, validate
-from scitex_app.appmaker._license import generate_license_text
-from scitex_app.appmaker._publish import publish
-from scitex_app.appmaker._validate import (
+from scitex_sdk.app.appmaker import init_app, validate
+from scitex_sdk.app.appmaker._license import generate_license_text
+from scitex_sdk.app.appmaker._publish import publish
+from scitex_sdk.app.appmaker._validate import (
     validate_css,
     validate_dependencies,
     validate_manifest,

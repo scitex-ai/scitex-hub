@@ -23,7 +23,6 @@ from __future__ import annotations
 import re
 from pathlib import Path
 
-import pytest
 
 PROJECT_ROOT = Path(__file__).resolve().parents[3]
 
@@ -38,11 +37,11 @@ import importlib.util
 
 
 def _scitex_ui_primitives_dir() -> Path | None:
-    spec = importlib.util.find_spec("scitex_ui")
+    spec = importlib.util.find_spec("scitex_sdk.ui")
     if spec is None or not spec.origin:
         return None
     root = Path(spec.origin).resolve().parent
-    candidate = root / "static" / "scitex_ui" / "css" / "primitives"
+    candidate = root / "static" / "scitex_sdk" / "ui" / "css" / "primitives"
     return candidate if candidate.is_dir() else None
 
 

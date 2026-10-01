@@ -14,7 +14,7 @@ register = template.Library()
 @register.simple_tag(takes_context=True)
 def hub_project_provider_meta(context):
     try:
-        from scitex_ui.templatetags.scitex_project_picker import (
+        from scitex_sdk.ui.templatetags.scitex_project_picker import (
             scitex_project_provider_meta,
         )
     except ImportError:

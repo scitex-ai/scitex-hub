@@ -9,33 +9,33 @@
 
 // Shell layout
 // @ts-ignore
-import "scitex-ui/css/shell/stx-shell-sidebar.css";
+import "@scitex/sdk/ui/css/shell/stx-shell-sidebar.css";
 // @ts-ignore
-import "scitex-ui/css/shell/panel-resizer.css";
+import "@scitex/sdk/ui/css/shell/panel-resizer.css";
 // workspace-three-col.css removed — replaced by workspace-layout.css + workspace-sidebar.css
 
 // Workspace viewer pane
 // @ts-ignore
-import "scitex-ui/css/shell/workspace-viewer.css";
+import "@scitex/sdk/ui/css/shell/workspace-viewer.css";
 // @ts-ignore
-import "scitex-ui/css/shell/workspace-viewer-preview.css";
+import "@scitex/sdk/ui/css/shell/workspace-viewer-preview.css";
 
 // Workspace files tree
 // @ts-ignore
-import "scitex-ui/css/shell/workspace-files-tree.css";
+import "@scitex/sdk/ui/css/shell/workspace-files-tree.css";
 
 // Mobile layout — bottom tab bar removed, sidebar drawer replaces it
 // @ts-ignore
-import "scitex-ui/css/shell/mobile.css";
+import "@scitex/sdk/ui/css/shell/mobile.css";
 
 // App-level reusable components from scitex-ui
 // @ts-ignore
-import "scitex-ui/css/app/toggle-switch.css";
+import "@scitex/sdk/ui/css/app/toggle-switch.css";
 // @ts-ignore
-import "scitex-ui/css/app/settings-card.css";
+import "@scitex/sdk/ui/css/app/settings-card.css";
 // @ts-ignore
-import "scitex-ui/css/app/sidebar-layout.css";
+import "@scitex/sdk/ui/css/app/sidebar-layout.css";
 // @ts-ignore
-import "scitex-ui/css/app/context-menu.css";
+import "@scitex/sdk/ui/css/app/context-menu.css";
 // @ts-ignore
-import "scitex-ui/css/app/miller-columns.css";
+import "@scitex/sdk/ui/css/app/miller-columns.css";

@@ -241,6 +241,6 @@ class ProjectScopeTest(TestCase):
 
 
 def _require_sdk_host_service():
-    module = pytest.importorskip("scitex_ui.templatetags.scitex_project_picker")
+    module = pytest.importorskip("scitex_sdk.ui.templatetags.scitex_project_picker")
     if not hasattr(module, "scitex_project_provider_meta"):
         pytest.skip("scitex-ui predates the project provider host service")

@@ -1,58 +1,10 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-"""The scitex-ui floor must be high enough for the apps hub MOUNTS.
+"""The required SDK must preserve the UI contracts used by mounted apps.
 
-Hub calls ``scitex_ui.branding.shell_context()`` ZERO times, so nothing in
-hub's own source reveals which version of it hub needs. The apps hub mounts
-do call it, and one of them passes ``panes``:
-
-    scitex_storage._django.views.index      panes={"ai": "unused",
-                                                   "files": "unused",
-                                                   "viewer": "unused"}
-
-``panes`` arrived in scitex-ui 0.8.0. Verified by reading ``branding.py`` at
-both tags rather than trusting a changelog: ``v0.7.1``'s ``shell_context()``
-has no such parameter, ``v0.8.0``'s does. Below the floor that call raises
-``TypeError: unexpected keyword argument 'panes'`` AT REQUEST TIME, so
-``/apps/storage/`` answers 500 -- a pin problem that presents as a broken
-page, several layers away from the pin that permitted it.
-
-A SECOND CONTRACT NOW RIDES ON THE SAME FLOOR, added 2026-08-18. Hub stopped
-forking scitex-ui's design primitives and ``@import``s them instead
-(static/shared/css/primitives/variables.css), which makes the floor a claim
-about FILE CONTENT as well as about a call signature. That contract fails
-differently, and worse:
-
-    file absent                 -> @import 404s, page visibly unstyled   LOUD
-    file present, token absent  -> var() resolves to nothing             SILENT
-    file present, value stale   -> renders wrong, passes every check     SILENT
-
-Only the first is visible. ``--text-link`` is absent from the primitives layer
-in 0.8.0 / 0.12.0 / 0.13.0 / 0.14.0 and lands in 0.14.1 -- so four releases at
-or above the ORIGINAL >=0.8.0 floor would import cleanly, render a page that
-looks correct, and put hub back at 2.36:1 link contrast. The floor is the only
-instrument that catches it, which is why it is asserted here and not left to a
-comment.
-
-WHY A TEST AND NOT JUST A PIN. pip cannot derive this constraint here. The
-mounted apps are installed EDITABLE from sibling checkouts at container start
-(deployment/docker/common/scripts/root-init.sh), so scitex-storage's own
-``scitex-ui>=0.8.0`` never participates in hub's resolution. The declared
-floor and the installed reality are therefore two independent facts, and this
-file asserts BOTH:
-
-    test_declared_floor_*   the pin in pyproject.toml  (the promise)
-    test_installed_*        the package actually here  (the delivery)
-
-``test_installed_shell_context_rejects_an_unknown_pane`` is a POSITIVE CONTROL
-and is the reason this file is not two asserts. "Does ``shell_context`` accept
-``panes``?" is satisfied by a signature that accepts ANYTHING -- a ``**kwargs``
-that silently drops it would pass the delivery test while the panes never
-reach the template, which is the failure mode the pin exists to prevent. The
-control asserts the function still REJECTS a pane name it does not know. Read
-the two together: one says the argument is taken, the other says it is read.
+Distribution identity and installed behavior are independent: a correct SDK
+floor cannot prove that panes reach templates or that palette imports contain
+their tokens. The delivery controls below continue to exercise those contracts,
+including refusal of unknown panes and recursive CSS imports.
 """
-
 from __future__ import annotations
 
 import re
@@ -65,225 +17,39 @@ from packaging.requirements import Requirement
 from packaging.version import Version
 
 REPO = Path(__file__).resolve().parents[2]
-
-#: The release that introduced ``shell_context(panes=...)``.
-PANES_FLOOR = Version("0.8.0")
-
-#: The last release WITHOUT it. Used to assert the floor actually excludes the
-#: broken range, rather than merely mentioning a number.
-LAST_WITHOUT_PANES = Version("0.7.1")
-
-#: The release that first DEFINES ``--text-link`` in the primitives layer.
-#:
-#: Hub stopped forking scitex-ui's primitives and now ``@import``s them
-#: (static/shared/css/primitives/variables.css), so the floor became a claim
-#: about FILE CONTENT as well as about a call signature. Measured 2026-08-18 by
-#: reading the token out of the PUBLISHED WHEELS -- ``pip download
-#: --no-cache-dir`` then read the zip, never the git tree -- with
-#: ``--text-primary`` as a positive control returning 2 declarations at every
-#: version, so the absences are measured rather than a broken read:
-#:
-#:     0.8.0 / 0.12.0 / 0.13.0 / 0.14.0   ABSENT
-#:     0.14.1 onwards                     #2c5d8f (light) / #58a6ff (dark)
-#:
-#: OFF BY ONE FROM WHAT YOU MAY HAVE BEEN TOLD. Two other agents independently
-#: reported "first appears in 0.15.0" on the same day, because both sampled
-#: (0.14.0, then 0.15.0) and neither pulled 0.14.1. scitex-ui has published 31
-#: versions; a hand-picked subset yields a confident wrong boundary. If you
-#: revise this constant, enumerate every release from the PyPI index.
-TEXT_LINK_FLOOR = Version("0.14.1")
-
-#: The last release WITHOUT ``--text-link``. Same role as LAST_WITHOUT_PANES:
-#: it makes the exclusion test assert a real boundary instead of naming a
-#: number nothing checks.
-LAST_WITHOUT_TEXT_LINK = Version("0.14.0")
-
-#: What the pin must actually be, and it is deliberately ABOVE both contracts.
-#:
-#: 0.14.1 is all hub strictly needs. We declare 0.16.0 because a floor is read
-#: by people who will not know hub does not link ``shell/theme.css``: in 0.15.0
-#: ``--accent`` is present in the primitives layer but MISSING from
-#: ``shell/theme.css``, so one token needs two different floors depending on
-#: which file a consumer links. 0.16.0 is the first release good on every token
-#: in both layers. A version that needs no caveat beats the justifiable minimum.
-#:
-#: RAISED 0.16.0 -> 0.20.3 on 2026-09-14 by a THIRD contract: the Agents launcher
-#: app (#803) declares ``accent_color: "agents"``, and ``--app-accent-agents``
-#: first ships in scitex-ui 0.20.3 (PR #228; 0.20.2 is the release before it,
-#: read from the release list, not sampled). Below that the Agents tile renders
-#: with no accent bar -- the silent failure test_every_app_accent_token_resolves
-#: exists to catch.
-AGENTS_ACCENT_FLOOR = Version("0.20.3")
-LAST_WITHOUT_AGENTS_ACCENT = Version("0.20.2")
-#: RAISED 0.20.3 -> 0.21.0 on 2026-09-14: the project picker template tag and
-#: ``scitex_ui.project_scope`` (scitex-ui #232) first ship in 0.21.0.
-#: RAISED 0.21.0 -> 0.22.0 on 2026-09-15: exact first release whose picker tag
-#: loads ``js/app/project-selector.js`` and ships the canonical responsive
-#: ``.stx-app-header__slot--project-selector`` placement contract.
-#: RAISED 0.21.0 -> 0.22.0 on 2026-09-16 by a FOURTH contract: the Command
-#: Registry and the global/app-mode keymap API consumed by Settings > Keyboard
-#: Shortcuts first ship in 0.22.0 -- older wheels cannot import
-#: ``scitex_ui.keymap`` at all. This is now the highest contract, so the
-#: DECLARED floor moves with it; leaving DECLARED_FLOOR at 0.21.0 while a group
-#: required 0.22.0 is exactly the over-raising this file's last test forbids.
-PROJECT_PICKER_FLOOR = Version("0.22.0")
-LAST_WITHOUT_PROJECT_HEADER_CONTRACT = Version("0.21.0")
-KEYMAP_FLOOR = Version("0.22.0")
-DECLARED_FLOOR = KEYMAP_FLOOR
-
-#: A pane name scitex-ui does not know. Any value outside PANE_NAMES works;
-#: this one is obviously synthetic so a reader does not mistake it for a real
-#: pane that was removed.
+DECLARED_FLOOR = Version("0.3.0")
 UNKNOWN_PANE = "not-a-real-pane"
 
 
-@pytest.fixture(name="scitex_ui_requirements")
-def _scitex_ui_requirements() -> list[tuple[str, Requirement]]:
-    """Every declared scitex-ui dependency, tagged with the group declaring it.
+@pytest.fixture(name="sdk_requirement")
+def _sdk_requirement() -> Requirement:
+    project = tomllib.loads((REPO / "pyproject.toml").read_text())["project"]
+    required = [Requirement(raw) for raw in project["dependencies"]]
+    sdk = [req for req in required if req.name == "scitex-sdk"]
+    assert len(sdk) == 1, "shared runtime must declare one base SDK dependency"
+    return sdk[0]
 
-    Sweeps the core ``dependencies`` AND every ``optional-dependencies`` group,
-    because hub declares scitex-ui in the ``all`` extra rather than in the core
-    list. Checking only one location is how a second, stale declaration
-    survives: whichever group resolution actually uses is the one that decides
-    the installed version, so EVERY group must state a floor that holds.
 
-    Fails loudly rather than skipping when none is found: a renamed or deleted
-    dependency must break this guard, not quietly satisfy it. A skip here would
-    read as "the floor is fine" precisely when the floor stopped existing.
-    """
-    pyproject = tomllib.loads((REPO / "pyproject.toml").read_text())
-    project = pyproject["project"]
+def test_required_sdk_excludes_published_facade_versions(sdk_requirement):
+    assert not sdk_requirement.specifier.contains(Version("0.2.0"))
+    assert not sdk_requirement.specifier.contains(Version("0.2.1"))
 
-    groups: dict[str, list[str]] = {"dependencies": project.get("dependencies", [])}
-    for extra, raws in project.get("optional-dependencies", {}).items():
-        groups[f"optional-dependencies.{extra}"] = raws
 
-    found = [
-        (group, req)
+def test_required_sdk_admits_the_consolidated_version(sdk_requirement):
+    assert sdk_requirement.specifier.contains(DECLARED_FLOOR)
+
+
+def test_no_dependency_group_requires_independent_app_or_ui():
+    project = tomllib.loads((REPO / "pyproject.toml").read_text())["project"]
+    groups = {"dependencies": project["dependencies"]}
+    groups.update(project.get("optional-dependencies", {}))
+    peers = [
+        (group, raw)
         for group, raws in groups.items()
-        for req in (Requirement(raw) for raw in raws)
-        if req.name == "scitex-ui"
+        for raw in raws
+        if Requirement(raw).name in {"scitex-app", "scitex-ui"}
     ]
-
-    assert found, (
-        "no scitex-ui dependency found anywhere in pyproject.toml "
-        f"(searched {sorted(groups)}). The pane-contract floor this file "
-        "guards has no declaration left to guard."
-    )
-    return found
-
-
-def test_declared_floor_excludes_every_release_without_panes(
-    scitex_ui_requirements: list[tuple[str, Requirement]],
-) -> None:
-    # Arrange — the last release whose shell_context() has no `panes`.
-    # Act
-    permissive = [
-        (group, str(req.specifier))
-        for group, req in scitex_ui_requirements
-        if req.specifier.contains(LAST_WITHOUT_PANES)
-    ]
-
-    # Assert — a floor that still admits 0.7.1 admits the 500.
-    assert permissive == [], (
-        f"these pyproject.toml groups declare a scitex-ui range permitting "
-        f"{LAST_WITHOUT_PANES}, a release whose shell_context() has no "
-        f"'panes' parameter: {permissive}. Mounted apps pass it, so that "
-        f"resolution answers 500 on /apps/storage/. Raise each floor to "
-        f"{PANES_FLOOR}."
-    )
-
-
-def test_declared_floor_excludes_every_release_without_the_link_token(
-    scitex_ui_requirements: list[tuple[str, Requirement]],
-) -> None:
-    # Arrange — the SECOND contract on this floor, and the one with no visible
-    # symptom. Hub @imports scitex-ui's primitives rather than forking them, so
-    # a release that lacks `--text-link` does not 404 and does not raise: the
-    # import succeeds, `var(--text-link)` resolves to nothing, and hub renders
-    # link colour at 2.36:1 against a 4.5:1 AA requirement. A green build.
-    # Act
-    permissive = [
-        (group, str(req.specifier))
-        for group, req in scitex_ui_requirements
-        if req.specifier.contains(LAST_WITHOUT_TEXT_LINK)
-    ]
-
-    # Assert
-    assert permissive == [], (
-        f"these pyproject.toml groups declare a scitex-ui range permitting "
-        f"{LAST_WITHOUT_TEXT_LINK}, a release whose primitives do not define "
-        f"'--text-link': {permissive}. Hub imports that layer, so the token "
-        f"resolves to nothing and the WCAG link-contrast fix silently does not "
-        f"arrive -- with no 404, no exception and no failing check. Raise each "
-        f"floor to {DECLARED_FLOOR}."
-    )
-
-
-def test_declared_floor_excludes_every_release_without_the_agents_accent(
-    scitex_ui_requirements: list[tuple[str, Requirement]],
-) -> None:
-    # Arrange — the THIRD contract: a manifest names its accent by string, so a
-    # release lacking the token renders the tile with no accent and no error.
-    # Act
-    permissive = [
-        (group, str(req.specifier))
-        for group, req in scitex_ui_requirements
-        if req.specifier.contains(LAST_WITHOUT_AGENTS_ACCENT)
-    ]
-
-    # Assert
-    assert permissive == [], (
-        f"these pyproject.toml groups declare a scitex-ui range permitting "
-        f"{LAST_WITHOUT_AGENTS_ACCENT}, a release without '--app-accent-agents': "
-        f"{permissive}. Raise each floor to {AGENTS_ACCENT_FLOOR}."
-    )
-
-
-def test_declared_floor_excludes_the_last_release_without_the_project_header_contract(
-    scitex_ui_requirements: list[tuple[str, Requirement]],
-) -> None:
-    # Arrange / Act — 0.21 has the tag but loads the old entry and has no slot guard.
-    permissive = [
-        (group, str(req.specifier))
-        for group, req in scitex_ui_requirements
-        if req.specifier.contains(LAST_WITHOUT_PROJECT_HEADER_CONTRACT)
-    ]
-
-    # Assert
-    assert permissive == [], (
-        "these declarations still admit scitex-ui 0.21.0, before the canonical "
-        f"project-selector entry/header slot contract: {permissive}"
-    )
-
-
-def test_declared_floor_still_admits_the_version_it_declares(
-    scitex_ui_requirements: list[tuple[str, Requirement]],
-) -> None:
-    # Arrange — the other half: a floor raised too far is also wrong, and would
-    # silently drop hub off releases that satisfy both contracts.
-    #
-    # This asserts against DECLARED_FLOOR rather than PANES_FLOOR because the
-    # floor now answers to two contracts and must sit at or above the higher of
-    # them. Asserting it still admits 0.8.0 would forbid ever satisfying the
-    # token contract at all -- the two halves of this file would contradict
-    # each other, and the pane half would win by being older.
-    # Act
-    over_raised = [
-        (group, str(req.specifier))
-        for group, req in scitex_ui_requirements
-        if not req.specifier.contains(DECLARED_FLOOR)
-    ]
-
-    # Assert
-    assert over_raised == [], (
-        f"these pyproject.toml groups declare a scitex-ui range excluding "
-        f"{DECLARED_FLOOR}, the version hub declares as its floor: "
-        f"{over_raised}. Every contract is satisfied there -- panes since "
-        f"{PANES_FLOOR}, '--text-link' since {TEXT_LINK_FLOOR}, "
-        f"'--app-accent-agents' since {AGENTS_ACCENT_FLOOR} -- so excluding "
-        f"it is over-raising, not caution."
-    )
+    assert peers == []
 
 
 def _resolve_css(path: Path, _seen: frozenset[Path] = frozenset()) -> str:
@@ -317,18 +83,9 @@ def _installed_primitives() -> tuple[Path, str]:
     read happened, the other asserts what it contains. Splitting them is what
     makes a red run say which of those two things went wrong.
     """
-    if find_spec("scitex_ui") is None:
-        pytest.skip("scitex-ui not installed")
-    import scitex_ui
+    from scitex_sdk import ui
 
-    colors = (
-        Path(scitex_ui.__file__).parent
-        / "static"
-        / "scitex_ui"
-        / "css"
-        / "primitives"
-        / "colors.css"
-    )
+    colors = ui.get_static_dir() / "css/primitives/colors.css"
     return colors, _resolve_css(colors)
 
 
@@ -376,14 +133,14 @@ def test_installed_primitives_actually_define_the_link_token(
         f"test above passing means the read is sound). Hub @imports this layer, "
         f"so var(--text-link) resolves to nothing and link colour sits at "
         f"2.36:1 against a 4.5:1 AA requirement -- silently, with no 404 and no "
-        f"exception. Install scitex-ui>={DECLARED_FLOOR}."
+        f"exception. Install scitex-sdk>={DECLARED_FLOOR}."
     )
 
 
 def test_installed_shell_context_accepts_the_pane_declaration() -> None:
     # Arrange — exercise the real call the request path makes, not the
     # signature. inspect.signature() would also pass on a **kwargs sink.
-    from scitex_ui.branding import shell_context
+    from scitex_sdk.ui.branding import shell_context
 
     declaration = {"ai": "unused", "files": "unused", "viewer": "unused"}
 
@@ -398,7 +155,7 @@ def test_installed_shell_context_accepts_the_pane_declaration() -> None:
 def test_installed_shell_context_rejects_an_unknown_pane() -> None:
     # Arrange — POSITIVE CONTROL. See this module's docstring: without it,
     # a **kwargs signature that discards `panes` satisfies the test above.
-    from scitex_ui.branding import shell_context
+    from scitex_sdk.ui.branding import shell_context
 
     # Act — an unknown pane must fail loudly at the call site, so the call
     # itself is the thing under test and is made inside the expectation.
@@ -419,7 +176,7 @@ def test_installed_scitex_ui_honours_the_mounted_apps_declaration() -> None:
     # ships rather than a copy of it restated here. A copy would assert that
     # this file agrees with itself while storage was free to change.
     from scitex_storage._django import views
-    from scitex_ui.branding import shell_context
+    from scitex_sdk.ui.branding import shell_context
 
     declaration = views.SHELL_PANES
 
