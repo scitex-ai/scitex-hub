@@ -29,13 +29,19 @@ For container deployments, the optional
 directory mount to the `django` service. Set `SCITEX_HUB_OPERATOR_STATE_DIR`
 to an existing operator-owned local directory, and provide container-readable
 ownership for that directory and its mode-0600 state file. The container UID
-or a narrowly scoped ACL must be able to read it; do not make it writable by
-web users. Mount the directory, because atomic replacement of a host file
+must be able to read it; do not make it writable through the web mount.
+Each CLI write creates a new mode-0600 inode owned by the writer. Match the
+reader and writer UID, or reapply a narrowly scoped ACL after every write; an
+ACL on the previous file is lost. Verify container reads after both enable
+and disable. Mount the directory, because atomic replacement of a host file
 does not update a container's bind of the old file inode.
 
 Adding the gate to a deployed image or changing its mounts is an initial
 deployment. Once installed, enabling and disabling maintenance requires no
 Hub restart. This candidate does not activate maintenance in a running site.
+Before initial deployment, check whether either new probe prefix is already
+an account name. Reserving these prefixes prevents new registrations; it
+does not rename existing accounts or resolve an existing route collision.
 
 ## Close admission and account for writers
 
