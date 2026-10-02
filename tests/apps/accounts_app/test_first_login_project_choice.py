@@ -8,13 +8,12 @@ Create project … The sample exists only after explicit selection") and the
 non-negotiable rule "Real users never receive a silently created or selected
 example project."
 
-Today the inverse is true: apps/infra/accounts_app/signals.py creates a
-`dotfiles` project on user creation and adopts it (or the oldest non-home
-project) as `profile.last_active_repository`, so a newly verified user is put
-inside a project they never chose — and for a user who owns nothing else, that
-project is the shell-config one.
+Current contract: account creation and login do not seed dotfiles projects
+(operator 2026-09-27, apps/infra/accounts_app/signals.py). New users start
+without an active project. Historical private dotfiles projects remain
+supported, but owning one must never select it as the workspace automatically.
 
-Contract under construction:
+Contract:
   A. the pure selection rule — only an explicitly chosen project may become active;
   B. the first-login surface — three explicit choices + the workspace facts;
   C. (database) a brand-new verified user owns no project and has no active
@@ -70,8 +69,8 @@ def test_an_explicitly_chosen_project_becomes_active():
 def test_no_choice_leaves_no_active_project_even_when_projects_exist():
     """"Never silently select": with no explicit choice there is NO active project.
 
-    This is the exact behaviour that is broken today — the signal adopts the
-    home/dotfiles project (or the oldest non-home project) instead.
+    This guards the historical regression where a home/dotfiles project (or
+    the oldest non-home project) became active without an explicit choice.
     """
     onboarding = _onboarding()
     dotfiles = FakeProject(1, "dotfiles", is_home=True)
@@ -205,6 +204,17 @@ class TestNewVerifiedUserOwnsNothingYet(TestCase):
         from apps.infra.project_app.models import Project
 
         user = self._verified_user("first-login-dotfiles")
+
+        # Existing historical home projects remain supported; new users no longer
+        # receive one automatically (accounts_app.signals, operator 2026-09-27).
+        Project.objects.create(
+            owner=user,
+            name="dotfiles",
+            slug="dotfiles",
+            description=f"Shell configuration for {user.username}",
+            visibility="private",
+            is_home=True,
+        )
 
         user.profile.refresh_from_db()
         assert Project.objects.filter(owner=user, is_home=True).exists(), (
