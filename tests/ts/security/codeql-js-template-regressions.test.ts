@@ -24,7 +24,9 @@ describe("CodeQL JavaScript and template regressions", () => {
     );
     expect(media).not.toMatch(/\.innerHTML\s*=/);
     expect(media).toContain("encodeURIComponent");
-    expect(media).toContain('new Blob([svg], { type: "image/svg+xml" })');
+    expect(media).toMatch(
+      /new Blob\(\[svg\], \{ type: "image\/svg\+xml(?:;charset=utf-8)?" \}\)/,
+    );
   });
 
   it("validates sidebar fallback navigation before assigning it", () => {
