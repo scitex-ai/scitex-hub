@@ -11,7 +11,13 @@
 {#   * no data-active-project is rendered: nothing is preselected                #}
 <section class="first-login" data-first-login-welcome="true" aria-labelledby="first-login-title">
     <div class="first-login-panel">
-        <p class="first-login-eyebrow">{% trans "Welcome to SciTeX" %}</p>
+        <div class="first-login-header">
+            <p class="first-login-eyebrow">{% trans "Welcome to SciTeX" %}</p>
+            <button type="button" class="first-login-close" data-first-login-dismiss
+                    aria-label="{% trans 'Close welcome' %}" title="{% trans 'Close welcome (Escape)' %}">
+                {% trans "Close" %} <span aria-hidden="true">&times;</span>
+            </button>
+        </div>
         <h1 class="first-login-title" id="first-login-title">
             {% trans "Your private research workspace is ready" %}
         </h1>

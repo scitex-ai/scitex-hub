@@ -117,145 +117,9 @@ dependencies = [
     "scitex-decorators>=0.1.12",
     "scitex-sh>=0.2.0",
     "scitex-template>=0.7.0",
-    # 0.16.1 is the first release where `audit_all_for_package`
-    # honours the HYPHENATED rule-id format that tests/develop/
-    # test_audit.py uses (`[PA-307 …]` <- skip_rules=("PA-307",)).
-    # Pinning to <0.16.1 silently lets every entry in `skip_rules`
-    # leak through — the gate fails on rules we explicitly deferred.
-    # NOTE (CLI-standardization slice 6a): the deprecated-alias ladder
-    # and spec-built help come from scitex-dev's click_compat/help_spec
-    # (scitex-dev#307/#308) which are on develop but NOT in a release
-    # yet (latest v0.28.0 predates them). scitex_hub._cli._click_compat
-    # guard-imports them (scitex-python#352 pattern); bump this floor to
-    # the first release that ships them and drop the fallbacks there.
-    #
-    # CEILING (<0.39) added 2026-07-29. The comment above already knew this
-    # contract is version-sensitive, but bounded it on ONE side only, so any
-    # scitex-dev release could redefine hub's gate with no hub change — and
-    # one did. Measured, same tree, no diff between the two runs:
-    #     10:00  fix/skill-url-prefix-ssot   scitex-dev 0.38.1  -> audit GREEN
-    #     10:28  develop (that same code)    scitex-dev 0.40.0  -> audit RED
-    # 0.40.0 shells out to `scitex-dev ecosystem audit-all` WITHOUT
-    # forwarding skip_rules, so every documented deferral in
-    # tests/develop/test_audit.py is silently ignored ("0 declared") and the
-    # gate fails on rules we explicitly deferred — the exact failure the
-    # comment above predicted, from the other direction.
-    # <0.39 not <0.40 deliberately: 0.38.1 is PROVEN green and 0.40.0 PROVEN
-    # red, but 0.39.x is UNTESTED — a <0.40 bound would admit a version
-    # nobody has run, which is the same "whatever resolves" bug in a smaller
-    # box. Raise this ceiling only with a green run behind it.
-    # This is a STOPGAP. The durable fix is moving those deferrals into
-    # .scitex/dev/config.yaml's `audit.exemptions` block, which the CLI does
-    # honour (hub already uses it for PS-224). Until that lands, the next
-    # intentional bump re-breaks the lane.
-    # Tracked: ci-unpinned-scitex-dev-voids-skip-rules-20260729.
-    #
-    # CEILING RAISED TO ==0.43.1 on 2026-08-10. The <0.39 ceiling above did
-    # its job and is now the thing blocking the work. Read the two paragraphs
-    # below before touching this line again.
-    #
-    # WHAT THE 2026-08-09 REVERT LEFT UNEXPLAINED. That attempt raised the
-    # ceiling to <0.44 (resolving 0.43.0), pytest-matrix went red, and the
-    # revert recorded the cause as "not understood": §2/§5/§6 were all in
-    # SKIP_RULES and the fixture raised anyway. It is understood now, and it
-    # was never about §2/§5/§6. Under 0.43.0 the import-budget auditor emits
-    # `WARN: [§10w …]` — a warn-tier "COULD NOT MEASURE RELIABLY" notice, not
-    # a finding. 0.43.0's classifier counted any bracketed line as a
-    # violation, §10w matched no skip rule, and `audit_all_for_package`'s
-    # mask guard is `if skipped and not non_skipped` — so ONE notice
-    # discarded the entire 151-entry mask and reddened a green tree.
-    #
-    # 0.43.1 IS THE FIX FOR THAT EXACT INCIDENT, and says so in its own
-    # source (scitex_dev/testing/_audit_conformance.py): "Measured 2026-08-09
-    # on scitex-hub: one such notice discarded a 151-line skip mask and
-    # reddened a green tree." It adds `_NON_VIOLATION_RULES` ({§10, §10w,
-    # TALLY, defer}) and `_NON_VIOLATION_LEVELS` ({WARN, INFO, SUCC, NOTE}).
-    # Diffed 0.38.1 -> 0.43.1: those two `continue` filters are the ONLY
-    # change to the classification loop, so 0.43.1 classifies a strict SUBSET
-    # of what 0.38.1 called a violation. It cannot newly redden this gate.
-    # The masked-count warning text is unchanged, so test_audit.py's
-    # _MASKED_COUNT_RE still parses it.
-    #
-    # MEASURED HERE, in the environment the revert could not reproduce —
-    # `uv pip install -e ".[all,dev]"` exactly as pytest-matrix does, so
-    # scitex_hub is importable and audit-cli genuinely RUNS (the revert's
-    # venvs had no scitex_hub, audit-cli reported not-auditable, and that is
-    # why its numbers were wrong). Same tree, same gate, only the corpus
-    # differs:
-    #     0.38.1  audit-cli 104 error(s)  151 unmasked  -> FAILED on PS-169
-    #     0.43.1  audit-cli   3 error(s)   45 unmasked  -> PASSED, 45 masked
-    # The 0.38.1 line reproduces CI run 31348349271 byte-for-byte.
-    #
-    # WHY PS-169 WAS THE BLOCKER AND WHY THAT IS CORRECT TO RETIRE: in 0.38.1
-    # PS-169 is W with a baseline ratchet that escalates NEW violations to E.
-    # Every PR in the Spartan migration introduces a new hosted runner by
-    # construction, so the ratchet blocks precisely the PRs that comply with
-    # the operator's 2026-08-05 ruling
-    # (「スパルタンのCIは全面的にやめましょう」 — SINCE WITHDRAWN, see below).
-    # 0.43.1 deletes the ratchet
-    # and makes PS-169 a flat advisory W — upstream's words: "A gate that
-    # permits the accumulated mess and blocks its correction is worse than no
-    # gate." There is no exemption path for PS-169 in any version
-    # (`audit.exemptions` is loaded per-check and PS-169 never loads it), so
-    # moving the corpus is the only fix that is not a lie.
-    #
-    # THE 2026-08-05 RULING CITED ABOVE WAS REVERSED on 2026-08-13
-    # (「あー憲法が古い、スパルタンのci使ってください、圧倒的に早いので」);
-    # constitution §4 now permits and PREFERS Spartan CI where it is faster.
-    # It is named above only to date the migration that hit this ratchet.
-    # NOTHING HERE DEPENDS ON IT: PS-169's retirement was correct on
-    # upstream's own grounds — a gate that permits the accumulated mess and
-    # blocks its correction is worse than no gate — whichever runner pool we
-    # are moving toward. Do not re-add the ratchet on the theory that the
-    # policy behind its removal is gone; the policy was never the reason.
-    #
-    # FLOOR, NOT AN EXACT PIN — operator ruling 2026-08-23
-    # (「ミニマム指定でいいんじゃないでしょうか」), taken after the prod deploy was
-    # refused by the #676 preflight for this exact constraint.
-    #
-    # WHAT THE `==` WAS FOR, because the reason has not gone away: a range
-    # readmits releases nobody has run — "whatever resolves redefines our
-    # gate". The incident it was bought with is recorded above at the <0.39
-    # ceiling: same hub code, scitex-dev 0.38.1 -> audit GREEN, 0.40.0 ->
-    # audit RED (ci-unpinned-scitex-dev-voids-skip-rules-20260729).
-    #
-    # WHY IT STILL HAD TO CHANGE: hub was the ONLY consumer in the ecosystem
-    # using `==`. Measured 2026-08-23 inside the built prod image: ~50
-    # packages require scitex-dev, every other one with a floor
-    # (scitex >=0.11.7, scitex-writer >=0.30.0, scitex-cards >=0.34.0,
-    # figrecipe >=0.12.2, ...). scitex[all] therefore resolves scitex-dev to
-    # the newest release, and hub's `==` could never hold in an image that
-    # also installs scitex[all] — the two were unsatisfiable together, which
-    # is precisely what blocked the deploy.
-    #
-    # SO THE RISK IS REAL AND IS NOW CARRIED BY CI, NOT BY THIS PIN. The
-    # pytest-matrix job is what must catch a scitex-dev release that voids
-    # the skip rules. If that job goes red on a scitex-dev bump, THIS is the
-    # line that explains why — do not re-pin to silence it; fix the gate or
-    # raise the floor to the version that works, with the measurement.
-    #
-    # Re-measure with `.[all,dev]` installed: a venv without scitex_hub
-    # silently skips audit-cli and will tell you everything is fine.
-    #
-    # FLOOR RAISED 0.43.1 -> 0.56.8 (2026-08-30). `_optional_apps.
-    # publish_cards_store_target` now resolves the DEFAULT cards store through
-    # `scitex_dev.store.host_store`, so the DSN that primitive builds is load
-    # bearing, not incidental. MEASURED on this repo's own .venv:
-    #
-    #   scitex-dev 0.43.1  host_store(pkg="cards").dsn
-    #     -> postgresql:///scitex?host=~/.scitex/pg
-    #   scitex-dev 0.56.8  host_store(pkg="cards").dsn
-    #     -> postgresql:///scitex?host=~/.scitex/pg/run&port=55432
-    #
-    # 0.43.1 emits NEITHER the `run/` subdirectory NOR `port=`, so libpq looks
-    # for `~/.scitex/pg/.s.PGSQL.5432` -- a socket the fleet does not create.
-    # That is verbatim the "(original)" row in upstream's own table in
-    # scitex_dev/store/_host.py::socket_dsn, annotated "THIS PATH HAD NEVER
-    # CONNECTED"; it went undetected because every host that worked had
-    # $SCITEX_STORE_DSN set and never reached the fallback. A hub that
-    # configures nothing is exactly the caller that DOES reach it.
-    # 0.56.8 is the version measured good here, not proven to be the minimum.
-    "scitex-dev>=0.56.8",
+    # CLI conventions, host stores and the audit corpus use current public Dev.
+    # Runtime and [dev] floors match; CI pins its reviewed audit corpus separately.
+    "scitex-dev>=0.62.2",
     # `scitex-audio` owns the whisper.cpp transcription pipeline that
     # llm_app/views/stt.py delegates to (`scitex_audio.transcribe`).
     # Declared DIRECTLY rather than relied on transitively: llm_app/views/chat.py
@@ -553,22 +417,8 @@ dev = [
     # Django cannot even start without it — every Django test fails at
     # setup, not at some optional import. Matching [all]'s spec.
     "django-celery-beat>=2.8",
-    # scitex-dev provides the `audit-all` corpus the release gate runs.
-    # 0.16.1 is the first release where `audit_all_for_package`
-    # honours the HYPHENATED rule-id format that tests/develop/
-    # test_audit.py uses (`[PA-307 …]` <- skip_rules=("PA-307",)).
-    # Pinning to <0.16.1 silently lets every entry in `skip_rules`
-    # leak through — the gate fails on rules we explicitly deferred.
-    # FLOOR >=0.56.8 — see the matching declaration in [project.dependencies]
-    # for the operator ruling and the measurement behind it (raised from
-    # 0.43.1 on 2026-08-30: that release's host_store built a socket DSN with
-    # neither `run/` nor `port=`, so the cards-store default could not reach
-    # the fleet instance). THIS is the one
-    # pytest-matrix installs (`-e ".[all,dev]"`), so this is the one that
-    # decides the three required checks; the audit workflow's own pin cannot
-    # substitute for it. Keep the two identical — if they drift, the matrix
-    # and the audit test different versions and one of them is lying.
-    "scitex-dev>=0.56.8",
+    # Match the runtime floor so the required matrix uses current audit tooling.
+    "scitex-dev>=0.62.2",
     # The board-tenancy suite is guarded by `_TODO_INSTALLED`
     # (middleware.py:115, find_spec("scitex_cards")). Without this package
     # installed, every one of those tests SKIPS and the job exits 0 — a
