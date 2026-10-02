@@ -5,7 +5,7 @@
 """``scitex-hub dev-preview`` — the click surface over :mod:`._sync`.
 
 The periodic job (:mod:`scitex_hub._jobs`) runs exactly
-``scitex-hub dev-preview sync --clone /home/ywatanabe/proj/scitex-cloud``;
+``scitex-hub dev-preview sync --clone /home/ywatanabe/proj/scitex-hub``;
 an operator runs the same verb by hand (``--dry-run`` first) to see what a
 tick would do. Output is ALWAYS the outcome JSON on stdout — the
 supervisor discards stdout anyway and a human reads ``sync.log``, so there
@@ -26,6 +26,7 @@ from pathlib import Path
 import click
 
 from scitex_hub._cli._click_compat import spec_group_kwargs
+from scitex_hub._cli._flags import confirm_or_abort, yes_flag
 
 from ._cards import CliCardFiler, NullCardFiler
 from ._state import append_log
@@ -49,10 +50,13 @@ _DEFAULT_STATE_DIR = Path.home() / ".scitex" / "hub" / "runtime" / "dev-preview-
         ),
         examples=(
             (
-                "{prog} dev-preview sync --dry-run --clone ~/proj/scitex-cloud",
+                "{prog} dev-preview sync --dry-run --clone ~/proj/scitex-hub",
                 "Show what the next tick would do",
             ),
-            ("{prog} dev-preview sync --clone ~/proj/scitex-cloud", "Run one tick now"),
+            (
+                "{prog} dev-preview sync --yes --clone ~/proj/scitex-hub",
+                "Run one tick now",
+            ),
         ),
     ),
 )
@@ -61,8 +65,8 @@ def dev_preview() -> None:
 
     \b
     Example:
-        scitex-hub dev-preview sync --dry-run --clone ~/proj/scitex-cloud
-        scitex-hub dev-preview sync --clone ~/proj/scitex-cloud
+        scitex-hub dev-preview sync --dry-run --clone ~/proj/scitex-hub
+        scitex-hub dev-preview sync --yes --clone ~/proj/scitex-hub
     """
 
 
@@ -116,6 +120,7 @@ def dev_preview() -> None:
     is_flag=True,
     help="Emit JSON (always on; accepted for uniformity).",
 )
+@yes_flag()
 def sync_cmd(
     clone: Path,
     remote: str,
@@ -125,6 +130,7 @@ def sync_cmd(
     dry_run: bool,
     no_cards: bool,
     as_json: bool,
+    yes: bool,
 ) -> None:
     """Run one sync tick: fetch, fast-forward, classify, act.
 
@@ -134,10 +140,12 @@ def sync_cmd(
 
     \b
     Example:
-        scitex-hub dev-preview sync --dry-run --clone ~/proj/scitex-cloud
-        scitex-hub dev-preview sync --clone ~/proj/scitex-cloud
+        scitex-hub dev-preview sync --dry-run --clone ~/proj/scitex-hub
+        scitex-hub dev-preview sync --yes --clone ~/proj/scitex-hub
     """
     del as_json  # output is JSON regardless; see module docstring
+    if not dry_run:
+        confirm_or_abort("Sync the preview clone and apply its follow-up?", yes=yes)
     resolved_state_dir = Path(state_dir).expanduser()
 
     # The board adapter is best effort and never raises; its failures are

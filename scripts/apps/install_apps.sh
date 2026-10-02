@@ -336,38 +336,15 @@ elif spec and spec.origin:
             if [[ "$ALREADY_SATISFIED" == true ]]; then
                 echo "$PIP_PKG already installed in editable mode from $SIBLING_DIR — skipping pip install"
             else
-                # uv is the fast path (Docker/NAS: Dockerfile.prod installs
-                # it explicitly, system site-packages is chowned to scitex
-                # in root-init.sh specifically so --system can create/
-                # replace package entries there). It is NOT guaranteed to
-                # exist everywhere this script runs — e.g. GitHub-hosted CI
-                # runners, which don't ship uv by default and this repo's
-                # workflows don't install it. Silently no-op'ing there
-                # (as an earlier version of this fix did) leaves the
-                # PREVIOUSLY installed non-editable PyPI version resolvable
-                # instead — vite.entries.ts's discoverPipEntries() has no
-                # sibling-checkout fallback (unlike vite.config.ts's
-                # discoverScitexUiStatic()) and just imports whatever
-                # `scitex_ui` currently resolves to, so a stale wheel silently
-                # becomes what gets bundled. Always fall back to plain pip
-                # (always available wherever python is set up) so the
-                # editable install genuinely happens either way; only the
-                # SPEED differs, never correctness (2026-07-10, PR #331 CI
-                # failure — pdfjs-dist unresolvable from the stale scitex-ui
-                # 0.6.1 wheel because the editable install silently never
-                # ran).
+                # Target the same interpreter used by the package-location checks.
+                # In CI this is the job venv; in a container it is the explicit
+                # runtime interpreter. Never choose a shared system Python implicitly.
                 PIP_INSTALL_OK=false
                 if command -v uv &>/dev/null; then
-                    echo "Installing: uv pip install -e $SIBLING_DIR"
-                    # --system: see above (no venv in the Docker/NAS image).
-                    # --break-system-packages: defensive only — the real
-                    #   python:3.11-slim-bookworm runtime has no PEP 668
-                    #   marker (unlike some OS-managed pythons), so this
-                    #   should never actually trigger; costs nothing to pass.
-                    # --link-mode=copy: site-packages and the uv cache volume
-                    #   are on different mounts, so hardlinks aren't possible
-                    #   anyway — avoid uv probing/falling back at every call.
-                    if uv pip install --system --break-system-packages \
+                    APP_PYTHON="$(python3 -c 'import sys; print(sys.executable)')"
+                    echo "Installing: uv pip install --python $APP_PYTHON -e $SIBLING_DIR"
+                    # Copy mode supports separate cache/site-packages mounts.
+                    if uv pip install --python "$APP_PYTHON" \
                         -e "$SIBLING_DIR" --link-mode=copy -q; then
                         PIP_INSTALL_OK=true
                     else

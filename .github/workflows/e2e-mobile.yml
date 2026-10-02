@@ -54,6 +54,14 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
+      - name: Prepare job-owned Node cache and temporary paths
+        run: |
+          set -euo pipefail
+          ci_state="$(mktemp -d "$RUNNER_TEMP/scitex-node-${{ github.run_id }}-${{ github.run_attempt }}.XXXXXX")"
+          mkdir -p "$ci_state/npm-cache" "$ci_state/tmp"
+          echo "npm_config_cache=$ci_state/npm-cache" >> "$GITHUB_ENV"
+          echo "TMPDIR=$ci_state/tmp" >> "$GITHUB_ENV"
+
       - name: Setup Python
         uses: actions/setup-python@v5
         with:
@@ -79,7 +87,14 @@ jobs:
 
       - name: Install Node dependencies & build
         run: |
+          set -euo pipefail
+          sdk_package="$(python3 -c 'from scitex_sdk import get_frontend_package_dir; print(get_frontend_package_dir())')"
+          test -f "$sdk_package/package.json"
           npm install
+          npm pack "$sdk_package" --pack-destination "$TMPDIR" --json > "$TMPDIR/sdk-pack.json"
+          sdk_archive="$(node -e 'const fs = require("fs"); const p = JSON.parse(fs.readFileSync(process.argv[1], "utf8")); if (p.length !== 1 || p[0].name !== "@scitex/sdk" || !/^[A-Za-z0-9._-]+\.tgz$/.test(p[0].filename)) throw new Error("Unexpected SDK package"); console.log(p[0].filename)' "$TMPDIR/sdk-pack.json")"
+          npm install --no-save "$TMPDIR/$sdk_archive"
+          node -e 'console.log(require.resolve("@scitex/sdk/ui/css/app.css"))'
           npm run build
 
       - name: Install Playwright browsers

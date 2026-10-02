@@ -115,6 +115,15 @@ jobs:
       # `Argument[1,target_path:]`, so a site validating a DIFFERENT variable
       # than the one reaching the sink stays flagged legitimately. Inspect the
       # call before calling it a regression.
+      - name: Prepare job-owned CodeQL temporary paths
+        run: |
+          set -euo pipefail
+          ci_state="$(mktemp -d "$RUNNER_TEMP/scitex-codeql-${{ matrix.language }}-${{ github.run_id }}-${{ github.run_attempt }}.XXXXXX")"
+          mkdir -p "$ci_state/action" "$ci_state/tmp"
+          echo "CODEQL_ACTION_TEMP=$ci_state/action" >> "$GITHUB_ENV"
+          echo "TMPDIR=$ci_state/tmp" >> "$GITHUB_ENV"
+          echo "JAVA_TOOL_OPTIONS=${JAVA_TOOL_OPTIONS:-} -Djava.io.tmpdir=$ci_state/tmp" >> "$GITHUB_ENV"
+
       - name: Initialize CodeQL
         uses: github/codeql-action/init@v3
         with:

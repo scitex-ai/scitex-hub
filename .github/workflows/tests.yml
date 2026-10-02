@@ -66,6 +66,14 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
+      - name: Prepare job-owned Node cache and temporary paths
+        run: |
+          set -euo pipefail
+          ci_state="$(mktemp -d "$RUNNER_TEMP/scitex-node-${{ github.run_id }}-${{ github.run_attempt }}.XXXXXX")"
+          mkdir -p "$ci_state/npm-cache" "$ci_state/tmp"
+          echo "npm_config_cache=$ci_state/npm-cache" >> "$GITHUB_ENV"
+          echo "TMPDIR=$ci_state/tmp" >> "$GITHUB_ENV"
+
       - uses: astral-sh/setup-uv@v7
         with:
           cache-dependency-glob: pyproject.toml
@@ -95,7 +103,7 @@ jobs:
           # a constraint CI did not state. A second, lower floor that is only
           # ever right by accident is the kind of disagreement that surfaces
           # the day someone pins for an unrelated reason.
-          uv pip install --python .venv/bin/python "scitex-ui>=0.21.0"
+          uv pip install --python .venv/bin/python "scitex-ui>=0.21.0" "scitex-sdk>=0.3.0"
           # install_apps.sh shells `pip`/`python` itself, so put the venv
           # ahead of anything the shared runner has on PATH.
           echo "$PWD/.venv/bin" >> "$GITHUB_PATH"
@@ -108,7 +116,15 @@ jobs:
           node-version: '20'
 
       - name: Install dependencies
-        run: npm install
+        run: |
+          set -euo pipefail
+          sdk_package="$(python3 -c 'from scitex_sdk import get_frontend_package_dir; print(get_frontend_package_dir())')"
+          test -f "$sdk_package/package.json"
+          npm install
+          npm pack "$sdk_package" --pack-destination "$TMPDIR" --json > "$TMPDIR/sdk-pack.json"
+          sdk_archive="$(node -e 'const fs = require("fs"); const p = JSON.parse(fs.readFileSync(process.argv[1], "utf8")); if (p.length !== 1 || p[0].name !== "@scitex/sdk" || !/^[A-Za-z0-9._-]+\.tgz$/.test(p[0].filename)) throw new Error("Unexpected SDK package"); console.log(p[0].filename)' "$TMPDIR/sdk-pack.json")"
+          npm install --no-save "$TMPDIR/$sdk_archive"
+          node -e 'console.log(require.resolve("@scitex/sdk/ui/css/app.css"))'
 
       - name: Build with Vite
         run: npm run build
@@ -144,6 +160,14 @@ jobs:
 
       - name: Checkout code
         uses: actions/checkout@v4
+
+      - name: Prepare job-owned Node cache and temporary paths
+        run: |
+          set -euo pipefail
+          ci_state="$(mktemp -d "$RUNNER_TEMP/scitex-node-${{ github.run_id }}-${{ github.run_attempt }}.XXXXXX")"
+          mkdir -p "$ci_state/npm-cache" "$ci_state/tmp"
+          echo "npm_config_cache=$ci_state/npm-cache" >> "$GITHUB_ENV"
+          echo "TMPDIR=$ci_state/tmp" >> "$GITHUB_ENV"
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
