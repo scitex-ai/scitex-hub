@@ -23,6 +23,7 @@
 import { showToast } from "@utils/ui";
 
 import { getCsrf } from "./_launcher/csrf";
+import { initFirstLoginWelcome } from "./_launcher/first-login-welcome";
 import { DockEditor } from "./_launcher/dock-editor";
 import { LauncherEditControls } from "./_launcher/edit-controls";
 import { LauncherPager } from "./_launcher/pager";
@@ -505,6 +506,7 @@ class AppLauncher {
 }
 
 function initLauncher(): void {
+  initFirstLoginWelcome();
   // The dock is the SITE dock now (shared/components/site-dock.ts anchors it
   // to <body> and restores a dragged position); the pager measures its rect.
   const grid = document.getElementById("launcher-grid");
