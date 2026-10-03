@@ -98,6 +98,20 @@ APP_DISTRIBUTIONS = frozenset({
     "scitex-ui", "figrecipe", "scitex-writer", "scitex-cards",
     "scitex-storage", "scitex-agent-container",
 })
+HUB_PROJECT_ROOT = Path("/app")
+
+
+def _verified_hub_root(snapshot):
+    """Return only the current literal Hub root after snapshot verification.
+
+    The Apps verifier supplies root-kind/path authority. It does not pin the
+    unselected config tree; this grants no config-byte admission and synthesizes
+    no sibling editable binding or arbitrary cwd/manifest-supplied root.
+    """
+    hubs = [row for row in snapshot["roots"] if row.get("kind") == "hub"]
+    if len(hubs) == 1 and hubs[0].get("path") == str(HUB_PROJECT_ROOT):
+        return str(HUB_PROJECT_ROOT)
+    return None
 
 
 def _read_manifest(path):
@@ -410,6 +424,9 @@ def _run(spec):
             site.main()
             site_after_guard = True
     prepended = []
+    hub_root = _verified_hub_root(snapshot) if snapshot is not None else None
+    if hub_root is not None and hub_root not in sys.path:
+        sys.path.insert(0, hub_root)
     for path in spec.get("extra_syspath", []) if boot["mode"] == "legacy" else []:
         if os.path.isdir(path) and path not in sys.path:
             sys.path.insert(0, path)
@@ -422,6 +439,7 @@ def _run(spec):
         "prefix": sys.prefix,
         "syspath_prepended": prepended,
         "syspath_requested": list(spec.get("extra_syspath", [])),
+        "verified_hub_project_root": hub_root,
         "installed": {},
         "overlay": {},
         "imports": [],

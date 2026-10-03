@@ -57,6 +57,20 @@ from preflight_probe import REPORT_BEGIN, REPORT_END
 #: Where the boot overlay clones live inside the container.
 APPS_MOUNTPOINT = "/app/.apps"
 
+# Inspect the target's mode without initializing site or consuming stdin. Legacy
+# must retain its original interpreter semantics, including cwd, PYTHONPATH,
+# user-site and bytecode; immutable and unknown modes keep the isolated guard.
+_BUILTIN_BOOT = (
+    "import os,sys\n"
+    "mode=os.environ.get('SCITEX_APPS_BOOT_MODE') or 'legacy'\n"
+    "flags=[] if mode=='legacy' else ['-I','-S','-B']\n"
+    "os.execv(sys.executable,[sys.executable,*flags,'-'])\n"
+)
+
+
+def _builtin_python_argv(executable):
+    return [executable, "-I", "-S", "-B", "-c", _BUILTIN_BOOT]
+
 
 class TargetUnreachable(Exception):
     """The target could not be interrogated. Never downgraded to 'probably fine'."""
@@ -135,7 +149,7 @@ def resolve(spec, apps_volume=None, apps_manifest=None, via_ssh=None):
         return Target(
             "local",
             "the shell the preflight itself is running in ({0})".format(sys.executable),
-            [sys.executable, "-I", "-S", "-B", "-"],
+            _builtin_python_argv(sys.executable),
             is_target_check=False,
         )
 
@@ -155,8 +169,8 @@ def resolve(spec, apps_volume=None, apps_manifest=None, via_ssh=None):
     if spec.startswith("image:"):
         ref = spec[len("image:"):]
         argv = ["docker", "run", "--rm", "-i", "--network", "none"] + mounts + [
-            "--entrypoint", "python", ref, "-I", "-S", "-B", "-",
-        ]
+            "--entrypoint", "python", ref,
+        ] + _builtin_python_argv("python")[1:]
         description = "image {0}".format(ref)
         if apps_volume:
             description += " + boot overlay from volume {0}".format(apps_volume)
@@ -167,7 +181,7 @@ def resolve(spec, apps_volume=None, apps_manifest=None, via_ssh=None):
                 "--apps-volume is for image targets; a running container already has "
                 "the overlay installed"
             )
-        argv = ["docker", "exec", "-i", name, "python3", "-I", "-S", "-B", "-"]
+        argv = ["docker", "exec", "-i", name] + _builtin_python_argv("python3")
         description = "running container {0} (what is serving now, NOT what the next recreate will run)".format(name)
     else:
         raise TargetUnreachable(

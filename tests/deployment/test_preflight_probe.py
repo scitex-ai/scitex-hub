@@ -280,7 +280,7 @@ def test_manifest_ancestor_symlink_refuses_before_read(tmp_path, probe):
 
 
 @pytest.mark.parametrize("verifier_status", [0, 2])
-def test_executable_pth_runs_only_after_accepted_authority(snapshot, probe, tmp_path, state_scope, verifier_status):
+def test_executable_pth_runs_only_after_accepted_authority(snapshot, probe, driver, tmp_path, state_scope, verifier_status):
     # Arrange: a real executable .pth hook and a fresh isolated existing interpreter.
     pin = _pinned(snapshot, tmp_path, state_scope)
     installed = Path(snapshot["roots"][0]["path"])
@@ -307,7 +307,7 @@ probe._run({{'extra_syspath':['/app/.apps/scitex-storage/src']}})
            "SCITEX_APPS_BOOT_MANIFEST_SHA256": hashlib.sha256(pin.read_bytes()).hexdigest(),
            "SCITEX_APPS_BOOT_PROFILE": "reviewed-v3"}
     # Act: let real site.main process genuine .pth bindings after the guard boundary.
-    result = subprocess.run([sys.executable, "-I", "-S", "-B", "-c", code], env=env,
+    result = subprocess.run(driver.targets.resolve("local").argv, input=code, env=env,
                             capture_output=True, text=True, timeout=20)
     report = json.loads(result.stdout.split(probe.REPORT_BEGIN)[1].split(probe.REPORT_END)[0])
     expected = {0: ["verifier", "site-hook"], 2: ["verifier"]}[verifier_status]
@@ -349,4 +349,131 @@ def test_builtin_target_starts_with_isolated_site_and_bytecode_disabled(tmp_path
     # Act: resolve the real built-in target command.
     target = driver.targets.resolve(target_spec)
     # Assert: no built-in interpreter can process .pth before the probe guard.
-    assert target.argv[-4:] == ["-I", "-S", "-B", "-"]
+    assert target.argv[-5:-1] == ["-I", "-S", "-B", "-c"]
+
+
+@pytest.mark.parametrize("mode", [None, "", "legacy"])
+@pytest.mark.parametrize("bytecode_disabled", [False, True])
+def test_legacy_selector_preserves_original_stdin_import_and_site_semantics(tmp_path, driver, mode, bytecode_disabled):
+    # Arrange: only cwd and declared PYTHONPATH provide these disposable modules.
+    project = tmp_path / "project"
+    project.mkdir()
+    config = project / "config"
+    config.mkdir()
+    (config / "__init__.py").write_text("")
+    (config / "bootstrap_fixture.py").write_text("ORIGIN = 'project'\n")
+    declared = tmp_path / "declared"
+    declared.mkdir()
+    (declared / "env_fixture.py").write_text("ORIGIN = 'declared-PYTHONPATH'\n")
+    env = {"PATH": "/usr/bin:/bin", "HOME": str(tmp_path / "home"),
+           "LANG": "C.UTF-8", "PYTHONPATH": str(declared),
+           "PYTHONUSERBASE": str(tmp_path / "user-base")}
+    env.update({key: value for key, value in {
+        "SCITEX_APPS_BOOT_MODE": mode,
+        "PYTHONDONTWRITEBYTECODE": "1" if bytecode_disabled else None,
+    }.items() if value is not None})
+    code = """
+import config.bootstrap_fixture,env_fixture,json,site,sys
+from pathlib import Path
+print(json.dumps({'cwd':config.bootstrap_fixture.ORIGIN,'declared':env_fixture.ORIGIN,
+ 'path':sys.path,'user_site':site.ENABLE_USER_SITE,
+ 'flags':[sys.flags.isolated,sys.flags.no_site,sys.flags.no_user_site],
+ 'cache_written':[Path(m.__cached__).is_file() for m in [config.bootstrap_fixture,env_fixture]],
+ 'bytecode_disabled':sys.dont_write_bytecode,'payload':'received-once'}))
+"""
+    original = subprocess.run([sys.executable, "-"], input=code, cwd=project, env=env,
+                              capture_output=True, text=True, timeout=20)
+    for cache in tmp_path.rglob("__pycache__"):
+        shutil.rmtree(cache)
+    # Act: execute the actual built-in selector with its unchanged stdin payload.
+    selected = subprocess.run(driver.targets.resolve("local").argv, input=code,
+                              cwd=project, env=env, capture_output=True, text=True, timeout=20)
+    # Assert: import paths, site flags and bytecode match the original interpreter.
+    assert (original.returncode, selected.returncode, json.loads(selected.stdout)) == (
+        0, 0, json.loads(original.stdout))
+
+
+@pytest.mark.parametrize("mode", ["immutable", "unrecognized"])
+def test_nonlegacy_selector_excludes_cwd_environment_and_site_before_payload(tmp_path, driver, mode):
+    # Arrange: both paths contain importable sentinels outside target authority.
+    (tmp_path / "cwd_fixture.py").write_text("raise RuntimeError('cwd executed')\n")
+    declared = tmp_path / "declared"
+    declared.mkdir()
+    (declared / "env_fixture.py").write_text("raise RuntimeError('environment executed')\n")
+    env = {"PATH": "/usr/bin:/bin", "HOME": str(tmp_path / "home"), "LANG": "C.UTF-8",
+           "PYTHONPATH": str(declared), "SCITEX_APPS_BOOT_MODE": mode}
+    code = """
+import importlib.util,json,sys
+print(json.dumps({'modules':[importlib.util.find_spec(n) is None
+ for n in ['cwd_fixture','env_fixture']],
+ 'flags':[sys.flags.isolated,sys.flags.no_site,sys.flags.no_user_site],
+ 'bytecode_disabled':sys.dont_write_bytecode,'payload':'received-once'}))
+"""
+    # Act: run the real target selector; neither sentinel may execute before the guard.
+    selected = subprocess.run(driver.targets.resolve("local").argv, input=code,
+                              cwd=tmp_path, env=env, capture_output=True, text=True, timeout=20)
+    # Assert: the original payload reaches a still-isolated child exactly once.
+    assert (selected.returncode, json.loads(selected.stdout)) == (0, {
+        "modules": [True, True], "flags": [1, 1, 1],
+        "bytecode_disabled": True, "payload": "received-once"})
+
+
+@pytest.fixture
+def hub_snapshot(snapshot, probe, state_scope):
+    project = next(Path(row["path"]).parent.parent for row in snapshot["roots"]
+                   if row["id"] == "scitex-cards")
+    package = project / "apps"
+    package.mkdir()
+    (package / "__init__.py").write_text("")
+    (package / "project_fixture.py").write_text("ORIGIN = 'verified-Hub-apps'\n")
+    snapshot["roots"].append({"id": "hub", "kind": "hub", "path": str(project)})
+    state_scope.setattr(probe, "HUB_PROJECT_ROOT", project)
+    for name in list(sys.modules):
+        if name == "apps" or name.startswith("apps."):
+            state_scope.delitem(sys.modules, name)
+    yield snapshot
+    for name in list(sys.modules):
+        if name == "apps" or name.startswith("apps."):
+            sys.modules.pop(name, None)
+
+
+def test_verified_hub_apps_import_retains_genuine_six_site_bindings(hub_snapshot, probe, tmp_path, state_scope, capsys):
+    # Arrange: the external verifier seam accepts a pinned Hub apps root.
+    _pinned(hub_snapshot, tmp_path, state_scope)
+    state_scope.setattr(probe.subprocess, "run", lambda *args, **kwargs: subprocess.CompletedProcess([], 0))
+    # Act: run normal imports after the real pin reread and active producer check.
+    probe._run({"import_probes": [{"module": "apps.project_fixture"}],
+                "extra_syspath": ["/app/.apps/scitex-storage/src"]})
+    report = json.loads(capsys.readouterr().out.split(probe.REPORT_BEGIN)[1].split(probe.REPORT_END)[0])
+    # Assert: exact Hub apps authority works independently of all six site bindings.
+    assert (report["verified_hub_project_root"], report["imports"][0]["status"],
+            sum(row["verified"] for row in report["bindings"].values()),
+            report["syspath_prepended"], sys.modules["apps"].__file__) == (
+        str(probe.HUB_PROJECT_ROOT), "ok", 6, [], str(probe.HUB_PROJECT_ROOT / "apps/__init__.py"))
+
+
+@pytest.mark.parametrize("drift", ["absent", "foreign-path", "wrong-kind", "duplicate"])
+def test_missing_or_conflicting_hub_authority_never_adds_project_path(hub_snapshot, probe, tmp_path, state_scope, capsys, drift):
+    # Arrange: a verifier boundary alone cannot authorize an arbitrary import root.
+    _hub_authority_drift(hub_snapshot, tmp_path, drift)
+    _pinned(hub_snapshot, tmp_path, state_scope)
+    state_scope.setattr(probe.subprocess, "run", lambda *args, **kwargs: subprocess.CompletedProcess([], 0))
+    before = list(sys.path)
+    # Act: request the genuine disposable Hub module without any clone synthesis.
+    probe._run({"import_probes": [{"module": "apps.project_fixture"}]})
+    report = json.loads(capsys.readouterr().out.split(probe.REPORT_BEGIN)[1].split(probe.REPORT_END)[0])
+    # Assert: incomplete Hub authority remains a real missing import.
+    assert (sys.path, report["verified_hub_project_root"], report["imports"][0]["status"]) == (
+        before, None, "fatal")
+
+
+def _hub_authority_drift(hub_snapshot, tmp_path, drift):
+    hub = hub_snapshot["roots"][-1]
+    if drift == "absent":
+        hub_snapshot["roots"].pop()
+    elif drift == "foreign-path":
+        hub["path"] = str(tmp_path)
+    elif drift == "wrong-kind":
+        hub["kind"] = "app-source"
+    else:
+        hub_snapshot["roots"].append(dict(hub, id="hub-duplicate"))
