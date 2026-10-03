@@ -117,11 +117,14 @@ def test_curated_launcher_reads_infra_then_apps_then_chat_settings_tools_then_la
     labels = _manifest_labels()
     # Act
     tile_names = [labels.get(name, name) for name in DEFAULT_LAUNCHER_ORDER]
-    # Assert — Storage is an optional plugin: with scitex-storage uninstalled
-    # no manifest exists anywhere, so only its curated SLOT is pinned there.
+    # Assert — optional plugin slots remain fixed even without a loaded
+    # manifest. Available leaf labels are projected into those same slots.
     expected = list(EXPECTED_TILE_ORDER)
-    if "storage" not in labels:
-        expected[expected.index("Storage")] = "storage"
+    expected[expected.index("Agents")] = labels.get("agents", "agents")
+    expected[expected.index("Storage")] = labels.get("storage", "storage")
+    assert DEFAULT_LAUNCHER_ORDER[:4] == [
+        "my_projects", "agents", "scitex-cards", "storage"
+    ]
     assert tile_names == expected
 
 

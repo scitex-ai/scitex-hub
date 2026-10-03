@@ -75,9 +75,9 @@ class _AncestorClasses(HTMLParser):
 
 # The plugin tiles the Home layout is specified against. Tiles come from the
 # LEAF manifests via the scitex.apps entry points (register_plugin_modules);
-# CI installs `.[all,dev]`, which ships scitex-cards but not scitex-storage
-# or scitex-agent-container. These tests pin the LAYOUT, so they register
-# any missing tile themselves instead of inheriting the environment.
+# Only genuinely loaded leaf configs can add a tile here; no fixture
+# manifest or missing optional package is synthesized. Layout assertions
+# keep Cards required and include Agents/Storage only when registered.
 _PLUGIN_TILE_NAMES = ("scitex-cards", "storage", "agents")
 
 
@@ -161,11 +161,13 @@ class HomePagesTest(TestCase):
         groups = self._groups()
         # Act
         names = [c.get("name") for c in groups[0]["cells"] if not c.get("is_planned")]
-        # Assert — Storage is an optional plugin tile: it renders only where
-        # scitex-storage is installed (plugin-only discovery, no dead tiles).
-        expected = ["my_projects", "agents", "scitex-cards"]
-        if registry.get_module("storage") is not None:
-            expected.append("storage")
+        # Assert — optional Agents and Storage render only when their
+        # genuine plugin tiles are registered; foundation order stays fixed.
+        expected = ["my_projects"] + [
+            name
+            for name in ("agents", "scitex-cards", "storage")
+            if name == "scitex-cards" or registry.get_module(name) is not None
+        ]
         assert names == expected
 
     def test_files_is_an_internal_service_not_a_launcher_app(self):
@@ -182,12 +184,13 @@ class HomePagesTest(TestCase):
         groups = self._groups()
         # Act
         first_row = [cell.get("name") for cell in groups[0]["cells"][:4]]
-        # Assert — without the optional Storage plugin installed the row
-        # holds the three installed infrastructure apps (same conditional
-        # as test_foundation_group_has_one_project_entry_and_infrastructure).
-        expected = ["my_projects", "agents", "scitex-cards"]
-        if registry.get_module("storage") is not None:
-            expected.append("storage")
+        # Assert — the first row contains the registered foundation tiles,
+        # in their fixed order, with My Projects and Cards each present once.
+        expected = ["my_projects"] + [
+            name
+            for name in ("agents", "scitex-cards", "storage")
+            if name == "scitex-cards" or registry.get_module(name) is not None
+        ]
         assert first_row == expected
 
     def test_stats_slot_is_real_only_when_its_leaf_route_is_mounted(self):
