@@ -222,6 +222,63 @@ def _console_module_files(row, descriptions, dist):
     return files
 
 
+def _approved_console_dispatch(tree, module, attribute):
+    """Recognize reachable installed Python wrapper shapes without running them."""
+    function_alias = None
+    imports = {"sys": [], "re": []}
+    bound = set()
+    dispatch = None
+    for node in tree.body:
+        if isinstance(node, (ast.Import, ast.ImportFrom)):
+            if dispatch is not None:
+                return False
+            if isinstance(node, ast.ImportFrom):
+                if (node.level or node.module != module or len(node.names) != 1 or
+                        node.names[0].name != attribute or function_alias is not None):
+                    return False
+                function_alias = node.names[0].asname or attribute
+                aliases = [function_alias]
+            else:
+                aliases = []
+                for alias in node.names:
+                    if alias.name not in imports:
+                        return False
+                    name = alias.asname or alias.name
+                    imports[alias.name].append(name)
+                    aliases.append(name)
+            if (len(set(aliases)) != len(aliases) or
+                    any(name in bound or name in {"__name__", "SystemExit"} for name in aliases)):
+                return False
+            bound.update(aliases)
+        elif isinstance(node, ast.Expr) and isinstance(node.value, ast.Constant) and isinstance(node.value.value, str):
+            if dispatch is not None:
+                return False
+        elif dispatch is None:
+            dispatch = node
+        else:
+            return False
+    if function_alias is None or dispatch is None:
+        return False
+    calls = [f"{function_alias}()", f"raise SystemExit({function_alias}())"]
+    calls.extend(f"{name}.exit({function_alias}())" for name in imports["sys"])
+    candidates = list(calls)
+    prefixes = [""]
+    for name in imports["sys"]:
+        prefixes.append(
+            f"    if {name}.argv[0].endswith('-script.pyw'):\n"
+            f"        {name}.argv[0] = {name}.argv[0][:-11]\n"
+            f"    elif {name}.argv[0].endswith('.exe'):\n"
+            f"        {name}.argv[0] = {name}.argv[0][:-4]\n")
+        for regex in imports["re"]:
+            prefixes.append(
+                f"    {name}.argv[0] = {regex}.sub(r'(-script\\.pyw|\\.exe)?$', '', {name}.argv[0])\n")
+    candidates.extend("if __name__ == '__main__':\n" + prefix + "    " + call
+                      for prefix in prefixes for call in calls)
+    shape = ast.dump(dispatch, include_attributes=False)
+    return any(shape == ast.dump(ast.parse(candidate).body[0], include_attributes=False)
+               for candidate in candidates)
+
+
 def _console_binding(path, entry, module_files):
     """Measure the installed Python wrapper without executing a CLI command."""
     text = path.read_text(encoding="utf-8")
@@ -232,14 +289,8 @@ def _console_binding(path, entry, module_files):
     module, separator, attribute = entry.value.partition(":")
     if not separator or not attribute.isidentifier():
         raise ValueError("unsupported console entry point")
-    aliases = {
-        alias.asname or alias.name
-        for node in ast.walk(tree) if isinstance(node, ast.ImportFrom) and node.module == module
-        for alias in node.names if alias.name == attribute
-    }
-    if not aliases or not any(isinstance(node, ast.Call) and isinstance(node.func, ast.Name)
-                              and node.func.id in aliases for node in ast.walk(tree)):
-        raise ValueError("console wrapper does not call its declared entry point")
+    if not _approved_console_dispatch(tree, module, attribute):
+        raise ValueError("console wrapper has no approved reachable entry dispatch")
     # Resolve its module through the same active target path. Do not invoke its
     # function, load a model, initialize an account, or perform a scientific job.
     spec = importlib.util.find_spec(module)

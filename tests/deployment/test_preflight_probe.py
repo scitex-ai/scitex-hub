@@ -563,3 +563,51 @@ def _bootstrap_authority_drift(snapshot, tmp_path, drift):
         moved = path.with_name("original.py")
         path.rename(moved)
         path.symlink_to(moved.name)
+
+
+@pytest.mark.parametrize("body", [
+    "cli_entry_point()\n",
+    "import sys\nif __name__ == '__main__':\n    sys.exit(cli_entry_point())\n",
+    "import sys\nif __name__ == '__main__':\n    raise SystemExit(cli_entry_point())\n",
+    "import sys, re\nif __name__ == '__main__':\n"
+    "    sys.argv[0] = re.sub(r'(-script\\.pyw|\\.exe)?$', '', sys.argv[0])\n"
+    "    sys.exit(cli_entry_point())\n",
+    "import sys\nif __name__ == '__main__':\n"
+    "    if sys.argv[0].endswith('-script.pyw'):\n        sys.argv[0] = sys.argv[0][:-11]\n"
+    "    elif sys.argv[0].endswith('.exe'):\n        sys.argv[0] = sys.argv[0][:-4]\n"
+    "    sys.exit(cli_entry_point())\n",
+])
+def test_reachable_console_dispatch_preserves_genuine_bootstrap_binding(bootstrap_snapshot, probe, body):
+    # Arrange: standard wrapper variants all target the same verified raising sentinel.
+    _replace_sac_wrapper(bootstrap_snapshot, body)
+    # Act: qualify metadata, wrapper and source without invoking any CLI.
+    actual = probe._active_bindings(bootstrap_snapshot)["scitex-agent-container"]
+    # Assert: a genuine dispatch shape still imports its same-producer callable.
+    assert actual["verified"] is True
+
+
+@pytest.mark.parametrize("body", [
+    "if False:\n    cli_entry_point()\n",
+    "def never_called():\n    cli_entry_point()\n",
+    "unused = lambda: cli_entry_point()\n",
+    "if __name__ == '__not_main__':\n    cli_entry_point()\n",
+    "if __name__ == '__main__':\n    if False:\n        cli_entry_point()\n",
+    "import sys\nif __name__ == '__main__':\n    sys.exit(0)\n    cli_entry_point()\n",
+    "cli_entry_point = lambda: 0\ncli_entry_point()\n",
+    "if True:\n    from _scitex_agent_container_bootstrap import cli_entry_point\n"
+    "cli_entry_point()\n",
+])
+def test_unreachable_or_rebound_console_never_loads_bootstrap(bootstrap_snapshot, probe, body):
+    # Arrange: entry metadata and producer bytes stay genuine while dispatch is false.
+    _replace_sac_wrapper(bootstrap_snapshot, body)
+    # Act: the full active resolver examines the installed wrapper.
+    actual = probe._active_bindings(bootstrap_snapshot)["scitex-agent-container"]
+    # Assert: no false binding or bootstrap import is admitted.
+    assert (actual["verified"], "_scitex_agent_container_bootstrap" in sys.modules) == (False, False)
+
+
+def _replace_sac_wrapper(snapshot, body):
+    root = next(row for row in snapshot["roots"] if row["id"] == "bin")
+    path = Path(root["path"]) / "sac"
+    path.write_text(f"#!{sys.executable}\nfrom _scitex_agent_container_bootstrap import cli_entry_point\n" + body)
+    _inventory_fixture_roots(snapshot["roots"])
