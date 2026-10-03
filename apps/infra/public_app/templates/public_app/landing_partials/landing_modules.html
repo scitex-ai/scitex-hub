@@ -114,7 +114,7 @@
                              loading="lazy"
                              alt="{% trans 'SciTeX Stats analysis with sample two-group data, recommended test, statistics, and chart.' %}" />
                     </picture>
-                    <figcaption><strong>Stats</strong> — {% trans "Sample two-group analysis with recommended test, results, and chart." %}</figcaption>
+                    <figcaption><strong>{% trans "Stats" %}</strong> — {% trans "Sample two-group analysis with recommended test, results, and chart." %}</figcaption>
                 </figure>
             </div>
             <div class="landing-v2-carousel-dots" role="tablist" aria-label="{% trans 'Choose a product screen' %}">
@@ -122,7 +122,7 @@
                 <button type="button" role="tab" data-carousel-dot="1" aria-selected="false" tabindex="-1">Scholar</button>
                 <button type="button" role="tab" data-carousel-dot="2" aria-selected="false" tabindex="-1">FigRecipe</button>
                 <button type="button" role="tab" data-carousel-dot="3" aria-selected="false" tabindex="-1">Writer</button>
-                <button type="button" role="tab" data-carousel-dot="4" aria-selected="false" tabindex="-1">Stats</button>
+                <button type="button" role="tab" data-carousel-dot="4" aria-selected="false" tabindex="-1">{% trans "Stats" %}</button>
             </div>
             <p class="landing-v2-provenance-note">
                 {% trans "Unedited interface captures from tracked product-guide screenshots and the development Stats app; resize and compression only." %}
@@ -155,7 +155,7 @@
                    playsinline
                    controls
                    preload="metadata"
-                   poster="{% static 'public_app/clew/short-clip-poster.jpg' %}">
+                   poster="{% static 'public_app/clew/short-clip-poster.png' %}">
                 <source src="{% static 'public_app/clew/short-clip-v2.mp4' %}" type="video/mp4" />
                 {% trans "Your browser does not support the video tag." %}
             </video>

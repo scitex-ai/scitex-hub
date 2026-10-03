@@ -48,7 +48,6 @@ def test_exception_details_are_not_returned_by_remediated_views():
         "apps/workspace/console_app/job_api_views.py",
         "apps/infra/public_app/views/status/api/realtime.py",
         "apps/infra/public_app/views/status/api/history.py",
-        "apps/infra/public_app/views/status/visitor.py",
         "apps/infra/workspace_api/views/file_content.py",
         "apps/workspace/apps_app/views/api.py",
         "apps/workspace/apps_app/views/app_create.py",
@@ -63,3 +62,17 @@ def test_exception_details_are_not_returned_by_remediated_views():
     for relative in files:
         text = (ROOT / relative).read_text()
         assert not any(pattern in text for pattern in forbidden), relative
+
+
+def test_retired_visitor_view_and_management_routes_remain_absent():
+    retired = ROOT / "apps/infra/public_app/views/status/visitor.py"
+    routes = (ROOT / "apps/infra/public_app/urls/api.py").read_text()
+    retired_handlers = (
+        "visitor_pool_initialize_api",
+        "visitor_fill_slots_api",
+        "visitor_free_slots_api",
+        "visitor_heartbeat_api",
+        "visitor_resources_api",
+    )
+
+    assert not retired.exists() and not any(name in routes for name in retired_handlers)

@@ -12,6 +12,19 @@
    square with full-black "muted" text. tests/apps/public_app/test_pricing_css_tokens.py
    scans this file and fails on any var() with no definition in the bundle. */
 
+/* Bundle-local definitions for the tokens this file references. Values match
+   landing-reference-v2.css (loaded alongside on the landing page), so the
+   rendered result is unchanged; they live here so the file is self-contained
+   under the test's bundle model. :root scope because uses span .section-pricing,
+   .section-heading and dark-mode variants, not just .pricing-grid. */
+:root {
+  --landing-ink: #182230;
+  --landing-navy: #141d2a;
+  --landing-line: #cbd2ce;
+  --landing-line-dark: #435268;
+  --landing-paper: #f5f4f0;
+}
+
 /* The grid: equal-height rows. grid-auto-rows: 1fr makes every row in a given
    row the same height; the card is a flex column so the CTA anchors to the
    bottom regardless of feature-list length (see .pricing-action below). */
