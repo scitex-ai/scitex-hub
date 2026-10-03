@@ -431,26 +431,40 @@ def optional_upstream_apps() -> list[str]:
 
 
 def with_plugin_apps(entries: list[str], plugins=None) -> list[str]:
-    """``entries`` plus every ``scitex.apps`` entry point (``pip install`` = app).
+    """Merge optional plugins, retaining existing owners of Django app labels."""
+    return _with_host_plugin_apps(entries, (), plugins)
 
-    A plugin replaces a hand-written entry for the same app package in place.
-    One whose AppConfig module cannot be found is skipped with a warning, so a
-    broken wheel costs its own app, not hub startup.
+
+def _with_host_plugin_apps(
+    entries: list[str], registered_entries=(), plugins=None
+) -> list[str]:
+    """Merge plugins without duplicating apps registered elsewhere by the host.
+
+    ``registered_entries`` are retained by the caller, in their original order.
+    Django's AppConfig metadata supplies identity; population remains with setup.
     """
     try:
+        from django.apps import AppConfig
+        from django.core.exceptions import ImproperlyConfigured
         from scitex_app.plugins import discover_plugin_apps, installed_app_paths
     except ImportError:
         return entries
+
+    discovered = discover_plugin_apps() if plugins is None else list(plugins)
+    if not discovered:
+        return entries
+
+    reserved = [AppConfig.create(entry) for entry in registered_entries]
+    configurations = {entry: AppConfig.create(entry) for entry in entries}
+    reserved_names = {config.name for config in reserved}
     usable = []
-    for plugin in discover_plugin_apps() if plugins is None else plugins:
+    for plugin in discovered:
         module = plugin.app_config.rpartition(".")[0]
         try:
             found = importlib.util.find_spec(module) is not None
         except (ImportError, ValueError):
             found = False
-        if found:
-            usable.append(plugin)
-        else:
+        if not found:
             logger.warning(
                 "scitex.apps entry point %r names %s, whose module %s is not "
                 "importable; app skipped.",
@@ -458,6 +472,55 @@ def with_plugin_apps(entries: list[str], plugins=None) -> list[str]:
                 plugin.app_config,
                 module,
             )
+            continue
+        try:
+            config = AppConfig.create(plugin.app_config)
+        except (ImportError, ValueError, TypeError, ImproperlyConfigured) as error:
+            logger.warning(
+                "scitex.apps entry point %r has unavailable AppConfig metadata "
+                "(%s); app skipped.",
+                plugin.name,
+                type(error).__name__,
+            )
+            continue
+        if config.name in reserved_names:
+            logger.warning(
+                "scitex.apps entry point %r names %s, already registered "
+                "elsewhere by the host; registered app retained, plugin skipped.",
+                plugin.name,
+                config.name,
+            )
+            continue
+
+        configurations[plugin.app_config] = config
+        proposed = installed_app_paths(entries, [*usable, plugin])
+        names = set()
+        label_owners = {}
+        collision = None
+        # Configuration-file packages can alias a different actual app name.
+        # Validate the merger's effective entries, not an assumed replacement.
+        for registered in [*reserved, *(configurations[entry] for entry in proposed)]:
+            if registered.name in names:
+                collision = ("app name", registered.name, registered.name)
+                break
+            if registered.label in label_owners:
+                collision = ("label", registered.label, label_owners[registered.label])
+                break
+            names.add(registered.name)
+            label_owners[registered.label] = registered.name
+        if collision is not None:
+            identity, value, owner = collision
+            logger.warning(
+                "scitex.apps entry point %r names %s with duplicate %s %r already "
+                "registered by %s; registered app retained, plugin skipped.",
+                plugin.name,
+                config.name,
+                identity,
+                value,
+                owner,
+            )
+            continue
+        usable.append(plugin)
     return installed_app_paths(entries, usable)
 
 

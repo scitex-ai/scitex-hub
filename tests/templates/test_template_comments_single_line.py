@@ -6,15 +6,13 @@ leaks onto the page. Multi-line notes must use {% comment %}.
 import glob
 import os
 
-REPO_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+REPO_ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 
 def _iter_templates():
     patterns = ("templates/**/*.html", "apps/**/templates/**/*.html")
     for pattern in patterns:
-        for path in glob.glob(
-            os.path.join(REPO_ROOT, pattern), recursive=True
-        ):
+        for path in glob.glob(os.path.join(REPO_ROOT, pattern), recursive=True):
             yield path
 
 

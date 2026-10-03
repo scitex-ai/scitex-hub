@@ -265,7 +265,7 @@ jobs:
           # 0.38.1 from the old `<0.39` ceiling — which is why this job passed
           # in 38s while all three REQUIRED pytest-matrix legs stayed red for
           # ~12 hours. This job is not a required check; those three are.
-          # Keep this pin and the two pyproject pins on the same version.
+          # This historical pin no longer overrides the current declared floor.
           #
           # STILL TRUE, and still the reason the 3 §2 prompts went unseen:
           # audit-cli reports "not-auditable" and lets the run go green when it
@@ -281,7 +281,46 @@ jobs:
           #   hub-audit-cli-runs-only-when-its-deps-happen-to-be-installed-20260809
           # Do NOT "fix" any of this by widening SKIP_RULES — §2/§5/§6 are
           # already in it, and §10w is a notice, not a violation to defer.
-          uv pip install --python .venv/bin/python "scitex-dev[cli-audit]==0.43.1"
+          # The notes above describe historical releases. The current
+          # declared dev dependencies own resolution; never force a downgrade.
+          .venv/bin/python - <<'PY'
+          import importlib
+          import importlib.metadata as md
+          import json
+          from pathlib import Path
+          import sys
+          import tomllib
+          from packaging.requirements import Requirement
+
+          declared = tomllib.loads(Path("pyproject.toml").read_text())["project"]["optional-dependencies"]["dev"]
+          requirements = [Requirement(item) for item in declared if Requirement(item).name == "scitex-dev"]
+          if len(requirements) != 1:
+              raise SystemExit("Exactly one declared dev scitex-dev requirement is required")
+          requirement = requirements[0]
+          distribution = md.distribution("scitex-dev")
+          if not requirement.specifier.contains(distribution.version, prereleases=True):
+              raise SystemExit("Installed scitex-dev does not satisfy the declared dev requirement")
+          origin = Path(distribution.locate_file("scitex_dev")).resolve()
+          if not origin.is_dir() or not origin.is_relative_to(Path(sys.prefix).resolve()):
+              raise SystemExit("Installed scitex-dev is outside the job virtual environment")
+          # Current Dev moved CLI/audit dependencies into core and removed the empty
+          # cli-audit extra. Verify the resolved base requirements instead of requesting
+          # an undefined extra or treating a version check as an importability proof.
+          checked_dependencies = {}
+          for item in distribution.requires or []:
+              dependency = Requirement(item)
+              if dependency.marker and not dependency.marker.evaluate({"extra": ""}):
+                  continue
+              installed = md.version(dependency.name)
+              if not dependency.specifier.contains(installed, prereleases=True):
+                  raise SystemExit("Installed audit dependency does not satisfy " + str(dependency))
+              checked_dependencies[dependency.name] = installed
+          audit_cli = importlib.import_module("scitex_dev._cli.audit")
+          from scitex_dev.testing import audit_all_for_package
+          if not callable(audit_all_for_package):
+              raise SystemExit("The declared audit wrapper entry point is unavailable")
+          print(json.dumps({"scitex_dev_version": distribution.version, "declared_requirement": str(requirement), "distribution_origin": str(origin), "base_dependencies": checked_dependencies, "audit_cli_module": audit_cli.__name__, "wrapper_importable": True}))
+          PY
 
       # Use the pytest wrapper so the documented `skip_rules` deferrals in
       # tests/develop/test_audit.py are honoured. Calling `scitex-dev
