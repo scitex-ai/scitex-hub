@@ -46,6 +46,24 @@ class TrackedSourceFile:
         return self.text(encoding, errors)
 
 
+def _git_failure_category(stderr: bytes) -> str:
+    """Return a fixed prefix hint; untrusted stderr never becomes output."""
+    first_line = stderr[:512].split(b"\n", 1)[0]
+    if first_line.startswith(b"fatal: detected dubious ownership in repository"):
+        return "dubious-ownership"
+    if first_line.startswith(b"fatal: not a git repository"):
+        return "not-a-repository"
+    if first_line.startswith(
+        (
+            b"fatal: index file corrupt",
+            b"error: bad signature",
+            b"error: index file smaller than expected",
+        )
+    ):
+        return "index-format-failure"
+    return "unknown"
+
+
 def _run(repo: Path, args: list[str], *, stdin: bytes | None = None) -> bytes:
     completed = subprocess.run(
         ["git", "-C", str(repo), *args],
@@ -55,7 +73,10 @@ def _run(repo: Path, args: list[str], *, stdin: bytes | None = None) -> bytes:
     )
     if completed.returncode:
         # Do not expose stderr: hooks/aliases can echo credentials or command lines.
-        raise TrackedSourceError(f"git {args[0]} failed with exit {completed.returncode}")
+        raise TrackedSourceError(
+            f"git {args[0]} failed with exit {completed.returncode} "
+            f"(category={_git_failure_category(completed.stderr)})"
+        )
     return completed.stdout
 
 

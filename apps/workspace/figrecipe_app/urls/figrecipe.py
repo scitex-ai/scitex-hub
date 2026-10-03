@@ -72,10 +72,13 @@ from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
 from django.urls import path
 from figrecipe._django.views import api_dispatch as _raw_api_dispatch
-from figrecipe._django.views import editor_page as _raw_editor_page
 
 from apps.infra.project_app.services.working_dir_resolver import (
     WorkingDirScopedView,
+)
+from apps.workspace.figrecipe_app.views import (
+    _resolve_figrecipe_working_dir,
+    figure_editor as _hosted_editor_page,
 )
 
 logger = logging.getLogger(__name__)
@@ -246,7 +249,7 @@ def _forbid(key, value, username):
 def _project_file_remainder(request, remainder):
     """Normalize only the selected project's legacy prefix; refuse escapes.
 
-    ``working_dir`` has already been overwritten by WorkingDirScopedView.
+    The root comes from the authorized server resolver, never a GET path.
     The BASE-relative tenant namespace remains reserved for legacy routes;
     a different tenant/project prefix cannot become a local file request.
     """
@@ -256,11 +259,10 @@ def _project_file_remainder(request, remainder):
         validate_path_in_user_jail,
     )
 
-    working_dir = request.GET.get("working_dir")
-    if not working_dir or not remainder or not _within_relative_subtree(remainder):
+    root = _resolve_figrecipe_working_dir(request)
+    if root is None or not remainder or not _within_relative_subtree(remainder):
         return None
     try:
-        root = Path(working_dir).resolve()
         base = Path(settings.BASE_DIR).resolve()
         relative = Path(remainder)
         try:
@@ -274,7 +276,9 @@ def _project_file_remainder(request, remainder):
             return None
         if relative == Path("."):
             return None
-        target = (root / relative).resolve()
+        # Both validators resolve the target before component-wise containment.
+        # Keep the authorized root instead of re-reading a browser working_dir.
+        target = root / relative
         if (not validate_path_in_project(root, target)
             or not validate_path_in_user_jail(request.user, target)):
             return None
@@ -380,9 +384,12 @@ def _no_project_json(request):
 # login_required is the load-bearing guard here (closes the anonymous
 # hole). We still inject best-effort (fail_closed=False) so a GET-derived
 # working_dir is scoped, harmlessly, without blocking the SPA shell.
-_editor_view = WorkingDirScopedView(_raw_editor_page, fail_closed=False)
+_editor_view = WorkingDirScopedView(
+    _hosted_editor_page, resolver=_resolve_figrecipe_working_dir, fail_closed=False
+)
 _api_view = WorkingDirScopedView(
     _dispatch_project_endpoint,
+    resolver=_resolve_figrecipe_working_dir,
     on_missing=_no_project_json,
     guard=_reject_out_of_jail_paths,
 )
@@ -391,8 +398,8 @@ _api_view = WorkingDirScopedView(
 @login_required
 def editor_page(request):
     # Stamp the app-scope marker the figrecipe bundle's mountProjectSelectorByScope
-    # reads (d8528de contract). The figrecipe bridge calls the raw leaf editor_page
-    # (not scitex-app's scitex_editor_page host view), so the marker is not injected
+    # reads (d8528de contract). This hosted route renders Hub's existing editor
+    # shell rather than the leaf's standalone shell, so the marker is not injected
     # upstream — this is the one place the hub applies the shared contract.
     response = _editor_view(request)
     from apps.infra.workspace_app.scope_meta import inject_scope_meta

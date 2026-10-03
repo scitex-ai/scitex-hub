@@ -659,6 +659,46 @@ def test_editor_page_is_served_to_a_logged_in_caller(client):
     assert response.status_code == 200
 
 
+def test_hosted_editor_declares_the_existing_authorized_api_mount(client):
+    # Arrange
+    url = MOUNT
+    # Act
+    response = client.get(url)
+    # Assert
+    assert 'data-stx-mount="/apps/figrecipe/figrecipe"' in response.content.decode()
+
+
+def test_hosted_editor_declares_the_selected_working_directory(client, caller_project_dir):
+    # Arrange
+    url = MOUNT
+    # Act
+    response = client.get(url, {"working_dir": "/tmp"})
+    # Assert
+    assert f'data-working-dir="{caller_project_dir}"' in response.content.decode()
+
+
+def test_hosted_editor_has_one_real_figrecipe_mount(client):
+    # Arrange
+    url = MOUNT
+    # Act
+    response = client.get(url)
+    # Assert
+    assert response.content.decode().count('id="app-mount"') == 1
+
+
+def test_project_file_content_ignores_another_tenants_query_root(
+    client, caller_project_dir, victim_project_dir
+):
+    # Arrange
+    url = MOUNT + "api/file-content/AGENTS.md"
+    # Act
+    response = client.get(url, {"working_dir": str(victim_project_dir)})
+    # Assert
+    assert (response.status_code, json.loads(response.content)["content"]) == (
+        200, CALLER_SENTINEL + "\n"
+    )
+
+
 # ===========================================================================
 # CHANNEL 2 BLIND SPOT — api/compose with NO body working_dir at all
 # ===========================================================================

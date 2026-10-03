@@ -29,6 +29,7 @@
          data-app-slug="figrecipe"
          data-embedded="true"
          {% if stx_mount_prefix %}data-stx-mount="{{ stx_mount_prefix }}"{% endif %}
+         {% if working_dir %}data-working-dir="{{ working_dir }}"{% endif %}
          {% if current_project %} data-project-owner="{{ current_project.owner.username }}" data-project-slug="{{ current_project.slug }}" {% endif %}>
     </div>
     {% vite_hmr_client %}
