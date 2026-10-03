@@ -62,20 +62,48 @@ def test_anonymous_user_cannot_install_agents(client):
 
 
 @pytest.mark.django_db
-def test_cards_dependency_hold_blocks_install_and_toggle(client):
-    user = User.objects.create_user("cards-held-user")
+def test_coming_soon_store_app_blocks_install_and_toggle(client):
+    user = User.objects.create_user("coming-soon-held-user")
+    client.force_login(user)
+    ensure_builtin_modules()
+    # Same real store-published fixture as LauncherTileAvailabilityTest.
+    # Current Cards declares no production coming-soon dependency hold.
+    held = AppsModule.objects.create(
+        module_name="scitex-live-paper-app",
+        category="other",
+        visibility="public",
+        availability="coming_soon",
+    )
+
+    install = client.post("/apps/store/api/scitex-live-paper-app/install/")
+    toggle = client.post("/apps/store/api/scitex-live-paper-app/toggle/")
+
+    launcher = client.get("/")
+    tile = next(t for t in launcher.context["tiles"] if t["name"] == held.module_name)
+    assert (
+        (install.status_code, toggle.status_code),
+        not ModuleInstallation.objects.filter(user=user, module=held).exists(),
+        tile["availability"],
+        tile["is_launchable"] is False,
+    ) == ((409, 409), True, "coming_soon", True)
+
+
+@pytest.mark.django_db
+def test_retired_todo_identity_cannot_install_or_toggle(client):
+    user = User.objects.create_user("retired-todo-user")
     client.force_login(user)
     ensure_builtin_modules()
 
     install = client.post("/apps/store/api/todo/install/")
     toggle = client.post("/apps/store/api/todo/toggle/")
 
-    assert (install.status_code, toggle.status_code) == (409, 409)
-    assert not ModuleInstallation.objects.filter(
-        user=user, module__module_name="todo"
-    ).exists()
-    launcher = client.get("/")
-    assert b"canonical per-tenant store verification" in launcher.content
+    assert (
+        (install.status_code, toggle.status_code),
+        not AppsModule.objects.filter(module_name="todo").exists(),
+        not ModuleInstallation.objects.filter(
+            user=user, module__module_name="todo"
+        ).exists(),
+    ) == ((404, 404), True, True)
 
 
 @pytest.mark.django_db
@@ -128,18 +156,44 @@ def test_staff_route_still_reaches_upstream(client, monkeypatch):
     assert response.json()["identity"] == "agents-staff"
 
 
-def test_agents_manifest_is_public_free_install_and_cards_names_blocker():
+@pytest.mark.django_db
+def test_ready_agents_leaf_manifest_is_public_free_install():
+    from django.apps import apps
+    from scitex_app.plugins import loaded_plugin_configs
+
     from apps.infra.workspace_app import registry
+    from apps.workspace.apps_app.services.plugin_apps import plugin_module_config
 
-    agents = registry._manifest_to_module_config(
-        registry._load_manifest(registry._APPS_ROOT / "workspace/agents_app/manifest.json")
-    )
-    cards = registry._manifest_to_module_config(
-        registry._load_manifest(registry._APPS_ROOT / "workspace/todo_app/manifest.json")
-    )
+    config = apps.get_app_config("scitex_agent_container_django")
+    converted = plugin_module_config(config)
+    registered = registry.get_module("agents")
+    ensure_builtin_modules()
+    seeded = AppsModule.objects.get(module_name="agents")
 
-    assert agents.visibility == "public"
-    assert agents.builtin is False and agents.availability == "available"
-    assert cards.availability == "coming_soon"
-    assert "scitex-cards 0.53.1" in cards.availability_reason
-    assert "per-tenant store" in cards.availability_reason
+    assert (
+        apps.ready,
+        any(ready is config for ready in loaded_plugin_configs()),
+        config.name,
+        config.manifest.get("builtin") is False,
+        converted.name,
+        converted.visibility,
+        converted.builtin is False,
+        registered.visibility,
+        registered.builtin is False,
+        seeded.visibility,
+        seeded.is_builtin is False,
+        seeded.availability,
+    ) == (
+        True,
+        True,
+        "scitex_agent_container._django",
+        True,
+        "agents",
+        "public",
+        True,
+        "public",
+        True,
+        "public",
+        True,
+        "available",
+    )

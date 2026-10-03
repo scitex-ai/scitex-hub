@@ -21,11 +21,6 @@ def _make_current_project(request, project) -> None:
     from apps.infra.project_app.services.project_utils import set_current_project
 
     set_current_project(request, project)
-    profile = getattr(request.user, "profile", None)
-    # Writer and FigRecipe read last_active_repository before the session.
-    if profile is not None and profile.last_active_repository_id != project.pk:
-        profile.last_active_repository = project
-        profile.save(update_fields=["last_active_repository"])
 
 
 @login_required

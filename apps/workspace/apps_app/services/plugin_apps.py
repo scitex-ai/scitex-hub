@@ -10,6 +10,7 @@ launcher tile from its manifest. Contract: scitex_app.plugins.
 from __future__ import annotations
 
 import logging
+import re
 from importlib.util import find_spec
 
 logger = logging.getLogger(__name__)
@@ -132,6 +133,22 @@ def plugin_module_config(config):
     from apps.infra.workspace_app.registry import _manifest_to_module_config
     from scitex_app.plugins import mount_route
 
+    try:
+        from scitex_sdk.app.plugins import leaf_declarations
+    except ImportError:
+        declarations = {}
+    else:
+        declarations = leaf_declarations(
+            config.name,
+            {
+                "context_builder": str,
+                "partial_template": str,
+                "content_renderer": str,
+                "api_policy_module": str,
+                "hosted_api_dispatcher": str,
+            },
+        )
+
     manifest = dict(config.manifest)
     slug = manifest.get("slug") or config.label
     manifest.update(
@@ -140,13 +157,55 @@ def plugin_module_config(config):
         app_name=config.label,
         order=manifest.get("order", 90),
         ai_hint=manifest.get("ai_hint") or manifest.get("subtitle", ""),
-        # The app serves its own pages; there is no workspace partial.
-        partial_template="",
-        renders_ui=False,
+        # Old plugins retain their standalone-page fallback. Only genuine
+        # typed leaf declarations enable a workspace partial/renderer.
+        partial_template=declarations.get("partial_template", ""),
+        context_builder=declarations.get(
+            "context_builder", manifest.get("context_builder", "")
+        ),
+        content_renderer=declarations.get("content_renderer", ""),
+        renders_ui=bool(declarations.get("partial_template")),
     )
     module = _manifest_to_module_config(manifest)
     module.url = "/" + mount_route(config)
     return module
+
+
+def _plugin_distribution(config) -> str:
+    """The unique discovered distribution of this exact ready config class."""
+    from scitex_app.plugins import discover_plugin_apps
+
+    config_path = f"{type(config).__module__}.{type(config).__qualname__}"
+    matches = [
+        record for record in discover_plugin_apps()
+        if record.app_config == config_path
+    ]
+    if len(matches) != 1:
+        return ""
+    distribution = matches[0].distribution
+    return distribution if isinstance(distribution, str) else ""
+
+
+def _bind_plugin_renderer(existing, plugin, config) -> None:
+    """Attach only presentation capability to the same backing distribution.
+
+    A slug collision alone must never replace native identity, URL, template,
+    context builder or policy. The host context still declares the guarded API
+    mount and remains the fallback when that mount is absent. Backing ownership
+    comes from the discovered entry point, never the leaf's manifest claim.
+    """
+    owner = existing.pip_package
+    candidate = _plugin_distribution(config)
+    if (
+        not owner or not candidate or not plugin.content_renderer
+        or not existing.context_builder
+    ):
+        return
+    if re.sub(r"[-_.]+", "-", owner).lower() == re.sub(
+        r"[-_.]+", "-", candidate
+    ).lower():
+        existing.content_renderer = plugin.content_renderer
+        existing.renderer_mount_context_builder = existing.context_builder
 
 
 def register_plugin_modules() -> None:
@@ -156,8 +215,11 @@ def register_plugin_modules() -> None:
     for config in _configs():
         try:
             module = plugin_module_config(config)
-            if get_module(module.name) is None:
+            existing = get_module(module.name)
+            if existing is None:
                 register_module(module)
+            else:
+                _bind_plugin_renderer(existing, module, config)
         except Exception:
             logger.exception("[plugin_apps] cannot list %s", config.name)
 

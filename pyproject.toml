@@ -610,6 +610,11 @@ dev = [
     # copies cannot drift.
     # 0.22.0 on 2026-09-15 in lockstep with [all] (canonical selector entry/slot).
     "scitex-ui>=0.22.0",
+    # Owning Django tests require genuine registered GUI leaves.
+    "scitex-storage[gui]>=0.4.3",
+    # The reviewed SAC opt-in manifest is not indexed yet. Keep its exact
+    # source binding in dev, and use a released floor before Hub index uploads.
+    "scitex-agent-container[gui] @ git+https://github.com/scitex-ai/scitex-agent-container.git@82579584ed6a2d618c56873f4966baec6166404c",
 ]
 
 [project.scripts]

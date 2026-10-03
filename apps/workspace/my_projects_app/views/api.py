@@ -238,10 +238,6 @@ def api_select_project(request):
     browse_only = bool(data.get("browse", False))
     if not browse_only:
         set_current_project(request, project)
-        # Only set last_active_repository for projects the user owns
-        if hasattr(request.user, "profile") and project.owner_id == request.user.id:
-            request.user.profile.last_active_repository = project
-            request.user.profile.save(update_fields=["last_active_repository"])
 
     context = {"project": project}
 
@@ -300,9 +296,6 @@ def api_set_active_project(request):
         return JsonResponse({"success": False, "error": "Access denied"}, status=403)
 
     set_current_project(request, project)
-    if hasattr(request.user, "profile") and project.owner_id == request.user.id:
-        request.user.profile.last_active_repository = project
-        request.user.profile.save(update_fields=["last_active_repository"])
 
     return JsonResponse(
         {

@@ -152,6 +152,13 @@ class ModuleConfig:
         default_factory=lambda: ["__pycache__", "node_modules", ".git", ".venv"]
     )
 
+    # Optional leaf capability. Targets stay strings until a content request.
+    content_renderer: str = ""
+    pip_package: str = ""
+    # Host-only provenance, set when binding to an existing native module.
+    # This is not a leaf manifest key or an inferred navigation prefix.
+    renderer_mount_context_builder: str = ""
+
     def get_track_module(self) -> str:
         return self.track_module or self.name
 
@@ -172,6 +179,33 @@ class ModuleConfig:
         if builder:
             return builder(request, current_project)
         return {"current_project": current_project}
+
+    def render_content(self, request, current_project=None):
+        """Keep host context and use a leaf only with its trusted API mount.
+
+        A navigation URL or the content request's URL does not declare an API
+        mount. Existing host context builders supply ``stx_mount_prefix`` by
+        reversing their guarded server routes; absent that declaration the
+        existing partial remains the fallback.
+        """
+        from django.shortcuts import render
+        from django.utils.module_loading import import_string
+
+        if self.content_renderer and not self.renderer_mount_context_builder:
+            from django.http import HttpResponseNotFound
+
+            return HttpResponseNotFound("Hosted API mount is not declared")
+
+        context = self.build_context(request, current_project)
+        api_mount = context.get("stx_mount_prefix")
+        if (
+            self.content_renderer
+            and self.renderer_mount_context_builder == self.context_builder
+            and isinstance(api_mount, str)
+        ):
+            renderer = import_string(self.content_renderer)
+            return renderer(request, current_project, stx_mount=api_mount)
+        return render(request, self.partial_template, context)
 
 
 def _import_builder(dotted_path: str) -> Optional[Callable]:
@@ -342,6 +376,8 @@ def _manifest_to_module_config(data: dict) -> ModuleConfig:
             "hidden_patterns",
             ["__pycache__", "node_modules", ".git", ".venv"],
         ),
+        content_renderer=data.get("content_renderer", ""),
+        pip_package=data.get("pip_package", ""),
     )
 
 

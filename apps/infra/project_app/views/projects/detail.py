@@ -50,6 +50,13 @@ def project_detail(request, username, slug):
     # project available in request.project from decorator
     project = request.project
 
+    # Owned project navigation is an explicit choice, before either UI return.
+    if request.user.is_authenticated and hasattr(request.user, "profile"):
+        if project.owner_id == request.user.id:
+            from apps.infra.project_app.services.project_scope import remember_last_visited
+
+            remember_last_visited(request.user, project)
+
     # The Explorer/Finder-style file tree is the DEFAULT Project UI, for the
     # user's own projects and for public projects alike, signed in or not
     # (operator TODO 186/188/190-192, 2026-09-14). The GitHub-style repository
@@ -92,13 +99,6 @@ def project_detail(request, username, slug):
 
     mode = request.GET.get("mode", "overview")
     view = request.GET.get("view", "default")
-
-    # Track last active repository — only for projects the user owns
-    if request.user.is_authenticated and hasattr(request.user, "profile"):
-        if project.owner_id == request.user.id:
-            if request.user.profile.last_active_repository != project:
-                request.user.profile.last_active_repository = project
-                request.user.profile.save(update_fields=["last_active_repository"])
 
     # Handle concatenated view
     if view == "concatenated":

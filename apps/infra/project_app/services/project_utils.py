@@ -52,15 +52,12 @@ def get_requested_project(request, user=None):
 
 
 def remember_current_project(request, project):
-    """Persist a project choice to BOTH stores so every reader agrees."""
-    from .project_scope import project_key
+    """Commit the DB selection before projecting its ID into the session."""
+    from .project_scope import project_key, remember_last_visited
 
+    remember_last_visited(request.user, project)
     request.session["current_project_key"] = project_key(project)
     request.session["current_project_slug"] = project.slug
-    profile = getattr(request.user, "profile", None)
-    if profile is not None and profile.last_active_repository_id != project.id:
-        profile.last_active_repository = project
-        profile.save(update_fields=["last_active_repository"])
 
 
 def get_current_project(request, user=None):
@@ -105,9 +102,11 @@ def get_current_project(request, user=None):
 
     # HIGHEST PRIORITY: the header selector's last visited accessible project.
     if is_authenticated:
-        from .project_scope import last_visited_project
+        from .project_scope import _project_choice
 
-        lar = last_visited_project(user)
+        explicit_choice, lar = _project_choice(user)
+        if explicit_choice:
+            return lar
         if lar is not None:
             logger.info(
                 f"Using last_active_repository for user {user.username}: {lar.name}"

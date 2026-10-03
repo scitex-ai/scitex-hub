@@ -195,16 +195,7 @@ def api_switch_active_project(request):
         # Get the project and verify ownership
         project = get_object_or_404(Project, pk=project_id, owner=request.user)
 
-        # Update the user's last active repository
-        profile = request.user.profile
-        profile.last_active_repository = project
-        profile.save()
-
-        # ...and the session slug, which is the OTHER place "current project"
-        # is stored. Writing only the profile left the session pointing at the
-        # previous project, so any reader that consults the session first saw a
-        # stale answer while the header showed the new one. Both stores must
-        # move together or "which project am I in" has two answers.
+        # Commit the selection tag and legacy FK, then project into the session.
         set_current_project(request, project)
 
         logger.info(f"User {request.user.username} switched to project {project.name}")
