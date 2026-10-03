@@ -194,7 +194,35 @@ def _normalized_name(name):
     return re.sub(r"[-_.]+", "-", name).lower()
 
 
-def _console_binding(path, entry, package):
+def _console_module_files(row, descriptions, dist):
+    """Exact verified files owned by this producer, beyond its main package.
+
+    Editable bootstrap modules must belong to that producer's captured src
+    inventory. Wheel modules additionally require that distribution's complete
+    verified RECORD ownership, never another package sharing site-packages.
+    """
+    description = descriptions[row["package"]["root"]]
+    root = Path(description["path"])
+    if row["mode"] == "editable":
+        if description.get("kind") != "app-source":
+            raise ValueError("editable console source authority unknown")
+        owner_root = root / "src"
+        owned = None
+    else:
+        if description.get("kind") != "python-site":
+            raise ValueError("wheel console source authority unknown")
+        owner_root = root
+        owned = {Path(os.path.abspath(dist.locate_file(file))) for file in (dist.files or [])}
+    files = {}
+    for member in description["members"]:
+        path = root / member["path"]
+        if (member.get("type") == "file" and path.is_relative_to(owner_root) and
+                (owned is None or path in owned)):
+            files[str(path)] = member
+    return files
+
+
+def _console_binding(path, entry, module_files):
     """Measure the installed Python wrapper without executing a CLI command."""
     text = path.read_text(encoding="utf-8")
     first = text.splitlines()[0]
@@ -215,8 +243,12 @@ def _console_binding(path, entry, package):
     # Resolve its module through the same active target path. Do not invoke its
     # function, load a model, initialize an account, or perform a scientific job.
     spec = importlib.util.find_spec(module)
-    if spec is None or spec.origin is None or not Path(spec.origin).is_relative_to(package):
+    if spec is None or spec.origin not in module_files:
         raise ValueError("console module belongs to another producer")
+    member = module_files[spec.origin]
+    data = _read_manifest(spec.origin)
+    if len(data) != member["size"] or hashlib.sha256(data).hexdigest() != member["sha256"]:
+        raise ValueError("console module differs from its verified source bytes")
     if not callable(entry.load()):
         raise ValueError("console entry point is not callable")
     loaded = sys.modules[module]
@@ -228,6 +260,7 @@ def _console_binding(path, entry, package):
 def _active_bindings(manifest):
     """Compare actual imports, metadata and wrappers with the verified producer."""
     roots = {row["id"]: Path(row["path"]) for row in manifest["roots"]}
+    descriptions = {row["id"]: row for row in manifest["roots"]}
     distributions = list(importlib.metadata.distributions())
     bindings = {}
     for row in manifest["distributions"]:
@@ -271,7 +304,8 @@ def _active_bindings(manifest):
                                  for file in (owner.files or []))}
                 if owners != {id(dist)}:
                     raise ValueError("console wrapper has foreign or duplicate ownership")
-                _console_binding(path, scripts[path.name], package)
+                _console_binding(path, scripts[path.name],
+                                 _console_module_files(row, descriptions, dist))
             answer.update(verified=True, module_origin=expected,
                           metadata_origin=str(metadata), console_scripts=sorted(scripts))
         except Exception as exc:  # noqa: BLE001 - imports are classified, never accepted on error

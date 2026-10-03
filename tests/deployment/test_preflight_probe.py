@@ -34,7 +34,8 @@ def snapshot(tmp_path, state_scope, probe):
     project, installed, binary = (tmp_path / name for name in ("app", "site", "bin"))
     installed.mkdir()
     binary.mkdir()
-    roots = [{"id": "site", "path": str(installed)}, {"id": "bin", "path": str(binary)}]
+    roots = [{"id": "site", "kind": "python-site", "path": str(installed)},
+             {"id": "bin", "kind": "python-bin", "path": str(binary)}]
     rows = []
     for name in sorted(probe.APP_DISTRIBUTIONS):
         module = name.replace("-", "_")
@@ -49,7 +50,7 @@ def snapshot(tmp_path, state_scope, probe):
         else:
             source = project / ".apps" / name
             package = source / "src" / module
-            roots.append({"id": name, "path": str(source)})
+            roots.append({"id": name, "kind": "app-source", "path": str(source)})
             pointer = {"root": name, "path": "src/" + module}
             (installed / (module + ".pth")).write_text(str(source / "src") + "\n")
         package.mkdir(parents=True)
@@ -58,6 +59,8 @@ def snapshot(tmp_path, state_scope, probe):
         wrapper = binary / name
         wrapper.write_text(f"#!{sys.executable}\nfrom {module}._cli import main\nmain()\n")
         paths = [info / "METADATA", info / "entry_points.txt", wrapper]
+        if mode == "wheel":
+            paths.extend([package / "__init__.py", package / "_cli.py"])
         (info / "RECORD").write_text("".join(os.path.relpath(path, installed) + ",,\n" for path in paths))
         rows.append({"name": name, "version": "1.0", "mode": mode, "package": pointer,
                      "metadata": {"root": "site", "path": info.name},
@@ -71,12 +74,22 @@ def snapshot(tmp_path, state_scope, probe):
                                       if path.startswith(sys.base_prefix + "/lib/python") and
                                       "site-packages" not in path and "dist-packages" not in path])
     site.addsitedir(str(installed))
+    _inventory_fixture_roots(roots)
     yield {"schema": "scitex.apps.immutable-boot/v1", "profile": "reviewed-v3",
            "roots": roots, "distributions": rows, "absent": []}
     for cached in list(sys.modules):
         if any(cached == name.replace("-", "_") or cached.startswith(name.replace("-", "_") + ".")
                for name in probe.APP_DISTRIBUTIONS):
             sys.modules.pop(cached, None)
+
+
+def _inventory_fixture_roots(roots):
+    for root in roots:
+        path = Path(root["path"])
+        root["members"] = [{"path": str(file.relative_to(path)), "type": "file",
+                            "size": file.stat().st_size,
+                            "sha256": hashlib.sha256(file.read_bytes()).hexdigest()}
+                           for file in path.rglob("*") if file.is_file()]
 
 
 def test_real_site_retains_five_editables_and_storage_wheel(snapshot, probe):
@@ -116,6 +129,7 @@ def _storage_drift(snapshot, tmp_path, drift):
         (binary / "scitex-storage").write_text(f"#!{sys.executable}\nfrom scitex_storage._cli import main\nprint('echo')\n")
     elif drift == "missing-callable":
         (installed / "scitex_storage/_cli.py").write_text("main = None\n")
+        _inventory_fixture_roots(snapshot["roots"])
     else:
         (binary / "scitex-storage").write_text("#!/wrong/python\nfrom scitex_storage._cli import main\nmain()\n")
 
@@ -477,3 +491,75 @@ def _hub_authority_drift(hub_snapshot, tmp_path, drift):
         hub["kind"] = "app-source"
     else:
         hub_snapshot["roots"].append(dict(hub, id="hub-duplicate"))
+
+
+@pytest.fixture
+def bootstrap_snapshot(snapshot, state_scope):
+    roots = {row["id"]: Path(row["path"]) for row in snapshot["roots"]}
+    row = next(row for row in snapshot["distributions"] if row["name"] == "scitex-agent-container")
+    source = roots[row["package"]["root"]] / "src"
+    bootstrap = source / "_scitex_agent_container_bootstrap"
+    bootstrap.mkdir()
+    (bootstrap / "__init__.py").write_text(
+        "def cli_entry_point():\n    raise RuntimeError('must never invoke CLI')\n")
+    info = roots["site"] / row["metadata"]["path"]
+    names = ("sac", "scitex-agent-container", "sac-statusline")
+    values = ("_scitex_agent_container_bootstrap:cli_entry_point",
+              "_scitex_agent_container_bootstrap:cli_entry_point",
+              "scitex_agent_container._cli:main")
+    (info / "entry_points.txt").write_text("[console_scripts]\n" + "".join(
+        f"{name} = {value}\n" for name, value in zip(names, values, strict=True)))
+    wrappers = []
+    for name, value in zip(names, values, strict=True):
+        module, attribute = value.split(":")
+        wrapper = roots["bin"] / name
+        wrapper.write_text(f"#!{sys.executable}\nfrom {module} import {attribute}\n{attribute}()\n")
+        wrappers.append(wrapper)
+    row["console_scripts"] = [{"root": "bin", "path": name} for name in names]
+    record = info / "RECORD"
+    record.write_text(record.read_text() + "".join(
+        os.path.relpath(path, roots["site"]) + ",,\n" for path in wrappers if path.name != "scitex-agent-container"))
+    _inventory_fixture_roots(snapshot["roots"])
+    for name in list(sys.modules):
+        if name == "_scitex_agent_container_bootstrap" or name.startswith("_scitex_agent_container_bootstrap."):
+            state_scope.delitem(sys.modules, name)
+    yield snapshot
+    sys.modules.pop("_scitex_agent_container_bootstrap", None)
+
+
+def test_same_producer_verified_top_level_bootstrap_retains_three_console_bindings(bootstrap_snapshot, probe):
+    # Arrange: actual retained SAC console names point to a separately owned src module.
+    expected = ["sac", "sac-statusline", "scitex-agent-container"]
+    # Act: import the exact source-backed console object without calling it.
+    actual = probe._active_bindings(bootstrap_snapshot)["scitex-agent-container"]
+    # Assert: the bootstrap layout qualifies by its verified bytes, not package nesting.
+    assert (actual["verified"], actual.get("console_scripts")) == (True, expected)
+
+
+@pytest.mark.parametrize("drift", ["foreign", "missing-pin", "hash-conflict", "symlink"])
+def test_bootstrap_requires_same_producer_regular_file_hash_authority(bootstrap_snapshot, probe, tmp_path, drift):
+    # Arrange: corrupt one independent authority boundary while retaining console metadata.
+    _bootstrap_authority_drift(bootstrap_snapshot, tmp_path, drift)
+    # Act: ask the real resolver and loader to qualify its declared bootstrap.
+    actual = probe._active_bindings(bootstrap_snapshot)["scitex-agent-container"]["verified"]
+    # Assert: unverified source is refused before its console module is loaded.
+    assert (actual, "_scitex_agent_container_bootstrap" in sys.modules) == (False, False)
+
+
+def _bootstrap_authority_drift(snapshot, tmp_path, drift):
+    root = next(row for row in snapshot["roots"] if row["id"] == "scitex-agent-container")
+    relative = "src/_scitex_agent_container_bootstrap/__init__.py"
+    path = Path(root["path"]) / relative
+    if drift == "foreign":
+        foreign = tmp_path / "foreign/_scitex_agent_container_bootstrap"
+        foreign.mkdir(parents=True)
+        (foreign / "__init__.py").write_bytes(path.read_bytes())
+        sys.path.insert(0, str(foreign.parent))
+    elif drift == "missing-pin":
+        root["members"] = [member for member in root["members"] if member["path"] != relative]
+    elif drift == "hash-conflict":
+        path.write_text("raise RuntimeError('unverified bytes must not execute')\n")
+    else:
+        moved = path.with_name("original.py")
+        path.rename(moved)
+        path.symlink_to(moved.name)
