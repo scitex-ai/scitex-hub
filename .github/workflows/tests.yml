@@ -308,6 +308,12 @@ jobs:
         # blocked. Operator directive (2026-07-22): "a gate that cannot
         # fail is not a gate" — this job is PR-blocking via test-summary.
         env:
+          # Trust only this checkout for these Git-reading test processes.
+          GIT_CONFIG_COUNT: "2"
+          GIT_CONFIG_KEY_0: safe.directory
+          GIT_CONFIG_VALUE_0: ""
+          GIT_CONFIG_KEY_1: safe.directory
+          GIT_CONFIG_VALUE_1: '${{ github.workspace }}'
           SCITEX_HUB_DJANGO_SECRET_KEY: ci-test-key  # pragma: allowlist secret
           SCITEX_HUB_GITEA_SSH_PORT_DEV: "2222"
           # Some regression tests are BEHAVIOURAL (they build real tenants and
@@ -322,6 +328,8 @@ jobs:
           SCITEX_HUB_DB_PORT_DEV: ${{ job.container.id && '5432' || job.services.postgres.ports['5432'] }}
           SCITEX_HUB_TEST_MODE: "1"
         run: |
+          python -c 'import os; from pathlib import Path; p=Path(os.environ["GITHUB_WORKSPACE"]).resolve(); assert p == Path.cwd().resolve(); print("tracked-source", "uid="+str(os.getuid()), "repo_uid="+str(p.stat().st_uid), "home="+os.environ.get("HOME", ""), "workspace="+str(p))'
+          git -C "$GITHUB_WORKSPACE" ls-files --error-unmatch tests/tracked_source.py >/dev/null
           python -m pytest \
             tests/security/ \
             -v --tb=short -p no:playwright -o "addopts=" \
@@ -331,6 +339,12 @@ jobs:
         # A suite that silently collects 0 tests is a gate that cannot
         # fail. Assert it is non-empty, independently of the run above.
         env:
+          # Trust only this checkout for these Git-reading test processes.
+          GIT_CONFIG_COUNT: "2"
+          GIT_CONFIG_KEY_0: safe.directory
+          GIT_CONFIG_VALUE_0: ""
+          GIT_CONFIG_KEY_1: safe.directory
+          GIT_CONFIG_VALUE_1: '${{ github.workspace }}'
           SCITEX_HUB_DJANGO_SECRET_KEY: ci-test-key  # pragma: allowlist secret
           SCITEX_HUB_GITEA_SSH_PORT_DEV: "2222"
           SCITEX_HUB_DB_NAME_DEV: scitex_test
