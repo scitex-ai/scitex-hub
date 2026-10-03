@@ -87,9 +87,10 @@ def plugin_urlpatterns(existing) -> list:
     whole urlconf on first resolve (lazy, so the optional package stays
     import-safe and startup pays nothing extra).
     """
+    from functools import cached_property
+
     from django.urls import include, path
     from django.urls.resolvers import RoutePattern, URLResolver
-    from functools import cached_property
 
     try:
         from scitex_sdk.app.plugins import mount_route  # type: ignore[import-not-found]
@@ -130,8 +131,9 @@ def plugin_urlpatterns(existing) -> list:
 
 def plugin_module_config(config):
     """Launcher ModuleConfig built from the plugin's own manifest."""
-    from apps.infra.workspace_app.registry import _manifest_to_module_config
     from scitex_sdk.app.plugins import mount_route
+
+    from apps.infra.workspace_app.registry import _manifest_to_module_config
 
     try:
         from scitex_sdk.app.plugins import leaf_declarations
@@ -190,22 +192,24 @@ def _bind_plugin_renderer(existing, plugin, config) -> None:
     """Attach only presentation capability to the same backing distribution.
 
     A slug collision alone must never replace native identity, URL, template,
-    context builder or policy. The host context still declares the guarded API
-    mount and remains the fallback when that mount is absent. Backing ownership
-    comes from the discovered entry point, never the leaf's manifest claim.
+    context builder or policy. A leaf's actual registered URLconf supplies its
+    mount; the native surface stays the fallback when that mount is absent.
+    Backing ownership comes from the discovered entry point, never the manifest.
     """
     owner = existing.pip_package
     candidate = _plugin_distribution(config)
     if (
         not owner or not candidate or not plugin.content_renderer
-        or not existing.context_builder
     ):
         return
     if re.sub(r"[-_.]+", "-", owner).lower() == re.sub(
         r"[-_.]+", "-", candidate
     ).lower():
+        from scitex_sdk.app.plugins import mount_route
+
         existing.content_renderer = plugin.content_renderer
-        existing.renderer_mount_context_builder = existing.context_builder
+        existing.renderer_mount_route = mount_route(config)
+        existing.renderer_leaf_urlconf = f"{config.name}.urls"
 
 
 def register_plugin_modules() -> None:

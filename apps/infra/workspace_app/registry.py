@@ -158,6 +158,10 @@ class ModuleConfig:
     # Host-only provenance, set when binding to an existing native module.
     # This is not a leaf manifest key or an inferred navigation prefix.
     renderer_mount_context_builder: str = ""
+    # Host-bound declared route and exact leaf URLconf. Rendering additionally
+    # checks the real resolver before handing this prefix to a leaf adapter.
+    renderer_mount_route: str = ""
+    renderer_leaf_urlconf: str = ""
 
     def get_track_module(self) -> str:
         return self.track_module or self.name
@@ -181,15 +185,26 @@ class ModuleConfig:
         return {"current_project": current_project}
 
     def render_content(self, request, current_project=None):
-        """Keep host context and use a leaf only with its trusted API mount.
+        """Render an actually mounted leaf, retaining the native fallback.
 
-        A navigation URL or the content request's URL does not declare an API
-        mount. Existing host context builders supply ``stx_mount_prefix`` by
-        reversing their guarded server routes; absent that declaration the
-        existing partial remains the fallback.
+        The bound leaf URLconf and SDK route must match the real resolver.
+        Older native context declarations remain compatible for registrations
+        that have not adopted this leaf renderer contract.
         """
         from django.shortcuts import render
         from django.utils.module_loading import import_string
+
+        if self.content_renderer and self.renderer_leaf_urlconf:
+            api_mount = _registered_leaf_mount(
+                request, self.renderer_mount_route, self.renderer_leaf_urlconf
+            )
+            if api_mount is not None:
+                renderer = import_string(self.content_renderer)
+                return renderer(request, current_project, stx_mount=api_mount)
+            return render(
+                request, self.partial_template,
+                self.build_context(request, current_project),
+            )
 
         if self.content_renderer and not self.renderer_mount_context_builder:
             from django.http import HttpResponseNotFound
@@ -206,6 +221,40 @@ class ModuleConfig:
             renderer = import_string(self.content_renderer)
             return renderer(request, current_project, stx_mount=api_mount)
         return render(request, self.partial_template, context)
+
+
+def _registered_leaf_mount(request, route: str, leaf_urlconf: str) -> Optional[str]:
+    """Return a leaf prefix only when the normal resolver actually selects it."""
+    from django.urls import Resolver404, get_resolver, get_script_prefix, get_urlconf
+    from django.urls.resolvers import RoutePattern, URLResolver
+
+    if (
+        not isinstance(route, str) or not route or route.startswith("/")
+        or not route.endswith("/") or any(c in route for c in "?\\#\r\n")
+        or any(part in {".", "..", ""} for part in route[:-1].split("/"))
+    ):
+        return None
+    try:
+        urlconf = getattr(request, "urlconf", None) or get_urlconf()
+        match = get_resolver(urlconf).resolve("/" + route)
+    except Resolver404:
+        return None
+    if not match.tried:
+        return None
+    prefix = ""
+    for pattern in match.tried[-1]:
+        if not isinstance(pattern, URLResolver):
+            continue
+        if not isinstance(pattern.pattern, RoutePattern):
+            return None
+        prefix += str(pattern.pattern)
+        module = pattern.urlconf_name
+        name = module if isinstance(module, str) else getattr(module, "__name__", "")
+        if name == leaf_urlconf:
+            if prefix == route:
+                return get_script_prefix().rstrip("/") + "/" + route
+            return None
+    return None
 
 
 def _import_builder(dotted_path: str) -> Optional[Callable]:
