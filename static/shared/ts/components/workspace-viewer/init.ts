@@ -130,6 +130,7 @@ function openFileInViewer(
 function registerNavRestore(): void {
   window._appNav?.onRestore((state) => {
     if (state.file && window.workspaceViewer) {
+      window.workspaceFilesTree?.selectFile(state.file, true);
       const emptyState = document.getElementById("ws-viewer-empty");
       openFileInViewer(window.workspaceViewer, state.file, emptyState);
     }
