@@ -110,7 +110,7 @@ jobs:
           bash scripts/apps/install_apps.sh --clone
 
       - name: Select the published Python SDK frontend package
-        run: uv pip install --python "$(command -v python)" "scitex-sdk==0.3.1"
+        run: uv pip install --python "$(command -v python)" "scitex-sdk==0.3.2"
 
       - name: Install Node dependencies & build
         run: |

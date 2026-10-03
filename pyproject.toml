@@ -273,7 +273,9 @@ dependencies = [
     # so the generic plugin mount cannot discover it — the mount is explicit.
     # >=0.3.0 also supplies the packaged @scitex/sdk frontend exports consumed
     # by bridged apps. Pack the selected Python SDK before npm installation.
-    "scitex-sdk>=0.3.0",
+    # >=0.3.2 carries the canonical project-scope and preflight/final
+    # write-grant contract qualified for the current leaf integration.
+    "scitex-sdk>=0.3.2",
     "gitpython>=3.1.51",
 ]
 

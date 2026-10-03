@@ -105,7 +105,7 @@ jobs:
           bash scripts/apps/install_apps.sh --clone
           # This is Hub's selected Python SDK; Fig's separate Node-only SDK
           # remains the genuine 0.3.0 source declared by its own package.json.
-          uv pip install --python .venv/bin/python "scitex-sdk==0.3.1"
+          uv pip install --python .venv/bin/python "scitex-sdk==0.3.2"
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -157,7 +157,7 @@ jobs:
           python3 scripts/apps/prepare_frontend_sources.py
           # Vite's existing UI entry discovery uses the selected Python UI.
           # Install its genuine source and the separately selected public SDK.
-          uv pip install --python .venv/bin/python -e ../scitex-ui "scitex-sdk==0.3.1"
+          uv pip install --python .venv/bin/python -e ../scitex-ui "scitex-sdk==0.3.2"
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
