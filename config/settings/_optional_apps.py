@@ -19,7 +19,6 @@ read the same.
 
 from __future__ import annotations
 
-import importlib.util
 import logging
 import os
 from importlib import import_module
@@ -444,8 +443,6 @@ def _with_host_plugin_apps(
     Django's AppConfig metadata supplies identity; population remains with setup.
     """
     try:
-        from django.apps import AppConfig
-        from django.core.exceptions import ImproperlyConfigured
         from scitex_app.plugins import discover_plugin_apps, installed_app_paths
     except ImportError:
         return entries
@@ -454,33 +451,27 @@ def _with_host_plugin_apps(
     if not discovered:
         return entries
 
-    reserved = [AppConfig.create(entry) for entry in registered_entries]
-    configurations = {entry: AppConfig.create(entry) for entry in entries}
+    from ._app_config_metadata import MetadataUnavailable, app_config_identity
+
+    configurations = {}
+    unavailable = {}
+    for entry in [*registered_entries, *entries]:
+        try:
+            configurations[entry] = app_config_identity(entry)
+        except MetadataUnavailable as error:
+            unavailable[entry] = str(error)
+    reserved = [configurations[entry] for entry in registered_entries if entry in configurations]
     reserved_names = {config.name for config in reserved}
     usable = []
     for plugin in discovered:
-        module = plugin.app_config.rpartition(".")[0]
         try:
-            found = importlib.util.find_spec(module) is not None
-        except (ImportError, ValueError):
-            found = False
-        if not found:
-            logger.warning(
-                "scitex.apps entry point %r names %s, whose module %s is not "
-                "importable; app skipped.",
-                plugin.name,
-                plugin.app_config,
-                module,
-            )
-            continue
-        try:
-            config = AppConfig.create(plugin.app_config)
-        except (ImportError, ValueError, TypeError, ImproperlyConfigured) as error:
+            config = app_config_identity(plugin.app_config)
+        except MetadataUnavailable as error:
             logger.warning(
                 "scitex.apps entry point %r has unavailable AppConfig metadata "
                 "(%s); app skipped.",
                 plugin.name,
-                type(error).__name__,
+                str(error),
             )
             continue
         if config.name in reserved_names:
@@ -494,6 +485,14 @@ def _with_host_plugin_apps(
 
         configurations[plugin.app_config] = config
         proposed = installed_app_paths(entries, [*usable, plugin])
+        unknown = next((entry for entry in [*registered_entries, *proposed] if entry in unavailable), None)
+        if unknown is not None:
+            logger.warning(
+                "scitex.apps entry point %r cannot certify registered owner %s "
+                "(%s); registered app retained, plugin skipped.",
+                plugin.name, unknown, unavailable[unknown],
+            )
+            continue
         names = set()
         label_owners = {}
         collision = None

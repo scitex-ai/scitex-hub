@@ -60,13 +60,11 @@ Every status code below was measured live on production 2026-08-17,
 authenticated as a visitor, with nginx bypassed. Two measurement traps are
 pinned as tests of their own so nobody re-hits them:
 
-  * ``api/file-content/AGENTS.md`` (BARE filename) is CORRECTLY 403 — the
-    remainder resolves against BASE_DIR, i.e. ``/app/AGENTS.md``, which is
-    outside every tenant's jail. Used as a positive control it looks like
-    the guard over-blocks. The real in-jail form is
-    ``api/file-content/data/users/<user>/proj/<project>/AGENTS.md``.
-    ``test_bare_filename_remainder_is_403_because_it_resolves_outside_the_jail``
-    pins that this 403 is intended.
+  * Current ``api/file-content/AGENTS.md`` is relative to the selected
+    project, never the global BASE_DIR file. The old BASE_DIR-relative
+    encoding is accepted only for that same selected project's exact
+    prefix. Positive controls pin both forms and their actual own content;
+    traversal, another project's prefix and symlink escapes remain 403.
   * ``curl`` normalises ``../`` CLIENT-SIDE per RFC 3986, so a traversal
     probe never reaches Django and returns 301, which reads as a pass.
     Django's test client sends the path verbatim — one more reason this
@@ -152,7 +150,7 @@ def _make_tenant(username: str, sentinel: str, slug: str) -> tuple[User, Path]:
         email=f"{username}@example.com",
         password="Password123!",  # pragma: allowlist secret
     )
-    project_dir = _data_root() / username / "proj" / "p1"
+    project_dir = _data_root() / username / "proj" / slug
     project_dir.mkdir(parents=True, exist_ok=True)
     (project_dir / "AGENTS.md").write_text(sentinel + "\n", encoding="utf-8")
     project = Project.objects.create(
@@ -221,7 +219,7 @@ def anon_client():
 
 
 def _segment(project_dir: Path) -> str:
-    """The BASE_DIR-relative segment form ``api/file-content`` expects."""
+    """The legacy BASE_DIR-relative form, accepted only for this project."""
     return str(project_dir.relative_to(Path(settings.BASE_DIR)))
 
 
@@ -469,15 +467,62 @@ def test_file_content_segment_cross_tenant_read_leaks_no_content(
     assert VICTIM_SENTINEL not in response.content.decode("utf-8", "replace")
 
 
-def test_bare_filename_remainder_is_403_because_it_resolves_outside_the_jail(client):
-    # Arrange — MEASUREMENT TRAP: the remainder is relative to BASE_DIR, so
-    # a bare name is /app/AGENTS.md, correctly outside every tenant jail.
-    # Pinned so a future reader does not file this 403 as an over-block.
+def test_project_relative_filename_is_served_from_the_selected_root(client):
+    # Arrange — the current leaf route is relative to the authorized project.
     url = MOUNT + "api/file-content/AGENTS.md"
     # Act
     response = client.get(url)
     # Assert
+    assert (response.status_code, json.loads(response.content)["content"]) == (
+        200, CALLER_SENTINEL + "\n"
+    )
+
+
+def test_global_agents_file_cannot_be_reached_by_project_relative_traversal(client):
+    # Arrange — the global BASE_DIR/AGENTS.md is outside the selected project.
+    url = MOUNT + "api/file-content/../../../../../AGENTS.md"
+    # Act
+    response = client.get(url)
+    # Assert
     assert response.status_code == 403
+
+
+def test_other_project_legacy_prefix_is_not_reinterpreted_under_the_selected_root(
+    client, caller_project_dir
+):
+    # Arrange — another project owned by the same user is not the selected root.
+    sibling = caller_project_dir.parent / "not-selected"
+    url = MOUNT + "api/file-content/" + _segment(sibling) + "/AGENTS.md"
+    # Act
+    response = client.get(url)
+    # Assert
+    assert response.status_code == 403
+
+
+def test_project_relative_symlink_cannot_read_another_tenant(
+    client, caller_project_dir, victim_project_dir
+):
+    # Arrange
+    (caller_project_dir / "other-tenant.md").symlink_to(victim_project_dir / "AGENTS.md")
+    url = MOUNT + "api/file-content/other-tenant.md"
+    # Act
+    response = client.get(url)
+    # Assert
+    assert response.status_code == 403 and VICTIM_SENTINEL not in response.content.decode()
+
+
+def test_project_relative_nested_content_remains_reachable(client, caller_project_dir):
+    # Arrange
+    nested = caller_project_dir / "notes" / "own.txt"
+    nested.parent.mkdir()
+    nested.write_text(CALLER_SENTINEL + "\n", encoding="utf-8")
+    url = MOUNT + "api/file-content/notes/own.txt"
+    # Act
+    response = client.get(url)
+    # Assert
+    assert (response.status_code, json.loads(response.content)["content"]) == (
+        200, CALLER_SENTINEL + "\n"
+    )
 
 
 def test_gallery_thumbnail_segment_traversal_is_403(client):

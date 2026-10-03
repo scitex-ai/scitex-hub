@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import logging
 from types import SimpleNamespace
 
 import pytest
@@ -173,6 +174,7 @@ def _compose_registered_apps(entries, registered_entries, plugins, django_entrie
 
 def test_existing_label_owner_rejects_a_different_plugin(config_packages, caplog):
     # Arrange
+    caplog.set_level(logging.WARNING, logger="config.settings._optional_apps")
     owner = config_packages["host"]
     plugins = [
         PluginApp("collision", config_packages["collision"] + ".apps.DefaultConfig")
@@ -270,6 +272,7 @@ def test_a_core_owner_is_reserved_before_optional_plugins(config_packages):
 
 def test_a_local_module_keeps_its_label_when_plugin_metadata_differs(config_packages, caplog):
     # Arrange
+    caplog.set_level(logging.WARNING, logger="config.settings._optional_apps")
     local = config_packages["host"]
     plugin = PluginApp("host", local + ".apps.ChangedLabelConfig")
     # Act
@@ -376,6 +379,7 @@ def _registry_metadata(installed):
 
 def test_a_config_alias_cannot_append_an_existing_real_name(config_packages, alias_config_packages, caplog):
     # Arrange
+    caplog.set_level(logging.WARNING, logger="config.settings._optional_apps")
     host = config_packages["host"]
     alias = alias_config_packages["alias_host"] + ".apps.DefaultConfig"
     # Act
@@ -390,6 +394,7 @@ def test_a_config_alias_cannot_append_an_existing_real_name(config_packages, ali
 
 def test_two_aliases_with_distinct_labels_cannot_duplicate_real_names(config_packages, alias_config_packages, caplog):
     # Arrange
+    caplog.set_level(logging.WARNING, logger="config.settings._optional_apps")
     first = alias_config_packages["alias_host"] + ".apps.DefaultConfig"
     second = alias_config_packages["alias_changed"] + ".apps.DefaultConfig"
     # Act

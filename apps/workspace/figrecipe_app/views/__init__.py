@@ -3,6 +3,7 @@
 import logging
 
 from django.shortcuts import redirect, render
+from django.urls import reverse
 
 from apps.infra.project_app.services.project_scope import project_for_scope_app
 
@@ -27,6 +28,7 @@ def figure_editor(request, figrecipe_embedded=False):
         "app_label": "FigRecipe",
         "app_mount_css": "figrecipe_app/css/figrecipe-mount.css",
         "bridge_entry_name": "figrecipe_app/figrecipe-bridge-init",
+        "stx_mount_prefix": reverse("figrecipe_app:figrecipe_editor").rstrip("/"),
     }
 
 
@@ -48,6 +50,7 @@ def build_figrecipe_context(request, current_project=None):
         "app_label": "FigRecipe",
         "app_mount_css": "figrecipe_app/css/figrecipe-mount.css",
         "bridge_entry_name": "figrecipe_app/figrecipe-bridge-init",
+        "stx_mount_prefix": reverse("figrecipe_app:figrecipe_editor").rstrip("/"),
         "current_project": current_project,
     }
     if not current_project:
