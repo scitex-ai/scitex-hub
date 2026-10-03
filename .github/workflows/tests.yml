@@ -51,7 +51,7 @@ jobs:
     # Custom defining workflows are not admitted to the company group.
     # Request hosted placement through the pinned organization admission seam.
     needs: runner-admission
-    runs-on: ${{ fromJSON(needs.runner-admission.outputs.runs_on) }}
+    runs-on: ubuntu-latest
 
     steps:
       # Refuse native placement before checkout, even for confirmed members.
@@ -131,7 +131,7 @@ jobs:
     # canary existed to establish for the self-hosted pool.
     # Keep the full custom check hosted until its defining workflow is admitted.
     needs: runner-admission
-    runs-on: ${{ fromJSON(needs.runner-admission.outputs.runs_on) }}
+    runs-on: ubuntu-latest
 
     steps:
       # Refuse native placement before checkout, even for confirmed members.
@@ -174,12 +174,12 @@ jobs:
     name: "Terminal Broker & Session Tests (Python)"
     # Preserve the original container and test environment on hosted runners.
     needs: runner-admission
-    runs-on: ${{ fromJSON(needs.runner-admission.outputs.runs_on) }}
+    runs-on: ubuntu-latest
     container:
       image: >-
         ${{ (github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name != github.repository)
             && '' || 'buildpack-deps:noble' }}
-      options: --user 1000:1000 --cpus 4 --memory 8g
+      options: --cpus 4 --memory 8g
 
     steps:
       # Refuse native placement before checkout, even for confirmed members.
@@ -240,12 +240,12 @@ jobs:
     name: "Security Regression Gates (tests/security/)"
     # Preserve the original container and test environment on hosted runners.
     needs: runner-admission
-    runs-on: ${{ fromJSON(needs.runner-admission.outputs.runs_on) }}
+    runs-on: ubuntu-latest
     container:
       image: >-
         ${{ (github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name != github.repository)
             && '' || 'buildpack-deps:noble' }}
-      options: --user 1000:1000 --cpus 4 --memory 8g
+      options: --cpus 4 --memory 8g
 
     # The behavioural gates here build real tenants and execute real views
     # against a real database, so they need one. Previously this job ran with
