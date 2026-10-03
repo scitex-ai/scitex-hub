@@ -443,7 +443,7 @@ def _with_host_plugin_apps(
     Django's AppConfig metadata supplies identity; population remains with setup.
     """
     try:
-        from scitex_app.plugins import discover_plugin_apps, installed_app_paths
+        from scitex_sdk.app.plugins import discover_plugin_apps, installed_app_paths
     except ImportError:
         return entries
 

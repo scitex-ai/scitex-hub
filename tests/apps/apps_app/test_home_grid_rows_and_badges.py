@@ -84,7 +84,7 @@ _PLUGIN_TILE_NAMES = ("scitex-cards", "storage", "agents")
 def _register_plugin_tiles() -> list[str]:
     """Register any plugin tile the environment left out; return what was added."""
     try:
-        from scitex_app.plugins import loaded_plugin_configs
+        from scitex_sdk.app.plugins import loaded_plugin_configs
     except ImportError:
         return []
     from apps.workspace.apps_app.services.plugin_apps import plugin_module_config

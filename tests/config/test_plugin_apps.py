@@ -8,9 +8,9 @@ from types import SimpleNamespace
 import pytest
 from django.urls import path
 
-pytest.importorskip("scitex_app.plugins", reason="released scitex-app has no plugin API")
+pytest.importorskip("scitex_sdk.app.plugins", reason="released scitex-sdk has no plugin API")
 
-from scitex_app.plugins import PluginApp  # type: ignore[import-not-found]
+from scitex_sdk.app.plugins import PluginApp  # type: ignore[import-not-found]
 
 from apps.workspace.apps_app.services.plugin_apps import (
     _route_taken,

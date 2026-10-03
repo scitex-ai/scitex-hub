@@ -482,7 +482,8 @@ def test_storage_escaping_dir_is_refused():
     # Arrange
     views = _leaf_storage_views()
     request = _storage_request(
-        "/apps/storage/", {"volume": "workspace", "dir": "../../.."}
+        "/apps/storage/",
+        {"tab": "move", "plan": "1", "volume": "workspace", "dir": "../../.."}
     )
     # Act
     from apps.workspace.console_app.models import ComputeIdentity

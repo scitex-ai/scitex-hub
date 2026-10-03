@@ -159,7 +159,7 @@ def test_staff_route_still_reaches_upstream(client, monkeypatch):
 @pytest.mark.django_db
 def test_ready_agents_leaf_manifest_is_public_free_install():
     from django.apps import apps
-    from scitex_app.plugins import loaded_plugin_configs
+    from scitex_sdk.app.plugins import loaded_plugin_configs
 
     from apps.infra.workspace_app import registry
     from apps.workspace.apps_app.services.plugin_apps import plugin_module_config

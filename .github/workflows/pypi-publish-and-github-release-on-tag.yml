@@ -12,9 +12,9 @@ name: release
 #   2. build         — wheel + sdist, uploaded as workflow artifact.
 #   3. publish       — PyPI via OIDC trusted publisher.
 #   4. release       — GitHub Release with CHANGELOG notes + artifacts.
-#   5. sync-main     — open a develop→main PR (admin-merge) so main
-#                      always equals the latest released commit. Skipped
-#                      if main already matches.
+#   5. sync-main     — open the normal develop→main promotion PR.
+#                      Auto-merge requires normal checks and reviews.
+#                      Skipped if main already matches.
 #
 # Manual re-run: the workflow also accepts a `version` input via
 # workflow_dispatch so you can re-publish without re-tagging.
@@ -195,9 +195,9 @@ jobs:
             dist/*
 
   sync-main:
-    # Open develop→main PR so main always equals the latest released
-    # commit. Branch-protected mains require PR review; this job tries
-    # admin-merge but leaves the PR open if that isn't allowed.
+    # Open the normal develop→main promotion PR after publication.
+    # Protected branch checks and reviews remain required; queue the
+    # ordinary merge when supported, otherwise leave the PR open.
     needs: publish
     runs-on: ubuntu-latest
     permissions:
@@ -229,5 +229,5 @@ jobs:
           else
             echo "Reusing existing PR #${EXISTING}"
           fi
-          gh pr merge "$EXISTING" --merge --admin \
-            || echo "Admin merge unavailable; PR left open for manual merge."
+          gh pr merge "$EXISTING" --merge --auto \
+            || echo "Automatic merge unavailable; PR left open for normal reviewed merge."
