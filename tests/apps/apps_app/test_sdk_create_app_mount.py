@@ -2,9 +2,8 @@
 # -*- coding: utf-8 -*-
 """The create-app tile serves the SDK wizard; the hub keeps no copy.
 
-The wizard's canonical home is /apps/new/ (config/urls.py mounts
-``scitex_sdk.creator.urls`` there); the old root-level /create-app/ was
-dropped in #1023.
+The wizard's canonical home is /apps/new/. The compatibility /create-app/
+mount serves the same SDK wizard and retains the same login boundary.
 
 Real client, real ORM, real templates; no mocks. One assert per test.
 """
@@ -30,7 +29,7 @@ class SdkCreatorMountTest(TestCase):
         start = html.index('data-module="create-app"')
         anchor = html[html.rindex("<a", 0, start) : html.index(">", start)]
 
-        # Assert — canonical wizard home is /apps/new/ (#1023).
+        # Assert
         assert 'href="/apps/new/"' in anchor
 
     def test_wizard_requires_login(self):
@@ -94,10 +93,7 @@ class SdkCreatorMountTest(TestCase):
         # Assert
         assert same
 
-    def test_create_app_username_is_free_now_the_root_route_is_dropped(self):
-        # #1023 dropped root /create-app/ from RESERVED_PATHS and moved the
-        # wizard to /apps/new/, so "create-app" no longer collides with a
-        # route while "new" stays reserved.
+    def test_create_app_is_a_reserved_username(self):
         # Arrange
         from apps.infra.auth_app.validators import is_username_reserved
 
@@ -105,8 +101,38 @@ class SdkCreatorMountTest(TestCase):
         reserved = is_username_reserved("create-app")
 
         # Assert
-        assert not reserved
-        assert is_username_reserved("new")
+        assert reserved
+
+    def test_canonical_creator_prefix_is_a_reserved_username(self):
+        # Arrange
+        from apps.infra.auth_app.validators import is_username_reserved
+
+        # Act
+        reserved = is_username_reserved("new")
+
+        # Assert
+        assert reserved
+
+    def test_legacy_wizard_requires_login(self):
+        # Arrange — bookmarked URLs keep the real SDK login boundary.
+        from django.conf import settings
+
+        # Act
+        response = self.client.get("/create-app/")
+        outcome = (response.status_code, response["Location"].split("?")[0])
+
+        # Assert
+        assert outcome == (302, settings.LOGIN_URL)
+
+    def test_legacy_wizard_serves_the_same_real_sdk_health_view(self):
+        # Arrange
+        self.client.force_login(self.user)
+
+        # Act
+        response = self.client.get("/create-app/healthz")
+
+        # Assert
+        assert response.json() == {"ok": True, "app": "scitex-sdk-creator"}
 
 
 # EOF
