@@ -246,10 +246,13 @@ def _forbid(key, value, username):
     return JsonResponse({"error": "path is outside your workspace"}, status=403)
 
 
-def _project_file_remainder(request, remainder):
+def _project_file_remainder(
+    request, remainder, *, resolver=_resolve_figrecipe_working_dir
+):
     """Normalize only the selected project's legacy prefix; refuse escapes.
 
-    The root comes from the authorized server resolver, never a GET path.
+    The root comes from the trusted server resolver, never a GET path.
+    Internal callers may supply the resolver used by WorkingDirScopedView.
     The BASE-relative tenant namespace remains reserved for legacy routes;
     a different tenant/project prefix cannot become a local file request.
     """
@@ -259,7 +262,7 @@ def _project_file_remainder(request, remainder):
         validate_path_in_user_jail,
     )
 
-    root = _resolve_figrecipe_working_dir(request)
+    root = resolver(request)
     if root is None or not remainder or not _within_relative_subtree(remainder):
         return None
     try:
@@ -298,7 +301,9 @@ def _dispatch_project_endpoint(request, endpoint):
     return _raw_api_dispatch(request, endpoint)
 
 
-def _reject_out_of_jail_paths(request, endpoint=None):
+def _reject_out_of_jail_paths(
+    request, endpoint=None, *, resolver=_resolve_figrecipe_working_dir
+):
     """Return a 403 when ANY caller-controlled path escapes the caller's jail.
 
     Generic and COMPLETE: validates every path-bearing input across all
@@ -357,7 +362,7 @@ def _reject_out_of_jail_paths(request, endpoint=None):
     # -- CHANNEL 3: URL ``<path:endpoint>`` segment path sinks ------------
     if endpoint and endpoint.startswith(_FILE_CONTENT_PREFIX):
         remainder = endpoint[len(_FILE_CONTENT_PREFIX):]
-        if _project_file_remainder(request, remainder) is None:
+        if _project_file_remainder(request, remainder, resolver=resolver) is None:
             return _forbid("api/file-content", remainder, username)
     elif endpoint and endpoint.startswith(_THUMBNAIL_PREFIX):
         remainder = endpoint[len(_THUMBNAIL_PREFIX):]
