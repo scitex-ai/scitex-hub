@@ -35,9 +35,10 @@ start, editable-installing the apps in ``.scitex-apps.json`` from git clones on 
 persistent volume. Those installs override the image's wheels: measured, the
 image ships scitex-writer 2.26.1 and the running container serves 2.42.0 from
 ``/app/.apps/scitex-writer``. So when the caller names that volume, it is mounted
-READ-ONLY into the throwaway container and each clone's ``src`` is prepended to
-``sys.path`` -- which is what the editable install does -- and the clone's
-declared version is read as the overlay answer.
+READ-ONLY into the throwaway container. The probe chooses the overlay only after
+reading the target's actual boot mode. Legacy prepends clone ``src`` paths;
+immutable verifies the pinned snapshot and measures existing site bindings,
+including the Storage wheel, without prepending any clone.
 
 Everything here is read-only against the deployment: ``--rm`` throwaway
 containers, ``--network none``, ``--entrypoint python`` so the image's entrypoint
@@ -50,6 +51,7 @@ import shlex
 import subprocess
 import sys
 
+from preflight_probe import APP_DISTRIBUTIONS as APP_DISTRIBUTIONS
 from preflight_probe import REPORT_BEGIN, REPORT_END
 
 #: Where the boot overlay clones live inside the container.
@@ -133,7 +135,7 @@ def resolve(spec, apps_volume=None, apps_manifest=None, via_ssh=None):
         return Target(
             "local",
             "the shell the preflight itself is running in ({0})".format(sys.executable),
-            [sys.executable, "-"],
+            [sys.executable, "-I", "-S", "-B", "-"],
             is_target_check=False,
         )
 
@@ -153,7 +155,7 @@ def resolve(spec, apps_volume=None, apps_manifest=None, via_ssh=None):
     if spec.startswith("image:"):
         ref = spec[len("image:"):]
         argv = ["docker", "run", "--rm", "-i", "--network", "none"] + mounts + [
-            "--entrypoint", "python", ref, "-",
+            "--entrypoint", "python", ref, "-I", "-S", "-B", "-",
         ]
         description = "image {0}".format(ref)
         if apps_volume:
@@ -165,7 +167,7 @@ def resolve(spec, apps_volume=None, apps_manifest=None, via_ssh=None):
                 "--apps-volume is for image targets; a running container already has "
                 "the overlay installed"
             )
-        argv = ["docker", "exec", "-i", name, "python3", "-"]
+        argv = ["docker", "exec", "-i", name, "python3", "-I", "-S", "-B", "-"]
         description = "running container {0} (what is serving now, NOT what the next recreate will run)".format(name)
     else:
         raise TargetUnreachable(
@@ -215,14 +217,19 @@ def interrogate(target, probe_source, spec, timeout=300):
             timeout=timeout,
         )
     except FileNotFoundError as exc:
-        raise TargetUnreachable("cannot execute {0}: {1}".format(target.command, exc))
-    except subprocess.TimeoutExpired:
+        raise TargetUnreachable("cannot execute {0}: {1}".format(target.command, exc)) from exc
+    except subprocess.TimeoutExpired as exc:
         raise TargetUnreachable(
             "the target did not answer within {0}s: {1}".format(timeout, target.command)
-        )
+        ) from exc
 
     stdout = completed.stdout.decode("utf-8", "replace")
     stderr = completed.stderr.decode("utf-8", "replace")
+
+    if completed.returncode != 0:
+        raise TargetUnreachable(
+            "the target probe exited {0}; no report can authorize deployment".format(completed.returncode)
+        )
 
     if REPORT_BEGIN not in stdout or REPORT_END not in stdout:
         raise TargetUnreachable(
@@ -236,7 +243,7 @@ def interrogate(target, probe_source, spec, timeout=300):
     try:
         report = json.loads(body)
     except ValueError as exc:
-        raise TargetUnreachable("the target's report was not valid JSON: {0}".format(exc))
+        raise TargetUnreachable("the target's report was not valid JSON: {0}".format(exc)) from exc
     report["_stderr_tail"] = _tail(stderr, 800)
     report["_exit_code"] = completed.returncode
     return report

@@ -54,6 +54,7 @@ Exit codes:  0 satisfied  |  1 REFUSED  |  2 target unreachable  |  3 bad usage
 import argparse
 import json
 import os
+import re
 import sys
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
@@ -123,6 +124,12 @@ def _effective(name, report):
     install_apps.sh editable-installs the clone at every container start, on top
     of whatever wheel the image baked in.
     """
+    if report.get("boot", {}).get("mode") == "immutable":
+        binding = report.get("bindings", {}).get(name)
+        if binding:
+            if binding.get("verified"):
+                return binding["version"], "verified immutable {0}".format(binding["mode"])
+            return None, "UNKNOWN: active immutable binding refused"
     overlay = report.get("overlay", {}).get(name)
     if overlay and "version" in overlay:
         return overlay["version"], "boot overlay clone {0}".format(overlay.get("clone", "?"))
@@ -251,6 +258,32 @@ def _render_findings(title, findings, stream):
         stream.write("      {0:<14}: {1}\n".format("remedy", finding.remedy))
 
 
+def _evaluate_boot(report):
+    """Immutable authority and active bindings are required, not advisories."""
+    boot = report.get("boot", {})
+    if boot.get("mode") == "legacy":
+        return []
+    digest = boot.get("manifest_sha256", "")
+    if (boot.get("mode") == "immutable" and boot.get("verified") is True and
+            report.get("site_initialized_after_guard") is True and
+            isinstance(boot.get("profile"), str) and boot["profile"] and
+            isinstance(digest, str) and re.fullmatch(r"[0-9a-f]{64}", digest)):
+        bindings = report.get("bindings", {})
+        expected = targets.APP_DISTRIBUTIONS
+        if (set(bindings) == expected and
+                all(row.get("verified") is True and row.get("mode") ==
+                    ("wheel" if name == "scitex-storage" else "editable") and
+                    all(isinstance(row.get(field), str) and row[field]
+                        for field in ("version", "module_origin", "metadata_origin")) and
+                    isinstance(row.get("console_scripts"), list)
+                    for name, row in bindings.items())):
+            return []
+    return [Finding("unknown", "immutable boot authority", [
+        ("target boot mode", boot.get("mode", "UNKNOWN")),
+        ("snapshot/bindings", "REFUSED or incomplete"),
+    ], "supply and verify the reviewed target manifest, five editables and Storage wheel before deploying.")]
+
+
 def main(argv=None):
     parser = argparse.ArgumentParser(
         description="Refuse a container recreate whose target cannot satisfy hub's declared floors.",
@@ -331,7 +364,8 @@ def main(argv=None):
 
     floor_findings, floor_passes = _evaluate_floors(floors, report, contract)
     import_findings, import_ok, inconclusive = _evaluate_imports(probes, report)
-    findings = floor_findings + import_findings
+    boot_findings = _evaluate_boot(report)
+    findings = boot_findings + floor_findings + import_findings
     fails = [f for f in findings if f.severity == "fail"]
     unknowns = [f for f in findings if f.severity == "unknown"]
     advisories = [f for f in findings if f.severity == "advisory"]
@@ -341,6 +375,13 @@ def main(argv=None):
     out.write("  interrogated by     : {0}\n".format(target.command))
     out.write("  target python       : {0} at {1}\n".format(
         report.get("python_version", "?"), report.get("executable", "?")))
+    out.write("  target boot mode    : {0}\n".format(report.get("boot", {}).get("mode", "legacy")))
+    if target.kind == "cmd":
+        out.write("  custom interpreter  : independently qualified route required; site-after-guard={0}\n".format(
+            report.get("site_initialized_after_guard", "UNKNOWN")))
+    if report.get("boot", {}).get("mode") == "immutable":
+        out.write("  immutable profile   : {0} (active binding gate)\n".format(
+            report["boot"].get("profile", "UNKNOWN")))
     out.write("  declared floors from: {0}  ([project.dependencies]{1})\n".format(
         args.pyproject, "".join(" + [{0}]".format(e) for e in extras)))
     out.write("  module-scope scan   : {0} sibling imports across {1} files under {2}\n".format(

@@ -5,6 +5,24 @@
 # ============================================
 set -e
 
+# Verify the selected public producers before any identity or filesystem repair.
+# PYTHON_MODE=image-only is a separate legacy contract, not immutable boot.
+APPS_BOOT_MODE="${SCITEX_APPS_BOOT_MODE:-legacy}"
+case "$APPS_BOOT_MODE" in
+    immutable)
+        python3 -I -S -B /app/scripts/apps/verify_immutable_boot.py \
+            --manifest "${SCITEX_APPS_BOOT_MANIFEST:-}" \
+            --sha256 "${SCITEX_APPS_BOOT_MANIFEST_SHA256:-}" \
+            --profile "${SCITEX_APPS_BOOT_PROFILE:-}" \
+            --project-root /app
+        ;;
+    legacy) ;;
+    *)
+        echo "ERROR: SCITEX_APPS_BOOT_MODE must be legacy or immutable" >&2
+        exit 2
+        ;;
+esac
+
 echo "🔒 Running root-level initialization..."
 
 # ============================================
@@ -112,6 +130,9 @@ if [ -d "/app/data/users" ]; then
         echo "✅ User data permissions OK"
     fi
 fi
+
+# Immutable boot preserves app, Node, cache, package and console producers.
+if [ "$APPS_BOOT_MODE" = legacy ]; then
 
 # ============================================
 # Fix node_modules permissions (built as root in Docker image)
@@ -323,6 +344,8 @@ else
 fi
 fi
 
+fi # legacy producer ownership/install preparation
+
 # ============================================
 # Fix staticfiles volume ownership
 # ============================================
@@ -334,6 +357,13 @@ fi
 # (observed 2026-07-08: 11 restarts on
 # '/app/staticfiles/figrecipe/index.html').
 if [ -d "/app/staticfiles" ]; then
+    if [ "$APPS_BOOT_MODE" = immutable ]; then
+        # collectstatic outputs remain writable, but a recursive chown of their
+        # ancestor would also mutate the verified Vite producer. Prune its whole
+        # subtree and change each remaining entry without following symlinks.
+        find /app/staticfiles -path /app/staticfiles/vite -prune -o \
+            ! -user scitex -exec chown -h scitex:scitex {} +
+    else
     FOREIGN_STATIC=$(find /app/staticfiles ! -user scitex -print -quit 2>/dev/null)
     if [ -n "$FOREIGN_STATIC" ]; then
         echo "🔧 Fixing staticfiles ownership (found non-scitex file: $FOREIGN_STATIC)..."
@@ -342,6 +372,7 @@ if [ -d "/app/staticfiles" ]; then
     else
         echo "✅ staticfiles ownership OK"
     fi
+    fi
 fi
 
 # ============================================
@@ -349,7 +380,9 @@ fi
 # ============================================
 # Clean stale vite output so the scitex user can rebuild fresh.
 # The build step in entrypoint will recreate this directory.
-if [ -d "/app/staticfiles/vite" ]; then
+if [ "$APPS_BOOT_MODE" = immutable ]; then
+    echo "🔒 Preserving verified Vite staticfiles"
+elif [ -d "/app/staticfiles/vite" ]; then
     rm -rf /app/staticfiles/vite
     echo "✅ Vite staticfiles cleaned (will rebuild)"
 else

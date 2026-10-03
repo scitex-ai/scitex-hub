@@ -67,14 +67,20 @@ nothing is migrated). Most Django-touching sibling modules import cleanly after
 it, which converts would-be INCONCLUSIVE results into real answers.
 """
 
+import ast
+import hashlib
 import importlib
 import importlib.metadata
+import importlib.util
 import io
 import json
 import os
 import re
+import stat
+import subprocess
 import sys
 import traceback
+from pathlib import Path
 
 #: The driver scans stdout for these. The target's own start-up chatter (uv
 #: notices, deprecation warnings, an entrypoint banner) shares this stream, so
@@ -87,6 +93,177 @@ _PYPROJECT_VERSION = re.compile(r'^\s*version\s*=\s*"([^"]+)"', re.MULTILINE)
 
 #: ``__version__ = "1.2.3"`` inside a clone's package ``__init__``.
 _DUNDER_VERSION = re.compile(r'^__version__\s*=\s*["\']([^"\']+)["\']', re.MULTILINE)
+
+APP_DISTRIBUTIONS = frozenset({
+    "scitex-ui", "figrecipe", "scitex-writer", "scitex-cards",
+    "scitex-storage", "scitex-agent-container",
+})
+
+
+def _read_manifest(path):
+    """Read a bounded regular pin without following any ancestor symlink."""
+    path = Path(path)
+    if not path.is_absolute() or str(path) != os.path.normpath(path):
+        raise ValueError("noncanonical manifest path")
+    descriptor = os.open("/", os.O_RDONLY | os.O_DIRECTORY)
+    try:
+        for part in path.parts[1:-1]:
+            following = os.open(part, os.O_RDONLY | os.O_DIRECTORY | os.O_NOFOLLOW,
+                                dir_fd=descriptor)
+            os.close(descriptor)
+            descriptor = following
+        file_fd = os.open(path.name, os.O_RDONLY | os.O_NOFOLLOW | os.O_NONBLOCK,
+                          dir_fd=descriptor)
+        try:
+            before = os.fstat(file_fd)
+            if not stat.S_ISREG(before.st_mode) or before.st_size > 64 * 1_024**2:
+                raise ValueError("regular bounded manifest required")
+            with os.fdopen(file_fd, "rb", closefd=False) as handle:
+                data = handle.read(64 * 1_024**2 + 1)
+            after = os.fstat(file_fd)
+            fields = ("st_dev", "st_ino", "st_mode", "st_size", "st_mtime_ns", "st_ctime_ns")
+            if (tuple(getattr(before, f) for f in fields) !=
+                    tuple(getattr(after, f) for f in fields) or len(data) != before.st_size):
+                raise ValueError("manifest changed during read")
+            return data
+        finally:
+            os.close(file_fd)
+    finally:
+        os.close(descriptor)
+
+
+def _boot_snapshot(project_root=Path("/app")):
+    """Use the Apps-owned verifier and reread the exact target-side pin.
+
+    ``project_root`` is an internal fixture seam, never a driver/spec override.
+    The normal path is the existing target /app, not a manifest-supplied root.
+    """
+    mode = os.environ.get("SCITEX_APPS_BOOT_MODE") or "legacy"
+    if mode == "legacy":
+        return {"mode": mode}, None
+    if mode != "immutable":
+        return {"mode": mode, "verified": False, "error": "unknown boot mode"}, None
+    path = os.environ.get("SCITEX_APPS_BOOT_MANIFEST", "")
+    digest = os.environ.get("SCITEX_APPS_BOOT_MANIFEST_SHA256", "")
+    profile = os.environ.get("SCITEX_APPS_BOOT_PROFILE", "")
+    try:
+        result = subprocess.run(
+            [sys.executable, "-I", "-S", "-B",
+             str(project_root / "scripts/apps/verify_immutable_boot.py"),
+             "--manifest", path, "--sha256", digest, "--profile", profile,
+             "--project-root", str(project_root)],
+            stdout=subprocess.PIPE, stderr=subprocess.PIPE, timeout=300,
+        )
+        if result.returncode != 0:
+            raise ValueError("Apps snapshot verifier refused")
+        data = _read_manifest(path)
+        if hashlib.sha256(data).hexdigest() != digest:
+            raise ValueError("manifest changed after verification")
+        manifest = json.loads(data)
+        if (manifest["schema"] != "scitex.apps.immutable-boot/v1" or
+                manifest["profile"] != profile):
+            raise ValueError("manifest profile changed after verification")
+        rows = manifest["distributions"]
+        if (len(rows) != len(APP_DISTRIBUTIONS) or
+                {row["name"] for row in rows} != APP_DISTRIBUTIONS):
+            raise ValueError("all six incumbent distributions required")
+        if any(row["mode"] != ("wheel" if row["name"] == "scitex-storage" else "editable")
+               for row in rows):
+            raise ValueError("five editables and Storage wheel required")
+    except (OSError, ValueError, TypeError, KeyError, subprocess.TimeoutExpired) as exc:
+        return {"mode": mode, "verified": False, "error": type(exc).__name__}, None
+    return {"mode": mode, "verified": True, "profile": profile,
+            "manifest_sha256": digest}, manifest
+
+
+def _normalized_name(name):
+    return re.sub(r"[-_.]+", "-", name).lower()
+
+
+def _console_binding(path, entry, package):
+    """Measure the installed Python wrapper without executing a CLI command."""
+    text = path.read_text(encoding="utf-8")
+    first = text.splitlines()[0]
+    if not first.startswith("#!") or os.path.realpath(first[2:]) != os.path.realpath(sys.executable):
+        raise ValueError("console interpreter differs from target")
+    tree = ast.parse(text, filename=str(path))
+    module, separator, attribute = entry.value.partition(":")
+    if not separator or not attribute.isidentifier():
+        raise ValueError("unsupported console entry point")
+    aliases = {
+        alias.asname or alias.name
+        for node in ast.walk(tree) if isinstance(node, ast.ImportFrom) and node.module == module
+        for alias in node.names if alias.name == attribute
+    }
+    if not aliases or not any(isinstance(node, ast.Call) and isinstance(node.func, ast.Name)
+                              and node.func.id in aliases for node in ast.walk(tree)):
+        raise ValueError("console wrapper does not call its declared entry point")
+    # Resolve its module through the same active target path. Do not invoke its
+    # function, load a model, initialize an account, or perform a scientific job.
+    spec = importlib.util.find_spec(module)
+    if spec is None or spec.origin is None or not Path(spec.origin).is_relative_to(package):
+        raise ValueError("console module belongs to another producer")
+    if not callable(entry.load()):
+        raise ValueError("console entry point is not callable")
+    loaded = sys.modules[module]
+    if (getattr(loaded, "__file__", None) != spec.origin or
+            getattr(getattr(loaded, "__spec__", None), "origin", None) != spec.origin):
+        raise ValueError("loaded console module differs from resolved producer")
+
+
+def _active_bindings(manifest):
+    """Compare actual imports, metadata and wrappers with the verified producer."""
+    roots = {row["id"]: Path(row["path"]) for row in manifest["roots"]}
+    distributions = list(importlib.metadata.distributions())
+    bindings = {}
+    for row in manifest["distributions"]:
+        name = row["name"]
+        answer = {"mode": row["mode"], "version": row["version"]}
+        try:
+            candidates = [dist for dist in distributions
+                          if _normalized_name(dist.metadata.get("Name", "")) == name]
+            metadata = roots[row["metadata"]["root"]] / row["metadata"]["path"]
+            identities = {}
+            for dist in candidates:
+                # RECORD claims cannot establish metadata origin: a duplicate
+                # dist-info can copy another RECORD verbatim. Only the actual
+                # stdlib filesystem metadata reader location is supported here.
+                location = getattr(dist, "_path", None)
+                if not isinstance(dist, importlib.metadata.PathDistribution) or not isinstance(location, Path):
+                    raise ValueError("distribution metadata location unknown")
+                identities[location.absolute()] = dist
+            if set(identities) != {metadata}:
+                raise ValueError("missing, duplicate or foreign distribution metadata")
+            dist = next(iter(identities.values()))
+            if dist.version != row["version"]:
+                raise ValueError("active distribution version differs")
+            package = roots[row["package"]["root"]] / row["package"]["path"]
+            module = importlib.import_module(name.replace("-", "_"))
+            expected = str(package / "__init__.py")
+            if (getattr(module, "__file__", None) != expected or
+                    getattr(getattr(module, "__spec__", None), "origin", None) != expected or
+                    list(getattr(module, "__path__", [])) != [str(package)]):
+                raise ValueError("active package belongs to another producer")
+            entries = [entry for entry in dist.entry_points if entry.group == "console_scripts"]
+            scripts = {entry.name: entry for entry in entries}
+            declared = {pointer["path"] for pointer in row["console_scripts"]}
+            if (len(scripts) != len(entries) or len(declared) != len(row["console_scripts"]) or
+                    set(scripts) != declared):
+                raise ValueError("missing or undeclared console entry point")
+            for pointer in row["console_scripts"]:
+                path = roots[pointer["root"]] / pointer["path"]
+                owners = {id(owner) for owner in distributions
+                          if any(Path(os.path.abspath(owner.locate_file(file))) == path
+                                 for file in (owner.files or []))}
+                if owners != {id(dist)}:
+                    raise ValueError("console wrapper has foreign or duplicate ownership")
+                _console_binding(path, scripts[path.name], package)
+            answer.update(verified=True, module_origin=expected,
+                          metadata_origin=str(metadata), console_scripts=sorted(scripts))
+        except Exception as exc:  # noqa: BLE001 - imports are classified, never accepted on error
+            answer.update(verified=False, error=type(exc).__name__)
+        bindings[name] = answer
+    return bindings
 
 
 def _installed_version(distribution):
@@ -218,8 +395,22 @@ def _probe_import(module, attrs):
 
 def _run(spec):
     """Answer everything ``spec`` asks and print the delimited JSON report."""
+    boot, snapshot = _boot_snapshot()
+    isolated_site = bool(sys.flags.no_site)
+    site_after_guard = False
+    if boot["mode"] == "legacy" or snapshot is not None:
+        # Built-in targets start with -S so no executable .pth can precede the
+        # immutable verifier. Only then activate the genuine target site. A
+        # custom runner that already initialized site cannot earn this boundary.
+        if snapshot is not None:
+            sys.dont_write_bytecode = True
+        if isolated_site:
+            import site
+
+            site.main()
+            site_after_guard = True
     prepended = []
-    for path in spec.get("extra_syspath", []):
+    for path in spec.get("extra_syspath", []) if boot["mode"] == "legacy" else []:
         if os.path.isdir(path) and path not in sys.path:
             sys.path.insert(0, path)
             prepended.append(path)
@@ -235,12 +426,22 @@ def _run(spec):
         "overlay": {},
         "imports": [],
         "django_bootstrap": None,
+        "boot": boot,
+        "bindings": {},
+        "site_initialized_after_guard": site_after_guard,
     }
+
+    if snapshot is not None:
+        report["bindings"] = _active_bindings(snapshot)
+        boot["verified"] = all(row["verified"] for row in report["bindings"].values())
+    if boot["mode"] != "legacy" and not boot.get("verified"):
+        _print_report(report)
+        return
 
     for distribution in spec.get("distributions", []):
         report["installed"][distribution] = _installed_version(distribution)
 
-    for distribution, clone_dir in sorted(spec.get("overlay", {}).items()):
+    for distribution, clone_dir in sorted(spec.get("overlay", {}).items()) if boot["mode"] == "legacy" else []:
         answer = _clone_version(clone_dir)
         answer["clone"] = clone_dir
         report["overlay"][distribution] = answer
@@ -251,6 +452,10 @@ def _run(spec):
         for probe in probes:
             report["imports"].append(_probe_import(probe["module"], probe.get("attrs", [])))
 
+    _print_report(report)
+
+
+def _print_report(report):
     sys.stdout.write("\n" + REPORT_BEGIN + "\n")
     sys.stdout.write(json.dumps(report, indent=2, sort_keys=True))
     sys.stdout.write("\n" + REPORT_END + "\n")
