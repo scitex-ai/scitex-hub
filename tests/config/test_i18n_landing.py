@@ -564,33 +564,44 @@ def _landing(client_cookie=None):
 
 def test_landing_pricing_renders_fully_english_by_default():
     html = _landing()
-    # Two-plan row (Free pane dropped 2026-09-12): Cloud | On-Prem. Prices are
-    # ALWAYS USD on the marketing card (operator: "drop the yen at all").
+    # The operator's Sep24 comparison has four columns. Academic pricing is
+    # inside Pro's price cell, rather than the former two-card variants.
     assert '<html lang="en"' in html
-    assert "Cloud" in html and "SciTeX Self-Hosted" in html
+    for column in (
+        "SciTeX™ Cloud Free", "SciTeX™ Cloud Pro",
+        "SciTeX™ Self-Hosted (AGPL)", "SciTeX™ Self-Hosted (Enterprise)",
+    ):
+        assert column in html
     assert "$19/mo" in html and "$39/mo" in html
-    assert 'data-variant="academic"' in html and 'data-variant="general"' in html
-    assert "30-day free trial" in html
-    assert "32 GB Cool storage included" in html
+    assert "academic (50% off)" in html and "Recommended" in html
+    assert "Try SciTeX™ Cloud with 30-day Free Trial" in html
+    assert "32 GB included" in html
     assert "$10 compute credit per billing cycle (Coming soon)" in html
-    assert "internet egress per billing cycle" in html
-    # NO Japanese price data leaks into the English default
+    # The current table declares metered CPU/Memory/API rows; the former
+    # card's egress sentence belongs to the separate rate-card/legal pages.
+    assert "API keys" in html and "Applications" in html
+    # NO Japanese price data leaks into the English default.
     for ja in ("クラウド", "月額 1,490円", "通常利用の範囲の通信", "円相当"):
         assert ja not in html, f"Japanese {ja!r} leaked into the English default landing"
 
 
 def test_landing_pricing_renders_fully_japanese_when_selected():
     html = _landing(client_cookie="ja")
-    # JA renders the plan copy Japanese, but prices stay USD (operator:
-    # "always use USD for clarity" — the yen reference lives on /tokushoho/).
+    # JA localizes the same four-column comparison; USD prices and the
+    # unchanged no-JPY guard remain independent of the translated labels.
     assert '<html lang="ja"' in html
-    assert "クラウド" in html and "セルフホスト" in html
+    assert "クラウド" in html
+    for column in (
+        "SciTeX™ Cloud Free", "SciTeX™ Cloud Pro",
+        "SciTeX™ セルフホスト (AGPL)", "SciTeX™ セルフホスト (エンタープライズ)",
+    ):
+        assert column in html
     assert "$19/mo" in html and "$39/mo" in html
-    assert "学術" in html and "非学術" in html
-    assert "30日間の無料トライアル" in html
-    assert "Cool ストレージ 32 GB 込み" in html
+    assert "アカデミック (50% オフ)" in html and "おすすめ" in html
+    assert "30日間無料トライアルで SciTeX™ クラウドを試す" in html
+    assert "ストレージ" in html and "32 GB 込み" in html
     assert "計算クレジット $10 / 請求サイクル（近日提供）" in html
-    assert "インターネットへの送信" in html
-    # NO Japanese yen price (the SSoT yen values) leaks onto the USD card
+    assert "API キー" in html and "アプリケーション" in html
+    # NO Japanese yen price (the SSoT yen values) leaks onto the USD table.
     for jp in ("月額 1,490円", "円相当の計算クレジット"):
         assert jp not in html, f"JPY {jp!r} leaked onto the USD landing"

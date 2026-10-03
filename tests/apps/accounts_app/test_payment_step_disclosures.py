@@ -174,7 +174,13 @@ def test_the_surface_shows_all_six_facts_to_the_reader():
 def test_the_only_action_is_an_explicit_continue_to_the_provider():
     html = _render()
 
-    form = re.search(r"<form[^>]*action=\"([^\"]+)\"[^>]*>(.*?)</form>", html, re.S)
+    # The auth shell also contains the language-switcher form. The payment
+    # step must have exactly one owned form, retaining every submit invariant.
+    forms = re.findall(
+        r'<form\b[^>]*class="payment-step-form"[^>]*>.*?</form>', html, re.S
+    )
+    assert len(forms) == 1, "expected one payment continue form"
+    form = re.search(r"<form[^>]*action=\"([^\"]+)\"[^>]*>(.*?)</form>", forms[0], re.S)
     assert form, "no continue form"
     assert form.group(1) == "/billing/start-setup/", form.group(1)
     assert 'data-payment-action="continue"' in form.group(0)

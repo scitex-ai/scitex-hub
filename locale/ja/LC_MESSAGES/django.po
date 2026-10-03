@@ -8930,7 +8930,7 @@ msgstr "組み込みの研究アプリを並べたSciTeX Cloudのアプリラン
 
 #: apps/infra/public_app/templates/public_app/landing_partials/landing_modules.html
 msgid "Unedited interface captures from tracked product-guide screenshots and the development Stats app; resize and compression only."
-msgstr "未編集の画面キャプチャです(追跡中の製品ガイドと開発版Statsアプリの画面より。リサイズと圧縮のみ)。"
+msgstr "未編集の画面キャプチャです(追跡中の製品ガイドと開発版統計アプリの画面より。リサイズと圧縮のみ)。"
 
 #: apps/infra/public_app/templates/public_app/landing_partials/landing_modules.html
 msgid "Trace a claim back to its source."
