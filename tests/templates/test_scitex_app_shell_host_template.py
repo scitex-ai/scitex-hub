@@ -22,3 +22,18 @@ def test_leaf_content_block_renders_inside_the_host_shell():
 
     # Assert
     assert "LEAF-MARKER-7f3a" in html
+
+
+def test_sdk_leaf_content_block_renders_inside_the_same_host_shell():
+    # Arrange
+    leaf = Template(
+        '{% extends "scitex_sdk/app/app_shell.html" %}'
+        "{% block scitex_app_content %}SDK-LEAF-MARKER-38ab{% endblock %}"
+    )
+    context = Context({"META_DESCRIPTION_DEFAULT": "Hosted SDK source fixture"})
+
+    # Act
+    html = leaf.render(context)
+
+    # Assert
+    assert html.count("SDK-LEAF-MARKER-38ab") == 1

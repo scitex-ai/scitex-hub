@@ -150,6 +150,92 @@ def test_module_attribute_reexport_keeps_the_embedding_identity(declaration_pack
     assert (identity.name, identity.label, name in sys.modules) == (name, "embedded_editor", False)
 
 
+@pytest.mark.parametrize("import_line", [
+    "from {name} import namespace",
+    "import {name}.namespace as namespace",
+])
+def test_module_qualified_embedding_base_keeps_its_identity(declaration_package, import_line):
+    # Arrange
+    name, root = declaration_package
+    namespace = root / "namespace"
+    namespace.mkdir()
+    (namespace / "__init__.py").write_text("from . import embed\n")
+    (namespace / "embed.py").write_text(
+        "from django.apps import AppConfig\n"
+        "class HostConfig(AppConfig):\n"
+        "    default = False\n"
+    )
+    (root / "apps.py").write_text(
+        import_line.format(name=name) + "\n"
+        "class EditorConfig(namespace.embed.HostConfig):\n"
+        f"    name = {name!r}\n"
+        "    label = 'qualified_editor'\n"
+        "    default = True\n"
+    )
+    # Act
+    identity = app_config_identity(name)
+    # Assert
+    assert (identity.name, identity.label, name in sys.modules) == (name, "qualified_editor", False)
+
+
+def test_parent_class_export_is_not_hidden_by_an_existing_child_module(declaration_package):
+    # Arrange
+    name, root = declaration_package
+    (root / "embed.py").write_text("")
+    (root / "__init__.py").write_text(
+        "from django.apps import AppConfig\n"
+        "class embed(AppConfig):\n"
+        f"    name = {name!r}\n"
+        "    label = 'parent_class_owner'\n"
+        "    default = True\n"
+    )
+    (root / "apps.py").write_text(f"from {name} import embed\n")
+    # Act
+    identity = app_config_identity(name)
+    # Assert
+    assert (identity.name, identity.label, name in sys.modules) == (name, "parent_class_owner", False)
+
+
+def test_qualified_child_cannot_override_an_explicit_nonmodule_export(declaration_package):
+    # Arrange
+    name, root = declaration_package
+    (root / "__init__.py").write_text("embed = None\n")
+    (root / "embed.py").write_text("from django.apps import AppConfig\n")
+    (root / "apps.py").write_text(
+        f"from {name} import embed\n"
+        "class EditorConfig(embed.AppConfig):\n"
+        f"    name = {name!r}\n"
+    )
+    # Act / Assert
+    with pytest.raises(MetadataUnavailable):
+        app_config_identity(name)
+
+
+def test_qualified_base_cannot_follow_a_rebound_module_alias(declaration_package):
+    # Arrange
+    name, root = declaration_package
+    (root / "embed.py").write_text("from django.apps import AppConfig\n")
+    (root / "apps.py").write_text(
+        f"from {name} import embed\n"
+        "Alias = embed\n"
+        "embed = None\n"
+        "class EditorConfig(Alias.AppConfig):\n"
+        f"    name = {name!r}\n"
+    )
+    # Act / Assert
+    with pytest.raises(MetadataUnavailable):
+        app_config_identity(name)
+
+
+def test_genuine_writer_config_keeps_its_declared_owner():
+    # Arrange
+    entry = "scitex_writer._django.apps.WriterEditorConfig"
+    # Act
+    identity = app_config_identity(entry)
+    # Assert
+    assert (identity.name, identity.label) == ("scitex_writer._django", "writer_editor")
+
+
 def test_dynamic_class_alias_is_refused(declaration_package):
     # Arrange
     name, root = declaration_package

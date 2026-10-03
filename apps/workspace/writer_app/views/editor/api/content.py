@@ -77,20 +77,6 @@ def section_view(request, project_id, section_name):
             try:
                 doc_type = request.GET.get("doc_type", category)
 
-                file_path = _section_target(writer_service, name, doc_type)
-                if file_path is None:
-                    return JsonResponse(
-                        {"success": False, "error": "Invalid section path"}, status=400
-                    )
-
-                logger.info(
-                    "[SectionView GET] Reading section=%s category=%s name=%s doc_type=%s",
-                    safe_log_field(section_name),
-                    safe_log_field(category),
-                    safe_log_field(name),
-                    safe_log_field(doc_type),
-                )
-
                 doc_dir_map = {
                     "manuscript": "01_manuscript/contents",
                     "supplementary": "02_supplementary/contents",
@@ -98,6 +84,20 @@ def section_view(request, project_id, section_name):
                     "shared": "shared",
                 }
                 try:
+                    file_path = _section_target(writer_service, name, doc_type)
+                    if file_path is None:
+                        return JsonResponse(
+                            {"success": False, "error": "Invalid section path"}, status=400
+                        )
+
+                    logger.info(
+                        "[SectionView GET] Reading section=%s category=%s name=%s doc_type=%s",
+                        safe_log_field(section_name),
+                        safe_log_field(category),
+                        safe_log_field(name),
+                        safe_log_field(doc_type),
+                    )
+
                     section_dir = writer_service.writer_dir / doc_dir_map.get(
                         doc_type, "01_manuscript/contents"
                     )
@@ -228,24 +228,26 @@ def section_view(request, project_id, section_name):
                         status=400,
                     )
 
-                if _section_target(writer_service, name, doc_type) is None:
-                    return JsonResponse(
-                        {"success": False, "error": "Invalid section path"}, status=400
+                try:
+                    if _section_target(writer_service, name, doc_type) is None:
+                        return JsonResponse(
+                            {"success": False, "error": "Invalid section path"}, status=400
+                        )
+
+                    logger.info(
+                        "[SectionView POST] Writing section=%s category=%s name=%s "
+                        "doc_type=%s length=%d",
+                        safe_log_field(section_name),
+                        safe_log_field(category),
+                        safe_log_field(name),
+                        safe_log_field(doc_type),
+                        len(content),
                     )
 
-                logger.info(
-                    "[SectionView POST] Writing section=%s category=%s name=%s "
-                    "doc_type=%s length=%d",
-                    safe_log_field(section_name),
-                    safe_log_field(category),
-                    safe_log_field(name),
-                    safe_log_field(doc_type),
-                    len(content),
-                )
-
-                try:
                     success = writer_service.write_section(name, content, doc_type)
                 except RuntimeError as exc:
+                    if not _workspace_is_not_ready(exc):
+                        raise
                     # Same state on the write side: there is nowhere to write
                     # yet. A refusal the caller can act on, not a 5xx — the
                     # workspace is created by initialize-workspace, and the

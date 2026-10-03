@@ -10,7 +10,11 @@ USER_DATA_ROOT = "${{ runner.temp }}/scitex-users"
 
 def _steps():
     workflow = yaml.safe_load(WORKFLOW.read_text())
-    return {step["name"]: step for step in workflow["jobs"]["screenshots"]["steps"]}
+    return {
+        step["name"]: step
+        for step in workflow["jobs"]["screenshots"]["steps"]
+        if "name" in step
+    }
 
 
 def test_server_and_capture_share_runner_user_data_root():

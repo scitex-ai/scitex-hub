@@ -13,6 +13,8 @@ import sys
 from dataclasses import dataclass
 from pathlib import Path
 
+from ._app_config_module_bindings import ModuleBindings
+
 
 class MetadataUnavailable(ValueError):
     """The declared app identity cannot be established without execution."""
@@ -151,10 +153,12 @@ def _refuse_namespace_effects(node):
 class _Declarations:
     def __init__(self):
         self.modules = {}
+        self.sources = {}
+        self.module_bindings = ModuleBindings(self, _find_module, _bound_names, MetadataUnavailable)
 
-    def module(self, name):
-        if name in self.modules:
-            return self.modules[name]
+    def source(self, name):
+        if name in self.sources:
+            return self.sources[name]
         spec = _find_module(name)
         if spec is None or spec.origin is None or not spec.origin.endswith(".py"):
             raise MetadataUnavailable("Python declaration source is unavailable")
@@ -164,6 +168,13 @@ class _Declarations:
             raise MetadataUnavailable("Python declaration source is unreadable") from error
         _refuse_namespace_effects(tree)
         _refuse_rebound_references(tree)
+        self.sources[name] = spec, tree
+        return spec, tree
+
+    def module(self, name):
+        if name in self.modules:
+            return self.modules[name]
+        spec, tree = self.source(name)
         package = name if spec.submodule_search_locations is not None else name.rpartition(".")[0]
 
         def merge(branches):
@@ -283,15 +294,15 @@ class _Declarations:
                 raise MetadataUnavailable("Alternative AppConfig identities differ")
             return alternatives[0] if alternatives else None
         if isinstance(value, tuple):
+            if self.module_bindings.from_import(*value, lineage) is not None:
+                return None  # inspect.isclass excludes imported module objects.
             return self.identity(*value, lineage)
         if isinstance(value, ast.Name):
             return self.identity(module, value.id, lineage)
-        if isinstance(value, ast.Attribute) and isinstance(value.value, ast.Name):
-            imported = self.module(module).get(value.value.id)
-            if isinstance(imported, tuple):
-                imported_module = ".".join(imported)
-                if _find_module(imported_module) is not None:
-                    return self.identity(imported_module, value.attr, lineage)
+        if isinstance(value, ast.Attribute):
+            imported_module = self.module_bindings.resolve(module, value.value, lineage)
+            if imported_module is not None:
+                return self.identity(imported_module, value.attr, lineage)
             raise MetadataUnavailable("AppConfig re-export module cannot be proven")
         if isinstance(value, ast.Constant) and value.value is None:
             return None
@@ -310,10 +321,11 @@ class _Declarations:
             raise MetadataUnavailable("AppConfig class declaration is transformed")
         parents = []
         for base in value.bases:
-            if not isinstance(base, ast.Name):
-                raise MetadataUnavailable("AppConfig base is not a declared class name")
-            parent = self.identity(module, base.id, lineage)
-            if parent is None and isinstance(self.module(module).get(base.id), ast.expr):
+            if not isinstance(base, (ast.Name, ast.Attribute)):
+                raise MetadataUnavailable("AppConfig base is not a declared class reference")
+            parent = self.value_identity(module, base, lineage)
+            if parent is None and (isinstance(base, ast.Attribute)
+                                   or isinstance(self.module(module).get(base.id), ast.expr)):
                 raise MetadataUnavailable("AppConfig base alias is not a declared class")
             if parent is not None:
                 parents.append(parent)
