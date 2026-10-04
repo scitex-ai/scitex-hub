@@ -212,6 +212,27 @@ class HubProjectProvider:
     def project_id(self, project: Project) -> str:
         return project_key(project)
 
+    def canonical_project_id(self, request, selector: str) -> Optional[str]:
+        """Map a legacy numeric model ID within this request's access list.
+
+        The SDK rechecks the returned owner/slug against its current listing.
+        This read never changes selection or grants access to a public project.
+        Comparing the stored ID avoids coercing arbitrary input into a DB integer.
+        """
+        if (
+            not isinstance(selector, str)
+            or not selector.isascii()
+            or not selector.isdecimal()
+        ):
+            return None
+        user = getattr(request, "user", None)
+        if not getattr(user, "is_authenticated", False):
+            return None
+        for project in accessible_projects(user):
+            if str(project.pk) == selector:
+                return project_key(project)
+        return None
+
     def list_projects(self, request) -> list[ProjectEntry]:
         return [
             ProjectEntry(
