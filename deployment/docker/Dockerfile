@@ -239,7 +239,7 @@ COPY . .
 
 # Prepare genuine sibling sources and select the installed SDK before npm.
 RUN python3 scripts/apps/prepare_frontend_sources.py && \
-    uv pip install --system "scitex-sdk==0.3.1" && \
+    uv pip install --system "scitex-sdk>=0.3.2" && \
     npm run frontend:install
 
 # Copy dev-specific entrypoint and helper scripts

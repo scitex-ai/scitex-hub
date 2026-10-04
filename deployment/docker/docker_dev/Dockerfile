@@ -283,7 +283,7 @@ COPY . .
 # ============================================
 # Source helpers and the final Python environment must exist before npm preparation.
 RUN python3 scripts/apps/prepare_frontend_sources.py && \
-    uv pip install --system "scitex-sdk==0.3.1" && \
+    uv pip install --system "scitex-sdk>=0.3.2" && \
     npm run frontend:install
 
 # Copy dev-specific entrypoint and helper scripts

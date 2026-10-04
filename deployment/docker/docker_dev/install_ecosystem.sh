@@ -128,3 +128,23 @@ install_ecosystem_packages() {
     fi
 }
 install_ecosystem_packages
+
+# Check the final selection after every editable ecosystem install. Preserve
+# mounted development sources, but refuse startup if they cannot meet Hub's
+# required SDK floor and public embedding-module contract.
+if ! python - <<'PYSDK'
+import importlib
+from importlib.metadata import version
+
+from packaging.version import Version
+
+sdk_version = version("scitex-sdk")
+if Version(sdk_version) < Version("0.3.2"):
+    raise SystemExit(f"scitex-sdk>=0.3.2 is required; selected {sdk_version}")
+importlib.import_module("scitex_sdk.app.embed")
+print(f"scitex-sdk {sdk_version}: public embedding module available")
+PYSDK
+then
+    echo_warning "Required SDK version or embedding module unavailable; refusing startup"
+    exit 1
+fi
