@@ -162,6 +162,9 @@ class ModuleConfig:
     # checks the real resolver before handing this prefix to a leaf adapter.
     renderer_mount_route: str = ""
     renderer_leaf_urlconf: str = ""
+    # Host-only: a newly registered leaf has no existing native fallback.
+    # This is never populated from manifest data or copied onto native modules.
+    renderer_requires_mount: bool = False
 
     def get_track_module(self) -> str:
         return self.track_module or self.name
@@ -199,8 +202,21 @@ class ModuleConfig:
                 request, self.renderer_mount_route, self.renderer_leaf_urlconf
             )
             if api_mount is not None:
+                from apps.workspace.apps_app.services.plugin_guards import (
+                    _plugin_mount_rejection,
+                )
+
+                rejection = _plugin_mount_rejection(
+                    request, "/" + self.renderer_mount_route,
+                )
+                if rejection is not None:
+                    return rejection
                 renderer = import_string(self.content_renderer)
                 return renderer(request, current_project, stx_mount=api_mount)
+            if self.renderer_requires_mount:
+                from django.http import HttpResponseNotFound
+
+                return HttpResponseNotFound("Hosted API mount is not declared")
             return render(
                 request, self.partial_template,
                 self.build_context(request, current_project),

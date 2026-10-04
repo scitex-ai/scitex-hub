@@ -258,6 +258,93 @@ def _wants_html(request) -> bool:
     return "text/html" in accept and "application/json" not in accept
 
 
+def _plugin_mount_rejection(request, mount_path: str):
+    """Reject or prepare a request using the existing mount policy.
+
+    Native middleware passes its actual path. A bound renderer passes
+    its already resolver-validated server route, without changing the
+    request path or deriving policy authority from client parameters.
+    """
+    from django.conf import settings
+    from django.http import JsonResponse
+    from django.shortcuts import redirect, render
+
+    match = _match_mount(mount_path)
+    if match is None:
+        return None
+    prefix, label, policy = match
+
+    user = getattr(request, "user", None)
+    if user is None or not user.is_authenticated:
+        return redirect(f"{settings.LOGIN_URL}?next={request.path}")
+
+    if not plugin_access_allowed(user, policy):
+        if _wants_html(request):
+            return render(
+                request,
+                "plugin_apps/restricted.html",
+                {"app_label": label},
+                status=403,
+            )
+        return JsonResponse(
+            {
+                "error": (f"{label} is limited to authorized accounts for now."),
+                "reason": "plugin-mount-restricted-audience",
+            },
+            status=403,
+        )
+
+    tenant_store = policy.get("tenant_store", "")
+    tenant_attr = policy.get("tenant_attribute", "")
+    if tenant_store and tenant_attr:
+        store = resolve_plugin_tenant_store(request, tenant_store)
+        if store is None:
+            return JsonResponse(
+                {
+                    "error": (
+                        "No active project — this app shows your project "
+                        "workspace. Create or open a project first."
+                    ),
+                    "hint": "/new/",
+                },
+                status=404,
+            )
+        setattr(request, tenant_attr, store)
+
+    for param in policy.get("discard_query_params", []) or []:
+        if param in request.GET:
+            logger.warning(
+                "[plugin_guards] discarding client-supplied ?%s= from user %s "
+                "(server-side tenancy only)",
+                param,
+                getattr(user, "username", "?"),
+            )
+            params = request.GET.copy()
+            params.pop(param, None)
+            request.GET = params
+
+    if request.method not in _SAFE_METHODS:
+        compiled = _writable_compiled(policy)
+        subpath = mount_path[len(prefix):].strip("/")
+        if compiled is None:
+            if policy.get("audience") == _AUDIENCE_STAFF:
+                return JsonResponse(
+                    {"error": "Writes are not enabled on this mount.", "reason": "plugin-mount-readonly"},
+                    status=403,
+                )
+        elif not _is_writable_subpath(subpath, compiled):
+            return JsonResponse(
+                {"error": "Writes are not enabled for this route.", "reason": "plugin-mount-readonly"},
+                status=403,
+            )
+        else:
+            rejection = PluginMountGuardMiddleware._rearm_csrf(request)
+            if rejection is not None:
+                return rejection
+
+    return None
+
+
 class PluginMountGuardMiddleware:
     """Enforce leaf-declared ``mount_policy`` on plugin-mounted routes.
 
@@ -273,83 +360,9 @@ class PluginMountGuardMiddleware:
         self.get_response = get_response
 
     def __call__(self, request):
-        from django.conf import settings
-        from django.http import JsonResponse
-        from django.shortcuts import redirect, render
-
-        match = _match_mount(request.path)
-        if match is None:
-            return self.get_response(request)
-        prefix, label, policy = match
-
-        user = getattr(request, "user", None)
-        if user is None or not user.is_authenticated:
-            return redirect(f"{settings.LOGIN_URL}?next={request.path}")
-
-        if not plugin_access_allowed(user, policy):
-            if _wants_html(request):
-                return render(
-                    request,
-                    "plugin_apps/restricted.html",
-                    {"app_label": label},
-                    status=403,
-                )
-            return JsonResponse(
-                {
-                    "error": (f"{label} is limited to authorized accounts for now."),
-                    "reason": "plugin-mount-restricted-audience",
-                },
-                status=403,
-            )
-
-        tenant_store = policy.get("tenant_store", "")
-        tenant_attr = policy.get("tenant_attribute", "")
-        if tenant_store and tenant_attr:
-            store = resolve_plugin_tenant_store(request, tenant_store)
-            if store is None:
-                return JsonResponse(
-                    {
-                        "error": (
-                            "No active project — this app shows your project "
-                            "workspace. Create or open a project first."
-                        ),
-                        "hint": "/new/",
-                    },
-                    status=404,
-                )
-            setattr(request, tenant_attr, store)
-
-        for param in policy.get("discard_query_params", []) or []:
-            if param in request.GET:
-                logger.warning(
-                    "[plugin_guards] discarding client-supplied ?%s= from user %s "
-                    "(server-side tenancy only)",
-                    param,
-                    getattr(user, "username", "?"),
-                )
-                params = request.GET.copy()
-                params.pop(param, None)
-                request.GET = params
-
-        if request.method not in _SAFE_METHODS:
-            compiled = _writable_compiled(policy)
-            subpath = request.path[len(prefix):].strip("/")
-            if compiled is None:
-                if policy.get("audience") == _AUDIENCE_STAFF:
-                    return JsonResponse(
-                        {"error": "Writes are not enabled on this mount.", "reason": "plugin-mount-readonly"},
-                        status=403,
-                    )
-            elif not _is_writable_subpath(subpath, compiled):
-                return JsonResponse(
-                    {"error": "Writes are not enabled for this route.", "reason": "plugin-mount-readonly"},
-                    status=403,
-                )
-            else:
-                rejection = self._rearm_csrf(request)
-                if rejection is not None:
-                    return rejection
-
+        rejection = _plugin_mount_rejection(request, request.path)
+        if rejection is not None:
+            return rejection
         return self.get_response(request)
 
     @staticmethod

@@ -170,6 +170,16 @@ def plugin_module_config(config):
     )
     module = _manifest_to_module_config(manifest)
     module.url = "/" + mount_route(config)
+    if module.content_renderer:
+        # A new leaf has no native surface to fall back to. Host-only state,
+        # never a manifest declaration, requires its real registered mount.
+        module.renderer_requires_mount = True
+        candidate = _plugin_distribution(config)
+        if module.pip_package and candidate and re.sub(
+            r"[-_.]+", "-", module.pip_package
+        ).lower() == re.sub(r"[-_.]+", "-", candidate).lower():
+            module.renderer_mount_route = mount_route(config)
+            module.renderer_leaf_urlconf = f"{config.name}.urls"
     return module
 
 
