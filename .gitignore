@@ -962,3 +962,6 @@ GITIGNORE/
 # here as a durable guard. Remove each line when its module is merged.)
 tests/config/test_agent_container_mount.py
 tests/apps/auth_app/test_email_delivery_check.py
+
+# Development source requirements belong in the checkout used by CI.
+!/requirements-dev-source.txt

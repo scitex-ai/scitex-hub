@@ -1,0 +1,4 @@
+# Source-only dependency for Hub development validation.
+# Resolve this file together with .[dev] or .[all,dev].
+# Keep this exact reviewed opt-in source out of Requires-Dist.
+scitex-agent-container[gui] @ git+https://github.com/scitex-ai/scitex-agent-container.git@82579584ed6a2d618c56873f4966baec6166404c
