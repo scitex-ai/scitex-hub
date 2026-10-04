@@ -288,6 +288,7 @@ RUN python3 scripts/apps/prepare_frontend_sources.py && \
 
 # Copy dev-specific entrypoint and helper scripts
 COPY deployment/docker/docker_dev/entrypoint.sh /entrypoint.sh
+COPY deployment/docker/docker_dev/install_ecosystem.sh /install_ecosystem.sh
 RUN chmod +x /entrypoint.sh && \
     chmod +x /app/deployment/docker/docker_dev/watch_templates.sh 2>/dev/null || true
 
