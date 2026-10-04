@@ -124,9 +124,9 @@ def _refuse_rebound_references(tree):
                         if isinstance(part, ast.Name) and isinstance(part.ctx, ast.Load))
 
 
-def _refuse_namespace_effects(node):
+def _refuse_namespace_effects(node, fields=None):
     """Refuse recognized identity effects even through aliases/other classes."""
-    fields = {"name", "label", "default"}
+    fields = {"name", "label", "default"} if fields is None else fields
     for part in _scope_nodes(node, class_bodies=True):
         if isinstance(part, ast.ClassDef):
             global_names = {name for statement in part.body for item in _scope_nodes(statement)
@@ -285,7 +285,7 @@ class _Declarations:
             alternatives = [self.value_identity(module, item, lineage) for item in value]
             if any(item is not None for item in alternatives) and any(
                 result is None and not (isinstance(item, ast.Constant) and item.value is None)
-                for item, result in zip(value, alternatives)
+                for item, result in zip(value, alternatives, strict=True)
             ):
                 raise MetadataUnavailable("AppConfig class alias has an unprovable replacement")
             alternatives = [item for item in alternatives if item is not None]
@@ -453,3 +453,47 @@ class _Declarations:
 def app_config_identity(entry: str) -> AppIdentity:
     """Return a provable declared identity, leaving Django population unchanged."""
     return _Declarations().selected(entry)
+
+
+def app_installation_entries(module: str) -> tuple[str, ...]:
+    """Read the leaf's literal companion declaration without importing it.
+
+    Absence preserves older plugins. Dynamic or malformed declarations cannot
+    establish the installation contract and are refused before Django setup.
+    """
+    declarations = _Declarations()
+    _, tree = declarations.source(module)
+    if not any(
+        (isinstance(node, ast.Name) and node.id == "INSTALLED_APPS_ENTRIES")
+        or (isinstance(node, ast.alias)
+            and (node.asname or node.name) == "INSTALLED_APPS_ENTRIES")
+        or (isinstance(node, ast.Constant) and node.value == "INSTALLED_APPS_ENTRIES")
+        for node in _scope_nodes(tree)
+    ):
+        return ()
+    _refuse_namespace_effects(tree, {"INSTALLED_APPS_ENTRIES"})
+
+    def resolve(name, symbol, lineage=()):
+        reference = (name, symbol)
+        if reference in lineage or len(lineage) >= 24:
+            raise MetadataUnavailable("Companion declaration reference is cyclic")
+        value = declarations.module(name).get(symbol)
+        if value is None:
+            if lineage:
+                raise MetadataUnavailable("Companion declaration reference is absent")
+            return ()
+        if isinstance(value, tuple):
+            return resolve(*value, (*lineage, reference))
+        if isinstance(value, ast.Name):
+            return resolve(name, value.id, (*lineage, reference))
+        if not isinstance(value, ast.Tuple):
+            raise MetadataUnavailable("INSTALLED_APPS_ENTRIES must be a literal tuple")
+        entries = []
+        for item in value.elts:
+            if (not isinstance(item, ast.Constant) or not isinstance(item.value, str)
+                or not item.value or any(not part.isidentifier() for part in item.value.split("."))):
+                raise MetadataUnavailable("Companion paths must be plain Django app entries")
+            entries.append(item.value)
+        return tuple(entries)
+
+    return resolve(module, "INSTALLED_APPS_ENTRIES")

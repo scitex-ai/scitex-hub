@@ -451,7 +451,11 @@ def _with_host_plugin_apps(
     if not discovered:
         return entries
 
-    from ._app_config_metadata import MetadataUnavailable, app_config_identity
+    from ._app_config_metadata import (
+        MetadataUnavailable,
+        app_config_identity,
+        app_installation_entries,
+    )
 
     configurations = {}
     unavailable = {}
@@ -463,9 +467,27 @@ def _with_host_plugin_apps(
     reserved = [configurations[entry] for entry in registered_entries if entry in configurations]
     reserved_names = {config.name for config in reserved}
     usable = []
+    companions = []
+
+    def merge(selected, selected_companions):
+        if selected_companions:
+            return installed_app_paths(entries, selected, selected_companions)
+        return installed_app_paths(entries, selected)
+
     for plugin in discovered:
         try:
             config = app_config_identity(plugin.app_config)
+            declared = app_installation_entries(plugin.app_module)
+            if declared:
+                try:
+                    from scitex_sdk.app.plugins import partition_companions
+                except ImportError as error:
+                    raise MetadataUnavailable(
+                        "Installed SDK does not support leaf companion declarations"
+                    ) from error
+                needed = partition_companions(declared, [plugin])
+            else:
+                needed = []
         except MetadataUnavailable as error:
             logger.warning(
                 "scitex.apps entry point %r has unavailable AppConfig metadata "
@@ -484,7 +506,29 @@ def _with_host_plugin_apps(
             continue
 
         configurations[plugin.app_config] = config
-        proposed = installed_app_paths(entries, [*usable, plugin])
+        retained_companions = []
+        try:
+            for entry in needed:
+                identity = app_config_identity(entry)
+                configurations[entry] = identity
+                owner = next((owner for owner in reserved if owner.name == identity.name), None)
+                if owner is not None:
+                    if owner.label != identity.label:
+                        raise MetadataUnavailable("Registered companion has a different label")
+                    continue
+                retained_companions.append(entry)
+            proposed_companions = [*companions, *retained_companions]
+            proposed = merge([*usable, plugin], proposed_companions)
+            for entry in proposed:
+                if entry not in configurations and entry not in unavailable:
+                    configurations[entry] = app_config_identity(entry)
+        except MetadataUnavailable as error:
+            logger.warning(
+                "scitex.apps entry point %r has unavailable companion metadata "
+                "(%s); registered apps retained, plugin skipped.",
+                plugin.name, str(error),
+            )
+            continue
         unknown = next((entry for entry in [*registered_entries, *proposed] if entry in unavailable), None)
         if unknown is not None:
             logger.warning(
@@ -520,7 +564,8 @@ def _with_host_plugin_apps(
             )
             continue
         usable.append(plugin)
-    return installed_app_paths(entries, usable)
+        companions = proposed_companions
+    return merge(usable, companions)
 
 
 # EOF
