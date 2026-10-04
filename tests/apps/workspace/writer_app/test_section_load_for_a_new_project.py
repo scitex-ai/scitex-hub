@@ -33,6 +33,10 @@ from apps.infra.project_app.models import Project
 from apps.infra.project_app.services.project_filesystem import (
     get_project_filesystem_manager,
 )
+from apps.infra.project_app.services.writer_workspace_layout import (
+    get_writer_workspace_path,
+)
+from apps.workspace.writer_app.services import WriterService
 
 PASSWORD = "TestPass123!"  # pragma: allowlist secret
 
@@ -101,6 +105,7 @@ class SectionLoadForANewProjectTest(TestCase):
         assert payload["success"] is True, payload
         assert payload["content"] == "", payload
         assert payload["workspace_ready"] is False, payload
+        assert payload["file_path"] is None, payload
 
     def test_saving_into_a_workspace_that_is_not_on_disk_is_a_refusal_and_not_a_500(self):
         # Arrange
@@ -166,6 +171,59 @@ class SectionLoadForANewProjectTest(TestCase):
         payload = json.loads(fetched.content)
         assert payload["success"] is True, payload
         assert "Hello from the round trip." in payload["content"], payload
+        assert payload["file_path"] == "01_manuscript/contents/title.tex", payload
+
+
+    def test_a_symlinked_writer_root_returns_a_relative_section_path(self):
+        # Arrange: real project/auth/filesystem resolution, with the Writer
+        # workspace alias and its complete backing tree inside this project.
+        project = Project.objects.create(
+            slug="symlink-section-study",
+            owner=self.owner,
+            name="symlink-section-study",
+            visibility="private",
+        )
+        manager = get_project_filesystem_manager(self.owner)
+        created, project_root = manager.create_project_directory(
+            project, use_template=False
+        )
+        self.addCleanup(shutil.rmtree, str(manager.base_path / project.slug), True)
+        backing = project_root / "section-workspace"
+        for name in ("01_manuscript", "02_supplementary", "03_revision"):
+            (backing / name).mkdir(parents=True, exist_ok=True)
+        writer_root = get_writer_workspace_path(project_root)
+        writer_root.parent.mkdir(parents=True, exist_ok=True)
+        writer_root.symlink_to(backing, target_is_directory=True)
+        section_file = backing / "01_manuscript/contents/abstract.tex"
+        section_file.parent.mkdir(parents=True, exist_ok=True)
+        expected_content = "Content from the symlinked Writer workspace.\n"
+        section_file.write_text(expected_content, encoding="utf-8")
+        service_root = WriterService(project.pk, self.owner.pk).writer_dir
+        client = self._login()
+        # Act: the real mounted GET view reads the real existing section.
+        response = client.get(self._url(project.pk, section="abstract"))
+        payload = json.loads(response.content)
+        # Assert: prove the alias reached the service, then the public response.
+        observed = {
+            "created": created is True,
+            "service_root": service_root,
+            "symlink": service_root.is_symlink(),
+            "status": response.status_code,
+            "success": payload.get("success") is True,
+            "workspace_ready": payload.get("workspace_ready") is True,
+            "content_preserved": expected_content in payload.get("content", ""),
+            "file_path": payload.get("file_path"),
+        }
+        assert observed == {
+            "created": True,
+            "service_root": writer_root,
+            "symlink": True,
+            "status": 200,
+            "success": True,
+            "workspace_ready": True,
+            "content_preserved": True,
+            "file_path": "01_manuscript/contents/abstract.tex",
+        }, response.content
 
     # --- the fix must not turn real errors into 200s, or open the door -------
 

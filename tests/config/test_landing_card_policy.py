@@ -1,17 +1,16 @@
-"""Rendered policy guard for the landing-page signup funnel.
+"""Render the current landing catalog and generic signup contract.
 
-POLICY CHANGE, operator 2026-09-14: 「はい、カード登録必須です」 — a credit/debit
-card is REQUIRED at signup, as /tokushoho/ already states. The landing pricing
-card therefore says so: the Cloud CTA starts the 30-day trial and the card
-requirement is shown next to it. The previous policy pinned here (a free tier,
-and NO card wording before a paid action) contradicted the 特商法 page and is
-retired. The /auth/signup/ half of this guard moved to
-tests/apps/public_app/test_card_required_copy.py, which renders the real page
-through the real URLconf (the old version patched allauth's provider list).
+The operator-authored 2026-09-24 comparison table superseded this module's
+two-card landing fixture: Cloud Free, Cloud Pro, Self-Hosted AGPL and
+Enterprise are now distinct columns. Free has no-card metadata; Pro is the
+recommended column. Its signup link still creates an account rather than
+granting paid entitlement. The existing provider, payment-step and legal
+tests own their separate activation/disclosure contracts.
 
-These tests render the complete landing page in both supported languages;
-source-word checks alone previously blessed contradictory copy hidden in an
-included pricing partial.
+Render the complete landing page in EN and JA with the same canonical
+comparison context as the real index view. Keep the hero trial CTA, catalog
+prices, storage, four columns, language boundaries and generic signup links
+deletion-sensitive; a missing comparison must not pass as an empty table.
 """
 
 from __future__ import annotations
@@ -31,39 +30,55 @@ from django.utils import translation
 
 from apps.infra.public_app.pricing import (
     load_pricing,
+    plan_comparison,
     published_price_rows,
 )
 
 REPO = Path(__file__).resolve().parents[2]
 
 EXPECTED_TRIAL_FUNNEL = {
-    # Two-plan landing row (operator 2026-09-12): the Free pane is DROPPED —
-    # Cloud's 30-day free trial is the funnel entry. Cloud (Academic/Non-Academic
-    # switcher) + Self-Hosted. The Cloud price + a feature line prove the paid
-    # plans render from the SSoT in the active language. Prices are USD
-    # (always) on the marketing card; JPY lives on /tokushoho/.
+    # The hero and the four-column table are separate current surfaces.
+    # Fixed expected prices/storage guard the accepted catalogue, rather than
+    # deriving the oracle from the same rendering helper under test.
     "en": (
-        "Cloud",
-        "30-day free trial",
-        "Start your 30-day trial",
+        "Try SciTeX™ Cloud with 30-day Free Trial",
+        "SciTeX™ Cloud Free",
+        "SciTeX™ Cloud Pro",
+        "SciTeX™ Self-Hosted (AGPL)",
+        "SciTeX™ Self-Hosted (Enterprise)",
+        "$39/mo",
         "$19/mo",
-        "32 GB Cool storage included",
+        "32 GB included",
     ),
     "ja": (
-        "クラウド",
-        "30日間の無料トライアル",
-        "30日間のトライアルを開始",
+        "30日間無料トライアルで SciTeX™ クラウドを試す",
+        "SciTeX™ Cloud Free",
+        "SciTeX™ Cloud Pro",
+        "SciTeX™ セルフホスト (AGPL)",
+        "SciTeX™ セルフホスト (エンタープライズ)",
+        "$39/mo",
         "$19/mo",
-        "Cool ストレージ 32 GB 込み",
+        "32 GB 込み",
     ),
 }
 
-EXPECTED_LANDING_CARD_NOTE = {
-    "en": "Card required at signup — no charge during the trial.",
-    "ja": "登録時にカードの登録が必要です。トライアル期間中は課金されません。",
+EXPECTED_SIGNUP_CHOICES = {
+    "en": (
+        "SciTeX™ Cloud Free",
+        "Create a free account",
+        "SciTeX™ Cloud Pro",
+        "Start with Pro",
+    ),
+    "ja": (
+        "SciTeX™ Cloud Free",
+        "無料アカウントを作成",
+        "SciTeX™ Cloud Pro",
+        "Pro で始める",
+    ),
 }
 
-# Copy that promised a free, card-less signup. Retired 2026-09-14.
+# Older literal copy remains absent; the current Free column's explicit
+# "Create a free account" wording is checked independently above.
 RETIRED_FREE_SIGNUP_COPY = (
     "Sign up free",
     "free tier",
@@ -88,6 +103,7 @@ _PUBLIC_NAMES = (
     "cookies",
     "demos",
     "donate",
+    "open_source",
     "pricing",
     "privacy",
     "publications",
@@ -195,6 +211,7 @@ def _rendered_landing(language: str) -> str:
             ),
             "tax_note": pricing.get("tax_note", ""),
             "pricing_notes": pricing["notes"],
+            "plan_comparison": plan_comparison(),
         }
         return render_to_string("public_app/landing.html", context, request=request)
 
@@ -214,7 +231,7 @@ def _section(html: str, section_id: str) -> str:
 
 @pytest.mark.parametrize("language", ["en", "ja"])
 def test_complete_landing_keeps_the_trial_funnel_visible(language):
-    """Deletion-sensitive: hero, pricing include, CTA, note, and data must exist."""
+    """Deletion-sensitive: hero CTA and all four catalog columns must exist."""
     # Arrange
     expected = EXPECTED_TRIAL_FUNNEL[language]
     # Act
@@ -224,13 +241,21 @@ def test_complete_landing_keeps_the_trial_funnel_visible(language):
 
 
 @pytest.mark.parametrize("language", ["en", "ja"])
-def test_landing_pricing_states_that_a_card_is_required(language):
+def test_landing_pricing_preserves_the_declared_signup_choices(language):
     # Arrange
-    expected = EXPECTED_LANDING_CARD_NOTE[language]
+    expected = EXPECTED_SIGNUP_CHOICES[language]
+    free = next(
+        row for row in load_pricing()["published_prices"]
+        if row["id"] == "subscription-free"
+    )
     # Act
     visible = _visible_text(_section(_rendered_landing(language), "pricing"))
     # Assert
-    assert expected in visible
+    assert (
+        free["amount"],
+        free["attributes"]["no_card_required"],
+        [value for value in expected if value not in visible],
+    ) == (0, True, [])
 
 
 @pytest.mark.parametrize("language", ["en", "ja"])
@@ -244,8 +269,8 @@ def test_landing_pricing_drops_the_free_signup_copy(language):
 
 
 def test_pricing_ctas_are_generic_signup_not_paid_activation():
-    # Arrange: the Free pane is dropped (operator 2026-09-12); the Cloud CTA is
-    # the single signup button and must still be the generic /auth/signup/.
+    # Arrange: Pro is the only primary comparison CTA, and it must still use
+    # generic signup. Free also signs up, but is the secondary table column.
     pattern = r'<a href="([^"]+)" class="btn btn-primary btn-block">'
     # Act
     hrefs = re.findall(pattern, _section(_rendered_landing("en"), "pricing"))
@@ -288,11 +313,13 @@ def test_japanese_landing_renders_the_japanese_pricing_strings():
     """The JA landing shows the Japanese renderings of the EN-source SSoT."""
     # Arrange
     expected = (
-        "クラウド",
-        "学術",
+        "SciTeX™ Cloud Free",
+        "SciTeX™ Cloud Pro",
+        "アカデミック",
         "$19/mo",
-        "Cool ストレージ 32 GB 込み",
-        "インターネットへの送信",
+        "ストレージ",
+        "32 GB 込み",
+        "Pro で始める",
     )
     # Act
     pricing = _visible_text(_section(_rendered_landing("ja"), "pricing"))

@@ -22,6 +22,7 @@ panes are placed on a standalone page. The GitHub-style screen stays at
             {% if project.description %}
                 <span class="public-project-tree__description">{{ project.description|truncatechars:160 }}</span>
             {% endif %}
+            <a class="ws-tree-empty__btn" href="{% url 'project_app:detail' username=project.effective_owner_slug slug=project.slug %}?view=repository">{% trans "Project overview" %}</a>
             <a class="public-project-tree__signin" href="{% url 'auth_app:signin' %}?next={{ request.path|urlencode }}">{% trans "Sign in" %}</a>
         </div>
         <div class="editor-split-layout public-project-tree__split">

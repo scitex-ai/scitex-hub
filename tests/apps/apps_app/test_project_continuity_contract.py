@@ -70,12 +70,15 @@ def test_project_scoped_manifest_metadata_reaches_the_registry():
 
 def test_hub_scope_overlay_keeps_external_stats_in_the_active_project():
     # Arrange: the current Stats entry point predates manifest scope metadata.
+    # Stats is verified working end-to-end and launches for real now
+    # (registry_overrides.py pins scope=project, availability=available);
+    # the scope pin is what keeps it inside the active project.
     manifest = {"name": "stats", "label": "Stats", "app_name": "stats_app"}
     # Act
     module = _manifest_to_module_config(manifest)
     # Assert
     assert module.scope == "project"
-    assert module.availability == "coming_soon"
+    assert module.availability == "available"
 
 
 def test_launcher_project_url_carries_the_active_project():

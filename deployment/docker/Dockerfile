@@ -237,8 +237,10 @@ RUN python -m playwright install chromium
 # Copy application code
 COPY . .
 
-# Install Node.js project dependencies (Vite for HMR, TypeScript tools)
-RUN cd /app && npm install
+# Prepare genuine sibling sources and select the installed SDK before npm.
+RUN python3 scripts/apps/prepare_frontend_sources.py && \
+    uv pip install --system "scitex-sdk>=0.3.2" && \
+    npm run frontend:install
 
 # Copy dev-specific entrypoint and helper scripts
 COPY deployment/docker/common/scripts/entrypoint-dev.sh /entrypoint.sh

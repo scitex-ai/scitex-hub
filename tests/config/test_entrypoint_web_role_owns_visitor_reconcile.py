@@ -1,13 +1,12 @@
-"""Entrypoint role gate for visitor-pool boot reconciliation.
+"""Boot roles remain explicit and never reactivate retired visitor allocation.
 
-The visitor reconcile quarantines every slot before dispatching the safe re-clean.
-It therefore belongs to web boot only: running it while restarting the worker that
-must consume those tasks creates a circular dependency and leaves the pool down.
+Visitor allocation was retired on 2026-09-10. Neither web nor worker startup
+may create or reconcile its slots; explicit historical cleanup is separate.
 """
 
-from pathlib import Path
 import shlex
 import subprocess
+from pathlib import Path
 
 import pytest
 import yaml
@@ -26,7 +25,6 @@ COMPOSE_CASES = (
     ("deployment/docker/docker_dev/docker-compose.yml", "celery_beat", False),
     ("deployment/docker/docker_prod/docker-compose.yml", "django", True),
     ("deployment/docker/docker_prod/docker-compose.yml", "celery_worker", False),
-    ("deployment/docker/docker_prod/docker-compose.yml", "celery_worker_vis", False),
     ("deployment/docker/docker_prod/docker-compose.yml", "celery_beat", False),
 )
 
@@ -54,52 +52,45 @@ def _is_web_role(*argv: str) -> bool:
     return result.returncode == 0
 
 
-def _visitor_block(script: str) -> str:
-    marker = "# Initialize Visitor Pool"
-    separator = "# ============================================"
-    if marker not in script:
-        return ""
-    block = script.split(marker, 1)[1]
-    # Skip the separator that closes this heading, then stop at the next one.
-    block = block.split(separator, 1)[1]
-    return block.split(separator, 1)[0]
-
-
-def _visitor_role_violations(script: str) -> list[str]:
-    """Reject pool mutations not enclosed by the explicit web-role branch."""
-    block = _visitor_block(script)
-    live = [line.strip() for line in block.splitlines() if not line.lstrip().startswith("#")]
-    mutations = [
-        index
-        for index, line in enumerate(live)
-        if "manage.py create_visitor_pool" in line
-        or "manage.py reconcile_visitor_slots" in line
+def _visitor_commands(script: str) -> list[str]:
+    """Inspect shell tokens, ignoring comments and separating shell operators."""
+    lexer = shlex.shlex(script, posix=True, punctuation_chars="();&|")
+    lexer.whitespace_split = True
+    tokens = list(lexer)
+    retired = {"create_visitor_pool", "reconcile_visitor_slots"}
+    return [
+        command
+        for executable, command in zip(tokens, tokens[1:], strict=False)
+        if Path(executable).name == "manage.py" and command in retired
     ]
-    guards = [
-        index
-        for index, line in enumerate(live)
-        if line == 'if [ "$IS_WEB_ROLE" = true ]; then'
-    ]
-    if not mutations:
-        return ["visitor-pool create/reconcile commands are missing"]
-    if not guards or guards[0] > min(mutations):
-        return ["visitor-pool mutation is not guarded by IS_WEB_ROLE"]
-    if not any(index > max(mutations) and live[index] == "else" for index in range(len(live))):
-        return ["non-web roles have no explicit visitor-pool skip branch"]
-    return []
 
 
 @pytest.mark.parametrize("entrypoint", ENTRYPOINTS, ids=lambda path: path.parent.name)
-def test_every_dev_and_prod_entrypoint_guards_pool_mutation_by_web_role(entrypoint):
+def test_every_dev_and_prod_entrypoint_keeps_visitor_allocation_retired(entrypoint):
     script = entrypoint.read_text(encoding="utf-8")
     assert "service_role.src" in script
-    assert _visitor_role_violations(script) == []
+    assert _visitor_commands(script) == []
 
 
 def test_source_checker_rejects_the_old_unconditional_dev_block():
-    assert _visitor_role_violations(OLD_UNSAFE_DEV_BLOCK) == [
-        "visitor-pool mutation is not guarded by IS_WEB_ROLE"
+    assert _visitor_commands(OLD_UNSAFE_DEV_BLOCK) == [
+        "create_visitor_pool", "reconcile_visitor_slots"
     ]
+
+
+def test_web_role_guard_cannot_reactivate_retired_visitor_allocation():
+    script = 'if [ "$IS_WEB_ROLE" = true ]; then\n' + OLD_UNSAFE_DEV_BLOCK + "fi\n"
+    assert _visitor_commands(script) == ["create_visitor_pool", "reconcile_visitor_slots"]
+
+
+def test_comment_about_historical_cleanup_is_not_a_boot_command():
+    assert _visitor_commands("# python manage.py reconcile_visitor_slots\n") == []
+
+
+@pytest.mark.parametrize("compose_path", sorted({case[0] for case in COMPOSE_CASES}))
+def test_compose_does_not_restore_the_retired_visitor_worker(compose_path):
+    compose = yaml.safe_load((REPO_ROOT / compose_path).read_text(encoding="utf-8"))
+    assert "celery_worker_vis" not in compose["services"]
 
 
 @pytest.mark.parametrize(

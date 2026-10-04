@@ -2,6 +2,9 @@
 # -*- coding: utf-8 -*-
 """The create-app tile serves the SDK wizard; the hub keeps no copy.
 
+The wizard's canonical home is /apps/new/. The compatibility /create-app/
+mount serves the same SDK wizard and retains the same login boundary.
+
 Real client, real ORM, real templates; no mocks. One assert per test.
 """
 
@@ -27,13 +30,13 @@ class SdkCreatorMountTest(TestCase):
         anchor = html[html.rindex("<a", 0, start) : html.index(">", start)]
 
         # Assert
-        assert 'href="/create-app/"' in anchor
+        assert 'href="/apps/new/"' in anchor
 
     def test_wizard_requires_login(self):
         # Arrange (signed out)
 
         # Act
-        response = self.client.get("/create-app/")
+        response = self.client.get("/apps/new/")
 
         # Assert
         assert response.status_code == 302
@@ -43,7 +46,7 @@ class SdkCreatorMountTest(TestCase):
         self.client.force_login(self.user)
 
         # Act
-        response = self.client.get("/create-app/")
+        response = self.client.get("/apps/new/")
 
         # Assert
         assert response.status_code == 200
@@ -53,7 +56,7 @@ class SdkCreatorMountTest(TestCase):
         self.client.force_login(self.user)
 
         # Act
-        html = self.client.get("/create-app/").content.decode("utf-8")
+        html = self.client.get("/apps/new/").content.decode("utf-8")
 
         # Assert
         assert 'value="data_entry"' in html
@@ -63,7 +66,7 @@ class SdkCreatorMountTest(TestCase):
         self.client.force_login(self.user)
 
         # Act
-        response = self.client.get("/create-app/healthz")
+        response = self.client.get("/apps/new/healthz")
 
         # Assert
         assert response.json() == {"ok": True, "app": "scitex-sdk-creator"}
@@ -99,6 +102,37 @@ class SdkCreatorMountTest(TestCase):
 
         # Assert
         assert reserved
+
+    def test_canonical_creator_prefix_is_a_reserved_username(self):
+        # Arrange
+        from apps.infra.auth_app.validators import is_username_reserved
+
+        # Act
+        reserved = is_username_reserved("new")
+
+        # Assert
+        assert reserved
+
+    def test_legacy_wizard_requires_login(self):
+        # Arrange — bookmarked URLs keep the real SDK login boundary.
+        from django.conf import settings
+
+        # Act
+        response = self.client.get("/create-app/")
+        outcome = (response.status_code, response["Location"].split("?")[0])
+
+        # Assert
+        assert outcome == (302, settings.LOGIN_URL)
+
+    def test_legacy_wizard_serves_the_same_real_sdk_health_view(self):
+        # Arrange
+        self.client.force_login(self.user)
+
+        # Act
+        response = self.client.get("/create-app/healthz")
+
+        # Assert
+        assert response.json() == {"ok": True, "app": "scitex-sdk-creator"}
 
 
 # EOF

@@ -31,6 +31,8 @@ export async function applyDeepLink(
   if (folder) await tree.focusDirectory(folder, false);
   if (!file) return;
   await tree.expandPath(file);
+  // Replace any persisted multi-selection with the URL-selected file.
+  tree.selectFile(file, true);
   // Let every DOMContentLoaded handler finish first: the viewer registers
   // its file-open listener in its own handler (workspace-viewer/init.ts).
   window.setTimeout(() => {

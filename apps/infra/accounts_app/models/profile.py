@@ -184,6 +184,12 @@ class UserProfile(models.Model):
         related_name="last_active_for_users",
         help_text="Last repository the user was working on",
     )
+    project_selection = models.JSONField(
+        null=True,
+        blank=True,
+        default=None,
+        help_text="Explicit user/project selection; null means no selection",
+    )
 
     # SSH Key Management
     ssh_public_key = models.TextField(
@@ -336,6 +342,32 @@ class UserProfile(models.Model):
         """
         try:
             from ..onboarding import profile_has_explicit_choice, resolve_active_project
+            from apps.infra.project_app.services.project_scope import clear_profile_selection
+
+            self.refresh_from_db(fields=["project_selection", "last_active_repository"])
+            if self.project_selection is not None:
+                from apps.infra.project_app.services.project_scope import (
+                    _selection_document,
+                    _snapshot_project,
+                )
+
+                try:
+                    document = _selection_document(self.project_selection)
+                except ValueError:
+                    clear_profile_selection(self, user=self.user)
+                    return None
+                if document == {"scope": "user", "id": None}:
+                    if self.last_active_repository_id is not None:
+                        clear_profile_selection(self, user=self.user)
+                    return None
+                selected = _snapshot_project(self.user, self)
+                if selected is None:
+                    clear_profile_selection(self, user=self.user)
+                    return None
+                # This legacy projection is owned-only. An authorized shared
+                # selection remains valid for the picker and other readers.
+                if selected.owner_id != self.user_id:
+                    return None
 
             if not profile_has_explicit_choice(self):
                 return None
@@ -347,8 +379,7 @@ class UserProfile(models.Model):
                 return project
 
             # Stale or unowned reference: drop it rather than substitute another.
-            self.last_active_repository = None
-            self.save(update_fields=["last_active_repository"])
+            clear_profile_selection(self, user=self.user)
             return None
         except Exception:
             # DB connection may be in a failed transaction state (e.g. after

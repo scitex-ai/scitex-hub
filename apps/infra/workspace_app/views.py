@@ -197,8 +197,7 @@ def workspace_module_content(request, module):
         get_current_project(request) if request.user.is_authenticated else None
     )
 
-    ctx = mod_config.build_context(request, current_project)
-    return render(request, mod_config.partial_template, ctx)
+    return mod_config.render_content(request, current_project)
 
 
 def _serve_dev_module(request, module):

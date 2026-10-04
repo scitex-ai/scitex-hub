@@ -16,6 +16,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Optional
 
+from django.db import router, transaction
 from django.db.models import Q
 
 from apps.infra.project_app.models import Project
@@ -54,27 +55,127 @@ def accessible_projects(user):
 
 def find_accessible_project(user, key: Optional[str]) -> Optional[Project]:
     """``owner/slug``, or a bare slug meaning the user's own project."""
-    if not key:
+    if not isinstance(key, str) or not key:
         return None
     owner, _, slug = key.strip().strip("/").rpartition("/")
     lookup = {"slug": slug, "owner__username": owner or user.username}
     return accessible_projects(user).filter(**lookup).first()
 
 
-def last_visited_project(user) -> Optional[Project]:
-    profile = getattr(user, "profile", None)
-    stored = getattr(profile, "last_active_repository", None)
-    if stored is None:
+def _profile_snapshot(user):
+    """Read the stored row, not an in-memory reverse-relation cache."""
+    if not getattr(user, "is_authenticated", False) or getattr(user, "pk", None) is None:
         return None
-    return accessible_projects(user).filter(pk=stored.pk).first()
+    profile = getattr(user, "profile", None)
+    if profile is None or profile.pk is None or profile.user_id != user.pk:
+        return None
+    alias = profile._state.db or router.db_for_write(type(profile), instance=profile)
+    return (
+        type(profile)._default_manager.using(alias)
+        .select_related("last_active_repository__owner")
+        .filter(pk=profile.pk, user_id=user.pk)
+        .first()
+    )
+
+
+def _selection_document(value):
+    """Only an explicit, complete pair can represent a selection."""
+    if not isinstance(value, dict) or set(value) != {"scope", "id"}:
+        raise ValueError("selection must contain scope and id")
+    if value["scope"] == "user" and value["id"] is None:
+        return {"scope": "user", "id": None}
+    if value["scope"] == "project" and isinstance(value["id"], str) and value["id"]:
+        return {"scope": "project", "id": value["id"]}
+    raise ValueError("invalid project selection")
+
+
+def _snapshot_project(user, profile):
+    """Validate the tag against both the FK and this user's current access."""
+    stored = profile.last_active_repository
+    if stored is None or stored.owner_id is None:
+        return None
+    document = profile.project_selection
+    if document is not None:
+        try:
+            document = _selection_document(document)
+        except ValueError:
+            return None
+        if document != {"scope": "project", "id": project_key(stored)}:
+            return None
+    return accessible_projects(user).using(profile._state.db).filter(pk=stored.pk).first()
+
+
+def has_selection_document(user) -> bool:
+    """Explicit user, project, and invalid tags all prevent legacy fallback."""
+    profile = _profile_snapshot(user)
+    return profile is not None and profile.project_selection is not None
+
+
+def _project_choice(user):
+    """Read tag presence and its project projection from one profile snapshot."""
+    profile = _profile_snapshot(user)
+    if profile is None:
+        return False, None
+    return profile.project_selection is not None, _snapshot_project(user, profile)
+
+
+def _invalidate_profile_cache(user) -> None:
+    """The next reverse-relation read reloads the stored pair."""
+    if user is not None:
+        user._state.fields_cache.pop("profile", None)
+
+
+def clear_profile_selection(profile, *, user=None) -> None:
+    """Clear an observed stale pair without overwriting a later choice."""
+    alias = profile._state.db or router.db_for_write(type(profile), instance=profile)
+    with transaction.atomic(using=alias):
+        row = type(profile)._default_manager.using(alias).select_for_update().get(pk=profile.pk)
+        if (row.project_selection, row.last_active_repository_id) == (
+            profile.project_selection, profile.last_active_repository_id
+        ):
+            row.project_selection = None
+            row.last_active_repository = None
+            row.save(using=alias, update_fields=["project_selection", "last_active_repository"])
+    _invalidate_profile_cache(user or profile._state.fields_cache.get("user"))
+
+
+def commit_project_selection(user, document, project=None) -> None:
+    """Write the tag and legacy FK together on the profile's database alias.
+
+    The caller must already authorize any supplied project. This helper
+    preserves the different existing navigation and picker access policies.
+    Session keys are a later projection, never part of this DB transaction.
+    """
+    document = _selection_document(document)
+    profile = _profile_snapshot(user)
+    if profile is None:
+        raise ValueError("selection requires a persisted user profile")
+    alias = profile._state.db
+    with transaction.atomic(using=alias):
+        row = type(profile)._default_manager.using(alias).select_for_update().get(pk=profile.pk)
+        if document["scope"] == "project":
+            if project is None or project.pk is None or project._state.db != alias:
+                raise ValueError("project must belong to the profile database")
+            project = Project.objects.using(alias).select_related("owner").get(pk=project.pk)
+            if document["id"] != project_key(project):
+                raise ValueError("project selection is not canonical")
+        elif project is not None:
+            raise ValueError("user scope cannot carry a project")
+        row.project_selection = document
+        row.last_active_repository = project
+        row.save(using=alias, update_fields=["project_selection", "last_active_repository"])
+    _invalidate_profile_cache(user)
+
+
+def last_visited_project(user) -> Optional[Project]:
+    """Authorization-only read; resource requests never mutate selection."""
+    return _project_choice(user)[1]
 
 
 def remember_last_visited(user, project: Project) -> None:
-    profile = getattr(user, "profile", None)
-    if profile is None or profile.last_active_repository_id == project.pk:
+    if getattr(user, "profile", None) is None:
         return
-    profile.last_active_repository = project
-    profile.save(update_fields=["last_active_repository"])
+    commit_project_selection(user, {"scope": "project", "id": project_key(project)}, project)
 
 
 def resolve_scoped_project(request, explicit: Optional[str] = None) -> Optional[Project]:
@@ -96,8 +197,8 @@ def project_for_scope_app(request) -> Optional[Project]:
         return resolve_scoped_project(request)
     from apps.infra.project_app.services.project_utils import get_current_project
 
-    project = resolve_scoped_project(request)
-    if project is None:
+    explicit_choice, project = _project_choice(request.user)
+    if project is None and not explicit_choice:
         project = get_current_project(request)
         # The leaf picker shows the provider's last visited project as current.
         if project is not None and find_accessible_project(request.user, project_key(project)):
@@ -110,6 +211,27 @@ class HubProjectProvider:
 
     def project_id(self, project: Project) -> str:
         return project_key(project)
+
+    def canonical_project_id(self, request, selector: str) -> Optional[str]:
+        """Map a legacy numeric model ID within this request's access list.
+
+        The SDK rechecks the returned owner/slug against its current listing.
+        This read never changes selection or grants access to a public project.
+        Comparing the stored ID avoids coercing arbitrary input into a DB integer.
+        """
+        if (
+            not isinstance(selector, str)
+            or not selector.isascii()
+            or not selector.isdecimal()
+        ):
+            return None
+        user = getattr(request, "user", None)
+        if not getattr(user, "is_authenticated", False):
+            return None
+        for project in accessible_projects(user):
+            if str(project.pk) == selector:
+                return project_key(project)
+        return None
 
     def list_projects(self, request) -> list[ProjectEntry]:
         return [
@@ -129,6 +251,52 @@ class HubProjectProvider:
         project = find_accessible_project(request.user, project_id)
         if project is not None:
             remember_last_visited(request.user, project)
+
+
+class HubScopedProjectProvider(HubProjectProvider):
+    """Optional All-scope bridge, enabled by registering this provider class.
+
+    The existing HubProjectProvider keeps its three-method legacy contract.
+    This class requires the SDK's optional ProjectSelection capability.
+    """
+
+    def current_scope(self, request):
+        from scitex_sdk.ui.project_scope import ProjectSelection
+
+        profile = _profile_snapshot(request.user)
+        if profile is None or profile.project_selection is None:
+            return None
+        try:
+            document = _selection_document(profile.project_selection)
+        except ValueError:
+            clear_profile_selection(profile, user=request.user)
+            return None
+        if document["scope"] == "user" and profile.last_active_repository_id is None:
+            return ProjectSelection(scope="user", id=None)
+        project = _snapshot_project(request.user, profile)
+        if document["scope"] != "project" or project is None:
+            clear_profile_selection(profile, user=request.user)
+            return None
+        return ProjectSelection(scope="project", id=project_key(project))
+
+    def remember_scope(self, request, selection) -> None:
+        from scitex_sdk.ui.project_scope import ProjectSelection
+
+        if not isinstance(selection, ProjectSelection):
+            raise ValueError("selection requires the SDK tagged pair")
+        document = _selection_document({"scope": selection.scope, "id": selection.id})
+        project = None
+        if document["scope"] == "project":
+            project = find_accessible_project(request.user, document["id"])
+            if project is None or project_key(project) != document["id"]:
+                raise ValueError("project is not accessible or canonical")
+        commit_project_selection(request.user, document, project)
+        if project is None:
+            request.session.pop("current_project_key", None)
+            request.session.pop("current_project_slug", None)
+        else:
+            request.session["current_project_key"] = project_key(project)
+            request.session["current_project_slug"] = project.slug
 
 
 class HubProjectStorage:

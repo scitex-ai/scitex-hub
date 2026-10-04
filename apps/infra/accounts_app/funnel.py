@@ -179,6 +179,7 @@ GATED_MOUNTS = frozenset(
         "console",
         "files",
         "apps",
+        "create-app",  # SDK compatibility alias: same existing product gate.
         "new",
         "current-project",
         "search",

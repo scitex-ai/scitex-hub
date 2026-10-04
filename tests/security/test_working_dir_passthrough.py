@@ -53,6 +53,7 @@ The auth tests drive the REAL ``@login_required`` URL views with an
 from __future__ import annotations
 
 import json
+from functools import partial
 from pathlib import Path
 from types import SimpleNamespace
 from unittest import mock
@@ -481,7 +482,8 @@ def test_storage_escaping_dir_is_refused():
     # Arrange
     views = _leaf_storage_views()
     request = _storage_request(
-        "/apps/storage/", {"volume": "workspace", "dir": "../../.."}
+        "/apps/storage/",
+        {"tab": "move", "plan": "1", "volume": "workspace", "dir": "../../.."}
     )
     # Act
     from apps.workspace.console_app.models import ComputeIdentity
@@ -609,7 +611,7 @@ def _prepare_figrecipe_endpoint(endpoint, *, body=None, resolver=None):
         recorder,
         resolver=resolver,
         on_missing=figrecipe_urls._no_project_json,
-        guard=figrecipe_urls._reject_out_of_jail_paths,
+        guard=partial(figrecipe_urls._reject_out_of_jail_paths, resolver=resolver),
     )
     if body is None:
         request = RF.get("/apps/figrecipe/figrecipe/api")

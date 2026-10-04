@@ -174,7 +174,13 @@ def test_the_surface_shows_all_six_facts_to_the_reader():
 def test_the_only_action_is_an_explicit_continue_to_the_provider():
     html = _render()
 
-    form = re.search(r"<form[^>]*action=\"([^\"]+)\"[^>]*>(.*?)</form>", html, re.S)
+    # The auth shell also contains the language-switcher form. The payment
+    # step must have exactly one owned form, retaining every submit invariant.
+    forms = re.findall(
+        r'<form\b[^>]*class="payment-step-form"[^>]*>.*?</form>', html, re.S
+    )
+    assert len(forms) == 1, "expected one payment continue form"
+    form = re.search(r"<form[^>]*action=\"([^\"]+)\"[^>]*>(.*?)</form>", forms[0], re.S)
     assert form, "no continue form"
     assert form.group(1) == "/billing/start-setup/", form.group(1)
     assert 'data-payment-action="continue"' in form.group(0)
@@ -330,7 +336,20 @@ class TestPaymentStepRoute:
         settings.STRIPE_PRICE_IDS = {"subscription-general": "price_general"}
 
         client = Client()
-        client.force_login(self._user())
+        user = self._user()
+        # Arrange the DURABLE paid selection the terms branch requires.
+        # begin_social_signup records the newcomer free default, which the
+        # view correctly activates past this step; the terms only exist for
+        # a determined chargeable plan, so record subscription-general on the
+        # authority exactly as a plan selection would (blocker-5 pattern).
+        # No webhook/product transition is performed here.
+        from apps.infra.auth_app.onboarding import state_for
+
+        authority = state_for(user)
+        assert authority is not None
+        authority.pricing_id = "subscription-general"
+        authority.save(update_fields=["pricing_id", "updated_at"])
+        client.force_login(user)
         response = client.get("/accounts/settings/payment/")
 
         assert response.status_code == 200
@@ -356,7 +375,19 @@ class TestPaymentStepRoute:
         settings.STRIPE_PRICE_IDS = {}
 
         client = Client()
-        client.force_login(self._user("payment-ambiguous"))
+        user = self._user("payment-ambiguous")
+        # Arrange the EXPLICITLY undetermined plan the plan_unset branch
+        # requires: clear the newcomer free default back to no recorded plan.
+        # resolve_free_plan("") is None by contract, so the view renders
+        # plan_unset instead of activating past the step. Free-signup behavior
+        # itself is covered by its own tests and is untouched here.
+        from apps.infra.auth_app.onboarding import state_for
+
+        authority = state_for(user)
+        assert authority is not None
+        authority.pricing_id = ""
+        authority.save(update_fields=["pricing_id", "updated_at"])
+        client.force_login(user)
         response = client.get("/accounts/settings/payment/")
 
         assert response.status_code == 200

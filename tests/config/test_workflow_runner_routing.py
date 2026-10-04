@@ -37,7 +37,7 @@ def _load(path: Path) -> dict:
 def _triggers(workflow: dict) -> dict:
     # PyYAML reads the bare key `on` as boolean True.
     on = workflow.get("on", workflow.get(True)) or {}
-    return on if isinstance(on, dict) else {name: None for name in on}
+    return on if isinstance(on, dict) else dict.fromkeys(on)
 
 
 def _self_hosted_pr_jobs():
@@ -99,9 +99,18 @@ def test_the_docker_scan_found_the_suites():
     # Arrange
     jobs = DOCKER_JOBS
     # Act
-    count = len(jobs)
+    defining_jobs = {(job.values[0], job.values[1]) for job in jobs}
     # Assert
-    assert count >= 3, f"only {count} scitex-docker jobs found; the scan is vacuous"
+    assert defining_jobs == {
+        ("pytest-matrix-on-ubuntu-py3-11-3-12-3-13.yml", "test"),
+    }, "the declared Docker test route changed; review its isolation and admission"
+
+
+@pytest.mark.parametrize("key", ["terminal-tests", "security-regression"])
+def test_terminal_and_security_suites_keep_the_hosted_route(key):
+    job = _load(WORKFLOWS / "tests.yml")["jobs"][key]
+    assert job["runs-on"] == "ubuntu-latest"
+    assert job["needs"] == "runner-admission"
 
 
 @pytest.mark.parametrize("filename,key,job", DOCKER_JOBS)

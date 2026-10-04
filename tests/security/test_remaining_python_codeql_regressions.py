@@ -116,10 +116,12 @@ def test_auth_log_field_cannot_add_a_physical_log_line(caplog):
         user=SimpleNamespace(is_authenticated=False),
         session={},
     )
-    get_user_for_request(request, "project\nFORGED")
+    # The helper is auth-only and intentionally emits no project/session log.
+    # Capture every ordinary log level so silence cannot hide a forged entry.
+    with caplog.at_level("DEBUG"):
+        outcome = get_user_for_request(request, "project\nFORGED")
 
-    assert "project\\nFORGED" in caplog.text
-    assert "project\nFORGED" not in caplog.text
+    assert (outcome, caplog.text) == ((None, False), "")
 
 
 def test_status_issues_do_not_expose_probe_exceptions():

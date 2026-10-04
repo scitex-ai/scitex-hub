@@ -5,6 +5,6 @@
   "label": "App Creator",
   "icon": "fas fa-plus",
   "category": "utility",
-  "url": "/create-app/",
+  "url": "/apps/new/",
   "description": "Build your own app with the AI agent."
 }

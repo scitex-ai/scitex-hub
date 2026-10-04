@@ -51,6 +51,7 @@ EXPECTED_DEVELOPER_LINKS = (
     "Releases",
     "Bug Reports",
     "Server Status",
+    "Self-Hosting Guide",
 )
 
 FOOTER_CSS = Path(settings.BASE_DIR) / "static/shared/css/components/footer.css"

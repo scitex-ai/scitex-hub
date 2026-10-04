@@ -24,20 +24,6 @@ import hashlib
 from scitex import logging
 import asyncio
 from datetime import datetime, timedelta
-from ...models import (
-    SearchIndex,
-    UserLibrary,
-    Author,
-    Journal,
-    Collection,
-    Topic,
-    Annotation,
-    AnnotationVote,
-    CollaborationGroup,
-    GroupMembership,
-    AnnotationTag,
-    UserPreference,
-)
 from apps.infra.project_app.services import get_current_project
 
 # Import from other search modules
@@ -47,7 +33,6 @@ from .search_helpers import (
     apply_advanced_filters,
     get_paper_authors,
 )
-from ...models import SavedSearch
 
 logger = logging.getLogger(__name__)
 

@@ -58,8 +58,12 @@ def test_shared_hamburger_keeps_a_44px_target_outside_mobile_media_query():
     base = _rule(css, ".mobile-hamburger")
 
     assert "display: flex" in base
-    assert re.search(r"width\s*:\s*44px", base)
-    assert re.search(r"height\s*:\s*44px", base)
+    # The current base rule is 52px; the mobile override is 44px. Both keep
+    # the same 44px minimum hit target, independently of the media query.
+    width = re.search(r"(?:^|;)\s*width\s*:\s*([0-9]+(?:\.[0-9]+)?)px\s*(?:;|$)", base)
+    height = re.search(r"(?:^|;)\s*height\s*:\s*([0-9]+(?:\.[0-9]+)?)px\s*(?:;|$)", base)
+    assert width is not None and float(width.group(1)) >= 44
+    assert height is not None and float(height.group(1)) >= 44
     assert css.index(".mobile-hamburger {") < css.index("@media (max-width: 768px)")
 
 

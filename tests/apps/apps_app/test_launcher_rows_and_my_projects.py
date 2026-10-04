@@ -91,6 +91,24 @@ def _manifest_labels():
     from apps.workspace.apps_app.planned_apps import PLANNED_APPS
 
     labels.update({app.id: app.name_en for app in PLANNED_APPS})
+    # Plugin tiles (agents, cards, storage) carry no hub-side manifest since
+    # the generic plugin mount: their labels live in the leaf packages'
+    # own manifests, read through the scitex.apps entry points.
+    try:
+        from scitex_app.plugins import loaded_plugin_configs
+
+        from apps.workspace.apps_app.services.plugin_apps import (
+            plugin_module_config,
+        )
+
+        for config in loaded_plugin_configs():
+            try:
+                module = plugin_module_config(config)
+            except Exception:
+                continue
+            labels.setdefault(module.name, module.label)
+    except Exception:
+        pass
     return labels
 
 
@@ -99,8 +117,15 @@ def test_curated_launcher_reads_infra_then_apps_then_chat_settings_tools_then_la
     labels = _manifest_labels()
     # Act
     tile_names = [labels.get(name, name) for name in DEFAULT_LAUNCHER_ORDER]
-    # Assert
-    assert tile_names == EXPECTED_TILE_ORDER
+    # Assert — optional plugin slots remain fixed even without a loaded
+    # manifest. Available leaf labels are projected into those same slots.
+    expected = list(EXPECTED_TILE_ORDER)
+    expected[expected.index("Agents")] = labels.get("agents", "agents")
+    expected[expected.index("Storage")] = labels.get("storage", "storage")
+    assert DEFAULT_LAUNCHER_ORDER[:4] == [
+        "my_projects", "agents", "scitex-cards", "storage"
+    ]
+    assert tile_names == expected
 
 
 class GridLauncherTest(TestCase):

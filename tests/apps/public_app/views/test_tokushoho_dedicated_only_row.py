@@ -38,11 +38,16 @@ TEMPLATE = "public_app/legal/tokushoho.html"
 
 #: Real rendered column text, taken from the shipped catalogue so the synthetic
 #: row carries the same shapes and phrasings a real row does.
-_REAL = published_price_rows()[0]
+# Free is now the first row and has no metered overage. Use the declared
+# Academic row that genuinely carries all three dedicated column values.
+_REAL = next(
+    row for row in published_price_rows() if row["id"] == "subscription-student"
+)
 STORAGE = _REAL["storage"]
 COMPUTE_CREDIT = _REAL["compute_credit"]
 OVERAGE = _REAL["overage"]
 DEDICATED = (STORAGE, COMPUTE_CREDIT, OVERAGE)
+assert all(DEDICATED), "dedicated-column fixture values must be nonempty"
 
 #: A GENUINE non-dedicated attribute: it has no column of its own, so it must
 #: still reach 備考. Built through the public helper with a real catalogue value.

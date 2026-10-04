@@ -147,6 +147,15 @@ class UserLibraryService:
         try:
             from scitex_scholar.cli._project_tree import link_project_tree
 
+            link = project_path / ".scitex" / "scholar" / "library"
+            if (
+                not link.is_symlink()
+                and link.is_dir()
+                and not any(link.iterdir())
+            ):
+                # Adopt only an empty scaffold, before either leaf version.
+                link.rmdir()
+
             try:
                 return link_project_tree(
                     project_path, library_root=self.library_path

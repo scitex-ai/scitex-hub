@@ -4,12 +4,13 @@
 
 ``pip install <pkg>`` is the whole install. Settings add the AppConfig
 (config/settings/_optional_apps.py), this module mounts its urls and lists its
-launcher tile from its manifest. Contract: scitex_app.plugins.
+launcher tile from its manifest. Contract: scitex_sdk.app.plugins.
 """
 
 from __future__ import annotations
 
 import logging
+import re
 from importlib.util import find_spec
 
 logger = logging.getLogger(__name__)
@@ -24,7 +25,7 @@ def _module_exists(dotted: str) -> bool:
 
 def _configs() -> list:
     try:
-        from scitex_app.plugins import loaded_plugin_configs
+        from scitex_sdk.app.plugins import loaded_plugin_configs
     except ImportError:
         return []
     try:
@@ -86,14 +87,20 @@ def plugin_urlpatterns(existing) -> list:
     whole urlconf on first resolve (lazy, so the optional package stays
     import-safe and startup pays nothing extra).
     """
-    from django.urls import include, path
-    from django.urls.resolvers import RoutePattern, URLResolver
+    return _plugin_urlpatterns(existing, _configs())
+
+
+def _plugin_urlpatterns(existing, configs) -> list:
+    """Build the existing plugin mounts from one ready-config snapshot."""
     from functools import cached_property
 
+    from django.urls import include, path
+    from django.urls.resolvers import RoutePattern, URLResolver
+
     try:
-        from scitex_app.plugins import mount_route  # type: ignore[import-not-found]
+        from scitex_sdk.app.plugins import mount_route  # type: ignore[import-not-found]
     except ImportError:
-        # scitex-app is an optional integration surface. Released wheels that
+        # scitex-sdk is the canonical integration surface. Released wheels that
         # predate the plugin API must still boot the Hub; no discovered plugin
         # means there is nothing to mount.
         return []
@@ -113,7 +120,7 @@ def plugin_urlpatterns(existing) -> list:
             return [_wrap_login(p) for p in super().url_patterns]
 
     patterns = []
-    for config in _configs():
+    for config in configs:
         route = mount_route(config)
         urls_module = f"{config.name}.urls"
         if _route_taken(route, existing) or not _module_exists(urls_module):
@@ -127,10 +134,105 @@ def plugin_urlpatterns(existing) -> list:
     return patterns
 
 
+def _native_leaf_reservation(config, route, existing):
+    """A native route that already admitted this exact leaf renderer.
+
+    A manifest or slug collision cannot grant a route takeover. Reuse the
+    host's existing same-distribution renderer binding and require the sole
+    reserved route to be the native module's exact resolver/namespace.
+    """
+    from django.urls.resolvers import RoutePattern, URLResolver
+
+    from apps.infra.workspace_app.registry import get_module
+
+    manifest = getattr(config, "manifest", None) or {}
+    native = get_module(manifest.get("slug") or config.label)
+    if (
+        native is None or native.renderer_requires_mount
+        or not native.content_renderer
+        or native.renderer_mount_route != route
+        or native.renderer_leaf_urlconf != f"{config.name}.urls"
+        or native.get_url() != "/" + route
+    ):
+        return None
+    owner, distribution = native.pip_package, _plugin_distribution(config)
+    if not owner or not distribution or re.sub(r"[-_.]+", "-", owner).lower() != re.sub(
+        r"[-_.]+", "-", distribution
+    ).lower():
+        return None
+    taken = [pattern for pattern in existing if str(pattern.pattern).startswith(route)]
+    if len(taken) != 1:
+        return None
+    reservation = taken[0]
+    if (
+        not isinstance(reservation, URLResolver)
+        or not isinstance(reservation.pattern, RoutePattern)
+        or str(reservation.pattern) != route
+        or reservation.app_name != native.app_name
+        or reservation.namespace != native.app_name
+    ):
+        return None
+    return reservation
+
+
+def compose_plugin_urlpatterns(existing) -> list:
+    """Use an admitted leaf URLconf, retaining every other native route.
+
+    Old, absent, foreign and unbound leaves keep the original native mount.
+    An admitted native collision uses the same login-wrapped plugin resolver
+    as a new app; registry rendering still proves that exact leaf URLconf and
+    runs the shared mount guard before importing or calling the renderer.
+    """
+    try:
+        from scitex_sdk.app.plugins import mount_route
+    except ImportError:
+        return list(existing)
+    configs = _configs()
+    takeovers = {}
+    for config in configs:
+        route = mount_route(config)
+        if not _module_exists(f"{config.name}.urls"):
+            continue
+        reservation = _native_leaf_reservation(config, route, existing)
+        if reservation is not None:
+            takeovers.setdefault(route, []).append((config, reservation))
+    admitted = {
+        route: matches[0] for route, matches in takeovers.items()
+        if len(matches) == 1
+    }
+    retained = [
+        pattern for pattern in existing
+        if not any(pattern is pair[1] for pair in admitted.values())
+    ]
+    mounted = [
+        config for config in configs
+        if mount_route(config) not in admitted
+        or config is admitted[mount_route(config)][0]
+    ]
+    return _plugin_urlpatterns(retained, mounted) + retained
+
+
 def plugin_module_config(config):
     """Launcher ModuleConfig built from the plugin's own manifest."""
+    from scitex_sdk.app.plugins import mount_route
+
     from apps.infra.workspace_app.registry import _manifest_to_module_config
-    from scitex_app.plugins import mount_route
+
+    try:
+        from scitex_sdk.app.plugins import leaf_declarations
+    except ImportError:
+        declarations = {}
+    else:
+        declarations = leaf_declarations(
+            config.name,
+            {
+                "context_builder": str,
+                "partial_template": str,
+                "content_renderer": str,
+                "api_policy_module": str,
+                "hosted_api_dispatcher": str,
+            },
+        )
 
     manifest = dict(config.manifest)
     slug = manifest.get("slug") or config.label
@@ -140,13 +242,67 @@ def plugin_module_config(config):
         app_name=config.label,
         order=manifest.get("order", 90),
         ai_hint=manifest.get("ai_hint") or manifest.get("subtitle", ""),
-        # The app serves its own pages; there is no workspace partial.
-        partial_template="",
-        renders_ui=False,
+        # Old plugins retain their standalone-page fallback. Only genuine
+        # typed leaf declarations enable a workspace partial/renderer.
+        partial_template=declarations.get("partial_template", ""),
+        context_builder=declarations.get(
+            "context_builder", manifest.get("context_builder", "")
+        ),
+        content_renderer=declarations.get("content_renderer", ""),
+        renders_ui=bool(declarations.get("partial_template")),
     )
     module = _manifest_to_module_config(manifest)
     module.url = "/" + mount_route(config)
+    if module.content_renderer:
+        # A new leaf has no native surface to fall back to. Host-only state,
+        # never a manifest declaration, requires its real registered mount.
+        module.renderer_requires_mount = True
+        candidate = _plugin_distribution(config)
+        if module.pip_package and candidate and re.sub(
+            r"[-_.]+", "-", module.pip_package
+        ).lower() == re.sub(r"[-_.]+", "-", candidate).lower():
+            module.renderer_mount_route = mount_route(config)
+            module.renderer_leaf_urlconf = f"{config.name}.urls"
     return module
+
+
+def _plugin_distribution(config) -> str:
+    """The unique discovered distribution of this exact ready config class."""
+    from scitex_sdk.app.plugins import discover_plugin_apps
+
+    config_path = f"{type(config).__module__}.{type(config).__qualname__}"
+    matches = [
+        record for record in discover_plugin_apps()
+        if record.app_config == config_path
+    ]
+    if len(matches) != 1:
+        return ""
+    distribution = matches[0].distribution
+    return distribution if isinstance(distribution, str) else ""
+
+
+def _bind_plugin_renderer(existing, plugin, config) -> None:
+    """Attach only presentation capability to the same backing distribution.
+
+    A slug collision alone must never replace native identity, URL, template,
+    context builder or policy. A leaf's actual registered URLconf supplies its
+    mount; the native surface stays the fallback when that mount is absent.
+    Backing ownership comes from the discovered entry point, never the manifest.
+    """
+    owner = existing.pip_package
+    candidate = _plugin_distribution(config)
+    if (
+        not owner or not candidate or not plugin.content_renderer
+    ):
+        return
+    if re.sub(r"[-_.]+", "-", owner).lower() == re.sub(
+        r"[-_.]+", "-", candidate
+    ).lower():
+        from scitex_sdk.app.plugins import mount_route
+
+        existing.content_renderer = plugin.content_renderer
+        existing.renderer_mount_route = mount_route(config)
+        existing.renderer_leaf_urlconf = f"{config.name}.urls"
 
 
 def register_plugin_modules() -> None:
@@ -156,8 +312,11 @@ def register_plugin_modules() -> None:
     for config in _configs():
         try:
             module = plugin_module_config(config)
-            if get_module(module.name) is None:
+            existing = get_module(module.name)
+            if existing is None:
                 register_module(module)
+            else:
+                _bind_plugin_renderer(existing, module, config)
         except Exception:
             logger.exception("[plugin_apps] cannot list %s", config.name)
 

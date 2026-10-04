@@ -229,7 +229,16 @@
                         {% for group in published_price_groups %}
                             {% for row in group.rows %}
                             <tr>
-                                <td>{{ row.label|translate_dynamic }}</td>
+                                <td>
+                                    {{ row.label|translate_dynamic }}
+                                    {% if row.included %}
+                                    <ul class="svc-muted">
+                                        {% for item in row.included %}
+                                        <li>{{ item }}</li>
+                                        {% endfor %}
+                                    </ul>
+                                    {% endif %}
+                                </td>
                                 <td class="svc-price-cell">{{ row.price }}</td>
                             </tr>
                             {% endfor %}

@@ -65,34 +65,6 @@ class SearchResult(models.Model):
         return f"Result {self.rank} for query {self.search_query.id}"
 
 
-class SearchFilter(models.Model):
-    """Advanced search filters"""
-
-    FILTER_TYPE_CHOICES = [
-        ("date_range", "Date Range"),
-        ("author", "Author"),
-        ("journal", "Journal"),
-        ("topic", "Topic"),
-        ("citation_count", "Citation Count"),
-        ("document_type", "Document Type"),
-        ("open_access", "Open Access"),
-        ("language", "Language"),
-    ]
-
-    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    name = models.CharField(max_length=100)
-    filter_type = models.CharField(max_length=20, choices=FILTER_TYPE_CHOICES)
-    description = models.TextField(blank=True)
-    configuration = models.JSONField(default=dict)  # Store filter-specific config
-    is_active = models.BooleanField(default=True)
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
-
-    class Meta:
-        ordering = ["filter_type", "name"]
-
-    def __str__(self):
-        return f"{self.filter_type}: {self.name}"
 
 
 class SavedSearch(models.Model):

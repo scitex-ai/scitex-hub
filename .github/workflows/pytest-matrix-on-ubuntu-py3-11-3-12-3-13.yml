@@ -38,149 +38,30 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
+
+permissions:
+  contents: read
 jobs:
-  test:
+  validation:
+    uses: scitex-ai/.github/.github/workflows/hub-pytest-matrix.yml@main
+    secrets:
+      CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
+  required-pytest:
     name: pytest-matrix-on-ubuntu-py${{ matrix.python-version }}
-    # Same-repo runs: scitex-docker runners (scitex-compute-03/04), inside a
-    # throwaway job container so the suite never sees the runner host's $HOME
-    # or fleet credentials, and postgres is reached by service name (no host
-    # port, so parallel jobs on one host cannot collide). Fork PRs: hosted VM,
-    # no container, postgres on a random localhost port.
-    runs-on: >-
-      ${{ (github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name != github.repository)
-          && fromJSON('["ubuntu-latest"]')
-          || fromJSON('["scitex-docker"]') }}
-    container:
-      image: >-
-        ${{ (github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name != github.repository)
-            && '' || 'buildpack-deps:noble' }}
-      # uid 1000 = the runner user on both hosts (and `ubuntu` in the image), so
-      # workspace files stay removable by the runner and root-bypass of file
-      # permissions cannot mask a test.
-      options: --user 1000:1000 --cpus 8 --memory 16g
-      # The docker CLI only, read-only and WITHOUT the daemon socket: the
-      # compose tests run `docker compose config`, which needs no daemon.
-      volumes:
-        - /usr/bin/docker:/usr/bin/docker:ro
-        - /usr/libexec/docker/cli-plugins:/usr/libexec/docker/cli-plugins:ro
-    # Inside a job container `run:` defaults to sh, which rejects pipefail.
-    defaults:
-      run:
-        shell: bash
+    needs: validation
+    if: always()
+    runs-on: ubuntu-latest
+    permissions: {}
+    steps:
+    - name: Require actual full validation success
+      env:
+        VALIDATION_RESULT: ${{ needs.validation.result }}
+      run: |
+        test "$VALIDATION_RESULT" = "success"
     strategy:
       fail-fast: false
       matrix:
-        python-version: ["3.11", "3.12", "3.13"]
-    # PostgreSQL is the only engine Django supports here now. This matrix used
-    # to run with no database service at all and set a flag that swapped the
-    # ENGINE for a local file-backed one -- so the required status checks were
-    # measuring behaviour against a DIFFERENT database than production runs,
-    # and every postgres-only construct (jsonb, DROP COLUMN IF EXISTS, ILIKE)
-    # went untested by the gate that blocks merges. Same image/credentials as
-    # e2e-mobile.yml and screenshots.yml, which already do this.
-    services:
-      postgres:
-        image: postgres:16
-        env:
-          POSTGRES_DB: scitex_test
-          POSTGRES_USER: scitex
-          POSTGRES_PASSWORD: scitex_test_pass  # pragma: allowlist secret
-        # Random host port: only the hosted (no-container) path uses it.
-        ports:
-          - 5432
-        options: >-
-          --health-cmd pg_isready
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
-    steps:
-      # Backstop for the runs-on predicate: never check out fork code on our hardware.
-      - name: Refuse to run fork-authored code on self-hosted infrastructure
-        if: >-
-          github.event_name == 'pull_request' &&
-          github.event.pull_request.head.repo.full_name != github.repository &&
-          runner.environment == 'self-hosted'
-        run: |
-          echo "::error::Fork-authored code is not run on self-hosted runners."
-          exit 1
-
-      - uses: actions/checkout@v4
-      - name: Check out Writer's compile gate
-        uses: actions/checkout@v4
-        with:
-          repository: scitex-ai/scitex-writer
-          ref: develop
-          path: .ci/scitex-writer
-          sparse-checkout: |
-            scripts/python
-          sparse-checkout-cone-mode: true
-      # uv, NOT setup-python + bare pip. The runner's toolcache Python is
-      # uv-managed, so pip into it dies with PEP 668
-      # "externally-managed-environment" (measured, run 30329643093).
-      # A venv — never --break-system-packages: these runners are ORG-POOLED
-      # and shared with every other repo's jobs.
-      # uv also removes the toolcache dependency this matrix would otherwise
-      # have: the runner only had 3.12 cached, and `uv venv --python 3.11`
-      # fetches a missing interpreter instead of failing.
-      - uses: astral-sh/setup-uv@v7
-        with:
-          cache-dependency-glob: pyproject.toml
-      - name: Install dependencies (py${{ matrix.python-version }})
-        run: |
-          set -euo pipefail
-          # --seed installs pip/setuptools into the venv. uv itself does not
-          # need pip, so a bare `uv venv` omits it — but tests/scitex_hub/apps/
-          # apps_app/services/test_user_app_install_e2e.py shells out to
-          # `python -m pip install` to exercise the REAL user-app install path,
-          # and died with "No module named pip" (measured, run 30331030951).
-          # setup-python always provided a pip, so nothing here depended on it
-          # explicitly. Seed the venv rather than rewriting those tests to use
-          # uv: they are correct as written — they exercise the same installer
-          # the product uses, with no mocks.
-          uv venv --seed --python ${{ matrix.python-version }} .venv
-          # Fallback chain: prefer [all,dev] so optional-dep code paths
-          # (yaml, fastmcp, textual) get exercised. Falls back to [dev] then
-          # plain editable so a packaging hiccup doesn't strand CI.
-          uv pip install --python .venv/bin/python -e ".[all,dev]" \
-            || uv pip install --python .venv/bin/python -e ".[dev]" \
-            || uv pip install --python .venv/bin/python -e .
-      - name: Run tests
-        # Django settings hard-fail (ValueError, per "no silent fallback")
-        # if SCITEX_HUB_DJANGO_SECRET_KEY is unset. CI doesn't need a real
-        # secret, so we set an obviously-fake one for the test process only.
-        env:
-          SCITEX_WRITER_SOURCE: ${{ github.workspace }}/.ci/scitex-writer
-          SCITEX_HUB_DJANGO_SECRET_KEY: ci-test-secret-do-not-use-in-prod  # pragma: allowlist secret
-          # settings_dev.py: require_env("SCITEX_HUB_GITEA_SSH_PORT_DEV")
-          SCITEX_HUB_GITEA_SSH_PORT_DEV: "2222"
-          # Point Django at the postgres service declared above. settings_dev
-          # reads the _DEV-suffixed variants, not the bare names.
-          SCITEX_HUB_DB_NAME_DEV: scitex_test
-          SCITEX_HUB_DB_USER_DEV: scitex
-          SCITEX_HUB_DB_PASSWORD_DEV: scitex_test_pass  # pragma: allowlist secret
-          SCITEX_HUB_DB_HOST_DEV: ${{ job.container.id && 'postgres' || 'localhost' }}
-          SCITEX_HUB_DB_PORT_DEV: ${{ job.container.id && '5432' || job.services.postgres.ports['5432'] }}
-          # Matches --cpus 8 in the container; hosted VMs have 4 vCPUs.
-          PYTEST_XDIST_WORKERS: ${{ job.container.id && '8' || 'auto' }}
-          # No Redis broker in this job, so .delay() would raise
-          # kombu.exceptions.OperationalError. Run tasks inline instead
-          # (settings_celery.py). This is now purely a Celery switch -- it no
-          # longer doubles as a database selector.
-          SCITEX_HUB_TEST_MODE: "1"
-        run: |
-          set -euo pipefail
-          # .venv/bin on PATH so any tool the suite shells out to (e.g. the
-          # audit gate's scitex-dev subcommands) resolves to THIS venv rather
-          # than to whatever the shared runner happens to have installed.
-          export PATH="$PWD/.venv/bin:$PATH"
-          # loadgroup with tests/conftest.py's groups: one per file (intra-file
-          # order unchanged), visitor_pool as one. Each worker gets its own test
-          # database from pytest-django.
-          .venv/bin/python -m pytest tests/ -n "$PYTEST_XDIST_WORKERS" --dist loadgroup --cov=src/scitex_hub --cov-report=xml --cov-report=term
-      - name: Upload coverage to Codecov
-        if: always() && matrix.python-version == '3.12'
-        uses: codecov/codecov-action@v5
-        with:
-          token: ${{ secrets.CODECOV_TOKEN }}
-          files: ./coverage.xml
-          fail_ci_if_error: false
+        python-version:
+        - '3.11'
+        - '3.12'
+        - '3.13'

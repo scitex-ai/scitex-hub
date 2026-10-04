@@ -5,12 +5,17 @@ import json
 
 import pytest
 from django.contrib.auth.models import User
+from django.db import transaction
 from django.template import Context
 from django.test import RequestFactory, TestCase
 
 from apps.infra.project_app.models import Project, ProjectMembership
 from apps.infra.project_app.services.project_scope import (
     HubProjectProvider,
+    clear_profile_selection,
+    commit_project_selection,
+    has_selection_document,
+    last_visited_project,
     project_for_scope_app,
     project_key,
     resolve_scoped_project,
@@ -238,6 +243,196 @@ class ProjectScopeTest(TestCase):
         html = hub_project_provider_meta(Context({"request": request}))
         # Assert
         assert html == ""
+
+    def test_user_selection_reload_clears_the_legacy_project(self):
+        # Arrange
+        request = self._request()
+        # Act
+        commit_project_selection(request.user, {"scope": "user", "id": None})
+        profile = User.objects.get(pk=self.me.pk).profile
+        # Assert
+        assert (profile.project_selection, profile.last_active_repository_id) == (
+            {"scope": "user", "id": None}, None
+        )
+
+    def test_user_selection_does_not_reopen_a_session_or_default_project(self):
+        # Arrange
+        request = self._request()
+        request.session = {"current_project_key": project_key(self.paper), "current_project_slug": "paper"}
+        commit_project_selection(request.user, {"scope": "user", "id": None})
+        # Act
+        selected = (get_current_project(request), project_for_scope_app(request))
+        # Assert
+        assert selected == (None, None)
+
+    def test_project_selection_reload_preserves_the_canonical_pair(self):
+        # Arrange
+        request = self._request()
+        # Act
+        commit_project_selection(request.user, {"scope": "project", "id": project_key(self.shared)}, self.shared)
+        profile = User.objects.get(pk=self.me.pk).profile
+        # Assert
+        assert (profile.project_selection, profile.last_active_repository_id) == (
+            {"scope": "project", "id": project_key(self.shared)}, self.shared.pk
+        )
+
+    def test_selection_rollback_restores_both_values(self):
+        # Arrange
+        request = self._request()
+        original = User.objects.get(pk=self.me.pk).profile
+        expected = (original.project_selection, original.last_active_repository_id)
+        # Act
+        with pytest.raises(RuntimeError, match="rollback selection"):
+            with transaction.atomic():
+                commit_project_selection(request.user, {"scope": "user", "id": None})
+                raise RuntimeError("rollback selection")
+        profile = User.objects.get(pk=self.me.pk).profile
+        # Assert
+        assert (profile.project_selection, profile.last_active_repository_id) == expected
+
+    def test_noncanonical_project_pair_leaves_both_values_unchanged(self):
+        # Arrange
+        request = self._request()
+        original = User.objects.get(pk=self.me.pk).profile
+        expected = (original.project_selection, original.last_active_repository_id)
+        # Act
+        with pytest.raises(ValueError, match="not canonical"):
+            commit_project_selection(request.user, {"scope": "project", "id": "paper"}, self.paper)
+        profile = User.objects.get(pk=self.me.pk).profile
+        # Assert
+        assert (profile.project_selection, profile.last_active_repository_id) == expected
+
+    def test_navigation_after_user_selection_commits_a_project_and_session(self):
+        # Arrange
+        request = self._request()
+        request.session = {}
+        commit_project_selection(request.user, {"scope": "user", "id": None})
+        # Act
+        remember_current_project(request, self.paper)
+        profile = User.objects.get(pk=self.me.pk).profile
+        # Assert
+        assert (profile.project_selection, profile.last_active_repository_id, request.session) == (
+            {"scope": "project", "id": project_key(self.paper)}, self.paper.pk,
+            {"current_project_key": project_key(self.paper), "current_project_slug": "paper"}
+        )
+
+    def test_user_selection_resource_read_has_no_persistence_effect(self):
+        # Arrange
+        request = self._request()
+        commit_project_selection(request.user, {"scope": "user", "id": None})
+        # Act
+        result = last_visited_project(request.user)
+        profile = User.objects.get(pk=self.me.pk).profile
+        # Assert
+        assert (result, profile.project_selection, profile.last_active_repository_id) == (
+            None, {"scope": "user", "id": None}, None
+        )
+
+    def test_partial_user_tag_refuses_legacy_project_fallback(self):
+        # Arrange
+        request = self._request()
+        request.session = {"current_project_key": project_key(self.paper)}
+        profile = User.objects.get(pk=self.me.pk).profile
+        profile.project_selection = {"scope": "user"}
+        profile.save(update_fields=["project_selection"])
+        # Act
+        selected = get_current_project(request)
+        # Assert
+        assert (has_selection_document(request.user), selected) == (True, None)
+
+    def test_stale_clear_cannot_overwrite_a_later_choice(self):
+        # Arrange
+        request = self._request()
+        stale = User.objects.get(pk=self.me.pk).profile
+        # Act
+        commit_project_selection(request.user, {"scope": "user", "id": None})
+        clear_profile_selection(stale)
+        profile = User.objects.get(pk=self.me.pk).profile
+        # Assert
+        assert (profile.project_selection, profile.last_active_repository_id) == (
+            {"scope": "user", "id": None}, None
+        )
+
+    def test_legacy_fk_without_tag_remains_a_legacy_choice(self):
+        # Arrange
+        request = self._request()
+        # Act
+        selected = last_visited_project(request.user)
+        # Assert
+        assert (has_selection_document(request.user), selected) == (False, self.notes)
+
+    def test_deleted_selected_project_is_not_an_all_selection(self):
+        # Arrange
+        request = self._request()
+        commit_project_selection(request.user, {"scope": "project", "id": project_key(self.paper)}, self.paper)
+        self.paper.delete()
+        request.session = {"current_project_key": project_key(self.notes)}
+        # Act
+        selected = get_current_project(request)
+        # Assert
+        assert (has_selection_document(request.user), selected) == (True, None)
+
+    def test_foreign_saved_pair_does_not_return_the_foreign_project(self):
+        # Arrange
+        request = self._request()
+        profile = User.objects.get(pk=self.me.pk).profile
+        foreign = Project.objects.get(owner=self.other, slug="secret")
+        profile.project_selection = {"scope": "project", "id": project_key(foreign)}
+        profile.last_active_repository = foreign
+        profile.save(update_fields=["project_selection", "last_active_repository"])
+        # Act
+        selected = last_visited_project(request.user)
+        # Assert
+        assert selected is None
+
+    def test_selection_requires_a_persisted_user_identity(self):
+        # Arrange
+        user = User(username="not-persisted")
+        expected = User.objects.get(pk=self.me.pk).profile.project_selection
+        # Act
+        with pytest.raises(ValueError, match="persisted user profile"):
+            commit_project_selection(user, {"scope": "user", "id": None})
+        profile = User.objects.get(pk=self.me.pk).profile
+        # Assert
+        assert profile.project_selection == expected
+
+    def test_committed_selection_invalidates_the_old_profile_relation(self):
+        # Arrange
+        request = self._request()
+        old = request.user.profile
+        # Act
+        commit_project_selection(request.user, {"scope": "user", "id": None})
+        current = request.user.profile
+        # Assert
+        assert (current is old, current.project_selection, current.last_active_repository_id) == (
+            False, {"scope": "user", "id": None}, None
+        )
+
+    def test_profile_lookup_immediately_after_outer_rollback_reloads_old_pair(self):
+        # Arrange
+        request = self._request()
+        expected = (request.user.profile.project_selection, request.user.profile.last_active_repository_id)
+        # Act
+        with pytest.raises(RuntimeError, match="outer rollback"):
+            with transaction.atomic():
+                commit_project_selection(request.user, {"scope": "user", "id": None})
+                raise RuntimeError("outer rollback")
+        current = request.user.profile
+        # Assert
+        assert (current.project_selection, current.last_active_repository_id) == expected
+
+    def test_owned_project_navigation_after_user_selection_commits_the_project(self):
+        # Arrange
+        request = self._request()
+        commit_project_selection(request.user, {"scope": "user", "id": None})
+        self.client.force_login(self.me)
+        # Act
+        response = self.client.get(f"/{self.me.username}/{self.paper.slug}/")
+        profile = User.objects.get(pk=self.me.pk).profile
+        # Assert
+        assert (response.status_code, profile.project_selection, profile.last_active_repository_id) == (
+            200, {"scope": "project", "id": project_key(self.paper)}, self.paper.pk
+        )
 
 
 def _require_sdk_host_service():

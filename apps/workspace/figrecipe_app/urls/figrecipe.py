@@ -50,12 +50,11 @@ against the caller's OWN data jail and fails closed (403) on any escape:
 
   CHANNEL 3 — the URL ``<path:endpoint>`` segment (NEVER seen by a
     query/body guard):
-      * ``api/file-content/<remainder>`` — resolved against
-        ``_find_default_working_dir()`` == the process cwd == ``BASE_DIR``
-        (``/app``) on the server; the package's own check is a
-        ``str.startswith(cwd)`` that CONTAINS every tenant
-        (``BASE_DIR/data/users/*``), so an absolute or ``../`` remainder
-        reads a VICTIM's file cross-tenant. Jailed to the caller's own root.
+      * ``api/file-content/<remainder>`` — current leaf routes are relative
+        to the selected project. The historical BASE_DIR-relative form is
+        normalized ONLY when it starts with that exact authorized project's
+        prefix. Both forms remain contained to the selected root and user
+        jail; another tenant's legacy prefix is never reinterpreted locally.
       * ``api/gallery/thumbnail/<name>`` — reads ``_EXAMPLES_DIR /
         f"{name}.png"`` (a ``../`` climb escapes that read-only package dir);
         contained to a relative subtree.
@@ -73,10 +72,13 @@ from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
 from django.urls import path
 from figrecipe._django.views import api_dispatch as _raw_api_dispatch
-from figrecipe._django.views import editor_page as _raw_editor_page
 
 from apps.infra.project_app.services.working_dir_resolver import (
     WorkingDirScopedView,
+)
+from apps.workspace.figrecipe_app.views import (
+    _resolve_figrecipe_working_dir,
+    figure_editor as _hosted_editor_page,
 )
 
 logger = logging.getLogger(__name__)
@@ -244,7 +246,64 @@ def _forbid(key, value, username):
     return JsonResponse({"error": "path is outside your workspace"}, status=403)
 
 
-def _reject_out_of_jail_paths(request, endpoint=None):
+def _project_file_remainder(
+    request, remainder, *, resolver=_resolve_figrecipe_working_dir
+):
+    """Normalize only the selected project's legacy prefix; refuse escapes.
+
+    The root comes from the trusted server resolver, never a GET path.
+    Internal callers may supply the resolver used by WorkingDirScopedView.
+    The BASE-relative tenant namespace remains reserved for legacy routes;
+    a different tenant/project prefix cannot become a local file request.
+    """
+    from apps.infra.project_app.services.filesystem.permissions import (
+        get_user_data_root,
+        validate_path_in_project,
+        validate_path_in_user_jail,
+    )
+
+    root = resolver(request)
+    if root is None or not remainder or not _within_relative_subtree(remainder):
+        return None
+    try:
+        base = Path(settings.BASE_DIR).resolve()
+        relative = Path(remainder)
+        try:
+            legacy_root = root.relative_to(base)
+            tenant_namespace = get_user_data_root(request.user).resolve().parent.relative_to(base)
+        except ValueError:
+            legacy_root = tenant_namespace = None
+        if legacy_root is not None and relative.is_relative_to(legacy_root):
+            relative = relative.relative_to(legacy_root)
+        elif tenant_namespace is not None and relative.is_relative_to(tenant_namespace):
+            return None
+        if relative == Path("."):
+            return None
+        # Both validators resolve the target before component-wise containment.
+        # Keep the authorized root instead of re-reading a browser working_dir.
+        target = root / relative
+        if (not validate_path_in_project(root, target)
+            or not validate_path_in_user_jail(request.user, target)):
+            return None
+    except (OSError, RuntimeError, ValueError):
+        return None
+    return relative.as_posix()
+
+
+def _dispatch_project_endpoint(request, endpoint):
+    """Pass current project-relative file routes to the genuine leaf view."""
+    if endpoint.startswith(_FILE_CONTENT_PREFIX):
+        remainder = endpoint[len(_FILE_CONTENT_PREFIX):]
+        normalized = _project_file_remainder(request, remainder)
+        if normalized is None:
+            return _forbid("api/file-content", remainder, request.user.username)
+        endpoint = _FILE_CONTENT_PREFIX + normalized
+    return _raw_api_dispatch(request, endpoint)
+
+
+def _reject_out_of_jail_paths(
+    request, endpoint=None, *, resolver=_resolve_figrecipe_working_dir
+):
     """Return a 403 when ANY caller-controlled path escapes the caller's jail.
 
     Generic and COMPLETE: validates every path-bearing input across all
@@ -303,12 +362,7 @@ def _reject_out_of_jail_paths(request, endpoint=None):
     # -- CHANNEL 3: URL ``<path:endpoint>`` segment path sinks ------------
     if endpoint and endpoint.startswith(_FILE_CONTENT_PREFIX):
         remainder = endpoint[len(_FILE_CONTENT_PREFIX):]
-        # handle_api_file_content resolves against _find_default_working_dir()
-        # == process cwd == settings.BASE_DIR (/app) on the server. Its own
-        # jail is startswith(cwd) which CONTAINS every tenant; re-check
-        # against the caller's OWN data root instead.
-        candidate = (Path(settings.BASE_DIR) / remainder).resolve()
-        if not validate_path_in_user_jail(request.user, candidate):
+        if _project_file_remainder(request, remainder, resolver=resolver) is None:
             return _forbid("api/file-content", remainder, username)
     elif endpoint and endpoint.startswith(_THUMBNAIL_PREFIX):
         remainder = endpoint[len(_THUMBNAIL_PREFIX):]
@@ -335,9 +389,12 @@ def _no_project_json(request):
 # login_required is the load-bearing guard here (closes the anonymous
 # hole). We still inject best-effort (fail_closed=False) so a GET-derived
 # working_dir is scoped, harmlessly, without blocking the SPA shell.
-_editor_view = WorkingDirScopedView(_raw_editor_page, fail_closed=False)
+_editor_view = WorkingDirScopedView(
+    _hosted_editor_page, resolver=_resolve_figrecipe_working_dir, fail_closed=False
+)
 _api_view = WorkingDirScopedView(
-    _raw_api_dispatch,
+    _dispatch_project_endpoint,
+    resolver=_resolve_figrecipe_working_dir,
     on_missing=_no_project_json,
     guard=_reject_out_of_jail_paths,
 )
@@ -346,8 +403,8 @@ _api_view = WorkingDirScopedView(
 @login_required
 def editor_page(request):
     # Stamp the app-scope marker the figrecipe bundle's mountProjectSelectorByScope
-    # reads (d8528de contract). The figrecipe bridge calls the raw leaf editor_page
-    # (not scitex-app's scitex_editor_page host view), so the marker is not injected
+    # reads (d8528de contract). This hosted route renders Hub's existing editor
+    # shell rather than the leaf's standalone shell, so the marker is not injected
     # upstream — this is the one place the hub applies the shared contract.
     response = _editor_view(request)
     from apps.infra.workspace_app.scope_meta import inject_scope_meta

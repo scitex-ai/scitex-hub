@@ -206,6 +206,11 @@ class TestNewVerifiedUserOwnsNothingYet(TestCase):
 
         user = self._verified_user("first-login-dotfiles")
 
+        # Automatic seeding is retired. Arrange the existing private home
+        # project explicitly, as the owning signal tests do, without a choice.
+        from apps.infra.accounts_app.signals import ensure_home_project
+
+        ensure_home_project(user)
         user.profile.refresh_from_db()
         assert Project.objects.filter(owner=user, is_home=True).exists(), (
             "precondition: the dotfiles project is provisioned"

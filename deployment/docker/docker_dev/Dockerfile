@@ -271,21 +271,20 @@ LABEL org.scitex-hub.dependency-resolution=${SCITEX_HUB_DEPENDENCY_RESOLUTION}
 RUN python -m playwright install chromium
 
 # ============================================
-# Node.js Dependencies
-# ============================================
-# Install Node dependencies BEFORE copying application code for better caching
-# This layer is only invalidated when package.json/package-lock.json changes
-
-COPY package.json package-lock.json* ./
-RUN npm install
-
-# ============================================
 # Application Code
 # ============================================
 # Copy application last - changes most frequently
 
 # Copy application code
 COPY . .
+
+# ============================================
+# Node.js Dependencies
+# ============================================
+# Source helpers and the final Python environment must exist before npm preparation.
+RUN python3 scripts/apps/prepare_frontend_sources.py && \
+    uv pip install --system "scitex-sdk>=0.3.2" && \
+    npm run frontend:install
 
 # Copy dev-specific entrypoint and helper scripts
 COPY deployment/docker/docker_dev/entrypoint.sh /entrypoint.sh

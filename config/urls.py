@@ -144,12 +144,20 @@ urlpatterns = [
     # --- App Creator wizard (scitex-sdk) ---
     # The SDK owns the wizard (STARTERS SSOT + `scitex_sdk.creator.urls`);
     # the hub only mounts it. Canonical home is /apps/new/ (like /new/ for
-    # projects); the old root-level /create-app/ is dropped entirely.
+    # projects). Keep /create-app/ for existing launcher links and bookmarks;
+    # both prefixes mount the same SDK tree with the same login boundary.
     # The hub's own /apps/create/* project flow above is the
     # fallback workspace backend.
     path(
         "apps/new/",
         include((_sdk_creator_patterns(), "scitex_sdk_creator")),
+    ),
+    path(
+        "create-app/",
+        include(
+            (_sdk_creator_patterns(), "scitex_sdk_creator"),
+            namespace="scitex_sdk_creator_legacy",
+        ),
     ),
     # --- Admin ---
     path("admin/", admin.site.urls),
@@ -287,10 +295,11 @@ urlpatterns = [
 ]
 
 # --- Plugin apps (pip-installed, scitex.apps entry point) ---
-# First so a hub catch-all cannot swallow them; routes the hub serves are skipped.
-from apps.workspace.apps_app.services.plugin_apps import plugin_urlpatterns  # noqa: E402
+# First so a hub catch-all cannot swallow them. Existing native routes remain
+# unless their exact same-owner ready leaf renderer has already been admitted.
+from apps.workspace.apps_app.services.plugin_apps import compose_plugin_urlpatterns  # noqa: E402
 
-urlpatterns[:0] = plugin_urlpatterns(urlpatterns)
+urlpatterns = compose_plugin_urlpatterns(urlpatterns)
 
 # --- Debug-only ---
 if settings.DEBUG:
