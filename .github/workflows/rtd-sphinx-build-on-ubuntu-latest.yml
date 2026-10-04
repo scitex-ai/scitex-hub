@@ -18,80 +18,9 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
+
+permissions:
+  contents: write
 jobs:
-  sphinx:
-    # Skip when HEAD is the bot's own previous docs auto-commit — breaks
-    # the infinite loop without using `[skip ci]`, which would also
-    # suppress the tag-push and release workflows when the auto-commit
-    # is the most recent commit on develop at release time.
-    if: "!contains(github.event.head_commit.message, 'docs(sphinx_html): refresh from CI build')"
-    # scitex-local-cpu (scitex-compute-01..04) for trusted runs; fork PRs stay
-    # on ephemeral hosted VMs. Same predicate as scitex-ai/.github import-smoke.
-    runs-on: >-
-      ${{ (github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name != github.repository)
-          && fromJSON('["ubuntu-latest"]')
-          || fromJSON('["self-hosted","Linux","X64","scitex-local-cpu"]') }}
-    permissions:
-      contents: write
-    steps:
-      # Backstop for the runs-on predicate: never check out fork code on our hardware.
-      - name: Refuse to run fork-authored code on self-hosted infrastructure
-        if: >-
-          github.event_name == 'pull_request' &&
-          github.event.pull_request.head.repo.full_name != github.repository &&
-          runner.environment == 'self-hosted'
-        run: |
-          echo "::error::Fork-authored code is not run on self-hosted runners."
-          exit 1
-
-      - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-          token: ${{ secrets.GITHUB_TOKEN }}
-
-      # uv venv, not setup-python + bare pip — the pool's toolcache Python is
-      # uv-managed and refuses pip under PEP 668, and these runners are shared
-      # org-wide so the interpreter must not be mutated.
-      - uses: astral-sh/setup-uv@v7
-        with:
-          cache-dependency-glob: pyproject.toml
-
-      - name: Install package + docs deps
-        run: |
-          set -euo pipefail
-          uv venv --python 3.11 .venv
-          uv pip install --python .venv/bin/python -e ".[all]" \
-            || uv pip install --python .venv/bin/python -e ".[dev]" \
-            || uv pip install --python .venv/bin/python -e .
-          # Later steps invoke sphinx-build bare, across several steps.
-          echo "$PWD/.venv/bin" >> "$GITHUB_PATH"
-
-      - name: Build Sphinx HTML (warnings fail PRs only)
-        run: |
-          if [ "${{ github.event_name }}" = "pull_request" ]; then
-            sphinx-build -W -b html docs/sphinx docs/sphinx/_build/html
-          else
-            sphinx-build -b html docs/sphinx docs/sphinx/_build/html
-          fi
-
-      - name: Refresh src/scitex_hub/_sphinx_html/ (develop push only)
-        # main is PR-only — its _sphinx_html/ bundle arrives via the
-        # develop -> main PR. Direct bot-pushes to main are inhibited
-        # so the branch history stays linear-via-PR.
-        if: github.event_name == 'push' && github.ref == 'refs/heads/develop'
-        run: |
-          rm -rf src/scitex_hub/_sphinx_html
-          cp -rf docs/sphinx/_build/html src/scitex_hub/_sphinx_html
-          touch src/scitex_hub/_sphinx_html/.nojekyll
-
-      - name: Commit refreshed HTML if it changed (develop push only)
-        continue-on-error: true
-        if: github.event_name == 'push' && github.ref == 'refs/heads/develop'
-        run: |
-          if [ -n "$(git status --porcelain src/scitex_hub/_sphinx_html)" ]; then
-            git config user.name "github-actions[bot]"
-            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-            git add src/scitex_hub/_sphinx_html
-            git commit -m "docs(sphinx_html): refresh from CI build"
-            git push
-          fi
+  validation:
+    uses: scitex-ai/.github/.github/workflows/hub-sphinx-build.yml@main
