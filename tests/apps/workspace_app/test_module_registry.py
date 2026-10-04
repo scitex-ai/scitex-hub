@@ -165,6 +165,7 @@ def renderer_package(tmp_path):
         "from django.http import JsonResponse\n"
         "class RendererConfig(AppConfig):\n"
         "    name = " + repr(name) + "\n"
+        "    manifest = {'slug': 'sample', 'url': 'apps/sample/'}\n"
         "calls = []\n"
         "def host_context(request, project):\n"
         "    calls.append('host-context')\n"
@@ -178,6 +179,17 @@ def renderer_package(tmp_path):
         "def refusal(request, project, *, stx_mount):\n"
         "    raise PermissionError('leaf access refused')\n"
     )
+    (package / "urls.py").write_text(
+        "from django.urls import path\nfrom django.http import JsonResponse\n"
+        "def index(request):\n"
+        "    return JsonResponse({'route': True})\n"
+        "urlpatterns = [path('', index)]\n"
+    )
+    (package / "host_normal.py").write_text(
+        "from django.urls import include, path\n"
+        "urlpatterns = [path('apps/sample/', include(" + repr(name + ".urls") + "))]\n"
+    )
+    (package / "host_absent.py").write_text("urlpatterns = []\n")
     distribution = tmp_path / "sample_dist-1.0.dist-info"
     distribution.mkdir()
     (distribution / "METADATA").write_text(
@@ -192,6 +204,7 @@ def renderer_package(tmp_path):
     sys.path.insert(0, str(tmp_path))
     try:
         with override_settings(
+            ROOT_URLCONF=name + ".host_normal",
             TEMPLATES=[{
                 "BACKEND": "django.template.backends.django.DjangoTemplates",
                 "DIRS": [str(templates)], "APP_DIRS": False,
@@ -244,7 +257,7 @@ def test_bound_leaf_receives_server_api_mount_and_current_presentation(renderer_
     response = native.render_content(request, "selected-presentation")
     # Assert
     assert response.content == (
-        b'{"mount": "/apps/sample/guarded", "project": "selected-presentation"}'
+        b'{"mount": "/apps/sample/", "project": "selected-presentation"}'
     )
 
 
@@ -259,7 +272,8 @@ def test_renderer_binding_preserves_every_native_identity_and_route_field(render
     # Assert
     assert after == {
         **before, "content_renderer": leaf.content_renderer,
-        "renderer_mount_context_builder": before["context_builder"],
+        "renderer_mount_route": "apps/sample/",
+        "renderer_leaf_urlconf": renderer_config.name + ".urls",
     }
 
 
@@ -277,25 +291,28 @@ def test_different_distribution_cannot_take_native_renderer(renderer_package, re
     assert vars(native) == before
 
 
-def test_native_without_host_builder_keeps_previous_fallback(renderer_package, renderer_config):
+def test_native_without_host_builder_uses_registered_leaf(renderer_package, renderer_config):
     # Arrange
     native = _native_module(renderer_package)
     native.context_builder = ""
-    before = vars(native).copy()
     leaf = _leaf_module(renderer_package)
     # Act
     _bind_plugin_renderer(native, leaf, renderer_config)
     # Assert
-    assert vars(native) == before
+    response = native.render_content(RequestFactory().get("/workspace/content/"), "A")
+    assert native.context_builder == ""
+    assert response.content == b'{"mount": "/apps/sample/", "project": "A"}'
 
 
-def test_native_context_without_api_mount_keeps_exact_partial_fallback(renderer_package, renderer_config):
+def test_native_without_registered_leaf_mount_keeps_exact_partial_fallback(renderer_package, renderer_config):
     # Arrange
     native = _native_module(renderer_package, context="no_mount_context")
     leaf = _leaf_module(renderer_package, renderer="refusal")
     _bind_plugin_renderer(native, leaf, renderer_config)
     # Act
-    response = native.render_content(RequestFactory().get("/workspace/content/"), "A")
+    request = RequestFactory().get("/workspace/content/")
+    request.urlconf = renderer_package.rsplit(".", 1)[0] + ".host_absent"
+    response = native.render_content(request, "A")
     # Assert
     assert response.content == b"native:A"
 
@@ -332,7 +349,7 @@ def test_renderer_target_is_lazy_and_missing_target_is_not_silently_rendered(ren
         native.render_content(request, "A")
 
 
-def test_host_context_is_evaluated_once_before_leaf_renderer(renderer_package, renderer_config):
+def test_registered_leaf_renderer_does_not_evaluate_native_context(renderer_package, renderer_config):
     # Arrange
     native = _native_module(renderer_package)
     _bind_plugin_renderer(native, _leaf_module(renderer_package), renderer_config)
@@ -340,7 +357,7 @@ def test_host_context_is_evaluated_once_before_leaf_renderer(renderer_package, r
     # Act
     native.render_content(RequestFactory().get("/workspace/content/"), "A")
     # Assert
-    assert module.calls == ["host-context", "leaf-renderer"]
+    assert module.calls == ["leaf-renderer"]
 
 
 def test_old_plugin_retains_manifest_context_metadata_and_page_fallback(renderer_package):
@@ -624,6 +641,7 @@ def policy_renderer_package(registered_renderer_package):
         initializer.read_text()
         + "content_renderer = " + repr(config.name + ".guarded_surface.renderer") + "\n"
     )
+    importlib.invalidate_caches()
     importlib.reload(importlib.import_module(config.name))
     return config
 
