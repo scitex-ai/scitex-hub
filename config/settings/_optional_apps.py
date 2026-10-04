@@ -468,9 +468,21 @@ def _with_host_plugin_apps(
     reserved_names = {config.name for config in reserved}
     usable = []
     companions = []
+    sdk_companion_support = True
 
     def merge(selected, selected_companions):
         if selected_companions:
+            if not sdk_companion_support:
+                # Older SDKs only merge primaries. Keep already-registered
+                # declared companions in their original positions, preventing
+                # primary inference from replacing their migration owners.
+                protected = set(selected_companions)
+                existing = [entry for entry in entries if entry not in protected]
+                merged = installed_app_paths(existing, selected)
+                replacements = iter(merged[:len(existing)])
+                retained = [entry if entry in protected else next(replacements)
+                            for entry in entries]
+                return [*retained, *merged[len(existing):]]
             return installed_app_paths(entries, selected, selected_companions)
         return installed_app_paths(entries, selected)
 
@@ -481,11 +493,17 @@ def _with_host_plugin_apps(
             if declared:
                 try:
                     from scitex_sdk.app.plugins import partition_companions
-                except ImportError as error:
-                    raise MetadataUnavailable(
-                        "Installed SDK does not support leaf companion declarations"
-                    ) from error
-                needed = partition_companions(declared, [plugin])
+                except ImportError:
+                    sdk_companion_support = False
+                    logger.warning(
+                        "Installed SDK does not support leaf companion declarations "
+                        "for %r; primary app and registered companions retained, "
+                        "new companions require a supporting SDK.", plugin.name,
+                    )
+                    needed = [entry for entry in entries if entry in declared
+                              and entry not in {plugin.app_config, plugin.app_module}]
+                else:
+                    needed = partition_companions(declared, [plugin])
             else:
                 needed = []
         except MetadataUnavailable as error:

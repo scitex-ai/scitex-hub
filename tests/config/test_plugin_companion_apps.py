@@ -121,7 +121,7 @@ def test_companion_and_primary_have_distinct_registered_identities(leaf_packages
     plugin = declare(leaf_packages, (editor, chat + ".apps.Config"))
     result = with_plugin_apps([owner], [plugin])
     if not supported():
-        assert result == [owner] and "does not support" in caplog.text
+        assert result == [owner, plugin.app_config] and "does not support" in caplog.text
         return
     assert result == [owner, plugin.app_config, chat + ".apps.Config"]
     assert [(c.name, c.label) for c in Apps(installed_apps=result).get_app_configs()] == [
@@ -132,13 +132,15 @@ def test_companion_and_primary_have_distinct_registered_identities(leaf_packages
 def test_companion_label_cannot_replace_a_host_owner(leaf_packages):
     modules, _ = leaf_packages
     plugin = declare(leaf_packages, (modules["editor"], modules["collision"]))
-    assert with_plugin_apps([modules["owner"]], [plugin]) == [modules["owner"]]
+    expected = [modules["owner"]] if supported() else [modules["owner"], plugin.app_config]
+    assert with_plugin_apps([modules["owner"]], [plugin]) == expected
 
 
 def test_unavailable_companion_preserves_existing_apps(leaf_packages):
     modules, _ = leaf_packages
     plugin = declare(leaf_packages, (modules["editor"], "absent_companion_xyz.apps.Config"))
-    assert with_plugin_apps([modules["owner"]], [plugin]) == [modules["owner"]]
+    expected = [modules["owner"]] if supported() else [modules["owner"], plugin.app_config]
+    assert with_plugin_apps([modules["owner"]], [plugin]) == expected
 
 
 def test_reserved_companion_is_retained_by_the_host(leaf_packages):
@@ -146,11 +148,10 @@ def test_reserved_companion_is_retained_by_the_host(leaf_packages):
     chat = modules["chat"]
     plugin = declare(leaf_packages, (modules["editor"], chat + ".apps.Config"))
     result = _with_host_plugin_apps([], [chat], [plugin])
-    assert result == ([plugin.app_config] if supported() else [])
-    if supported():
-        assert [(c.name, c.label) for c in Apps(installed_apps=[*result, chat]).get_app_configs()] == [
-            (modules["editor"], "editor"), (chat, "chat"),
-        ]
+    assert result == [plugin.app_config]
+    assert [(c.name, c.label) for c in Apps(installed_apps=[*result, chat]).get_app_configs()] == [
+        (modules["editor"], "editor"), (chat, "chat"),
+    ]
 
 
 def test_explicit_existing_companion_is_not_replaced_by_primary_inference(leaf_packages):
@@ -166,9 +167,8 @@ def test_explicit_existing_companion_is_not_replaced_by_primary_inference(leaf_p
         )
     plugin = declare(leaf_packages, (modules["editor"], companion))
     result = with_plugin_apps([companion, modules["owner"]], [plugin])
-    expected = [companion, modules["owner"], primary] if supported() else [companion, modules["owner"]]
+    expected = [companion, modules["owner"], primary]
     assert result == expected
-    if supported():
-        assert [(c.name, c.label) for c in Apps(installed_apps=result).get_app_configs()] == [
-            (modules["chat"], "chat"), (modules["owner"], "owner"), (modules["editor"], "editor"),
-        ]
+    assert [(c.name, c.label) for c in Apps(installed_apps=result).get_app_configs()] == [
+        (modules["chat"], "chat"), (modules["owner"], "owner"), (modules["editor"], "editor"),
+    ]
