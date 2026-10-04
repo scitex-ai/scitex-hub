@@ -707,7 +707,7 @@ RUN uv pip install --system --no-cache --upgrade \
 # The selected installed SDK supplies the root tarball; nested SDK stays source 0.3.0.
 RUN --mount=type=cache,target=/root/.npm \
     python3 scripts/apps/prepare_frontend_sources.py && \
-    uv pip install --system --no-cache "scitex-sdk==0.3.1" && \
+    uv pip install --system --no-cache "scitex-sdk>=0.3.2" && \
     npm run frontend:install && \
     touch node_modules/.install-timestamp
 
@@ -804,6 +804,21 @@ RUN python -c "import scitex.io" && \
 # and inspects installed versions, Requires-Dist edges, and import contracts in
 # the environment that is actually shipped.
 RUN python /opt/scitex-image-contract/scripts/deploy/verify_image_dependency_contract.py
+
+# Verify the required SDK floor and public embedding module in the final
+# runtime environment, after every install and as the application user.
+RUN python - <<'PYSDK'
+import importlib
+from importlib.metadata import version
+
+from packaging.version import Version
+
+sdk_version = version("scitex-sdk")
+if Version(sdk_version) < Version("0.3.2"):
+    raise SystemExit(f"scitex-sdk>=0.3.2 is required; selected {sdk_version}")
+importlib.import_module("scitex_sdk.app.embed")
+print(f"scitex-sdk {sdk_version}: public embedding module available")
+PYSDK
 
 # Back to root — root-init.sh handles UID fixup then drops to scitex
 USER root
