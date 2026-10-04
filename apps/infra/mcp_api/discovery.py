@@ -12,6 +12,8 @@ import logging
 from dataclasses import dataclass, field
 from typing import Any, Callable, Optional
 
+from ._tool_adapter import get_tool_callable
+
 logger = logging.getLogger(__name__)
 
 # ---------------------------------------------------------------------------
@@ -55,6 +57,7 @@ class ToolInfo:
     is_public: bool = False
     output_schema: Optional[dict[str, Any]] = None
     tags: list[str] = field(default_factory=list)
+    returns_tool_result: bool = False
 
 
 def _tool_name_to_url_path(name: str) -> str:
@@ -127,6 +130,7 @@ def discover_tools() -> dict[str, ToolInfo]:
             continue
 
         tool_obj = all_tools[tool_name]
+        fn, returns_tool_result = get_tool_callable(tool_obj)
         namespace = tool_name.split("_", 1)[0]
         url_path = _tool_name_to_url_path(tool_name)
 
@@ -135,11 +139,12 @@ def discover_tools() -> dict[str, ToolInfo]:
             description=getattr(tool_obj, "description", "") or "",
             parameters=getattr(tool_obj, "parameters", {}) or {},
             output_schema=getattr(tool_obj, "output_schema", None),
-            fn=tool_obj.fn,
+            fn=fn,
             namespace=namespace,
             url_path=url_path,
             is_public=_is_public(tool_name),
             tags=[namespace],
+            returns_tool_result=returns_tool_result,
         )
 
     logger.info(

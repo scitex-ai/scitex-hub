@@ -5,7 +5,7 @@
 All MCP tools are dispatched through a single view class that:
 1. Resolves the tool from the URL path
 2. Validates parameters against the tool's JSON schema
-3. Calls the tool function directly (no MCP protocol overhead)
+3. Calls the tool function or public provider runner (no MCP protocol overhead)
 4. Returns the result as JSON
 """
 
@@ -24,6 +24,7 @@ from rest_framework.permissions import AllowAny
 from rest_framework.request import Request
 from rest_framework.views import APIView
 
+from ._tool_adapter import tool_result_to_rest
 from .discovery import ToolInfo, get_tool_by_url_path, get_tool_registry
 from .permissions import HasToolAccess
 
@@ -116,15 +117,18 @@ class ToolExecuteView(APIView):
             elapsed_ms = int((time.monotonic() - start) * 1000)
 
             # Ensure result is JSON-serializable
-            data = self._make_serializable(result)
+            if tool_info.returns_tool_result:
+                response = tool_result_to_rest(result)
+            else:
+                response = {"success": True, "data": self._make_serializable(result)}
 
             return JsonResponse(
                 {
-                    "success": True,
                     "tool": tool_info.name,
-                    "data": data,
+                    **response,
                     "elapsed_ms": elapsed_ms,
-                }
+                },
+                status=200 if response["success"] else 500,
             )
         except Exception as exc:
             elapsed_ms = int((time.monotonic() - start) * 1000)
