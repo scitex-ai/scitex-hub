@@ -295,10 +295,11 @@ urlpatterns = [
 ]
 
 # --- Plugin apps (pip-installed, scitex.apps entry point) ---
-# First so a hub catch-all cannot swallow them; routes the hub serves are skipped.
-from apps.workspace.apps_app.services.plugin_apps import plugin_urlpatterns  # noqa: E402
+# First so a hub catch-all cannot swallow them. Existing native routes remain
+# unless their exact same-owner ready leaf renderer has already been admitted.
+from apps.workspace.apps_app.services.plugin_apps import compose_plugin_urlpatterns  # noqa: E402
 
-urlpatterns[:0] = plugin_urlpatterns(urlpatterns)
+urlpatterns = compose_plugin_urlpatterns(urlpatterns)
 
 # --- Debug-only ---
 if settings.DEBUG:

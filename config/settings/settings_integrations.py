@@ -7,8 +7,15 @@
 import os
 from pathlib import Path
 
+from django.urls import reverse_lazy as _reverse_lazy
+
 # Get BASE_DIR from parent
 BASE_DIR = Path(__file__).resolve().parent.parent.parent
+
+# Generic host Files export services for mounted applications.
+SCITEX_APP_SAVE_TO_FILES = "apps.workspace.files_app.services.save_to_downloads"
+SCITEX_APP_FILES_USER_ROOT = "apps.workspace.files_app.services.user_root"
+SCITEX_APP_FILES_URL = _reverse_lazy("files_app:index")
 
 # ---------------------------------------
 # SciTeX Scholar Search Settings

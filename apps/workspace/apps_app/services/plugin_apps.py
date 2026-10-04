@@ -87,6 +87,11 @@ def plugin_urlpatterns(existing) -> list:
     whole urlconf on first resolve (lazy, so the optional package stays
     import-safe and startup pays nothing extra).
     """
+    return _plugin_urlpatterns(existing, _configs())
+
+
+def _plugin_urlpatterns(existing, configs) -> list:
+    """Build the existing plugin mounts from one ready-config snapshot."""
     from functools import cached_property
 
     from django.urls import include, path
@@ -115,7 +120,7 @@ def plugin_urlpatterns(existing) -> list:
             return [_wrap_login(p) for p in super().url_patterns]
 
     patterns = []
-    for config in _configs():
+    for config in configs:
         route = mount_route(config)
         urls_module = f"{config.name}.urls"
         if _route_taken(route, existing) or not _module_exists(urls_module):
@@ -127,6 +132,84 @@ def plugin_urlpatterns(existing) -> list:
             patterns.append(path(route, include(urls_module)))
             logger.info("[plugin_apps] mounted %s at /%s", config.name, route)
     return patterns
+
+
+def _native_leaf_reservation(config, route, existing):
+    """A native route that already admitted this exact leaf renderer.
+
+    A manifest or slug collision cannot grant a route takeover. Reuse the
+    host's existing same-distribution renderer binding and require the sole
+    reserved route to be the native module's exact resolver/namespace.
+    """
+    from django.urls.resolvers import RoutePattern, URLResolver
+
+    from apps.infra.workspace_app.registry import get_module
+
+    manifest = getattr(config, "manifest", None) or {}
+    native = get_module(manifest.get("slug") or config.label)
+    if (
+        native is None or native.renderer_requires_mount
+        or not native.content_renderer
+        or native.renderer_mount_route != route
+        or native.renderer_leaf_urlconf != f"{config.name}.urls"
+        or native.get_url() != "/" + route
+    ):
+        return None
+    owner, distribution = native.pip_package, _plugin_distribution(config)
+    if not owner or not distribution or re.sub(r"[-_.]+", "-", owner).lower() != re.sub(
+        r"[-_.]+", "-", distribution
+    ).lower():
+        return None
+    taken = [pattern for pattern in existing if str(pattern.pattern).startswith(route)]
+    if len(taken) != 1:
+        return None
+    reservation = taken[0]
+    if (
+        not isinstance(reservation, URLResolver)
+        or not isinstance(reservation.pattern, RoutePattern)
+        or str(reservation.pattern) != route
+        or reservation.app_name != native.app_name
+        or reservation.namespace != native.app_name
+    ):
+        return None
+    return reservation
+
+
+def compose_plugin_urlpatterns(existing) -> list:
+    """Use an admitted leaf URLconf, retaining every other native route.
+
+    Old, absent, foreign and unbound leaves keep the original native mount.
+    An admitted native collision uses the same login-wrapped plugin resolver
+    as a new app; registry rendering still proves that exact leaf URLconf and
+    runs the shared mount guard before importing or calling the renderer.
+    """
+    try:
+        from scitex_sdk.app.plugins import mount_route
+    except ImportError:
+        return list(existing)
+    configs = _configs()
+    takeovers = {}
+    for config in configs:
+        route = mount_route(config)
+        if not _module_exists(f"{config.name}.urls"):
+            continue
+        reservation = _native_leaf_reservation(config, route, existing)
+        if reservation is not None:
+            takeovers.setdefault(route, []).append((config, reservation))
+    admitted = {
+        route: matches[0] for route, matches in takeovers.items()
+        if len(matches) == 1
+    }
+    retained = [
+        pattern for pattern in existing
+        if not any(pattern is pair[1] for pair in admitted.values())
+    ]
+    mounted = [
+        config for config in configs
+        if mount_route(config) not in admitted
+        or config is admitted[mount_route(config)][0]
+    ]
+    return _plugin_urlpatterns(retained, mounted) + retained
 
 
 def plugin_module_config(config):
