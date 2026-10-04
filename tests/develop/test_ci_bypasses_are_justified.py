@@ -55,19 +55,6 @@ ALLOWED_BYPASSES = {
         "this repo, exit 0 on an empty tree."
     ),
     (
-        "tests.yml",
-        "grep -c",
-    ): (
-        "`grep -c` EXITS 1 WHEN THE COUNT IS ZERO. This is inside a `$(...)` "
-        "capturing a match count, so without `|| true` a legitimate count of 0 "
-        "would abort the step under `set -e`. The bypass here makes the command "
-        "yield '0' instead of failing -- it is not silencing a check, it is "
-        "correcting a counting tool whose exit status means 'found nothing', not "
-        "'went wrong'. Same quirk as `pgrep -c`. Note the guard FOUND this one: "
-        "the author's own manual survey had missed it, which is the point of "
-        "pinning the set rather than trusting a grep."
-    ),
-    (
         "pypi-publish-and-github-release-on-tag.yml",
         "release-notes.md",
     ): (
