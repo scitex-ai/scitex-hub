@@ -1,32 +1,34 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-# File: tests/config/test_workflow_runner_routing.py
-"""Fork-authored pull requests never execute on our self-hosted runners.
+"""Hub delegates full validation and preserves fail-closed required checks.
 
-Check jobs run on scitex-local-cpu (our compute nodes) because GitHub-hosted
-concurrency is capped org-wide. Those runners are persistent and share a real
-$HOME, so any job that checks out pull-request code there must route fork PRs
-to ubuntu-latest AND refuse, as its first step, if it still lands self-hosted.
+The shared CI repository tests the complete job bodies, fork fences,
+non-root containers and CPU limits. Hub checks its calls and remaining
+inline jobs; no external source is fetched during these tests.
 """
-
 from __future__ import annotations
 
+import subprocess
 from pathlib import Path
 
 import pytest
 import yaml
 
 WORKFLOWS = Path(__file__).resolve().parents[2] / ".github" / "workflows"
-FORK_PREDICATE = (
-    "github.event.pull_request.head.repo.full_name != github.repository"
-)
+FORK_PREDICATE = "github.event.pull_request.head.repo.full_name != github.repository"
+SHARED_GATES = {
+    "pytest-matrix-on-ubuntu-py3-11-3-12-3-13.yml": "hub-pytest-matrix.yml",
+    "cli-import-smoke-on-ubuntu-latest.yml": "hub-cli-import-smoke.yml",
+    "scitex-hub-quality-audit-on-ubuntu-latest.yml": "hub-quality-audit.yml",
+    "check-command-v-args.yml": "hub-command-v-guard.yml",
+    "check-absolute-symlinks.yml": "hub-symlink-guard.yml",
+    "rtd-sphinx-build-on-ubuntu-latest.yml": "hub-sphinx-build.yml",
+    "tests.yml": "hub-custom-tests.yml",
+}
 REQUIRED_CONTEXTS_KEPT = {
-    ("pytest-matrix-on-ubuntu-py3-11-3-12-3-13.yml", "test"):
+    ("pytest-matrix-on-ubuntu-py3-11-3-12-3-13.yml", "required-pytest"):
         "pytest-matrix-on-ubuntu-py${{ matrix.python-version }}",
-    ("cli-import-smoke-on-ubuntu-latest.yml", "cli-import-smoke"):
+    ("cli-import-smoke-on-ubuntu-latest.yml", "required-cli"):
         "cli-import-smoke-on-ubuntu-latest",
-    # No `name:`, so the required context is the job key, "audit".
-    ("scitex-hub-quality-audit-on-ubuntu-latest.yml", "audit"): None,
+    ("scitex-hub-quality-audit-on-ubuntu-latest.yml", "required-audit"): "audit",
 }
 
 
@@ -35,108 +37,88 @@ def _load(path: Path) -> dict:
 
 
 def _triggers(workflow: dict) -> dict:
-    # PyYAML reads the bare key `on` as boolean True.
     on = workflow.get("on", workflow.get(True)) or {}
     return on if isinstance(on, dict) else dict.fromkeys(on)
 
 
-def _self_hosted_pr_jobs():
+def _scan_pr_routing():
+    inline, delegated, scanned = [], set(), 0
     for path in sorted(WORKFLOWS.glob("*.y*ml")):
+        scanned += 1
         workflow = _load(path)
         if "pull_request" not in _triggers(workflow):
             continue
         for key, job in (workflow.get("jobs") or {}).items():
+            if path.name in SHARED_GATES and key == "validation":
+                delegated.add(path.name)
             runs_on = str(job.get("runs-on", ""))
-            steps = job.get("steps") or []
             checks_out = any(
-                "actions/checkout" in str(step.get("uses", "")) for step in steps
+                "actions/checkout" in str(step.get("uses", ""))
+                for step in (job.get("steps") or [])
             )
             if ("self-hosted" in runs_on or "scitex-docker" in runs_on) and checks_out:
-                yield pytest.param(path.name, key, job, id=f"{path.name}::{key}")
+                inline.append((path.name, key, job))
+    return inline, delegated, scanned
 
 
-SELF_HOSTED_PR_JOBS = list(_self_hosted_pr_jobs())
+def test_the_scan_examined_the_workflows_and_all_seven_shared_pr_gates():
+    _inline, delegated, scanned = _scan_pr_routing()
+    assert scanned >= len(SHARED_GATES)
+    assert delegated == set(SHARED_GATES)
 
 
-def test_the_scan_found_the_routed_jobs():
-    # Arrange
-    jobs = SELF_HOSTED_PR_JOBS
-    # Act
-    count = len(jobs)
-    # Assert
-    assert count >= 5, f"only {count} self-hosted PR jobs found; the scan is vacuous"
+@pytest.mark.parametrize("filename,callee", sorted(SHARED_GATES.items()))
+def test_validation_reaches_the_fixed_shared_gate_without_arbitrary_inputs(
+    filename, callee
+):
+    job = _load(WORKFLOWS / filename)["jobs"]["validation"]
+    expected = {"uses": "scitex-ai/.github/.github/workflows/" + callee + "@main"}
+    if filename == "pytest-matrix-on-ubuntu-py3-11-3-12-3-13.yml":
+        expected["secrets"] = {"CODECOV_TOKEN": "${{ secrets.CODECOV_TOKEN }}"}
+    assert job == expected
 
 
-@pytest.mark.parametrize("filename,key,job", SELF_HOSTED_PR_JOBS)
-def test_fork_prs_are_routed_to_hosted(filename, key, job):
-    # Arrange
-    runs_on = str(job["runs-on"])
-    # Act
-    routes_forks = FORK_PREDICATE in runs_on and "ubuntu-latest" in runs_on
-    # Assert
-    assert routes_forks, (
-        f"{filename}::{key} checks out PR code on a self-hosted runner without "
-        "sending fork PRs to ubuntu-latest in runs-on."
-    )
+def test_remaining_inline_pr_jobs_route_forks_to_hosted_before_checkout():
+    inline, _delegated, _scanned = _scan_pr_routing()
+    for filename, key, job in inline:
+        runs_on = str(job["runs-on"])
+        guard_if = str(job["steps"][0].get("if", ""))
+        assert FORK_PREDICATE in runs_on and "ubuntu-latest" in runs_on, (filename, key)
+        assert FORK_PREDICATE in guard_if, (filename, key)
+        assert "runner.environment == 'self-hosted'" in guard_if, (filename, key)
 
 
-@pytest.mark.parametrize("filename,key,job", SELF_HOSTED_PR_JOBS)
-def test_fork_guard_is_the_first_step(filename, key, job):
-    # Arrange
-    first = job["steps"][0]
-    # Act
-    guard_if = str(first.get("if", ""))
-    # Assert
-    assert FORK_PREDICATE in guard_if and "runner.environment == 'self-hosted'" in guard_if, (
-        f"{filename}::{key} must refuse fork code on self-hosted before checkout."
-    )
-
-
-DOCKER_JOBS = [p for p in SELF_HOSTED_PR_JOBS if "scitex-docker" in str(p.values[2]["runs-on"])]
-
-
-def test_the_docker_scan_found_the_suites():
-    # Arrange
-    jobs = DOCKER_JOBS
-    # Act
-    defining_jobs = {(job.values[0], job.values[1]) for job in jobs}
-    # Assert
-    assert defining_jobs == {
-        ("pytest-matrix-on-ubuntu-py3-11-3-12-3-13.yml", "test"),
-    }, "the declared Docker test route changed; review its isolation and admission"
-
-
-@pytest.mark.parametrize("key", ["terminal-tests", "security-regression"])
-def test_terminal_and_security_suites_keep_the_hosted_route(key):
-    job = _load(WORKFLOWS / "tests.yml")["jobs"][key]
-    assert job["runs-on"] == "ubuntu-latest"
-    assert job["needs"] == "runner-admission"
-
-
-@pytest.mark.parametrize("filename,key,job", DOCKER_JOBS)
-def test_docker_jobs_run_in_a_non_root_job_container(filename, key, job):
-    # Arrange
-    container = job.get("container") or {}
-    # Act
-    image, options = str(container.get("image", "")), str(container.get("options", ""))
-    # Assert
-    assert "buildpack-deps" in image and "--user 1000:1000" in options, (
-        f"{filename}::{key} runs on a persistent scitex-docker host outside a "
-        "non-root job container, so the suite can read the runner user's $HOME."
-    )
+def test_remaining_inline_docker_jobs_preserve_non_root_isolation():
+    inline, _delegated, _scanned = _scan_pr_routing()
+    for filename, key, job in inline:
+        if "scitex-docker" not in str(job["runs-on"]):
+            continue
+        container = job.get("container") or {}
+        assert "buildpack-deps" in str(container.get("image", "")), (filename, key)
+        assert "--user 1000:1000" in str(container.get("options", "")), (filename, key)
 
 
 @pytest.mark.parametrize("filename,key", sorted(REQUIRED_CONTEXTS_KEPT))
-def test_required_check_job_names_are_unchanged(filename, key):
-    # Arrange
+@pytest.mark.parametrize(
+    "validation_result,expected_exit",
+    [("success", 0), ("failure", 1), ("cancelled", 1), ("skipped", 1), ("", 1)],
+)
+def test_required_context_names_and_actual_success_bridges_are_preserved(
+    filename, key, validation_result, expected_exit
+):
     job = _load(WORKFLOWS / filename)["jobs"][key]
-    # Act
-    name = job.get("name")
-    # Assert
-    assert name == REQUIRED_CONTEXTS_KEPT[(filename, key)], (
-        f"{filename}::{key} name changed to {name!r}; branch protection requires "
-        "the check context by this exact name."
+    assert job["name"] == REQUIRED_CONTEXTS_KEPT[(filename, key)]
+    assert job["needs"] == "validation" and job["if"] == "always()"
+    assert job["runs-on"] == "ubuntu-latest" and job["permissions"] == {}
+    assert len(job["steps"]) == 1
+    step = job["steps"][0]
+    assert set(step) == {"name", "env", "run"}
+    assert step["env"] == {"VALIDATION_RESULT": "${{ needs.validation.result }}"}
+    actual = subprocess.run(
+        ["/bin/bash", "-c", step["run"]],
+        env={"PATH": "/usr/bin:/bin", "VALIDATION_RESULT": validation_result},
+        capture_output=True,
+        timeout=2,
+        check=False,
     )
-
-
-# EOF
+    assert actual.returncode == expected_exit

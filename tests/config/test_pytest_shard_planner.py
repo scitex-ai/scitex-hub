@@ -200,19 +200,18 @@ def test_stale_serial_directory_fails_without_manifest(tmp_path):
     assert "selected no files" in result.stderr
 
 
-def test_required_matrix_is_not_switched_to_shards_or_unbounded_cpus():
+def test_required_matrix_reaches_the_full_shared_gate_and_keeps_three_contexts():
     workflow = yaml.safe_load(REQUIRED_WORKFLOW.read_text(encoding="utf-8"))
-    job = workflow["jobs"]["test"]
-    run_commands = "\n".join(
-        str(step.get("run", "")) for step in job["steps"] if "run" in step
-    )
-    test_step = next(step for step in job["steps"] if step.get("name") == "Run tests")
-
+    validation = workflow["jobs"]["validation"]
+    job = workflow["jobs"]["required-pytest"]
+    # The fixed callee's complete fixture owns CPU8, full pytest tests/,
+    # xdist loadgroup and absence of opt-in sharding. The caller accepts
+    # no inputs that could replace that selection or worker count.
+    assert validation == {
+        "uses": "scitex-ai/.github/.github/workflows/hub-pytest-matrix.yml@main",
+        "secrets": {"CODECOV_TOKEN": "${{ secrets.CODECOV_TOKEN }}"},
+    }
     assert job["name"] == "pytest-matrix-on-ubuntu-py${{ matrix.python-version }}"
+    assert job["needs"] == "validation" and job["if"] == "always()"
+    assert job["strategy"]["fail-fast"] is False
     assert job["strategy"]["matrix"]["python-version"] == ["3.11", "3.12", "3.13"]
-    assert "--cpus 8" in job["container"]["options"]
-    assert test_step["env"]["PYTEST_XDIST_WORKERS"] == (
-        "${{ job.container.id && '8' || 'auto' }}"
-    )
-    assert "pytest tests/" in run_commands
-    assert "pytest_shards.py" not in run_commands
