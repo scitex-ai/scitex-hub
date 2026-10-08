@@ -313,8 +313,30 @@ def publications(request):
 
 
 def fundraising(request):
-    """Fundraising and sustainability page."""
-    return render(request, "public_app/pages/fundraising.html")
+    """Fundraising and sustainability page.
+
+    The plan figures render from ``data/funding.json`` (the operator's
+    funding manifest) via ``funding.funding_plan()`` — the same file
+    ``/.well-known/funding.json`` serves. A literal amount in the template
+    is a regression; the template reads ``plan.amount_display``,
+    ``plan.currency`` and ``plan.frequency`` only.
+    """
+    from ..funding import funding_plan
+
+    return render(
+        request,
+        "public_app/pages/fundraising.html",
+        {"plan": funding_plan()},
+    )
+
+
+def funding_manifest(request):
+    """Serve the funding manifest verbatim at /.well-known/funding.json."""
+    from django.http import JsonResponse
+
+    from ..funding import load_funding
+
+    return JsonResponse(load_funding())
 
 
 def pricing(request):

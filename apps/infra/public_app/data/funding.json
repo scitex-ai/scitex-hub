@@ -1,0 +1,66 @@
+{
+  "$schema": "https://fundingjson.org/schema/v1.1.0.json",
+  "version": "v1.1.0",
+  "entity": {
+    "type": "organisation",
+    "role": "steward",
+    "name": "SciTeX Inc.",
+    "email": "ywatanabe@scitex.ai",
+    "description": "SciTeX Inc. develops and stewards SciTeX, an AGPL-3.0 open-source scientific research infrastructure for reproducible, transparent, and AI-assisted research. SciTeX integrates literature discovery, data analysis, visualization, manuscript preparation, provenance tracking, and research automation while remaining self-hostable and vendor-neutral.",
+    "webpageUrl": {
+      "url": "https://scitex.ai"
+    }
+  },
+  "projects": [
+    {
+      "guid": "scitex",
+      "name": "SciTeX",
+      "description": "SciTeX is an open-source scientific research infrastructure spanning a modular ecosystem of research software. It provides tools for literature discovery, data analysis, statistics, visualization, manuscript preparation, research automation, and cryptographic provenance through Clew. Funding supports long-term maintenance, documentation, testing, interoperability, contributor support, infrastructure, and sustainable development of the SciTeX ecosystem.",
+      "webpageUrl": {
+        "url": "https://scitex.ai"
+      },
+      "repositoryUrl": {
+        "url": "https://github.com/scitex-ai/scitex-python",
+        "wellKnown": "https://github.com/scitex-ai/scitex-python/blob/main/.well-known/funding-manifest-urls"
+      },
+      "licenses": [
+        "spdx:AGPL-3.0-only"
+      ],
+      "tags": [
+        "scientific-computing",
+        "research-software",
+        "open-science",
+        "reproducibility",
+        "provenance",
+        "ai",
+        "python",
+        "self-hosted",
+        "developer-tools"
+      ]
+    }
+  ],
+  "funding": {
+    "channels": [
+      {
+        "guid": "direct-contact",
+        "type": "other",
+        "address": "ywatanabe@scitex.ai",
+        "description": "For grants, institutional sponsorships, or direct support, please contact SciTeX Inc. Payment details can be provided privately."
+      }
+    ],
+    "plans": [
+      {
+        "guid": "oss-sustainability",
+        "status": "active",
+        "name": "SciTeX OSS development and sustainability",
+        "description": "Annual support for maintenance and development of the SciTeX open-source ecosystem, including documentation, testing, interoperability, contributor support, infrastructure, and long-term sustainability.",
+        "amount": 25000,
+        "currency": "USD",
+        "frequency": "yearly",
+        "channels": [
+          "direct-contact"
+        ]
+      }
+    ]
+  }
+}
