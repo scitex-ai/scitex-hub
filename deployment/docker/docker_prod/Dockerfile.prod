@@ -623,8 +623,14 @@ RUN python -c "from importlib.resources import files; p = files('scitex_hub').jo
 #   18 png + 56 csv + 1 npz), stackplot_ys.csv among them, and no member name
 #   containing a glob star, in the artifact this line installs.
 RUN uv pip install --system --no-cache \
-    # 0.34.8 (2026-09-17): recorder/style correctness train, validated together.
-    "figrecipe==0.34.8" \
+    # 0.36.0 (2026-10-09): FigRecipe leaf-move pilot
+    # (card hub-figrecipe-leaf-move-20261009). First release carrying the
+    # leaf-owned SDK Django surface the hub adapter prefers:
+    # figrecipe._django.workspace.build_workspace_context plus
+    # templates/figrecipe/{workspace,workspace_partial}.html. The previous
+    # ==0.34.8 pin predates that surface, so any image built on it can only
+    # ever serve the hub fallback. Pin stays exact per this file's convention.
+    "figrecipe==0.36.0" \
     "scitex-io==0.2.3" \
     "scitex-stats==0.2.6" \
     "scitex-plt==0.24.0" \
