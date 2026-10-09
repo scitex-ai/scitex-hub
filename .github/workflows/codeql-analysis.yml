@@ -174,3 +174,10 @@ jobs:
         uses: github/codeql-action/analyze@v3
         with:
           category: "/language:${{matrix.language}}"
+
+      - name: Restore workspace ownership (self-hosted cleanup guard)
+        # Persistent runners reuse the work dir: any root-owned leftover
+        # breaks the NEXT job's checkout cleanup with EACCES. Best-effort
+        # chown via the helper (always exits 0, never reds this job).
+        if: always()
+        run: bash scripts/maintenance/normalize_workspace_ownership.sh
