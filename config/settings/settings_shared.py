@@ -18,7 +18,11 @@ from config._env import (
     require_env_with_legacy_alias as _require_env_alias,
 )
 
-from ._optional_apps import optional_upstream_apps, with_plugin_apps
+from ._optional_apps import (
+    optional_sdk_ui_template_dirs,
+    optional_upstream_apps,
+    with_plugin_apps,
+)
 
 
 # ---------------------------------------
@@ -292,7 +296,11 @@ ASGI_APPLICATION = "config.asgi.application"
 TEMPLATES = [
     {
         "BACKEND": "django.template.backends.django.DjangoTemplates",
-        "DIRS": [BASE_DIR / "templates"],
+        # SDK UI shell templates (card hub-sdk-ui-shell-bridge-20261007):
+        # scitex_sdk.ui must stay OUT of INSTALLED_APPS (duplicate
+        # scitex_ui label), so its templates resolve via the filesystem
+        # loader from the installed package dir. [] when not installed.
+        "DIRS": [BASE_DIR / "templates", *optional_sdk_ui_template_dirs()],
         "OPTIONS": {
             "context_processors": [
                 "django.template.context_processors.debug",
@@ -317,6 +325,14 @@ TEMPLATES = [
                 "django.template.loaders.app_directories.Loader",
                 "apps.workspace.apps_app.template_loader.UserAppTemplateLoader",
             ],
+            # SDK UI shell tag library (card hub-sdk-ui-shell-bridge-20261007):
+            # scitex_sdk.ui stays out of INSTALLED_APPS, so tag discovery
+            # never sees its templatetags package — register scitex_i18n
+            # (also provides {% scitex_js_catalog %}) by Python path.
+            # Lazy: only imported by templates that {% load %} it.
+            "libraries": {
+                "scitex_i18n": "scitex_sdk.ui.templatetags.scitex_i18n",
+            },
         },
     },
 ]
