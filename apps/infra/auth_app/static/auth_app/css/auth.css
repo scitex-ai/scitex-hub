@@ -312,3 +312,25 @@
   justify-content: center;
   min-height: 44px;
 }
+
+/* ---------------------------------------------------------------------------
+ * Signup CTA on dark theme (card hub-signup-cta-washed-out-olive-dark-20261007).
+ *
+ * The shared dark rule for .btn-success is a muted olive (#2d5a3d, hover
+ * #3d6a4d) that reads as disabled on the near-black page. The signup CTA
+ * carries btn-success, so without its own rule it inherits that olive.
+ * This scoped override gives the funnel CTA a vibrant green on dark only.
+ * Signin is untouched: it uses .btn-primary (tan), a different selector.
+ * ------------------------------------------------------------------------- */
+[data-theme="dark"] .btn.auth-primary-cta {
+  background-color: #2ea043;
+  border-color: #2ea043;
+  color: #fff;
+}
+
+[data-theme="dark"] .btn.auth-primary-cta:hover,
+[data-theme="dark"] .btn.auth-primary-cta:focus {
+  background-color: #3fb950;
+  border-color: #3fb950;
+  color: #fff;
+}
