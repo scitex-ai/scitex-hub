@@ -427,6 +427,18 @@ def optional_upstream_apps() -> list[str]:
     if _installed("scitex_sdk.creator"):
         entries.append("scitex_sdk.creator")
 
+    # SDK UI shells (card hub-sdk-ui-shell-bridge-20261007). Registers the
+    # app contract + UI shell apps so their templates (standalone_shell,
+    # app_shell, _project_picker, _theme_boot, …) resolve through Django's
+    # AppDirectoriesFinder for bridge templates to extend. Both labels are
+    # namespaced (scitex_sdk_app / scitex_ui per the SDK consolidation
+    # contract), so neither collides with leaf labels. No views, no URLs,
+    # no behavior change — template resolution only.
+    if _installed("scitex_sdk.app"):
+        entries.append("scitex_sdk.app")
+    if _installed("scitex_sdk.ui"):
+        entries.append("scitex_sdk.ui")
+
     return entries
 
 
