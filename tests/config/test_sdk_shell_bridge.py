@@ -87,3 +87,58 @@ def test_no_registered_entry_duplicates_required_scitex_ui_label():
         claimed |= module._entry_claimed_labels(entry)
     # Assert
     assert "scitex_ui" not in claimed
+
+
+def test_sdk_ui_template_dirs_helper_exists():
+    # Arrange
+    # Act
+    src = OPTIONAL_APPS.read_text()
+    # Assert
+    assert "def optional_sdk_ui_template_dirs" in src
+
+
+def test_settings_dirs_includes_sdk_ui_template_dirs():
+    # Arrange
+    # Act
+    src = (REPO / "config/settings/settings_shared.py").read_text()
+    # Assert
+    assert "*optional_sdk_ui_template_dirs()" in src
+
+
+def test_sdk_ui_template_dirs_returns_existing_dirs_only():
+    # Arrange
+    module = _load_optional_apps_module()
+    # Act
+    entries = module.optional_sdk_ui_template_dirs()
+    # Assert
+    assert all(Path(d).is_dir() for d in entries)
+
+
+def test_sdk_ui_template_dirs_resolves_standalone_shell():
+    # Arrange
+    module = _load_optional_apps_module()
+    # Act
+    entries = module.optional_sdk_ui_template_dirs()
+    # Assert
+    assert all(
+        (Path(d) / "scitex_sdk" / "ui" / "standalone_shell.html").is_file()
+        for d in entries
+    )
+
+
+def test_sdk_ui_template_dirs_registers_no_app():
+    # Arrange
+    import re
+    # Act
+    src = OPTIONAL_APPS.read_text()
+    body = re.split(r"(?m)^def ", src.split("def optional_sdk_ui_template_dirs", 1)[1])[0]
+    # Assert
+    assert "entries.append" not in body
+
+
+def test_settings_registers_sdk_i18n_library_by_path():
+    # Arrange
+    # Act
+    src = (REPO / "config/settings/settings_shared.py").read_text()
+    # Assert
+    assert '"scitex_i18n": "scitex_sdk.ui.templatetags.scitex_i18n"' in src

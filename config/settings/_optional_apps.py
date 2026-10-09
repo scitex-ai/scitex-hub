@@ -23,6 +23,7 @@ import importlib.util
 import logging
 import os
 from importlib import import_module
+from pathlib import Path
 from types import ModuleType
 
 logger = logging.getLogger(__name__)
@@ -447,6 +448,29 @@ def optional_upstream_apps() -> list[str]:
     # the SDK relabels its UI config away from `scitex_ui`.
 
     return entries
+
+
+def optional_sdk_ui_template_dirs() -> list:
+    """Return filesystem template dirs for the SDK UI shell, if installed.
+
+    Card hub-sdk-ui-shell-bridge-20261007 slice 2: the bridge adapter
+    extends ``scitex_sdk/app/app_shell.html``, which itself extends
+    ``scitex_sdk/ui/standalone_shell.html``. The UI app must stay OUT of
+    ``INSTALLED_APPS`` (duplicate ``scitex_ui`` label — see above), so the
+    app-directories loader can never resolve its templates. The filesystem
+    loader can: this returns the installed ``scitex_sdk.ui`` package's
+    ``templates/`` dir for ``TEMPLATES[0]["DIRS"]``. No app registration,
+    no label claim, no views/URLs — template-file resolution only.
+    Returns [] when the package (or its templates dir) is absent.
+    """
+    mod = _installed("scitex_sdk.ui")
+    mod_file = getattr(mod, "__file__", None) if mod is not None else None
+    if not mod_file:
+        return []
+    candidate = Path(mod_file).resolve().parent / "templates"
+    if not candidate.is_dir():
+        return []
+    return [candidate]
 
 
 def _config_class_labels(cls) -> set[str]:
