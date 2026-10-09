@@ -427,6 +427,25 @@ def optional_upstream_apps() -> list[str]:
     if _installed("scitex_sdk.creator"):
         entries.append("scitex_sdk.creator")
 
+    # SDK app shell (card hub-sdk-ui-shell-bridge-20261007). Registers the
+    # app-contract app so its template (scitex_sdk/app/app_shell.html)
+    # resolves through Django's AppDirectoriesFinder for the bridge template
+    # to extend. Its label is `scitex_app` (ScitexAppConfig in
+    # scitex_sdk/app/apps.py) — proven collision-free: no other
+    # INSTALLED_APPS entry claims it. No views, no URLs, no behavior
+    # change — template resolution only.
+    if _installed("scitex_sdk.app"):
+        entries.append("scitex_sdk.app")
+    # SDK UI shell deliberately NOT registered (mutual exclusion): the
+    # installed scitex_sdk.ui claims label `scitex_ui` (ScitexUiConfig in
+    # scitex_sdk/ui/apps.py), identical to the REQUIRED retired scitex-ui
+    # entry (config/settings/settings_shared.py:213-214,
+    # `THIRD_PARTY_APPS.append("scitex_ui")`, default label `scitex_ui`).
+    # Registering both makes django.setup() raise ImproperlyConfigured
+    # (duplicate app label) with zero tests running. Re-add scitex_sdk.ui
+    # only after the retired scitex-ui requirement is removed, or after
+    # the SDK relabels its UI config away from `scitex_ui`.
+
     return entries
 
 

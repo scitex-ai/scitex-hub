@@ -1,0 +1,19 @@
+{% extends "scitex_sdk/app/app_shell.html" %}
+{# ---------------------------------------------------------------------------
+ # Hub → SDK shell bridge (card hub-sdk-ui-shell-bridge-20261007).
+ #
+ # Adapter mapping the Hub leaf block vocabulary onto the SDK shell:
+ # Hub pages override `content` (+ leaf blocks like `writer_content`);
+ # the SDK shell renders `app_content`. A leaf adopts the SDK shell by
+ # extending THIS template and filling `hub_leaf_content` instead of
+ # `content` — its existing inner blocks move unchanged.
+ #
+ # Adoption is per-leaf and reversible: nothing extends this yet, so no
+ # page changes rendering until a leaf switches its `extends`. The
+ # mount context (mount marker, theme boot, picker) comes from the SDK
+ # shell; views must merge scitex_sdk.ui.mount.mount_context() +
+ # scitex_sdk.ui.branding.shell_context() — see the bridge test.
+ # ------------------------------------------------------------------------- #}
+{% block app_content %}
+{% block hub_leaf_content %}{% endblock %}
+{% endblock %}
