@@ -33,7 +33,6 @@ EXEMPT = {
     "writer_app.ArxivCategory": "global arxiv taxonomy",
     # Scholar global registries (no tenant rows).
     "scholar_app.Repository": "global repository registry",
-    "scholar_app.SearchFilter": "global filter definitions",
 }
 
 

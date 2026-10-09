@@ -62,7 +62,6 @@ from .repository import (
 # Search models
 from .search import (
     SavedSearch,
-    SearchFilter,
     SearchQuery,
     SearchResult,
 )
@@ -79,7 +78,6 @@ __all__ = [
     # Search
     "SearchQuery",
     "SearchResult",
-    "SearchFilter",
     "SavedSearch",
     # Library
     "Collection",
