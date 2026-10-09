@@ -113,6 +113,13 @@ jobs:
       - name: Build with Vite
         run: npm run build
 
+      - name: Restore workspace ownership (self-hosted cleanup guard)
+        # Persistent runners reuse the work dir: any root-owned leftover
+        # breaks the NEXT job's checkout cleanup with EACCES. Best-effort
+        # chown via the helper (always exits 0, never reds this job).
+        if: always()
+        run: bash scripts/maintenance/normalize_workspace_ownership.sh
+
   vitest:
     name: Vitest Unit Tests
     # Was the NODE CANARY for the spartan migration — that migration is
@@ -155,6 +162,13 @@ jobs:
 
       - name: Run tests
         run: npm run test:run
+
+      - name: Restore workspace ownership (self-hosted cleanup guard)
+        # Persistent runners reuse the work dir: any root-owned leftover
+        # breaks the NEXT job's checkout cleanup with EACCES. Best-effort
+        # chown via the helper (always exits 0, never reds this job).
+        if: always()
+        run: bash scripts/maintenance/normalize_workspace_ownership.sh
 
   terminal-tests:
     name: "Terminal Broker & Session Tests (Python)"
@@ -227,6 +241,13 @@ jobs:
             tests/apps/console_app/views/terminal/ \
             tests/apps/console_app/services/terminal_broker/ \
             -v --tb=short -p no:playwright -o "addopts="
+
+      - name: Restore workspace ownership (self-hosted cleanup guard)
+        # Persistent runners reuse the work dir: any root-owned leftover
+        # breaks the NEXT job's checkout cleanup with EACCES. Best-effort
+        # chown via the helper (always exits 0, never reds this job).
+        if: always()
+        run: bash scripts/maintenance/normalize_workspace_ownership.sh
 
   security-regression:
     name: "Security Regression Gates (tests/security/)"
@@ -346,6 +367,13 @@ jobs:
             echo "::error::tests/security/ collected 0 tests — the security gate cannot fail"
             exit 1
           fi
+
+      - name: Restore workspace ownership (self-hosted cleanup guard)
+        # Persistent runners reuse the work dir: any root-owned leftover
+        # breaks the NEXT job's checkout cleanup with EACCES. Best-effort
+        # chown via the helper (always exits 0, never reds this job).
+        if: always()
+        run: bash scripts/maintenance/normalize_workspace_ownership.sh
 
   test-summary:
     name: Test Summary
