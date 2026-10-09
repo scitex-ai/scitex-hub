@@ -539,7 +539,16 @@ dev = [
     # PUBLISHED 0.34.6 wheel was downloaded and inspected, and carries 56 .csv
     # + 1 .npz under figrecipe/_django/gallery_templates/.
     # >=0.34.8 adds recorder/style correctness warnings validated with this alpha.
-    "figrecipe>=0.34.8",
+    # >=0.36 is the FigRecipe leaf-move floor (card hub-figrecipe-leaf-move-20261009):
+    # the leaf-owned SDK Django surface the hub adapter prefers —
+    # figrecipe._django.workspace.build_workspace_context plus
+    # templates/figrecipe/{workspace,workspace_partial}.html — ships in 0.36.
+    # Verified: installed 0.35.0 has NO figrecipe._django.workspace module
+    # (only standalone.html), while the published 0.36.0 wheel carries
+    # workspace.py + both templates. Below 0.36 the hub adapter silently falls
+    # back to hub-local keys, so the floor is raised rather than left at a
+    # version we know cannot serve the leaf surface.
+    "figrecipe>=0.36",
     "joblib",
     "flask",
     # PS-210: `[all]` ships these and the test suite imports them
