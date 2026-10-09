@@ -19,7 +19,6 @@ read the same.
 
 from __future__ import annotations
 
-import importlib.util
 import logging
 import os
 from importlib import import_module
@@ -473,186 +472,189 @@ def optional_sdk_ui_template_dirs() -> list:
     return [candidate]
 
 
-def _config_class_labels(cls) -> set[str]:
-    """App labels one AppConfig subclass claims (explicit or Django default).
-
-    Duck-typed on purpose: this module must stay importable before Django is
-    configured (settings import time), so ``AppConfig`` itself is never
-    imported here. Every AppConfig defines ``name``; ``label`` only when it
-    differs from the default (last component of ``name``).
-    """
-    labels: set[str] = set()
-    label = getattr(cls, "label", None)
-    if isinstance(label, str) and label:
-        # Explicit label wins, exactly as Django resolves it: returning the
-        # name-derived default ALONGSIDE it would fabricate collisions (every
-        # ``scitex_*._django`` config would also claim ``_django``).
-        return {label}
-    name = getattr(cls, "name", None)
-    if isinstance(name, str) and name:
-        labels.add(name.rpartition(".")[2])
-    return labels
-
-
 def _entry_claimed_labels(entry: str) -> set[str]:
     """App labels an ``INSTALLED_APPS`` entry already provides.
 
-    Never raises: anything unresolvable yields the syntactic fallback (last
-    dotted component), which is exactly Django's default-label rule for a
-    bare package entry.
-    """
-    mod_path, _, tail = entry.rpartition(".")
-    if tail[:1].isupper():
-        # Explicit ``...apps.SomeConfig`` path: read the class itself.
-        try:
-            cls = getattr(import_module(mod_path), tail)
-        except Exception:  # noqa: BLE001 - settings time must not fail
-            return set()
-        return _config_class_labels(cls)
-    # Bare module entry: Django auto-discovers ``<module>.apps`` (a single
-    # AppConfig, or the one marked ``default=True``).
-    labels = {tail}
-    try:
-        apps_module = import_module(f"{entry}.apps")
-    except Exception:  # noqa: BLE001 - settings time must not fail
-        return labels
-    candidates = [
-        obj
-        for obj in vars(apps_module).values()
-        if isinstance(obj, type)
-        and isinstance(getattr(obj, "name", None), str)
-        and obj.__module__ == apps_module.__name__
-    ]
-    if len(candidates) == 1:
-        return _config_class_labels(candidates[0]) or labels
-    for obj in candidates:
-        if getattr(obj, "default", False) is True:
-            return _config_class_labels(obj) or labels
-    return labels
-
-
-def _plugin_claimed_labels(plugin) -> set[str]:
-    """App labels a ``scitex.apps`` plugin's AppConfig claims.
-
-    Empty when the class cannot be imported: without proof of a collision the
-    plugin keeps today's behaviour (kept; a broken wheel costs its own app).
-    """
-    mod_path, _, cls_name = plugin.app_config.rpartition(".")
-    try:
-        cls = getattr(import_module(mod_path), cls_name)
-    except Exception:  # noqa: BLE001 - settings time must not fail
-        return set()
-    return _config_class_labels(cls)
-
-
-def _drop_label_collisions(entries: list[str], usable: list, extra_claims=(), app_module_of=None) -> list:
-    """Drop plugins whose app label is already provided outside their package.
-
-    Django requires app labels to be unique: two entries claiming one label
-    make ``django.setup()`` raise ``ImproperlyConfigured`` and zero tests run.
-    ``installed_app_paths`` only replaces same-PACKAGE entries, so a plugin
-    from another package claiming a local app's label (measured 2026-10-09:
-    ``scitex-clew`` 0.21.0's ``scitex_clew._django.apps:ClewAppConfig`` sets
-    ``label = "clew_app"``, identical to hub's own
-    ``apps.workspace.clew_app``) sails through and kills startup.
-
-    A plugin that REPLACES a hand-written entry for the same package (the
-    cards/figrecipe continuity contract) is kept: its entry vacates its
-    labels. Only an ADDITIONAL same-label entry is a crash. The surviving
-    entry wins ties: hub's local app owns the migrations, the
-    tenant-ownership contract, and the ``/apps/clew/`` route, so the plugin
-    is the redundant provider there. Each skip is logged, so a silently
-    vanishing app is impossible.
-    """
-    entry_labels = {entry: _entry_claimed_labels(entry) for entry in entries}
-    live_extra: set[str] = set()
-    for entry in extra_claims:
-        live_extra |= _entry_claimed_labels(entry)
-    gone: set[str] = set()
-    kept: list = []
-    kept_labels: set[str] = set()
-    for plugin in usable:
-        labels = _plugin_claimed_labels(plugin)
-        supplanted = {
-            entry
-            for entry in entries
-            if entry not in gone
-            and app_module_of is not None
-            and app_module_of(entry) == app_module_of(plugin.app_config)
-        }
-        live: set[str] = set(live_extra) | kept_labels
-        for entry, owned in entry_labels.items():
-            if entry not in gone and entry not in supplanted:
-                live |= owned
-        clash = labels & live
-        if clash:
-            owners = sorted(
-                {
-                    entry
-                    for entry in entries
-                    if entry not in gone
-                    and entry not in supplanted
-                    and entry_labels[entry] & clash
-                }
-                | (
-                    {f"<local app: {sorted(clash & live_extra)}>"}
-                    if live_extra & clash
-                    else set()
-                )
-            )
-            logger.warning(
-                "scitex.apps entry point %r skipped: app label %s already "
-                "provided by %s; installing both would make django.setup() "
-                "raise ImproperlyConfigured (duplicate app label).",
-                plugin.name,
-                sorted(clash),
-                owners,
-            )
-            continue
-        gone |= supplanted
-        kept_labels |= labels
-        kept.append(plugin)
-    return kept
-
-
-def with_plugin_apps(entries: list[str], plugins=None, extra_claims=()) -> list[str]:
-    """``entries`` plus every ``scitex.apps`` entry point (``pip install`` = app).
-
-    A plugin replaces a hand-written entry for the same app package in place.
-    One whose AppConfig module cannot be found is skipped with a warning, so a
-    broken wheel costs its own app, not hub startup. One whose app LABEL is
-    already claimed outside its own package is likewise skipped: duplicate
-    labels crash ``django.setup()`` outright. ``extra_claims`` carries
-    entries that will join ``INSTALLED_APPS`` after this call (hub's local
-    apps) so the guard sees their labels too.
+    Retained for the SDK shell-bridge contract
+    (tests/config/test_sdk_shell_bridge.py probes this module standalone):
+    identity now comes from :mod:`config.settings._app_config_metadata`
+    instead of importing the AppConfig class, so class bodies never execute
+    at settings time. Never raises: anything unresolvable yields the
+    syntactic fallback (last dotted component), which is exactly Django's
+    default-label rule for a bare package entry.
     """
     try:
-        from scitex_app.plugins import (
-            app_module_of,
-            discover_plugin_apps,
-            installed_app_paths,
+        from config.settings._app_config_metadata import (
+            MetadataUnavailable,
+            app_config_identity,
         )
     except ImportError:
+        mod_path, _, tail = entry.rpartition(".")
+        return set() if tail[:1].isupper() else {tail}
+    try:
+        return {app_config_identity(entry).label}
+    except MetadataUnavailable:
+        mod_path, _, tail = entry.rpartition(".")
+        if tail[:1].isupper():
+            return set()
+        return {tail}
+
+
+def with_plugin_apps(entries: list[str], plugins=None) -> list[str]:
+    """Merge optional plugins, retaining existing owners of Django app labels."""
+    return _with_host_plugin_apps(entries, (), plugins)
+
+
+def _with_host_plugin_apps(
+    entries: list[str], registered_entries=(), plugins=None
+) -> list[str]:
+    """Merge plugins without duplicating apps registered elsewhere by the host.
+
+    ``registered_entries`` are retained by the caller, in their original order.
+    Django's AppConfig metadata supplies identity; population remains with setup.
+    """
+    try:
+        from scitex_sdk.app.plugins import discover_plugin_apps, installed_app_paths
+    except ImportError:
         return entries
-    usable = []
-    for plugin in discover_plugin_apps() if plugins is None else plugins:
-        module = plugin.app_config.rpartition(".")[0]
+
+    discovered = discover_plugin_apps() if plugins is None else list(plugins)
+    if not discovered:
+        return entries
+
+    from ._app_config_metadata import (
+        MetadataUnavailable,
+        app_config_identity,
+        app_installation_entries,
+    )
+
+    configurations = {}
+    unavailable = {}
+    for entry in [*registered_entries, *entries]:
         try:
-            found = importlib.util.find_spec(module) is not None
-        except (ImportError, ValueError):
-            found = False
-        if found:
-            usable.append(plugin)
-        else:
+            configurations[entry] = app_config_identity(entry)
+        except MetadataUnavailable as error:
+            unavailable[entry] = str(error)
+    reserved = [configurations[entry] for entry in registered_entries if entry in configurations]
+    reserved_names = {config.name for config in reserved}
+    usable = []
+    companions = []
+    sdk_companion_support = True
+
+    def merge(selected, selected_companions):
+        if selected_companions:
+            if not sdk_companion_support:
+                # Older SDKs only merge primaries. Keep already-registered
+                # declared companions in their original positions, preventing
+                # primary inference from replacing their migration owners.
+                protected = set(selected_companions)
+                existing = [entry for entry in entries if entry not in protected]
+                merged = installed_app_paths(existing, selected)
+                replacements = iter(merged[:len(existing)])
+                retained = [entry if entry in protected else next(replacements)
+                            for entry in entries]
+                return [*retained, *merged[len(existing):]]
+            return installed_app_paths(entries, selected, selected_companions)
+        return installed_app_paths(entries, selected)
+
+    for plugin in discovered:
+        try:
+            config = app_config_identity(plugin.app_config)
+            declared = app_installation_entries(plugin.app_module)
+            if declared:
+                try:
+                    from scitex_sdk.app.plugins import partition_companions
+                except ImportError:
+                    sdk_companion_support = False
+                    logger.warning(
+                        "Installed SDK does not support leaf companion declarations "
+                        "for %r; primary app and registered companions retained, "
+                        "new companions require a supporting SDK.", plugin.name,
+                    )
+                    needed = [entry for entry in entries if entry in declared
+                              and entry not in {plugin.app_config, plugin.app_module}]
+                else:
+                    needed = partition_companions(declared, [plugin])
+            else:
+                needed = []
+        except MetadataUnavailable as error:
             logger.warning(
-                "scitex.apps entry point %r names %s, whose module %s is not "
-                "importable; app skipped.",
+                "scitex.apps entry point %r has unavailable AppConfig metadata "
+                "(%s); app skipped.",
                 plugin.name,
-                plugin.app_config,
-                module,
+                str(error),
             )
-    usable = _drop_label_collisions(entries, usable, extra_claims, app_module_of)
-    return installed_app_paths(entries, usable)
+            continue
+        if config.name in reserved_names:
+            logger.warning(
+                "scitex.apps entry point %r names %s, already registered "
+                "elsewhere by the host; registered app retained, plugin skipped.",
+                plugin.name,
+                config.name,
+            )
+            continue
+
+        configurations[plugin.app_config] = config
+        retained_companions = []
+        try:
+            for entry in needed:
+                identity = app_config_identity(entry)
+                configurations[entry] = identity
+                owner = next((owner for owner in reserved if owner.name == identity.name), None)
+                if owner is not None:
+                    if owner.label != identity.label:
+                        raise MetadataUnavailable("Registered companion has a different label")
+                    continue
+                retained_companions.append(entry)
+            proposed_companions = [*companions, *retained_companions]
+            proposed = merge([*usable, plugin], proposed_companions)
+            for entry in proposed:
+                if entry not in configurations and entry not in unavailable:
+                    configurations[entry] = app_config_identity(entry)
+        except MetadataUnavailable as error:
+            logger.warning(
+                "scitex.apps entry point %r has unavailable companion metadata "
+                "(%s); registered apps retained, plugin skipped.",
+                plugin.name, str(error),
+            )
+            continue
+        unknown = next((entry for entry in [*registered_entries, *proposed] if entry in unavailable), None)
+        if unknown is not None:
+            logger.warning(
+                "scitex.apps entry point %r cannot certify registered owner %s "
+                "(%s); registered app retained, plugin skipped.",
+                plugin.name, unknown, unavailable[unknown],
+            )
+            continue
+        names = set()
+        label_owners = {}
+        collision = None
+        # Configuration-file packages can alias a different actual app name.
+        # Validate the merger's effective entries, not an assumed replacement.
+        for registered in [*reserved, *(configurations[entry] for entry in proposed)]:
+            if registered.name in names:
+                collision = ("app name", registered.name, registered.name)
+                break
+            if registered.label in label_owners:
+                collision = ("label", registered.label, label_owners[registered.label])
+                break
+            names.add(registered.name)
+            label_owners[registered.label] = registered.name
+        if collision is not None:
+            identity, value, owner = collision
+            logger.warning(
+                "scitex.apps entry point %r names %s with duplicate %s %r already "
+                "registered by %s; registered app retained, plugin skipped.",
+                plugin.name,
+                config.name,
+                identity,
+                value,
+                owner,
+            )
+            continue
+        usable.append(plugin)
+        companions = proposed_companions
+    return merge(usable, companions)
 
 
 # EOF
