@@ -6,7 +6,9 @@ leaks onto the page. Multi-line notes must use {% comment %}.
 import glob
 import os
 
-REPO_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+REPO_ROOT = os.path.dirname(
+    os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+)
 
 
 def _iter_templates():

@@ -125,6 +125,108 @@ def test_sync_dry_run_exits_zero_with_a_planned_status(
     ), result.output
 
 
+def test_sync_help_advertises_yes_flag(runner: CliRunner):
+    """§2: the mutating verb exposes -y/--yes to skip confirmation."""
+    # Act
+    result = runner.invoke(main, ["dev-preview", "sync", "--help"])
+    # Assert
+    assert (result.exit_code, "--yes" in result.output) == (0, True), result.output
+
+
+@pytest.mark.parametrize("flag", ["--yes", "-y"])
+def test_sync_dry_run_with_yes_flag_plans_and_moves_nothing(
+    runner: CliRunner, clone: Path, tmp_path: Path, flag: str
+):
+    """--yes/--no-yes spelling accepted; a dry run still only plans."""
+    # Arrange
+    argv = [
+        "dev-preview",
+        "sync",
+        "--dry-run",
+        flag,
+        "--clone",
+        str(clone),
+        "--state-dir",
+        str(tmp_path / "state"),
+    ]
+    # Act
+    result = runner.invoke(main, argv)
+    payload = json.loads(result.stdout)
+    # Assert
+    assert (result.exit_code, payload["status"] in {"dry_run", "noop"}) == (
+        0,
+        True,
+    ), result.output
+
+
+def test_sync_without_yes_on_a_tty_prompts_and_aborts_on_decline(
+    clone: Path, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+):
+    """§2 guard: an interactive human who declines mutates nothing.
+
+    Simulates a terminal (isatty) with a declining answer; the refusal
+    must abort (exit 1) before any state is written.
+    """
+    # Arrange
+    import click as click_module
+    import sys as sys_module
+
+    from scitex_hub._dev_preview import _cli as dev_preview_cli
+
+    monkeypatch.setattr(sys_module.stdin, "isatty", lambda: True)
+    monkeypatch.setattr(click_module, "confirm", lambda *a, **k: False)
+    state_dir = tmp_path / "state"
+    # Act
+    with pytest.raises(SystemExit) as exc:
+        dev_preview_cli.sync_cmd.callback(
+            clone=clone,
+            remote="origin",
+            branch="develop",
+            container="scitex-hub-dev-django-1",
+            state_dir=state_dir,
+            dry_run=False,
+            no_cards=True,
+            as_json=False,
+            yes=False,
+        )
+    # Assert
+    assert exc.value.code == 1
+    assert not (state_dir / "sync.log").exists()
+
+
+def test_sync_yes_skips_the_prompt_on_a_tty(
+    clone: Path, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+):
+    """§2 guard: --yes never prompts, even for an interactive caller."""
+    # Arrange
+    import click as click_module
+    import sys as sys_module
+
+    from scitex_hub._dev_preview import _cli as dev_preview_cli
+
+    monkeypatch.setattr(sys_module.stdin, "isatty", lambda: True)
+
+    def _must_not_prompt(*args: object, **kwargs: object) -> bool:
+        raise AssertionError("sync prompted despite --yes")
+
+    monkeypatch.setattr(click_module, "confirm", _must_not_prompt)
+    # Act
+    with pytest.raises(SystemExit) as exc:
+        dev_preview_cli.sync_cmd.callback(
+            clone=clone,
+            remote="origin",
+            branch="develop",
+            container="scitex-hub-dev-django-1",
+            state_dir=tmp_path / "state",
+            dry_run=False,
+            no_cards=True,
+            as_json=False,
+            yes=True,
+        )
+    # Assert
+    assert exc.value.code == 0, exc.value.code
+
+
 def test_sync_no_cards_refusal_exits_two_and_only_logs_the_card(
     runner: CliRunner, clone: Path, tmp_path: Path
 ):
