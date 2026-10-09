@@ -29,12 +29,12 @@ def test_sdk_app_registered_for_template_resolution():
     assert '"scitex_sdk.app"' in src
 
 
-def test_sdk_ui_registered_for_template_resolution():
+def test_sdk_ui_excluded_while_retired_scitex_ui_required():
     # Arrange
     # Act
     src = OPTIONAL_APPS.read_text()
     # Assert
-    assert '"scitex_sdk.ui"' in src
+    assert 'entries.append("scitex_sdk.ui")' not in src
 
 
 def test_bridge_extends_the_sdk_app_shell():
@@ -59,3 +59,31 @@ def test_bridge_exposes_a_leaf_block():
     src = BRIDGE.read_text()
     # Assert
     assert "hub_leaf_content" in src
+
+
+def _load_optional_apps_module():
+    import importlib.util
+
+    spec = importlib.util.spec_from_file_location(
+        "_optional_apps_probe", OPTIONAL_APPS
+    )
+    assert spec is not None
+    assert spec.loader is not None
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
+
+
+def test_no_registered_entry_duplicates_required_scitex_ui_label():
+    # Arrange
+    import re
+
+    module = _load_optional_apps_module()
+    src = OPTIONAL_APPS.read_text()
+    entries = re.findall(r'entries\.append\("([^"]+)"\)', src)
+    # Act
+    claimed = set()
+    for entry in entries:
+        claimed |= module._entry_claimed_labels(entry)
+    # Assert
+    assert "scitex_ui" not in claimed
