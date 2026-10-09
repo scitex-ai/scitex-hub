@@ -430,15 +430,165 @@ def optional_upstream_apps() -> list[str]:
     return entries
 
 
-def with_plugin_apps(entries: list[str], plugins=None) -> list[str]:
+def _config_class_labels(cls) -> set[str]:
+    """App labels one AppConfig subclass claims (explicit or Django default).
+
+    Duck-typed on purpose: this module must stay importable before Django is
+    configured (settings import time), so ``AppConfig`` itself is never
+    imported here. Every AppConfig defines ``name``; ``label`` only when it
+    differs from the default (last component of ``name``).
+    """
+    labels: set[str] = set()
+    label = getattr(cls, "label", None)
+    if isinstance(label, str) and label:
+        # Explicit label wins, exactly as Django resolves it: returning the
+        # name-derived default ALONGSIDE it would fabricate collisions (every
+        # ``scitex_*._django`` config would also claim ``_django``).
+        return {label}
+    name = getattr(cls, "name", None)
+    if isinstance(name, str) and name:
+        labels.add(name.rpartition(".")[2])
+    return labels
+
+
+def _entry_claimed_labels(entry: str) -> set[str]:
+    """App labels an ``INSTALLED_APPS`` entry already provides.
+
+    Never raises: anything unresolvable yields the syntactic fallback (last
+    dotted component), which is exactly Django's default-label rule for a
+    bare package entry.
+    """
+    mod_path, _, tail = entry.rpartition(".")
+    if tail[:1].isupper():
+        # Explicit ``...apps.SomeConfig`` path: read the class itself.
+        try:
+            cls = getattr(import_module(mod_path), tail)
+        except Exception:  # noqa: BLE001 - settings time must not fail
+            return set()
+        return _config_class_labels(cls)
+    # Bare module entry: Django auto-discovers ``<module>.apps`` (a single
+    # AppConfig, or the one marked ``default=True``).
+    labels = {tail}
+    try:
+        apps_module = import_module(f"{entry}.apps")
+    except Exception:  # noqa: BLE001 - settings time must not fail
+        return labels
+    candidates = [
+        obj
+        for obj in vars(apps_module).values()
+        if isinstance(obj, type)
+        and isinstance(getattr(obj, "name", None), str)
+        and obj.__module__ == apps_module.__name__
+    ]
+    if len(candidates) == 1:
+        return _config_class_labels(candidates[0]) or labels
+    for obj in candidates:
+        if getattr(obj, "default", False) is True:
+            return _config_class_labels(obj) or labels
+    return labels
+
+
+def _plugin_claimed_labels(plugin) -> set[str]:
+    """App labels a ``scitex.apps`` plugin's AppConfig claims.
+
+    Empty when the class cannot be imported: without proof of a collision the
+    plugin keeps today's behaviour (kept; a broken wheel costs its own app).
+    """
+    mod_path, _, cls_name = plugin.app_config.rpartition(".")
+    try:
+        cls = getattr(import_module(mod_path), cls_name)
+    except Exception:  # noqa: BLE001 - settings time must not fail
+        return set()
+    return _config_class_labels(cls)
+
+
+def _drop_label_collisions(entries: list[str], usable: list, extra_claims=(), app_module_of=None) -> list:
+    """Drop plugins whose app label is already provided outside their package.
+
+    Django requires app labels to be unique: two entries claiming one label
+    make ``django.setup()`` raise ``ImproperlyConfigured`` and zero tests run.
+    ``installed_app_paths`` only replaces same-PACKAGE entries, so a plugin
+    from another package claiming a local app's label (measured 2026-10-09:
+    ``scitex-clew`` 0.21.0's ``scitex_clew._django.apps:ClewAppConfig`` sets
+    ``label = "clew_app"``, identical to hub's own
+    ``apps.workspace.clew_app``) sails through and kills startup.
+
+    A plugin that REPLACES a hand-written entry for the same package (the
+    cards/figrecipe continuity contract) is kept: its entry vacates its
+    labels. Only an ADDITIONAL same-label entry is a crash. The surviving
+    entry wins ties: hub's local app owns the migrations, the
+    tenant-ownership contract, and the ``/apps/clew/`` route, so the plugin
+    is the redundant provider there. Each skip is logged, so a silently
+    vanishing app is impossible.
+    """
+    entry_labels = {entry: _entry_claimed_labels(entry) for entry in entries}
+    live_extra: set[str] = set()
+    for entry in extra_claims:
+        live_extra |= _entry_claimed_labels(entry)
+    gone: set[str] = set()
+    kept: list = []
+    kept_labels: set[str] = set()
+    for plugin in usable:
+        labels = _plugin_claimed_labels(plugin)
+        supplanted = {
+            entry
+            for entry in entries
+            if entry not in gone
+            and app_module_of is not None
+            and app_module_of(entry) == app_module_of(plugin.app_config)
+        }
+        live: set[str] = set(live_extra) | kept_labels
+        for entry, owned in entry_labels.items():
+            if entry not in gone and entry not in supplanted:
+                live |= owned
+        clash = labels & live
+        if clash:
+            owners = sorted(
+                {
+                    entry
+                    for entry in entries
+                    if entry not in gone
+                    and entry not in supplanted
+                    and entry_labels[entry] & clash
+                }
+                | (
+                    {f"<local app: {sorted(clash & live_extra)}>"}
+                    if live_extra & clash
+                    else set()
+                )
+            )
+            logger.warning(
+                "scitex.apps entry point %r skipped: app label %s already "
+                "provided by %s; installing both would make django.setup() "
+                "raise ImproperlyConfigured (duplicate app label).",
+                plugin.name,
+                sorted(clash),
+                owners,
+            )
+            continue
+        gone |= supplanted
+        kept_labels |= labels
+        kept.append(plugin)
+    return kept
+
+
+def with_plugin_apps(entries: list[str], plugins=None, extra_claims=()) -> list[str]:
     """``entries`` plus every ``scitex.apps`` entry point (``pip install`` = app).
 
     A plugin replaces a hand-written entry for the same app package in place.
     One whose AppConfig module cannot be found is skipped with a warning, so a
-    broken wheel costs its own app, not hub startup.
+    broken wheel costs its own app, not hub startup. One whose app LABEL is
+    already claimed outside its own package is likewise skipped: duplicate
+    labels crash ``django.setup()`` outright. ``extra_claims`` carries
+    entries that will join ``INSTALLED_APPS`` after this call (hub's local
+    apps) so the guard sees their labels too.
     """
     try:
-        from scitex_app.plugins import discover_plugin_apps, installed_app_paths
+        from scitex_app.plugins import (
+            app_module_of,
+            discover_plugin_apps,
+            installed_app_paths,
+        )
     except ImportError:
         return entries
     usable = []
@@ -458,6 +608,7 @@ def with_plugin_apps(entries: list[str], plugins=None) -> list[str]:
                 plugin.app_config,
                 module,
             )
+    usable = _drop_label_collisions(entries, usable, extra_claims, app_module_of)
     return installed_app_paths(entries, usable)
 
 
