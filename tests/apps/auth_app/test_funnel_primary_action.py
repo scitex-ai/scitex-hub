@@ -88,4 +88,48 @@ def test_auth_css_is_actually_loaded_by_the_auth_shell():
     )
 
 
+MUTED_DARK_SUCCESS = {"#2d5a3d", "#3d6a4d"}
+
+
+def test_the_signup_cta_has_its_own_dark_theme_green():
+    """Card hub-signup-cta-washed-out-olive-dark-20261007: the shared dark
+    .btn-success rule is a muted olive that reads as disabled on black, so
+    the signup CTA needs its own dark-theme green scoped to .auth-primary-cta.
+    """
+    css = AUTH_CSS.read_text()
+
+    dark_cta = re.findall(
+        r'\[data-theme="dark"\]\s*\.btn\.auth-primary-cta[^{}]*\{([^}]*)\}',
+        css,
+    )
+    assert dark_cta, "no dark-theme rule scopes .btn.auth-primary-cta in auth.css"
+    bodies = " ".join(dark_cta)
+    assert "#2ea043" in bodies.replace(" ", "").lower() or "#3fb950" in bodies.replace(
+        " ", ""
+    ).lower(), f"dark CTA rule sets no vibrant green: {bodies!r}"
+    for muted in MUTED_DARK_SUCCESS:
+        assert muted not in bodies.replace(" ", "").lower(), (
+            f"dark CTA rule reuses the muted olive {muted} it was written to escape"
+        )
+
+
+def test_the_signin_button_does_not_carry_the_cta_class():
+    """The dark CTA override must not leak onto signin: signin stays on the
+    tan .btn-primary the operator praised, guarded by selector separation."""
+    html = (
+        REPO / "apps/infra/auth_app/templates/auth_app/signin.html"
+    ).read_text()
+
+    signin_buttons = [ln for ln in html.splitlines() if "<button" in ln and "Sign In" in ln]
+    assert signin_buttons, "the Sign In submit button moved — update this guard"
+    for line in signin_buttons:
+        assert CTA_CLASS not in line, (
+            f"Sign In picked up {CTA_CLASS}; the dark green override would leak: "
+            f"{line.strip()!r}"
+        )
+        assert "btn-primary" in line, (
+            f"Sign In left btn-primary (the praised tan): {line.strip()!r}"
+        )
+
+
 # EOF
