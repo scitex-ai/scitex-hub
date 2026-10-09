@@ -19,9 +19,9 @@ from config._env import (
 )
 
 from ._optional_apps import (
+    _with_host_plugin_apps,
     optional_sdk_ui_template_dirs,
     optional_upstream_apps,
-    with_plugin_apps,
 )
 
 
@@ -222,14 +222,11 @@ THIRD_PARTY_APPS.append("scitex_ui")
 # lives in _optional_apps.py — including the scitex-cards rename-window
 # shim and the reason it exists. Extracted 2026-08-16.
 THIRD_PARTY_APPS.extend(optional_upstream_apps())
+# Existing host apps keep their labels and ordering when plugins are discovered.
 LOCAL_APPS = discover_local_apps()
-# Plugin apps: `pip install <pkg>` with a `scitex.apps` entry point (scitex_app.plugins).
-# LOCAL_APPS ride along as extra label claims (not merged here): a plugin from
-# another package that reuses a local app's label (scitex-clew 0.21.0 claims
-# `clew_app`, same as apps.workspace.clew_app) must be skipped, or
-# django.setup() dies on the duplicate label. Order matters: locals must be
-# discovered BEFORE this call so the guard can see them.
-THIRD_PARTY_APPS = with_plugin_apps(THIRD_PARTY_APPS, extra_claims=LOCAL_APPS)
+THIRD_PARTY_APPS = _with_host_plugin_apps(
+    THIRD_PARTY_APPS, DJANGO_APPS + LOCAL_APPS
+)
 
 INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + LOCAL_APPS
 

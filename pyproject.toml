@@ -271,7 +271,11 @@ dependencies = [
     # from it (apps_app/services/app_create.py) instead of keeping its own
     # copy. Measured 2026-09-27: 0.2.0 declares no `scitex.apps` entry point,
     # so the generic plugin mount cannot discover it — the mount is explicit.
-    "scitex-sdk>=0.2.0",
+    # >=0.3.0 also supplies the packaged @scitex/sdk frontend exports consumed
+    # by bridged apps. Pack the selected Python SDK before npm installation.
+    # >=0.3.2 carries the canonical project-scope and preflight/final
+    # write-grant contract qualified for the current leaf integration.
+    "scitex-sdk>=0.3.2",
     "gitpython>=3.1.51",
 ]
 

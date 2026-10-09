@@ -4,7 +4,7 @@
 
 ``pip install <pkg>`` is the whole install. Settings add the AppConfig
 (config/settings/_optional_apps.py), this module mounts its urls and lists its
-launcher tile from its manifest. Contract: scitex_app.plugins.
+launcher tile from its manifest. Contract: scitex_sdk.app.plugins.
 """
 
 from __future__ import annotations
@@ -24,7 +24,7 @@ def _module_exists(dotted: str) -> bool:
 
 def _configs() -> list:
     try:
-        from scitex_app.plugins import loaded_plugin_configs
+        from scitex_sdk.app.plugins import loaded_plugin_configs
     except ImportError:
         return []
     try:
@@ -91,9 +91,9 @@ def plugin_urlpatterns(existing) -> list:
     from functools import cached_property
 
     try:
-        from scitex_app.plugins import mount_route  # type: ignore[import-not-found]
+        from scitex_sdk.app.plugins import mount_route  # type: ignore[import-not-found]
     except ImportError:
-        # scitex-app is an optional integration surface. Released wheels that
+        # scitex-sdk is the canonical integration surface. Released wheels that
         # predate the plugin API must still boot the Hub; no discovered plugin
         # means there is nothing to mount.
         return []
@@ -130,7 +130,7 @@ def plugin_urlpatterns(existing) -> list:
 def plugin_module_config(config):
     """Launcher ModuleConfig built from the plugin's own manifest."""
     from apps.infra.workspace_app.registry import _manifest_to_module_config
-    from scitex_app.plugins import mount_route
+    from scitex_sdk.app.plugins import mount_route
 
     manifest = dict(config.manifest)
     slug = manifest.get("slug") or config.label
