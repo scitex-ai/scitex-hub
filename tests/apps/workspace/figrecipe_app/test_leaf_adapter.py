@@ -289,3 +289,48 @@ def test_missing_leaf_still_raises_loud_from_page(freq, monkeypatch):
     # Act / Assert
     with pytest.raises(ImportError):
         views.figure_editor(freq)
+
+
+def test_non_404_access_error_raises_loud_from_page(freq, monkeypatch):
+    # Arrange — SDK failure that is NOT per-project absence (input
+    # validation / infra-provider outage surface as non-404 AccessError):
+    # the page must NOT mask it as a clean 200 hub shell.
+    from scitex_sdk.host import AccessError
+
+    sentinel = object()
+
+    def _bad_request(request, current_project=None):
+        raise AccessError("Bad request", 400)
+
+    monkeypatch.setattr(views, "build_figrecipe_context", _bad_request)
+    monkeypatch.setattr(views, "project_for_scope_app", lambda request: sentinel)
+
+    class _User:
+        is_authenticated = True
+
+    freq.user = _User()
+    # Act / Assert — raises loud, never the hub fallback shell
+    with pytest.raises(AccessError):
+        views.figure_editor(freq)
+
+
+def test_capability_unavailable_raises_loud_from_page(freq, monkeypatch):
+    # Arrange — unconfigured host capability (no .status at all): the page
+    # must NOT degrade to hub presentation either.
+    from scitex_sdk.host import CapabilityUnavailable
+
+    sentinel = object()
+
+    def _no_capability(request, current_project=None):
+        raise CapabilityUnavailable("Host capability is not configured")
+
+    monkeypatch.setattr(views, "build_figrecipe_context", _no_capability)
+    monkeypatch.setattr(views, "project_for_scope_app", lambda request: sentinel)
+
+    class _User:
+        is_authenticated = True
+
+    freq.user = _User()
+    # Act / Assert — raises loud, never the hub fallback shell
+    with pytest.raises(CapabilityUnavailable):
+        views.figure_editor(freq)

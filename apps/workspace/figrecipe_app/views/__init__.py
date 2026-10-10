@@ -29,9 +29,13 @@ is a thin adapter, not an owner:
   instead of rendering stale hub keys — a wrong-answer-that-looks-right
   page is worse than an error with the floor version in it. A leaf that is
   installed but cannot resolve SDK authority for the hub-scoped project
-  (no on-disk workspace yet) is per-project absence, not skew: the page
-  degrades to the hub-owned ``shared/app_editor.html`` presentation
-  (``data-project-*`` + provider meta) instead of 500ing.
+  with a 404 status (no on-disk workspace yet) is per-project absence,
+  not skew: the page degrades to the hub-owned
+  ``shared/app_editor.html`` presentation (``data-project-*`` + provider
+  meta) instead of 500ing. Any other SDK failure (non-404
+  ``AccessError`` — input validation, infra/provider outage — or
+  ``CapabilityUnavailable``) raises loud like a missing leaf: masking
+  those as a clean 200 hub shell hides real breakage.
 """
 
 from __future__ import annotations
@@ -46,21 +50,25 @@ from apps.infra.project_app.services.project_scope import project_for_scope_app
 
 try:
     from scitex_sdk.host import AccessError as _SDKAccessError
-    from scitex_sdk.host import CapabilityUnavailable as _SDKCapabilityUnavailable
 except ImportError:  # pragma: no cover — without the SDK the leaf cannot serve either
     _SDKAccessError = None
-    _SDKCapabilityUnavailable = None
 
-#: Leaf authority failures that degrade to hub presentation instead of 500ing
-#: the page: the leaf is installed (>=0.36 floor) but the SDK cannot resolve
-#: a workspace for this hub-scoped project (HubProjectStorage returns None
-#: while the project has no on-disk root, so the leaf's prepare_request
-#: raises ``AccessError("Project workspace not found")``). That is
-#: per-project authority absence, not leaf skew — a missing leaf raises
-#: ImportError, which is NOT caught and still propagates loud.
-_LEAF_AUTHORITY_ERRORS = tuple(
-    err for err in (_SDKAccessError, _SDKCapabilityUnavailable) if err is not None
-)
+#: HTTP status marking per-project authority absence: the SDK raises
+#: ``AccessError("Project workspace not found", 404)`` (scitex_sdk/host.py:
+#: ``AccessError.__init__(self, message, status=400)`` stores ``.status``)
+#: when the hub-scoped project has no on-disk root. ONLY this status
+#: degrades to hub presentation — a non-404 ``AccessError`` (input
+#: validation, infra/provider outage) and ``CapabilityUnavailable``
+#: (unconfigured host capability, no ``.status`` at all) are NOT caught
+#: and still propagate loud, exactly like a missing leaf's ImportError.
+_LEAF_ABSENT_STATUS = 404
+
+
+def _is_absent_workspace(exc: BaseException) -> bool:
+    """Return True only for 404-status SDK authority absence."""
+    if _SDKAccessError is None:
+        return False
+    return isinstance(exc, _SDKAccessError) and getattr(exc, "status", None) == _LEAF_ABSENT_STATUS
 
 logger = logging.getLogger(__name__)
 
@@ -71,8 +79,8 @@ LEAF_PAGE_TEMPLATE = "figrecipe/workspace.html"
 LEAF_PARTIAL_TEMPLATE = "figrecipe/workspace_partial.html"
 
 #: Hub-owned fallback shell for the page when the leaf is installed but the
-#: SDK cannot resolve a workspace for the hub-scoped project (see
-#: ``_LEAF_AUTHORITY_ERRORS``). Extends ``global_base.html``, so it carries
+#: SDK reports 404-status authority absence for the hub-scoped project
+#: (see ``_is_absent_workspace``). Extends ``global_base.html``, so it carries
 #: the hub project presentation the page contracts pin: ``data-project-*``
 #: on ``#app-mount`` and the ``stx-project-provider`` meta. No retired
 #: frontend keys (``app_mount_css``/``bridge_entry_name``): the editor bundle
@@ -127,11 +135,15 @@ def figure_editor(request, figrecipe_embedded=False):
         # Single builder for page and partial (page and partial previously built
         # two divergent context dicts; the flip serves one leaf surface).
         context = build_figrecipe_context(request, current_project)
-    except _LEAF_AUTHORITY_ERRORS as exc:
-        # Per-project authority absence, not leaf skew: the leaf is installed
-        # but the SDK has no workspace for this hub-scoped project, so the
-        # page keeps the hub project presentation instead of 500ing. A
-        # missing leaf (ImportError) is NOT caught — it still raises loud.
+    except Exception as exc:
+        # 404-status authority absence ONLY, not leaf skew: the leaf is
+        # installed but the SDK has no workspace for this hub-scoped
+        # project, so the page keeps the hub project presentation instead
+        # of 500ing. Anything else (non-404 AccessError, CapabilityUnavailable,
+        # missing-leaf ImportError) re-raises loud — it must never render as
+        # a clean 200 hub shell.
+        if not _is_absent_workspace(exc):
+            raise
         logger.warning(
             "[figrecipe] leaf authority unavailable (%r); hub presentation", exc
         )
