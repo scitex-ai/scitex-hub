@@ -11,7 +11,7 @@ mechanism exists, it says so and points at the ask.
 | ISMS expectation | Hub mechanism (evidence) | Status |
 |------------------|--------------------------|--------|
 | Backup/restore procedure exists | `docs/runbooks/backup-restore.md` — manual pg_dump + volume tar + user-data rsync, with verify steps | PROCEDURE, manual |
-| Scheduled backups | None — repo grep for `pg_dump\|pgbackrest\|restic\|borg\|cron.*dump` finds no job; `backupCount` in `settings_logging.py` is log rotation only | GAP — ask §5 of the runbook |
+| Scheduled backups | None — `backup_database.sh` (manual `pg_dump` wrapper) and `backup_workspaces.sh` (rsync snapshotter, cron line is a commented example) exist but nothing schedules them: no crontab/timer/beat entry, no compose mount of `/app/backups` (see runbook intro); `backupCount` in `settings_logging.py` is log rotation only | GAP — ask §5 of the runbook |
 | Restore rehearsal | Staging exists as the rehearsal surface (`docs/runbooks/local-staging-orochi-cloud.md`); no recorded rehearsal | GAP — rehearse + log |
 | Media/object durability | `FileSystemStorage` at `MEDIA_ROOT` on `media_volume` (`settings_static.py:71-76,106`); durable only insofar as the host volume is | PARTIAL — in backup scope, no replication |
 | Git history durability | `gitea_data:/data` volume + Gitea metadata in shared Postgres (`docker-compose.yml:121-152`) | PARTIAL — in backup scope |
