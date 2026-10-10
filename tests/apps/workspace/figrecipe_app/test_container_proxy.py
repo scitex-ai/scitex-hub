@@ -332,3 +332,198 @@ def test_proxy_refuses_foreign_port(monkeypatch):
     with pytest.raises(proxy.ContainerUnavailable):
         proxy.proxy_request(_authed_request(user="alice"), "", token="T")
     assert opened["conn"] is False
+
+
+def _shared_proxy_env(monkeypatch):
+    # Arrange helper — dev single-container routing (loopback), token stubbed
+    # per-call via token="T" so no SDK/leaf is needed.
+    monkeypatch.setenv(proxy.URL_ENV, "http://127.0.0.1:18096")
+    monkeypatch.setenv(proxy.KEY_ENV, "k")
+    monkeypatch.setenv(proxy.ALLOW_SHARED_ENV, "1")
+
+
+def _guard_transport(monkeypatch, opened, why):
+    # Arrange helper — any socket open records + explodes: refused
+    # requests must fail closed BEFORE the transport runs.
+
+    class _MustNotOpen:
+        def __init__(self, *a, **k):
+            opened["conn"] = True
+            raise AssertionError(why)
+
+    monkeypatch.setattr(proxy.http.client, "HTTPConnection", _MustNotOpen)
+    monkeypatch.setattr(proxy.http.client, "HTTPSConnection", _MustNotOpen)
+
+
+def test_proxy_forwards_allowlisted_project_query(monkeypatch):
+    # Arrange — the documented ?project=owner/slug scope param survives the
+    # rebuild (re-encoded, never the raw caller string)
+    _shared_proxy_env(monkeypatch)
+    seen = {}
+
+    class _Resp:
+        status = 200
+
+        def getheader(self, name, default=None):
+            return "text/html"
+
+        def read(self, *a):
+            return b"ok"
+
+    class _Conn:
+        def __init__(self, *a, **k):
+            pass
+
+        def request(self, method, target, body=None, headers=None):
+            seen["target"] = target
+
+        def getresponse(self):
+            return _Resp()
+
+        def close(self):
+            pass
+
+    monkeypatch.setattr(proxy.http.client, "HTTPConnection", _Conn)
+    # Act
+    response = proxy.proxy_request(
+        _authed_request("/apps/figrecipe/?project=alice/demo"), "", token="T"
+    )
+    # Assert — 200 with the validated param re-encoded into a fresh string
+    assert response.status_code == 200
+    assert seen["target"] == "/?project=alice%2Fdemo"
+
+
+def test_proxy_forwards_allowlisted_recipe_path(monkeypatch):
+    # Arrange — editor deep-link relative paths still reach the container
+    _shared_proxy_env(monkeypatch)
+    seen = {}
+
+    class _Resp:
+        status = 200
+
+        def getheader(self, name, default=None):
+            return "text/html"
+
+        def read(self, *a):
+            return b"ok"
+
+    class _Conn:
+        def __init__(self, *a, **k):
+            pass
+
+        def request(self, method, target, body=None, headers=None):
+            seen["target"] = target
+
+        def getresponse(self):
+            return _Resp()
+
+        def close(self):
+            pass
+
+    monkeypatch.setattr(proxy.http.client, "HTTPConnection", _Conn)
+    # Act
+    proxy.proxy_request(
+        _authed_request("/apps/figrecipe/?recipe=figures/fig01/recipe.yaml"),
+        "",
+        token="T",
+    )
+    # Assert — relative deep-link re-encoded, never the raw caller string
+    assert seen["target"] == "/?recipe=figures%2Ffig01%2Frecipe.yaml"
+
+
+@pytest.mark.parametrize(
+    "evil_path",
+    [
+        "/apps/figrecipe/?recipe=https://evil.example.com/x",
+        "/apps/figrecipe/?next=http://169.254.169.254/",
+        "/apps/figrecipe/?recipe=//evil.example.com/x",
+    ],
+)
+def test_proxy_refuses_absolute_url_query(monkeypatch, evil_path):
+    # Arrange — SSRF-QS (CodeQL py/partial-ssrf): an absolute URL smuggled
+    # in the query string must fail closed before any socket opens
+    _shared_proxy_env(monkeypatch)
+    opened = {"conn": False}
+    _guard_transport(monkeypatch, opened, "transport must not open for URL queries")
+    # Act / Assert — refused at query validation, never proxied
+    with pytest.raises(proxy.ContainerUnavailable):
+        proxy.proxy_request(_authed_request(evil_path), "", token="T")
+    assert opened["conn"] is False
+
+
+@pytest.mark.parametrize(
+    "evil_path",
+    [
+        "/apps/figrecipe/?recipe=http://user:pass@evil.example.com/x",
+        "/apps/figrecipe/?project=alice/bob@c",
+    ],
+)
+def test_proxy_refuses_credentialed_query(monkeypatch, evil_path):
+    # Arrange — user:pass@host shapes must fail closed before any socket opens
+    _shared_proxy_env(monkeypatch)
+    opened = {"conn": False}
+    _guard_transport(monkeypatch, opened, "transport must not open for credentialed queries")
+    # Act / Assert
+    with pytest.raises(proxy.ContainerUnavailable):
+        proxy.proxy_request(_authed_request(evil_path), "", token="T")
+    assert opened["conn"] is False
+
+
+@pytest.mark.parametrize(
+    "evil_path",
+    [
+        "/apps/figrecipe/?project=alice%0Aevil",
+        "/apps/figrecipe/?project=alice%00evil",
+        "/apps/figrecipe/?recipe=fig%0D%0Ax",
+    ],
+)
+def test_proxy_refuses_control_char_query(monkeypatch, evil_path):
+    # Arrange — percent-encoded NUL/CR/LF arrive decoded in request.GET, so
+    # the shape checks must see and refuse them before any socket opens
+    _shared_proxy_env(monkeypatch)
+    opened = {"conn": False}
+    _guard_transport(monkeypatch, opened, "transport must not open for control-char queries")
+    # Act / Assert
+    with pytest.raises(proxy.ContainerUnavailable):
+        proxy.proxy_request(_authed_request(evil_path), "", token="T")
+    assert opened["conn"] is False
+
+
+def test_proxy_refuses_oversized_query(monkeypatch):
+    # Arrange — oversized raw strings AND oversized single values both fail
+    # closed before any socket opens (hub worker must not proxy blobs)
+    _shared_proxy_env(monkeypatch)
+    opened = {"conn": False}
+    _guard_transport(monkeypatch, opened, "transport must not open for oversized queries")
+    # Act / Assert — raw over the cap
+    with pytest.raises(proxy.ContainerUnavailable):
+        proxy.proxy_request(
+            _authed_request("/apps/figrecipe/?project=" + "a" * 2048), "", token="T"
+        )
+    # ... and a single value over its cap (raw under the total cap)
+    with pytest.raises(proxy.ContainerUnavailable):
+        proxy.proxy_request(
+            _authed_request("/apps/figrecipe/?recipe=" + "a" * 300), "", token="T"
+        )
+    assert opened["conn"] is False
+
+
+@pytest.mark.parametrize(
+    "evil_path",
+    [
+        "/apps/figrecipe/?debug=1",
+        "/apps/figrecipe/?working_dir=/tmp/evil",
+        "/apps/figrecipe/?project=alice/demo&project=bob/other",
+        "/apps/figrecipe/?recipe=../../etc/passwd",
+    ],
+)
+def test_proxy_refuses_outside_allowlist_query(monkeypatch, evil_path):
+    # Arrange — unknown keys (incl. server-derived working_dir), repeated
+    # keys, and .. escapes all fail closed before any socket opens
+    _shared_proxy_env(monkeypatch)
+    opened = {"conn": False}
+    _guard_transport(monkeypatch, opened, "transport must not open for refused queries")
+    # Act / Assert
+    with pytest.raises(proxy.ContainerUnavailable):
+        proxy.proxy_request(_authed_request(evil_path), "", token="T")
+    assert opened["conn"] is False

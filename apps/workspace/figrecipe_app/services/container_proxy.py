@@ -32,7 +32,8 @@ from __future__ import annotations
 import http.client
 import logging
 import os
-from urllib.parse import urlsplit
+import re
+from urllib.parse import urlencode, urlsplit
 
 logger = logging.getLogger(__name__)
 
@@ -57,6 +58,34 @@ ALLOW_SHARED_ENV = "FIGRECIPE_ALLOW_SHARED_FALLBACK"
 #: Hostnames the dev-only shared fallback may point at (m8): loopback only,
 #: so a misconfigured env value cannot turn the hub into an SSRF client.
 _LOOPBACK_HOSTS = {"127.0.0.1", "::1", "localhost"}
+#: Cap on the raw caller query string accepted for forwarding (SSRF-QS):
+#: oversized values fail closed instead of being proxied.
+MAX_QUERY_LEN = 2048
+#: Cap on a single forwarded query value (SSRF-QS): oversized fails closed.
+MAX_QUERY_VALUE_LEN = 256
+#: Cap on forwarded query pairs (SSRF-QS): pair-spam fails closed.
+MAX_QUERY_PAIRS = 32
+#: ``?project=owner/slug`` shape (project-scope pilot): no scheme, no
+#: credentials, no controls — an absolute URL or ``user:pass@host`` value
+#: cannot match (``:``/``@``/``/``-interior are all excluded).
+_PROJECT_RE = re.compile(r"[A-Za-z0-9_.-]{1,64}/[A-Za-z0-9_.-]{1,64}\Z")
+#: Editor deep-link path shape (``recipe``/``recipe_path``/``path``):
+#: relative-path characters only. ``..`` segments, absolute form, scheme,
+#: credentials and controls are refused by :func:`_is_safe_rel_path`.
+_REL_PATH_RE = re.compile(r"[A-Za-z0-9_.\-/ ]{1,256}\Z")
+#: Query params the editor PAGE may carry through the proxy (CodeQL
+#: ``py/partial-ssrf`` on the ``conn.request(..., target)`` sink): the raw
+#: caller ``QUERY_STRING`` is NEVER forwarded — only these keys, each
+#: matched against a strict full-string shape, are re-encoded into the
+#: container target. ``working_dir`` is deliberately ABSENT (server-derived
+#: per the SITE-2 guard — never caller-chosen), as are the API-only sinks
+#: (``url``/``template``/``filename`` — API dispatch is not proxied).
+_QUERY_ALLOWLIST = {
+    "project": _PROJECT_RE,
+    "recipe": _REL_PATH_RE,
+    "recipe_path": _REL_PATH_RE,
+    "path": _REL_PATH_RE,
+}
 
 _HOP_HEADERS = {
     "cookie",
@@ -189,6 +218,85 @@ def _assert_proxy_target(request, scheme, host, port) -> None:
         )
 
 
+def _is_safe_rel_path(value: str) -> bool:
+    """True iff ``value`` is a relative editor path with no escape shape.
+
+    Refuses absolute form (leading ``/``), ``..`` segments, ``//``, and
+    the scheme/credential separators (``:``/``@``/``\\\\``/``?``/``#``), so
+    an absolute URL or ``user:pass@host`` value can never pass — even
+    though the allowlist regex already excludes those characters, this
+    names the refusal explicitly for audit.
+    """
+    if not value or value.startswith("/") or value.startswith("\\"):
+        return False
+    if "//" in value or "\\" in value:
+        return False
+    if any(sep in value for sep in (":", "@", "?", "#")):
+        return False
+    return ".." not in value.split("/")
+
+
+def _forwarded_query(request) -> str:
+    """Rebuild the container query string from validated allowlisted params.
+
+    CodeQL ``py/partial-ssrf`` (``conn.request(..., target)`` sink): the
+    raw caller ``QUERY_STRING`` is NEVER forwarded. ``request.GET`` is
+    parsed (percent-encoded attacks such as ``%2e%2e``/``%00`` arrive here
+    already decoded, so the shape checks see them), every key must be in
+    :data:`_QUERY_ALLOWLIST` with exactly one value matching its strict
+    full-string shape, and the survivors are re-encoded with
+    :func:`~urllib.parse.urlencode` into a FRESH string the caller never
+    authored. Anything outside the allowlist — unknown key, repeated key,
+    bad shape, control chars, oversized raw/pair/value — raises
+    :class:`ContainerUnavailable` BEFORE any socket opens (fail closed;
+    the caller falls back to the in-process render). ``""`` when the
+    caller sent no query.
+    """
+    raw = request.META.get("QUERY_STRING", "")
+    if not raw:
+        return ""
+    if len(raw) > MAX_QUERY_LEN:
+        raise ContainerUnavailable("Refusing oversized query string")
+    params = request.GET
+    if len(params) > MAX_QUERY_PAIRS:
+        raise ContainerUnavailable("Refusing over-paired query string")
+    rebuilt: list[tuple[str, str]] = []
+    for key, values in params.lists():
+        shape = _QUERY_ALLOWLIST.get(key)
+        if shape is None:
+            raise ContainerUnavailable(f"Refusing non-allowlisted query param {key!r}")
+        if len(values) != 1:
+            raise ContainerUnavailable(f"Refusing repeated query param {key!r}")
+        value = values[0]
+        if len(value) > MAX_QUERY_VALUE_LEN:
+            raise ContainerUnavailable(f"Refusing oversized query value for {key!r}")
+        if any(ord(c) < 0x20 or ord(c) == 0x7F for c in value):
+            raise ContainerUnavailable(f"Refusing control chars in query param {key!r}")
+        if not shape.fullmatch(value):
+            raise ContainerUnavailable(f"Refusing bad query value for {key!r}")
+        if key != "project" and not _is_safe_rel_path(value):
+            raise ContainerUnavailable(f"Refusing unsafe query path for {key!r}")
+        rebuilt.append((key, value))
+    return urlencode(rebuilt)
+
+
+def _validate_subpath(subpath: str) -> str:
+    """Container-side path allowlist: relative, no escape, no scheme.
+
+    ``proxy_request`` is only ever called with ``""`` (page root) this
+    slice; anything else must be an explicit relative editor path, never
+    an absolute URL. Fail closed with :class:`ContainerUnavailable`.
+    """
+    cleaned = (subpath or "").lstrip("/")
+    if not cleaned:
+        return ""
+    if len(cleaned) > MAX_QUERY_VALUE_LEN:
+        raise ContainerUnavailable(f"Refusing oversized proxy subpath {subpath!r}")
+    if not _REL_PATH_RE.fullmatch(cleaned) or not _is_safe_rel_path(cleaned):
+        raise ContainerUnavailable(f"Refusing unsafe proxy subpath {subpath!r}")
+    return cleaned
+
+
 def mint_token_for(request, current_project=None) -> str:
     """Mint the hub→container token via the leaf's own crypto module.
 
@@ -233,9 +341,14 @@ def proxy_request(request, subpath: str = "", *, token: str | None = None):
     timeout = _timeout()
     cap = _max_body()
     auth = token if token is not None else mint_token_for(request)
-    target = "/" + (subpath or "").lstrip("/")
-    if request.META.get("QUERY_STRING"):
-        target += "?" + request.META["QUERY_STRING"]
+    # SSRF-QS (CodeQL py/partial-ssrf): the raw caller QUERY_STRING never
+    # reaches the transport — only allowlisted params with strict shapes,
+    # re-encoded into a fresh string, or "" when the caller sent no query.
+    # Anything outside the allowlist raises BEFORE any socket opens.
+    query = _forwarded_query(request)
+    target = "/" + _validate_subpath(subpath)
+    if query:
+        target += "?" + query
 
     forward = {
         "X-FigRecipe-Auth": auth,
