@@ -25,10 +25,13 @@ is a thin adapter, not an owner:
   (``plugin_urlpatterns``) skips the leaf's ``apps/figrecipe/`` route via
   ``_route_taken`` (pinned by test), so the leaf urlconf is never
   double-mounted raw. No route file changes at flip.
-- FAIL LOUD: the pilot's silent hub-parity fallback is retired. A missing
-  leaf (below the ``figrecipe>=0.36`` floor) or a failing leaf builder
-  raises instead of rendering stale hub keys — a wrong-answer-that-looks-
-  right page is worse than an error with the floor version in it.
+- FAIL LOUD: a missing leaf (below the ``figrecipe>=0.36`` floor) raises
+  instead of rendering stale hub keys — a wrong-answer-that-looks-right
+  page is worse than an error with the floor version in it. A leaf that is
+  installed but cannot resolve SDK authority for the hub-scoped project
+  (no on-disk workspace yet) is per-project absence, not skew: the page
+  degrades to the hub-owned ``shared/app_editor.html`` presentation
+  (``data-project-*`` + provider meta) instead of 500ing.
 """
 
 from __future__ import annotations
@@ -41,6 +44,24 @@ from django.utils.module_loading import import_string
 
 from apps.infra.project_app.services.project_scope import project_for_scope_app
 
+try:
+    from scitex_sdk.host import AccessError as _SDKAccessError
+    from scitex_sdk.host import CapabilityUnavailable as _SDKCapabilityUnavailable
+except ImportError:  # pragma: no cover — without the SDK the leaf cannot serve either
+    _SDKAccessError = None
+    _SDKCapabilityUnavailable = None
+
+#: Leaf authority failures that degrade to hub presentation instead of 500ing
+#: the page: the leaf is installed (>=0.36 floor) but the SDK cannot resolve
+#: a workspace for this hub-scoped project (HubProjectStorage returns None
+#: while the project has no on-disk root, so the leaf's prepare_request
+#: raises ``AccessError("Project workspace not found")``). That is
+#: per-project authority absence, not leaf skew — a missing leaf raises
+#: ImportError, which is NOT caught and still propagates loud.
+_LEAF_AUTHORITY_ERRORS = tuple(
+    err for err in (_SDKAccessError, _SDKCapabilityUnavailable) if err is not None
+)
+
 logger = logging.getLogger(__name__)
 
 _LEAF_BUILDER_PATH = "figrecipe._django.workspace.build_workspace_context"
@@ -48,6 +69,15 @@ _LEAF_BUILDER_PATH = "figrecipe._django.workspace.build_workspace_context"
 #: Leaf-owned templates served by the hub page and workspace content endpoint.
 LEAF_PAGE_TEMPLATE = "figrecipe/workspace.html"
 LEAF_PARTIAL_TEMPLATE = "figrecipe/workspace_partial.html"
+
+#: Hub-owned fallback shell for the page when the leaf is installed but the
+#: SDK cannot resolve a workspace for the hub-scoped project (see
+#: ``_LEAF_AUTHORITY_ERRORS``). Extends ``global_base.html``, so it carries
+#: the hub project presentation the page contracts pin: ``data-project-*``
+#: on ``#app-mount`` and the ``stx-project-provider`` meta. No retired
+#: frontend keys (``app_mount_css``/``bridge_entry_name``): the editor bundle
+#: is leaf-served or absent, never hub-reconstructed.
+HUB_FALLBACK_TEMPLATE = "shared/app_editor.html"
 
 
 def _stx_mount() -> str:
@@ -93,9 +123,29 @@ def figure_editor(request, figrecipe_embedded=False):
     # Project-scope pilot: ?project=owner/slug wins, else the last visited project.
     current_project = project_for_scope_app(request)
 
-    # Single builder for page and partial (page and partial previously built
-    # two divergent context dicts; the flip serves one leaf surface).
-    context = build_figrecipe_context(request, current_project)
+    try:
+        # Single builder for page and partial (page and partial previously built
+        # two divergent context dicts; the flip serves one leaf surface).
+        context = build_figrecipe_context(request, current_project)
+    except _LEAF_AUTHORITY_ERRORS as exc:
+        # Per-project authority absence, not leaf skew: the leaf is installed
+        # but the SDK has no workspace for this hub-scoped project, so the
+        # page keeps the hub project presentation instead of 500ing. A
+        # missing leaf (ImportError) is NOT caught — it still raises loud.
+        logger.warning(
+            "[figrecipe] leaf authority unavailable (%r); hub presentation", exc
+        )
+        context = {
+            "app_slug": "figrecipe",
+            "app_label": "FigRecipe",
+            "current_project": current_project,
+        }
+        if current_project:
+            context["project"] = current_project
+        else:
+            context["needs_project_creation"] = True
+        return render(request, HUB_FALLBACK_TEMPLATE, context)
+
     if current_project:
         context["project"] = current_project
     else:

@@ -231,3 +231,61 @@ def test_hub_templates_are_retired():
     # Act / Assert
     assert not (templates_dir / "figrecipe_app/editor.html").exists()
     assert not (templates_dir / "figrecipe_app/figrecipe_partial.html").exists()
+
+
+def test_leaf_authority_failure_falls_back_to_hub_presentation(freq, monkeypatch):
+    # Arrange — leaf installed (>=0.36 floor) but the SDK has no workspace
+    # for this hub-scoped project (AccessError, not skew): the page must keep
+    # the hub project presentation instead of 500ing.
+    from scitex_sdk.host import AccessError
+
+    sentinel = object()
+
+    def _no_authority(request, current_project=None):
+        raise AccessError("Project workspace not found", 404)
+
+    monkeypatch.setattr(views, "build_figrecipe_context", _no_authority)
+    monkeypatch.setattr(views, "project_for_scope_app", lambda request: sentinel)
+
+    captured = {}
+    monkeypatch.setattr(
+        views,
+        "render",
+        lambda request, template, context: captured.setdefault("all", (template, context)),
+    )
+
+    class _User:
+        is_authenticated = True
+
+    freq.user = _User()
+    # Act
+    views.figure_editor(freq)
+    # Assert — hub-owned shell (data-project-*, provider meta), hub project
+    # object intact, no retired frontend keys reconstructed
+    template, context = captured["all"]
+    assert template == "shared/app_editor.html"
+    assert context["app_slug"] == "figrecipe"
+    assert context["app_label"] == "FigRecipe"
+    assert context["current_project"] is sentinel
+    assert context["project"] is sentinel
+    assert "needs_project_creation" not in context
+    for key in ("app_mount_css", "bridge_entry_name", "module_name", "is_workspace_page"):
+        assert key not in context, key
+
+
+def test_missing_leaf_still_raises_loud_from_page(freq, monkeypatch):
+    # Arrange — installed leaf predates the workspace surface: the page must
+    # NOT degrade to hub presentation (fail loud, never silent parity).
+    def _no_leaf(request, current_project=None):
+        raise ImportError("No module named 'figrecipe._django.workspace'")
+
+    monkeypatch.setattr(views, "build_figrecipe_context", _no_leaf)
+    monkeypatch.setattr(views, "project_for_scope_app", lambda request: None)
+
+    class _User:
+        is_authenticated = True
+
+    freq.user = _User()
+    # Act / Assert
+    with pytest.raises(ImportError):
+        views.figure_editor(freq)
