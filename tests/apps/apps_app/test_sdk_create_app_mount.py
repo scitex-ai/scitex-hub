@@ -27,13 +27,13 @@ class SdkCreatorMountTest(TestCase):
         anchor = html[html.rindex("<a", 0, start) : html.index(">", start)]
 
         # Assert
-        assert 'href="/create-app/"' in anchor
+        assert 'href="/apps/new/"' in anchor
 
     def test_wizard_requires_login(self):
         # Arrange (signed out)
 
         # Act
-        response = self.client.get("/create-app/")
+        response = self.client.get("/apps/new/")
 
         # Assert
         assert response.status_code == 302
@@ -43,7 +43,7 @@ class SdkCreatorMountTest(TestCase):
         self.client.force_login(self.user)
 
         # Act
-        response = self.client.get("/create-app/")
+        response = self.client.get("/apps/new/")
 
         # Assert
         assert response.status_code == 200
@@ -53,7 +53,7 @@ class SdkCreatorMountTest(TestCase):
         self.client.force_login(self.user)
 
         # Act
-        html = self.client.get("/create-app/").content.decode("utf-8")
+        html = self.client.get("/apps/new/").content.decode("utf-8")
 
         # Assert
         assert 'value="data_entry"' in html
@@ -63,7 +63,7 @@ class SdkCreatorMountTest(TestCase):
         self.client.force_login(self.user)
 
         # Act
-        response = self.client.get("/create-app/healthz")
+        response = self.client.get("/apps/new/healthz")
 
         # Assert
         assert response.json() == {"ok": True, "app": "scitex-sdk-creator"}

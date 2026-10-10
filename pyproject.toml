@@ -267,7 +267,7 @@ dependencies = [
     # >=0.2.0 is a MOUNT requirement: the first release carrying
     # `scitex_sdk.creator` (the App Creator wizard: STARTERS/app_module_name
     # SSOT + login-gated `scitex_sdk.creator.urls`). Hub mounts that urlconf
-    # at /create-app/ (config/urls.py) and imports the starter definitions
+    # at /apps/new/ (config/urls.py) and imports the starter definitions
     # from it (apps_app/services/app_create.py) instead of keeping its own
     # copy. Measured 2026-09-27: 0.2.0 declares no `scitex.apps` entry point,
     # so the generic plugin mount cannot discover it — the mount is explicit.
