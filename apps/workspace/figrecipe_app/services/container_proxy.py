@@ -41,6 +41,22 @@ URL_ENV = "SCITEX_FIGRECIPE_CONTAINER_URL"
 KEY_ENV = "FIGRECIPE_CONTAINER_AUTH_KEY"
 TIMEOUT_ENV = "SCITEX_FIGRECIPE_CONTAINER_TIMEOUT"
 DEFAULT_TIMEOUT = 10
+#: Hard timeout bounds (seconds): garbage or absurd env values fail closed
+#: (m1) instead of 500ing or hanging a hub worker.
+MIN_TIMEOUT = 1
+MAX_TIMEOUT = 120
+#: Cap on buffered container response bytes (m2): the hub worker must not
+#: absorb an unbounded body (OOM primitive). Oversize → ContainerUnavailable
+#: (caller falls back in-process), never a truncated 200.
+MAX_BODY_ENV = "SCITEX_FIGRECIPE_CONTAINER_MAX_BODY"
+DEFAULT_MAX_BODY = 8 * 1024 * 1024
+#: Explicit opt-in for the single-container shared-URL fallback (blocker 4):
+#: without it, logins with no mapped uid raise ContainerUnavailable and the
+#: caller falls back to the in-process render — never to another uid's box.
+ALLOW_SHARED_ENV = "FIGRECIPE_ALLOW_SHARED_FALLBACK"
+#: Hostnames the dev-only shared fallback may point at (m8): loopback only,
+#: so a misconfigured env value cannot turn the hub into an SSRF client.
+_LOOPBACK_HOSTS = {"127.0.0.1", "::1", "localhost"}
 
 _HOP_HEADERS = {
     "cookie",
@@ -73,24 +89,55 @@ def _container_parts():
     return parts
 
 
+def _timeout() -> int:
+    """Validated container timeout (garbage env fails closed, m1)."""
+    try:
+        timeout = int(os.environ.get(TIMEOUT_ENV, DEFAULT_TIMEOUT))
+    except (TypeError, ValueError):
+        raise ContainerUnavailable(f"Bad {TIMEOUT_ENV}")
+    if not MIN_TIMEOUT <= timeout <= MAX_TIMEOUT:
+        raise ContainerUnavailable(f"{TIMEOUT_ENV} out of range")
+    return timeout
+
+
+def _max_body() -> int:
+    """Validated response cap (garbage env fails closed, m2)."""
+    try:
+        cap = int(os.environ.get(MAX_BODY_ENV, DEFAULT_MAX_BODY))
+    except (TypeError, ValueError):
+        raise ContainerUnavailable(f"Bad {MAX_BODY_ENV}")
+    if cap <= 0:
+        raise ContainerUnavailable(f"{MAX_BODY_ENV} out of range")
+    return cap
+
+
 def _target_for(request):
     """Return ``(scheme, host, port)`` for this request's user container.
 
     Per-user-UID model: mapped logins get loopback + per-uid port (their
-    own instance, spawned as their uid); unmapped logins use the single
-    configured URL (dev/test) — and fail closed when THAT is unset too.
+    own instance, spawned as their uid). Unmapped logins FAIL CLOSED with
+    :class:`ContainerUnavailable` — the caller falls back to the in-process
+    render — and are never routed to the shared configured URL, which may
+    belong to another uid's container. The shared URL is reachable only
+    with the explicit dev/test opt-in ``FIGRECIPE_ALLOW_SHARED_FALLBACK=1``
+    (loopback-pinned, m8).
     """
     parts = _container_parts()
     try:
-        from .container_spawner import container_host_port
-    except ImportError:
-        return (parts.scheme, parts.hostname, parts.port or 80)
+        from .container_spawner import SpawnerUnavailable, container_host_port
+    except ImportError as exc:
+        raise ContainerUnavailable(f"Spawner unavailable: {exc}") from exc
     try:
         host, port = container_host_port(request)
         return (parts.scheme, host, port)
-    except Exception:
-        # No uid map for this login (pilot allowlist): single-container
-        # fallback so unmapped users keep the in-process-equivalent path.
+    except SpawnerUnavailable:
+        if os.environ.get(ALLOW_SHARED_ENV) != "1":
+            raise ContainerUnavailable(
+                "No container mapped for this login (fail closed)"
+            )
+        host = (parts.hostname or "").lower()
+        if host not in _LOOPBACK_HOSTS:
+            raise ContainerUnavailable(f"Shared fallback refused for {parts.hostname!r}")
         return (parts.scheme, parts.hostname, parts.port or 80)
 
 
@@ -132,7 +179,8 @@ def proxy_request(request, subpath: str = "", *, token: str | None = None):
 
     parts = _container_parts()
     scheme, host, port = _target_for(request)
-    timeout = int(os.environ.get(TIMEOUT_ENV, DEFAULT_TIMEOUT))
+    timeout = _timeout()
+    cap = _max_body()
     auth = token if token is not None else mint_token_for(request)
     target = "/" + (subpath or "").lstrip("/")
     if request.META.get("QUERY_STRING"):
@@ -164,7 +212,9 @@ def proxy_request(request, subpath: str = "", *, token: str | None = None):
         try:
             conn.request(request.method, target, body=body, headers=forward)
             resp = conn.getresponse()
-            payload = resp.read()
+            payload = resp.read(cap + 1)
+            if len(payload) > cap:
+                raise ContainerUnavailable("Container response over size cap")
             response = HttpResponse(
                 payload,
                 status=resp.status,

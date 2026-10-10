@@ -103,6 +103,7 @@ def test_binds_refuse_relative_paths():
 def test_spawn_argv_carries_no_secret(monkeypatch):
     # Arrange
     monkeypatch.setenv(spawner.SPAWNER_ENV, "direct")
+    monkeypatch.setenv(spawner.ALLOW_DIRECT_ENV, "1")
     # Act
     argv = spawner.spawn_argv(
         10001, "/images/figrecipe-pilot.sif",
@@ -119,6 +120,7 @@ def test_spawn_argv_carries_no_secret(monkeypatch):
 def test_spawn_refuses_without_auth_key(monkeypatch):
     # Arrange
     monkeypatch.setenv(spawner.SPAWNER_ENV, "direct")
+    monkeypatch.setenv(spawner.ALLOW_DIRECT_ENV, "1")
     # Act / Assert
     with pytest.raises(spawner.SpawnerUnavailable):
         spawner.spawn_argv(
@@ -144,3 +146,92 @@ def test_helper_argv_names_uid_image_root_user_port(monkeypatch):
         "/images/figrecipe-pilot.sif",
         "/opt/scitex/data/users/alice/paper", "alice", "18101",
     ]
+
+
+def test_traversal_username_rejected(monkeypatch):
+    # Arrange — blocker 1 (Python layer): logins interpolated into the
+    # setuid tmp-bind path must be allowlisted hub-side too
+    monkeypatch.setenv(spawner.UID_MAP_ENV, "alice:10001")
+    # Act / Assert — traversal, slash, and empty logins all fail closed
+    for bad in ("../../etc/x", "a/b", "..", "", "a b", "a;b", "../alice"):
+        with pytest.raises(spawner.SpawnerUnavailable):
+            spawner.check_username(bad)
+        with pytest.raises(spawner.SpawnerUnavailable):
+            spawner.binds_for("/opt/scitex/data/users/alice/paper", bad)
+    # Sanity — ordinary logins still pass
+    assert spawner.check_username("alice") == "alice"
+    assert spawner.check_username("bob.smith-2_x") == "bob.smith-2_x"
+
+
+def test_users_evil_bind_rejected():
+    # Arrange — blocker 2 (Python layer): bare prefix match would accept
+    # /opt/scitex/data/users-evil/x as "under" the users tree
+    # Act / Assert
+    with pytest.raises(spawner.SpawnerUnavailable):
+        spawner.binds_for("/opt/scitex/data/users-evil/x", "alice")
+    with pytest.raises(spawner.SpawnerUnavailable):
+        spawner.binds_for("/opt/scitex/data/usersX", "alice")
+    with pytest.raises(spawner.SpawnerUnavailable):
+        spawner.binds_for("/opt/scitex/data/users/../evil", "alice")
+    # Sanity — the tree itself and real children still pass
+    binds = spawner.binds_for("/opt/scitex/data/users/alice/paper", "alice")
+    assert "/opt/scitex/data/users/alice/paper:/work:rw" in binds
+
+
+def test_over_ceiling_uid_refused(monkeypatch):
+    # Arrange — m5: the hub ceiling must mirror the helper's MAX_UID (60000)
+    monkeypatch.setenv(spawner.UID_MAP_ENV, "alice:60001")
+    # Act / Assert
+    with pytest.raises(spawner.SpawnerUnavailable):
+        spawner.resolve_uid("alice")
+
+
+def test_ceiling_uid_accepted(monkeypatch):
+    # Arrange — boundary: exactly 60000 is still a legal pilot uid
+    monkeypatch.setenv(spawner.UID_MAP_ENV, "alice:60000")
+    # Act / Assert
+    assert spawner.resolve_uid("alice") == 60000
+
+
+def test_direct_spawner_gated_to_dev(monkeypatch):
+    # Arrange — m4: direct mode performs no uid switch and must never run
+    # in production; without the explicit allow flag it refuses
+    monkeypatch.setenv(spawner.SPAWNER_ENV, "direct")
+    monkeypatch.delenv(spawner.ALLOW_DIRECT_ENV, raising=False)
+    kwargs = dict(
+        uid=10001, image="/images/figrecipe-pilot.sif",
+        project_root="/opt/scitex/data/users/alice/paper",
+        username="alice", port=18101, auth_key_present=True,
+    )
+    # Act / Assert — refused by default, even with valid everything-else
+    with pytest.raises(spawner.SpawnerUnavailable):
+        spawner.spawn_argv(**kwargs)
+    # ... and the default mode is the helper, never direct
+    monkeypatch.delenv(spawner.SPAWNER_ENV, raising=False)
+    argv = spawner.spawn_argv(**kwargs)
+    assert argv[0] == spawner.DEFAULT_HELPER
+    # ... while the explicit dev opt-in still runs direct
+    monkeypatch.setenv(spawner.SPAWNER_ENV, "direct")
+    monkeypatch.setenv(spawner.ALLOW_DIRECT_ENV, "1")
+    assert spawner.spawn_argv(**kwargs)[0] == "apptainer"
+
+
+def test_port_override_registry_breaks_collision(monkeypatch):
+    # Arrange — m3: uid % 1000 provably collides (10001 vs 11001); explicit
+    # overrides are the pilot registry until a real allocator lands
+    monkeypatch.delenv(spawner.PORT_BASE_ENV, raising=False)
+    monkeypatch.delenv(spawner.PORT_MAP_ENV, raising=False)
+    assert spawner.user_port(10001) == spawner.user_port(11001)
+    # Act
+    monkeypatch.setenv(spawner.PORT_MAP_ENV, "10001:18101,11001:18102")
+    # Assert — registry wins over the colliding fallback
+    assert spawner.user_port(10001) == 18101
+    assert spawner.user_port(11001) == 18102
+
+
+def test_bad_port_base_fails_closed(monkeypatch):
+    # Arrange — garbage port config must fail closed, never 500
+    monkeypatch.setenv(spawner.PORT_BASE_ENV, "not-a-port")
+    # Act / Assert
+    with pytest.raises(spawner.SpawnerUnavailable):
+        spawner.user_port(10001)
