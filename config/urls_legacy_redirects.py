@@ -38,6 +38,11 @@ urlpatterns = [
         "apps/apps/",
         RedirectView.as_view(url="/apps/store/", permanent=True, query_string=True),
     ),
+    # SDK App Creator wizard moved /create-app/ → /apps/new/ (PR #1023)
+    path(
+        "create-app/",
+        RedirectView.as_view(url="/apps/new/", permanent=True, query_string=True),
+    ),
 ]
 
 # EOF
