@@ -22,9 +22,11 @@ use. Local-staging rehearsal is documented in
 
 ## 2. Minimal viable host
 
-- Linux x86-64, ~4 vCPU / 16 GB RAM / 100 GB disk (prod compose reserves
-  2 G + 2 G + 1 G across django/postgres/redis and limits django to
-  8 G — see `docker-compose.prod.yml:44-61,125-130,137-142`).
+- Linux x86-64, ~4 vCPU / 16 GB RAM / 100 GB disk (prod compose
+  reservations: django 2 G, celery_worker 1 G; postgres — limit 4 G /
+  2 CPU — and redis — limit 1 G / 1 CPU — are limits-only with no
+  reservations; django limit 8 G / 4 CPU — see
+  `docker-compose.prod.yml:46-52,125-129,137-141,177-183`).
 - Docker engine + compose v2 (checked in the staging runbook pre-flight).
 - Public IP **optional**: without it, drop `cloudflared`/`nginx` and serve
   the Django port directly on your LAN/VPN. Cloudflare tunnel is how
@@ -49,8 +51,8 @@ External dependencies you must provide: a Postgres password, a Django
 | Postgres | `/var/lib/postgresql/data` | `postgres_data` named volume | `docker-compose.yml:39,182-183` |
 | Gitea repos | `/data` | `gitea_data` named volume | `docker-compose.yml:124,186-187` |
 | User project files | `/app/data/users` | `${SCITEX_SLURM_USER_DATA_ROOT:-/opt/scitex/data/users}` | prod compose django volumes |
-| Uploads | `/app/media` | `media_volume` named volume | `settings_static.py:106` |
-| Redis AOF | `/data` | `redis_data` named volume | `docker-compose.yml:111` |
+| Uploads | `/app/media` | `media_volume` named volume | `docker-compose.yml:190` (volume declaration); `settings_static.py:106` (`MEDIA_ROOT`) |
+| Redis AOF | `/data` | `redis_data` named volume | `docker-compose.yml:112` |
 
 For confidential projects: keep all five on encrypted host storage, do not
 attach `cloudflared`, and run your own backups per
@@ -62,7 +64,7 @@ scheduled backup to inherit.
 ```bash
 # 4a. Secrets — prod REFUSES to start without a real DB password
 # (settings_prod.py raises ImproperlyConfigured on placeholder/empty).
-cp deployment/docker/envs/README.md  # read first: env-file layout
+cat deployment/docker/envs/README.md  # read first: env-file layout
 # Fill in deployment/docker/envs/.env.prod (DB password, SECRET_KEY,
 # OAuth client id/secret, SCITEX_SLURM_USER_DATA_ROOT for your host).
 

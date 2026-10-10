@@ -1,14 +1,34 @@
 # Runbook — Backup and Restore
 
 **Status: procedures are MANUAL. No scheduled backup exists in this repo
-today.** The only `backup*` settings in the codebase are log-rotation
+today.** Two backup scripts exist, but neither is wired to run
+automatically — that is why the conclusion stands:
+- `scripts/deployment/backup_database.sh` — manual `pg_dump` wrapper
+  (dumps `scitex_hub_dev`/`scitex_hub_prod` to `data/db/backups/`,
+  gitignored; skips unless `pg_dump` and a live Postgres (`pg_isready`)
+  are present; deletes `*.gz` older than 7 days). Nothing invokes it: no
+  crontab/systemd-timer/beat entry references it anywhere. The only other
+  `pg_dump` mentions are manual-operator helpers — a one-line hint echoed
+  by `deployment/docker/common/monitoring/postgres_check_status.sh:173`,
+  `make db-backup` targets (`Makefile:855-860`,
+  `deployment/docker/docker_prod/Makefile:188-195`) — plus test fixtures
+  using the word "snapshot".
+- `scripts/deployment/backup_workspaces.sh` — rsync snapshotter (source
+  default `/app/data/users`, destination default
+  `/app/backups/snapshots`, keeps the 288 most recent generations). Its
+  header says "Runs every 5 minutes via cron", but the cron line is a
+  commented example inside the script, and the only crontab file in the
+  repo (`deployment/docker/common/cron/workspace-backups`) is an
+  uninstalled template (`sudo cp ... /etc/cron.d/` by hand). No compose
+  file mounts `SCITEX_BACKUP_ROOT`/`/app/backups`, no compose service or
+  entrypoint calls either script, and no `CELERY_BEAT_SCHEDULE` entry
+  (`config/settings/settings_celery.py`) references them — the deprecated
+  `auto_sync_workspaces.py` management command only names the script in a
+  help string and does nothing.
+The only other `backup*` settings in the codebase are log-rotation
 `backupCount` values (`config/settings/settings_logging.py`,
 `settings_dev.py`, `settings_prod.py`, `settings_staging.py`) — they rotate
-log files, they do not back up data. A repo-wide grep for
-`pg_dump|pgbackrest|barman|restic|borg|cron.*dump` returns no backup job,
-only a one-line `pg_dump` hint echoed by
-`deployment/docker/common/monitoring/postgres_check_status.sh:173` and test
-fixtures using the word "snapshot". Treat everything below as operator-run
+log files, they do not back up data. Treat everything below as operator-run
 commands, and the §5 gap list as the infra asks required before any
 "backups are automatic" claim may be made.
 
@@ -16,9 +36,9 @@ commands, and the §5 gap list as the infra asks required before any
 
 | # | State | Mechanism / location | Evidence |
 |---|-------|---------------------|----------|
-| 1 | Hub PostgreSQL (users, projects, JWT/session rows, celery-beat schedule) | `postgres:15-alpine` container, data in named volume `postgres_data:/var/lib/postgresql/data` | `deployment/docker/docker-compose.yml:36-54,182-183`; engine pinned by `config/settings/settings_shared.py:349` + per-env overrides (`settings_prod.py:144,214`, `settings_staging.py:125`, `settings_dev.py:270`); Postgres-only rule in `docs/adr/0004-postgresql-is-the-only-database-engine.md` |
+| 1 | Hub PostgreSQL (users, projects, JWT/session rows, celery-beat schedule) | `postgres:15-alpine` container, data in named volume `postgres_data:/var/lib/postgresql/data` | `deployment/docker/docker-compose.yml:36-54,182-183`; engine pinned by `config/settings/settings_shared.py:351` + per-env overrides (`settings_prod.py:146,216`, `settings_staging.py:127`, `settings_dev.py:272`); Postgres-only rule in `docs/adr/0004-postgresql-is-the-only-database-engine.md` |
 | 2 | Gitea git repos + metadata | Named volume `gitea_data:/data`; Gitea stores its metadata **in the same Postgres** (`GITEA__database__DB_TYPE: postgres`, host `postgres:5432`) | `deployment/docker/docker-compose.yml:121-152` |
-| 3 | User project files | Host directory bind-mounted at `/app/data/users`, default host path `${SCITEX_SLURM_USER_DATA_ROOT:-/opt/scitex/data/users}` | `deployment/docker/docker-compose.prod.yml:63`, `docker-compose.staging.yml:59`; jail root default `/app/data/users` in `src/scitex_hub/project/_mcp/handlers.py:21` |
+| 3 | User project files | Host directory bind-mounted at `/app/data/users`, default host path `${SCITEX_SLURM_USER_DATA_ROOT:-/opt/scitex/data/users}` | `deployment/docker/docker-compose.prod.yml:64`, `docker-compose.staging.yml:52`; jail root default `/app/data/users` in `src/scitex_hub/project/_mcp/handlers.py:21` |
 | 4 | Uploaded media | Named volume `media_volume:/app/media` (`MEDIA_ROOT = base_dir / "media"`, `FileSystemStorage`) | `deployment/docker/docker-compose.yml:188-190`; `config/settings/settings_static.py:71-76,106` |
 | 5 | Collected static | Named volume `static_volume:/app/staticfiles` — **rebuildable** via `collectstatic`, back up only to speed restore | compose files; hashing backend `config/storage.py` via `settings_static.py:76` |
 | 6 | `.scitex` / `.apps` config + sibling checkouts | Named volumes `scitex_config_volume:/app/.scitex`, `apps_volume:/app/.apps` — **rebuildable** (re-clone/re-install), low value | `docker-compose.prod.yml:56-57,414-417` |
@@ -97,7 +117,7 @@ never on prod. A restore procedure that has never been rehearsed is a draft.
 
 1. **Scheduled `pg_dump`** (nightly cron/systemd timer on the NAS host, retention ≥ 30 d, off-host copy). Today: §2a by hand.
 2. **Volume snapshots** for `gitea_data` / `media_volume` (filesystem or scheduled `tar`). Today: §2b by hand.
-3. **User-data replication** (`/opt/scitex/data/users` has no second copy named anywhere in the repo). Today: §2c by hand.
+3. **User-data replication** (no wired/mounted second copy — `scripts/deployment/backup_workspaces.sh` sketches one: source default `/app/data/users`, destination default `/app/backups/snapshots`, 288 generations — but nothing schedules it and no compose file mounts the destination; see intro). Today: §2c by hand.
 4. **Restore rehearsal record** (dated staging-restore log). Today: none.
 5. **PITR/WAL archiving** if RPO < 24 h is ever required (would need a `postgres -c archive_command` change + WAL store; current prod command at `docker-compose.prod.yml:124` sets only `max_connections`/`shared_buffers`).
 
