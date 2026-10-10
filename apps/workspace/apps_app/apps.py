@@ -27,6 +27,21 @@ class AppsAppConfig(AppConfig):
 
         register_plugin_modules()
 
+        # SDK UI JS-catalog fallback (fix-forward #1065): the SDK creator
+        # wizard's shell catalogues scitex_sdk.ui, which stays out of
+        # INSTALLED_APPS (duplicate scitex_ui label) — patch the tag's
+        # lookup so it serves the package locale dir instead of raising.
+        try:
+            from .services.sdk_i18n_fallback import install as _install_sdk_i18n
+
+            _install_sdk_i18n()
+        except Exception:
+            import logging
+
+            logging.getLogger(__name__).debug(
+                "[apps_app] SDK i18n fallback not installed"
+            )
+
         # Load dev preview apps if configured
         try:
             from django.conf import settings
