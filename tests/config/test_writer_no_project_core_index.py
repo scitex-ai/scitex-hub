@@ -22,10 +22,13 @@ from django.urls import NoReverseMatch, reverse
 User = get_user_model()
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
+# NOTE (leaf flip hub-figrecipe-leaf-move-20261009): the hub
+# figrecipe_partial.html is retired — the workspace shell renders the leaf
+# figrecipe/workspace_partial.html (wheel, not in this checkout), which
+# carries no {% url %} tags at all (verified against figrecipe 0.36.0).
 NO_PROJECT_TEMPLATES = [
     "apps/workspace/writer_app/templates/writer_app/index.html",
     "apps/workspace/writer_app/templates/writer_app/writer_partial.html",
-    "apps/workspace/figrecipe_app/templates/figrecipe_app/figrecipe_partial.html",
 ]
 
 

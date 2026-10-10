@@ -6,17 +6,15 @@
 # project that tutorial just made (`sleep-study-{run_id}`) rather than creating a
 # second one. Record both scenarios in one run id.
 #
-# Selector honesty. The hub's own FigRecipe surface is the app-editor shell, and the
-# only stable hook it exposes is the mount:
-#   #app-mount[data-app-slug="figrecipe"][data-embedded="true"]  (+ data-project-owner,
-#   data-project-slug once a project is open) — templates/shared/app_editor.html:20-23,
-#   apps/workspace/figrecipe_app/templates/figrecipe_app/figrecipe_partial.html:27-31.
-# The inner plot/data controls are NOT in this repository: the editor template is a
-# two-line stub and the UI arrives over the vite bridge
-# (vite_script 'figrecipe_app/figrecipe-bridge-init'). Nothing here invents selectors
-# for them, because a selector nobody can check is a selector that silently rots. What
-# this scenario asserts is the shell contract — that the app opened for this project —
-# and the project's own file tree, which is statically checked.
+# Selector honesty. The FigRecipe surface is leaf-owned (card
+# hub-figrecipe-leaf-move-20261009): the mount div ships in the leaf wheel
+# (figrecipe/workspace_partial.html — id="app-mount", data-app-slug="figrecipe",
+# data-embedded="true", data-stx-mount at the guarded /apps/figrecipe/figrecipe/
+# API base), not in this repository. What this scenario asserts is the shell
+# contract — that the app opened for this project — and the project's own file
+# tree, which is statically checked. The inner plot/data controls arrive with the
+# leaf bundle; nothing here invents selectors for them, because a selector nobody
+# can check is a selector that silently rots.
 app: figrecipe-round-trip
 title:
   en: Make a figure with FigRecipe
