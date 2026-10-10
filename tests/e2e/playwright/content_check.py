@@ -14,7 +14,8 @@ MEASURED 2026-08-17, from the artifact of a GREEN run on develop
 
   * ``04-figrecipe.png`` — the header strip, and then the entire body
     blank. ``#app-mount`` is the FigRecipe bundle's mount point
-    (``figrecipe_app/templates/figrecipe_app/figrecipe_partial.html``);
+    (leaf ``figrecipe/workspace_partial.html`` since the leaf flip
+    hub-figrecipe-leaf-move-20261009; hub partial retired);
     nothing had mounted into it.
   * ``02-writer.png`` — the file selector still reading "Loading...",
     the word count still "0", the manuscript pane empty. Those are the
