@@ -1,69 +1,119 @@
 """FigRecipe app views — thin hub adapter over the leaf-owned editor.
 
-Leaf move (pilot, card hub-figrecipe-leaf-move-20261009): the editor surface
-is owned by ``figrecipe._django`` (leaf repo src-layout, >=0.36 — workspace.py,
-workspace.html/workspace_partial.html). This module is a thin adapter, not an
-owner:
+Leaf flip (card hub-figrecipe-leaf-move-20261009): the editor surface is
+owned by ``figrecipe._django`` (leaf repo src-layout, >=0.36). This module
+is a thin adapter, not an owner:
 
-- context: :func:`build_figrecipe_context` prefers the leaf
-  ``figrecipe._django.workspace.build_workspace_context`` and falls back to
-  the hub-local keys when the installed leaf predates the workspace surface
-  (<0.36 has no ``figrecipe._django.workspace`` module at all) or the SDK
-  project authority is unavailable. It never raises for a missing/failing
-  leaf — the page and the workspace content endpoint must keep rendering on
-  a stale install.
-- page: :func:`figure_editor` keeps the hub auth gate (anonymous -> signup,
-  pinned by test_signed_out_browser_is_sent_to_signup) and hub project
-  scoping, and shares the single context builder with the partial (page and
-  partial previously built two divergent context dicts).
+- page: :func:`figure_editor` keeps the hub auth gate (anonymous ->
+  signup, pinned by test_signed_out_browser_is_sent_to_signup) and hub
+  project scoping, and renders the leaf ``figrecipe/workspace.html``.
+- context: :func:`build_figrecipe_context` calls the leaf
+  ``figrecipe._django.workspace.build_workspace_context`` and stamps only
+  what the host owns (``stx_mount`` + SDK shell mount marker + hub project
+  object). The hub-local frontend keys (``app_mount_css``,
+  ``bridge_entry_name``) and hub shell keys (``module_name``,
+  ``module_icon``, ``is_workspace_page``, ``figrecipe_embedded``) are
+  retired: the leaf bundle serves the frontend, and the leaf template
+  extends the SDK shell, not ``shared/app_editor.html``.
 - SECURITY: ``urls/figrecipe.py`` (SITE-2 jail guard) is untouched by this
-  move — see that module's docstring.
-
-Retire mapping for the follow-up flip (NOT done here — the leaf page render
-needs an authed verification with figrecipe>=0.36 installed, and no dev DB
-is reachable from the pilot env to prove it):
-
-- templates/figrecipe_app/editor.html          -> figrecipe/workspace.html
-- templates/figrecipe_app/figrecipe_partial.html -> figrecipe/workspace_partial.html
-- hub-local fallback keys below               -> leaf build_workspace_context
+  move — see that module's docstring. The SPA's API base (``stx_mount``)
+  points at the guarded wrapper (``figrecipe_app:figrecipe_editor``), so
+  every API call the leaf frontend makes passes the hub jail guard.
+- MOUNTS (triple-serve dedupe): the bespoke ``apps/figrecipe/`` include
+  (config/urls.py) stays the single serving mount — it carries the jail
+  guard and the auth gate. The generic plugin mount
+  (``plugin_urlpatterns``) skips the leaf's ``apps/figrecipe/`` route via
+  ``_route_taken`` (pinned by test), so the leaf urlconf is never
+  double-mounted raw. No route file changes at flip.
+- FAIL LOUD: a missing leaf (below the ``figrecipe>=0.36`` floor) raises
+  instead of rendering stale hub keys — a wrong-answer-that-looks-right
+  page is worse than an error with the floor version in it. A leaf that is
+  installed but cannot resolve SDK authority for the hub-scoped project
+  (no on-disk workspace yet) is per-project absence, not skew: the page
+  degrades to the hub-owned ``shared/app_editor.html`` presentation
+  (``data-project-*`` + provider meta) instead of 500ing.
 """
+
+from __future__ import annotations
 
 import logging
 
 from django.shortcuts import redirect, render
+from django.urls import reverse
 from django.utils.module_loading import import_string
 
 from apps.infra.project_app.services.project_scope import project_for_scope_app
+
+try:
+    from scitex_sdk.host import AccessError as _SDKAccessError
+    from scitex_sdk.host import CapabilityUnavailable as _SDKCapabilityUnavailable
+except ImportError:  # pragma: no cover — without the SDK the leaf cannot serve either
+    _SDKAccessError = None
+    _SDKCapabilityUnavailable = None
+
+#: Leaf authority failures that degrade to hub presentation instead of 500ing
+#: the page: the leaf is installed (>=0.36 floor) but the SDK cannot resolve
+#: a workspace for this hub-scoped project (HubProjectStorage returns None
+#: while the project has no on-disk root, so the leaf's prepare_request
+#: raises ``AccessError("Project workspace not found")``). That is
+#: per-project authority absence, not leaf skew — a missing leaf raises
+#: ImportError, which is NOT caught and still propagates loud.
+_LEAF_AUTHORITY_ERRORS = tuple(
+    err for err in (_SDKAccessError, _SDKCapabilityUnavailable) if err is not None
+)
 
 logger = logging.getLogger(__name__)
 
 _LEAF_BUILDER_PATH = "figrecipe._django.workspace.build_workspace_context"
 
+#: Leaf-owned templates served by the hub page and workspace content endpoint.
+LEAF_PAGE_TEMPLATE = "figrecipe/workspace.html"
+LEAF_PARTIAL_TEMPLATE = "figrecipe/workspace_partial.html"
 
-def _leaf_build_context(request, current_project=None):
-    """Return the leaf context dict, or ``None`` when the leaf can't serve.
+#: Hub-owned fallback shell for the page when the leaf is installed but the
+#: SDK cannot resolve a workspace for the hub-scoped project (see
+#: ``_LEAF_AUTHORITY_ERRORS``). Extends ``global_base.html``, so it carries
+#: the hub project presentation the page contracts pin: ``data-project-*``
+#: on ``#app-mount`` and the ``stx-project-provider`` meta. No retired
+#: frontend keys (``app_mount_css``/``bridge_entry_name``): the editor bundle
+#: is leaf-served or absent, never hub-reconstructed.
+HUB_FALLBACK_TEMPLATE = "shared/app_editor.html"
 
-    ``None`` covers both "leaf too old to have the surface" (ImportError /
-    AttributeError on ``figrecipe._django.workspace`` — e.g. installed 0.35.0)
-    and "leaf present but SDK project authority unavailable" (AccessError /
-    CapabilityUnavailable from ``prepare_request``). Either way the caller
-    falls back to hub-local keys, so a stale install or an unconfigured
-    provider degrades to hub parity instead of 500ing the page.
+
+def _stx_mount() -> str:
+    """Return the SPA's API base: the guarded figrecipe wrapper mount.
+
+    Derived from the hub URLconf (``figrecipe_app:figrecipe_editor`` ->
+    ``/apps/figrecipe/figrecipe/``), never from ``request.path``: the
+    workspace content endpoint serves the same partial from
+    ``/apps/workspace/content/figrecipe/``, where a path-derived prefix
+    would point the SPA at unguarded 404s. This is the legacy mount the
+    leaf's own frontend mount test pins (``/apps/figrecipe/figrecipe``).
+    """
+    return reverse("figrecipe_app:figrecipe_editor").rstrip("/")
+
+
+def _mount_marker(request):
+    """Return the SDK shell mount-marker context for the hub page view.
+
+    The hub page lives at the app root within its include (``pages.py``:
+    ``path("", views.figure_editor)``), so ``view_path=""`` — the prefix
+    is the whole request path. Falls back to the same derivation when
+    ``scitex_sdk`` is not importable ( дев / skew envs); the derivation is
+    byte-identical to ``mount_prefix(request, view_path="")``.
     """
     try:
-        builder = import_string(_LEAF_BUILDER_PATH)
-    except Exception as exc:  # noqa: BLE001 — any import failure means "leaf can't serve"
-        logger.debug("[figrecipe] leaf context builder unavailable (%r); hub fallback", exc)
-        return None
-    try:
-        return builder(request, current_project)
-    except Exception as exc:  # noqa: BLE001 — fallback must hold for any leaf failure
-        logger.warning("[figrecipe] leaf context builder failed (%r); hub fallback", exc)
-        return None
+        from scitex_sdk.ui.mount import mount_context
+    except ImportError:
+        return {
+            "stx_mount_prefix": request.path.rstrip("/"),
+            "stx_mount_declared": True,
+        }
+    return mount_context(request, view_path="")
 
 
 def figure_editor(request, figrecipe_embedded=False):
-    """Main figure editor — mounts figrecipe React editor.
+    """Main figure editor — mounts the leaf-owned React editor.
 
     Requires an authenticated account.
     """
@@ -73,51 +123,55 @@ def figure_editor(request, figrecipe_embedded=False):
     # Project-scope pilot: ?project=owner/slug wins, else the last visited project.
     current_project = project_for_scope_app(request)
 
-    # Single builder for page and partial (dedupe: the page previously built
-    # its own inline dict diverging from the partial's builder).
-    context = build_figrecipe_context(request, current_project)
-    context.update(
-        {
-            "module_name": "FigRecipe",
-            "module_icon": "fa-chart-line",
-            "is_workspace_page": True,
-            "figrecipe_embedded": figrecipe_embedded,
-            # Generic app editor context (used by shared/app_editor.html)
-            # (app_* keys already set by the builder; repeated here so the
-            # page contract reads in one place.)
+    try:
+        # Single builder for page and partial (page and partial previously built
+        # two divergent context dicts; the flip serves one leaf surface).
+        context = build_figrecipe_context(request, current_project)
+    except _LEAF_AUTHORITY_ERRORS as exc:
+        # Per-project authority absence, not leaf skew: the leaf is installed
+        # but the SDK has no workspace for this hub-scoped project, so the
+        # page keeps the hub project presentation instead of 500ing. A
+        # missing leaf (ImportError) is NOT caught — it still raises loud.
+        logger.warning(
+            "[figrecipe] leaf authority unavailable (%r); hub presentation", exc
+        )
+        context = {
             "app_slug": "figrecipe",
             "app_label": "FigRecipe",
+            "current_project": current_project,
         }
-    )
+        if current_project:
+            context["project"] = current_project
+        else:
+            context["needs_project_creation"] = True
+        return render(request, HUB_FALLBACK_TEMPLATE, context)
+
     if current_project:
         context["project"] = current_project
     else:
         context["needs_project_creation"] = True
 
-    return render(request, "figrecipe_app/editor.html", context)
+    return render(request, LEAF_PAGE_TEMPLATE, context)
 
 
 def build_figrecipe_context(request, current_project=None):
-    """Context builder for workspace content endpoint (partial rendering).
+    """Context builder for the hub page and workspace content endpoint.
 
-    Leaf-first: the leaf-owned builder wins when the installed figrecipe
-    provides it (>=0.36); hub-local keys fill the gaps the hub shell still
-    needs (mount CSS, bridge entry, hub project object) and are the whole
-    context when the leaf can't serve.
+    Leaf-owned: the leaf builder resolves SDK project authority and the
+    working dir. The hub stamps only what the host owns — the guarded API
+    mount (``stx_mount``), the SDK shell mount marker, and the hub project
+    presentation object (the leaf resolves authority through the SDK, not
+    through the hub object). Raises when the leaf cannot serve (fail loud,
+    no silent hub parity — see module docstring).
     """
-    context = {
-        "app_slug": "figrecipe",
-        "app_label": "FigRecipe",
-        "app_mount_css": "figrecipe_app/css/figrecipe-mount.css",
-        "bridge_entry_name": "figrecipe_app/figrecipe-bridge-init",
-        "current_project": current_project,
-    }
-    leaf = _leaf_build_context(request, current_project)
-    if leaf:
-        context.update(leaf)
-        # Hub scoping wins for the hub shell: the leaf resolves authority
-        # through the SDK, not through the hub presentation object.
-        context["current_project"] = current_project
+    builder = import_string(_LEAF_BUILDER_PATH)
+    context = builder(request, current_project)
+    context = dict(context)
+    context.update(_mount_marker(request))
+    context["stx_mount"] = _stx_mount()
+    # Hub scoping wins for the hub shell: the leaf resolves authority
+    # through the SDK, not through the hub presentation object.
+    context["current_project"] = current_project
     if not current_project:
         context["needs_project_creation"] = True
     return context
