@@ -270,3 +270,65 @@ def test_oversize_body_fails_closed(monkeypatch):
     # never a truncated 200
     with pytest.raises(proxy.ContainerUnavailable):
         proxy.proxy_request(_authed_request(), "", token="T")
+
+
+@pytest.mark.parametrize(
+    "evil_host",
+    ["169.254.169.254", "evil.example.com", "10.0.0.9", "0.0.0.0"],
+)
+def test_proxy_refuses_non_loopback_host(monkeypatch, evil_host):
+    # Arrange — SSRF gate (CodeQL py/partial-ssrf): even if routing is
+    # compromised to point at a non-loopback host, no socket may open
+    monkeypatch.setenv(proxy.URL_ENV, "http://127.0.0.1:18096")
+    monkeypatch.setenv(proxy.KEY_ENV, "k")
+    monkeypatch.setenv("FIGRECIPE_UID_MAP", "alice:10001")
+    from apps.workspace.figrecipe_app.services import container_spawner as spawner
+
+    own_port = spawner.user_port(10001)
+    monkeypatch.setattr(
+        spawner, "container_host_port", lambda request: (evil_host, own_port)
+    )
+    opened = {"conn": False}
+
+    class _MustNotOpen:
+        def __init__(self, *a, **k):
+            opened["conn"] = True
+            raise AssertionError("transport must not open for non-loopback hosts")
+
+    monkeypatch.setattr(proxy.http.client, "HTTPConnection", _MustNotOpen)
+    monkeypatch.setattr(proxy.http.client, "HTTPSConnection", _MustNotOpen)
+    # Act / Assert — refused at routing AND pre-socket, never proxied
+    with pytest.raises(proxy.ContainerUnavailable):
+        proxy._target_for(_authed_request(user="alice"))
+    with pytest.raises(proxy.ContainerUnavailable):
+        proxy.proxy_request(_authed_request(user="alice"), "", token="T")
+    assert opened["conn"] is False
+
+
+def test_proxy_refuses_foreign_port(monkeypatch):
+    # Arrange — mapped login whose routing disagrees with the per-uid
+    # registry (another port on loopback): refused before any socket opens
+    monkeypatch.setenv(proxy.URL_ENV, "http://127.0.0.1:18096")
+    monkeypatch.setenv(proxy.KEY_ENV, "k")
+    monkeypatch.setenv("FIGRECIPE_UID_MAP", "alice:10001")
+    from apps.workspace.figrecipe_app.services import container_spawner as spawner
+
+    own_port = spawner.user_port(10001)
+    foreign_port = own_port + 1 if own_port < 65535 else own_port - 1
+    assert foreign_port != own_port
+    monkeypatch.setattr(
+        spawner, "container_host_port", lambda request: ("127.0.0.1", foreign_port)
+    )
+    opened = {"conn": False}
+
+    class _MustNotOpen:
+        def __init__(self, *a, **k):
+            opened["conn"] = True
+            raise AssertionError("transport must not open for foreign ports")
+
+    monkeypatch.setattr(proxy.http.client, "HTTPConnection", _MustNotOpen)
+    monkeypatch.setattr(proxy.http.client, "HTTPSConnection", _MustNotOpen)
+    # Act / Assert
+    with pytest.raises(proxy.ContainerUnavailable):
+        proxy.proxy_request(_authed_request(user="alice"), "", token="T")
+    assert opened["conn"] is False

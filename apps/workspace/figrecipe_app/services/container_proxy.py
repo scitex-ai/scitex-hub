@@ -129,6 +129,13 @@ def _target_for(request):
         raise ContainerUnavailable(f"Spawner unavailable: {exc}") from exc
     try:
         host, port = container_host_port(request)
+        # Defense in depth: the spawner contract is loopback-only; refuse
+        # anything else at the source (the pre-socket gate in
+        # proxy_request re-checks before connecting).
+        if (host or "").strip().lower() not in _LOOPBACK_HOSTS:
+            raise ContainerUnavailable(
+                f"Refusing non-loopback container host {host!r}"
+            )
         return (parts.scheme, host, port)
     except SpawnerUnavailable:
         if os.environ.get(ALLOW_SHARED_ENV) != "1":
@@ -139,6 +146,47 @@ def _target_for(request):
         if host not in _LOOPBACK_HOSTS:
             raise ContainerUnavailable(f"Shared fallback refused for {parts.hostname!r}")
         return (parts.scheme, parts.hostname, parts.port or 80)
+
+
+def _assert_proxy_target(request, scheme, host, port) -> None:
+    """SSRF gate for the container proxy (CodeQL ``py/partial-ssrf``).
+
+    The proxy target must ALWAYS be this host's loopback interface and —
+    for mapped logins — the exact per-uid port from the spawner registry.
+    Anything else (non-loopback host, foreign port) raises
+    :class:`ContainerUnavailable` BEFORE any socket opens, so a
+    compromised or misconfigured routing value can never turn the hub
+    into an SSRF client. Called by :func:`proxy_request` immediately
+    after :func:`_target_for`; the ``host not in allowlist → raise``
+    shape is deliberately explicit so static analysis sees the sanitizer.
+    """
+    if scheme not in ("http", "https"):
+        raise ContainerUnavailable(f"Refusing non-http(s) proxy scheme {scheme!r}")
+    host_norm = (host or "").strip().lower()
+    if host_norm not in _LOOPBACK_HOSTS:
+        raise ContainerUnavailable(f"Refusing non-loopback proxy host {host!r}")
+    if (
+        not isinstance(port, int)
+        or isinstance(port, bool)
+        or not 1 <= port <= 65535
+    ):
+        raise ContainerUnavailable(f"Refusing bad proxy port {port!r}")
+    try:
+        from .container_spawner import SpawnerUnavailable, resolve_uid, user_port
+    except ImportError as exc:
+        raise ContainerUnavailable(f"Spawner unavailable: {exc}") from exc
+    user = getattr(request, "user", None)
+    username = getattr(user, "username", "") or ""
+    try:
+        uid = resolve_uid(username)
+    except SpawnerUnavailable:
+        # Unmapped login on the dev-only shared fallback: no registry entry
+        # exists, so the loopback pin above is the whole gate.
+        return
+    if port != user_port(uid):
+        raise ContainerUnavailable(
+            f"Refusing foreign proxy port {port!r} for {username!r}"
+        )
 
 
 def mint_token_for(request, current_project=None) -> str:
@@ -179,6 +227,9 @@ def proxy_request(request, subpath: str = "", *, token: str | None = None):
 
     parts = _container_parts()
     scheme, host, port = _target_for(request)
+    # SSRF gate (CodeQL py/partial-ssrf): loopback-only host + per-uid
+    # registry port, enforced BEFORE any socket opens.
+    _assert_proxy_target(request, scheme, host, port)
     timeout = _timeout()
     cap = _max_body()
     auth = token if token is not None else mint_token_for(request)
