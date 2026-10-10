@@ -128,6 +128,46 @@ def figure_editor(request, figrecipe_embedded=False):
     if not request.user.is_authenticated:
         return redirect("auth_app:signup")
 
+    # Apptainer pilot: serve the page from the user's own container (their
+    # uid, their project jail) when enabled; any container failure falls
+    # back to the in-process leaf render below (pilot reversibility). The
+    # auth gate above and the SITE-2 API guard stay authoritative either way.
+    try:
+        from apps.workspace.figrecipe_app.services.container_proxy import (
+            ContainerUnavailable,
+            enabled,
+            proxy_page,
+        )
+
+        if enabled():
+            try:
+                return proxy_page(request)
+            except ContainerUnavailable as exc:
+                logger.warning("[figrecipe] container unavailable (%r); in-process", exc)
+            except Exception as exc:
+                # SDK authority errors during token mint (AccessError /
+                # CapabilityUnavailable) fall through so the in-process path
+                # below applies its own 404-degrade vs fail-loud policy to
+                # the IDENTICAL condition — pilot changes transport, never
+                # the authority verdict. Anything else re-raises loud.
+                try:
+                    from scitex_sdk.host import (
+                        AccessError as _SDKAccessError2,
+                    )
+                    from scitex_sdk.host import (
+                        CapabilityUnavailable as _SDKUnavailable2,
+                    )
+                except ImportError:
+                    raise
+                if isinstance(exc, (_SDKAccessError2, _SDKUnavailable2)):
+                    logger.warning(
+                        "[figrecipe] container authority (%r); in-process", exc
+                    )
+                else:
+                    raise
+    except ImportError:
+        pass
+
     # Project-scope pilot: ?project=owner/slug wins, else the last visited project.
     current_project = project_for_scope_app(request)
 
