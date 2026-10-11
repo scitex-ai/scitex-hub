@@ -11,6 +11,7 @@ import json
 import logging
 
 from ...models import UserPreference
+from ...services.network_jail import jailed_get  # Slice 1: jailed egress
 
 logger = logging.getLogger(__name__)
 
@@ -115,7 +116,7 @@ def _test_api_key_validity(source, api_key):
                 "retmode": "json",
                 "api_key": api_key,
             }
-            response = requests.get(url, params=params, timeout=10)
+            response = jailed_get(url, params=params, timeout=10)
 
             if response.status_code == 200:
                 data = response.json()
@@ -134,7 +135,7 @@ def _test_api_key_validity(source, api_key):
             headers = {"x-api-key": api_key}
             params = {"query": "test", "limit": 1}
 
-            response = requests.get(url, headers=headers, params=params, timeout=10)
+            response = jailed_get(url, headers=headers, params=params, timeout=10)
 
             if response.status_code == 200:
                 return {
@@ -151,7 +152,7 @@ def _test_api_key_validity(source, api_key):
             headers = {"User-Agent": f"SciTeX-Scholar (mailto:{api_key})"}
             params = {"query": "test", "rows": 1}
 
-            response = requests.get(url, headers=headers, params=params, timeout=10)
+            response = jailed_get(url, headers=headers, params=params, timeout=10)
 
             if response.status_code == 200:
                 return {

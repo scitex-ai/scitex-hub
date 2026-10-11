@@ -10,7 +10,7 @@ import os
 __FILE__ = "./apps/scholar_app/views/search/engines/semantic.py"
 __DIR__ = os.path.dirname(__FILE__)
 # ----------------------------------------
-import requests
+from ....services.network_jail import jailed_get  # Slice 1: jailed egress (allowlisted hosts, capped body/timeout)
 from scitex import logging
 
 from ..citations import (
@@ -44,7 +44,7 @@ def search_semantic_scholar(query, max_results=100, filters=None):
 
         time.sleep(0.5)
 
-        response = requests.get(base_url, params=params, timeout=60)
+        response = jailed_get(base_url, params=params, timeout=60)
         response.raise_for_status()
         data = response.json()
 

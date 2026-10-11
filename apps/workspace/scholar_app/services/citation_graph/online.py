@@ -10,6 +10,8 @@ from __future__ import annotations
 import re
 from typing import Callable, Dict, Iterable, List, Optional
 
+from apps.workspace.scholar_app.services.network_jail import jailed_get
+
 CROSSREF_WORKS = "https://api.crossref.org/works"
 USER_AGENT = "SciTeX/1.0 (https://scitex.ai; mailto:contact@scitex.ai)"
 SELECT = "DOI,title,author,issued,container-title,is-referenced-by-count,reference"
@@ -23,9 +25,9 @@ FetchJson = Callable[[str, Dict[str, object]], Dict]
 
 
 def _requests_fetch(url: str, params: Dict[str, object]) -> Dict:
-    import requests
-
-    resp = requests.get(
+    # Slice 1: fixed allowlisted host (CROSSREF_WORKS) — caller params
+    # (DOI/query) travel as params only, never as the URL.
+    resp = jailed_get(
         url, params=params, headers={"User-Agent": USER_AGENT}, timeout=30
     )
     resp.raise_for_status()

@@ -320,9 +320,15 @@ def get_related_papers(request, service=None):
 
 @api_view(["GET"])
 @permission_classes([AllowAny])
+@throttle_classes([CitationGraphThrottle])
 def paper_summary(request):
     """
-    Get summary information for a paper (no rate limiting - simple lookup).
+    Get summary information for a paper.
+
+    Slice 1: now throttled (CitationGraphThrottle, 50/hour) — this was
+    the only citation-graph endpoint with no throttle ("simple lookup"),
+    and unthrottled anon access to a DB/cache-backed lookup is a flood
+    vector. Single lookups are unaffected; only floods see 429.
 
     GET /api/scholar/citation-graph/paper/
 
