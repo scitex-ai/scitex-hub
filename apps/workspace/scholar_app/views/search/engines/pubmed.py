@@ -10,7 +10,7 @@ import os
 __FILE__ = "./apps/scholar_app/views/search/engines/pubmed.py"
 __DIR__ = os.path.dirname(__FILE__)
 # ----------------------------------------
-import requests
+from ....services.network_jail import jailed_get  # Slice 1: jailed egress (allowlisted hosts, capped body/timeout)
 from scitex import logging
 
 from ..citations import (
@@ -43,7 +43,7 @@ def search_pubmed_fast(query, max_results=50, filters=None):
             "sort": "relevance",
         }
 
-        response = requests.get(base_url, params=params, timeout=60)
+        response = jailed_get(base_url, params=params, timeout=60)
         response.raise_for_status()
         data = response.json()
 
@@ -92,7 +92,7 @@ def search_pubmed(query, max_results=50, filters=None):
             "sort": "relevance",
         }
 
-        response = requests.get(base_url, params=params, timeout=60)
+        response = jailed_get(base_url, params=params, timeout=60)
         response.raise_for_status()
         data = response.json()
 
@@ -113,7 +113,7 @@ def search_pubmed(query, max_results=50, filters=None):
             "rettype": "abstract",
         }
 
-        fetch_response = requests.get(fetch_url, params=fetch_params, timeout=60)
+        fetch_response = jailed_get(fetch_url, params=fetch_params, timeout=60)
         fetch_response.raise_for_status()
 
         # Parse XML response

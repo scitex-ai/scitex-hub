@@ -10,7 +10,7 @@ import os
 __FILE__ = "./apps/scholar_app/views/search/engines/openaccess.py"
 __DIR__ = os.path.dirname(__FILE__)
 # ----------------------------------------
-import requests
+from ....services.network_jail import jailed_get  # Slice 1: jailed egress (allowlisted hosts, capped body/timeout)
 from scitex import logging
 
 logger = logging.getLogger(__name__)
@@ -36,7 +36,7 @@ def search_doaj(query, max_results=50, filters=None):
             "sort": "score:desc",
         }
 
-        response = requests.get(base_url, params=params, timeout=60)
+        response = jailed_get(base_url, params=params, timeout=60)
         response.raise_for_status()
         data = response.json()
 
@@ -92,7 +92,7 @@ def search_biorxiv(query, max_results=50, filters=None):
         date_str = f"{start_date.strftime('%Y-%m-%d')}/{end_date.strftime('%Y-%m-%d')}"
         url = f"{base_url}/{date_str}"
 
-        response = requests.get(url, timeout=60)
+        response = jailed_get(url, timeout=60)
         response.raise_for_status()
         data = response.json()
 
@@ -143,7 +143,7 @@ def search_plos(query, max_results=50, filters=None):
             "fl": "id,title,author,journal,publication_date,abstract",
         }
 
-        response = requests.get(base_url, params=params, timeout=60)
+        response = jailed_get(base_url, params=params, timeout=60)
         response.raise_for_status()
         data = response.json()
 
