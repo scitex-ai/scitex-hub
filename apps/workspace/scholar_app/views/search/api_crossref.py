@@ -12,7 +12,7 @@ __DIR__ = os.path.dirname(__FILE__)
 # ----------------------------------------
 import hashlib
 
-import requests
+from ...services.network_jail import jailed_get  # Slice 1: jailed egress (allowlisted hosts, capped body/timeout)
 from django.core.cache import cache
 from django.http import JsonResponse
 from django.views.decorators.http import require_http_methods
@@ -56,7 +56,7 @@ def api_search_crossref(request):
             "User-Agent": "SciTeX/1.0 (https://scitex.ai; mailto:contact@scitex.ai)"
         }
 
-        response = requests.get(url, params=params, headers=headers, timeout=180)
+        response = jailed_get(url, params=params, headers=headers, timeout=180)
         response.raise_for_status()
         data = response.json()
 

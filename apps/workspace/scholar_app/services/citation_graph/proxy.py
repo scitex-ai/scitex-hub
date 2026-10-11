@@ -17,6 +17,11 @@ from typing import Dict, List, Optional
 import requests
 from django.conf import settings
 
+from apps.workspace.scholar_app.services.network_jail import (
+    build_internal_url,
+    jailed_get_internal,
+)
+
 logger = logging.getLogger(__name__)
 
 
@@ -54,10 +59,18 @@ class CitationGraphProxyService:
         logger.info(f"Citation graph proxy initialized: {self.base_url}")
 
     def _make_request(self, endpoint: str, params: dict) -> dict:
-        """Make GET request to NAS API."""
-        url = f"{self.base_url}/api/scholar/citation-graph/{endpoint}/"
+        """Make GET request to NAS API.
+
+        Slice 1: ``endpoint`` is a per-method literal; the base URL is
+        server config (env/settings). ``build_internal_url`` refuses
+        anything shaped like an absolute URL, so caller params can never
+        redirect this request.
+        """
+        url = build_internal_url(
+            self.base_url, "api", "scholar", "citation-graph", endpoint
+        )
         try:
-            response = requests.get(url, params=params, timeout=self.timeout)
+            response = jailed_get_internal(url, params=params, timeout=self.timeout)
             response.raise_for_status()
             return response.json()
         except requests.RequestException as e:
@@ -154,8 +167,10 @@ class CitationGraphProxyService:
         """Check NAS service health with short timeout."""
         try:
             # Use short timeout for health checks (not the 60s default)
-            url = f"{self.base_url}/api/scholar/citation-graph/health/"
-            response = requests.get(url, timeout=3)
+            url = build_internal_url(
+                self.base_url, "api", "scholar", "citation-graph", "health"
+            )
+            response = jailed_get_internal(url, timeout=3)
             response.raise_for_status()
             result = response.json()
             result["mode"] = "proxy"
