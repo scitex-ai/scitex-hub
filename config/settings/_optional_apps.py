@@ -382,9 +382,11 @@ def optional_upstream_apps() -> list[str]:
     # scholar.html'); anonymous requests never reached the view (login
     # redirect), which is why curl looked healthy. The leaf's label is
     # "scholar_editor", chosen upstream precisely not to collide with hub's own
-    # apps.workspace.scholar_app. Its AppConfig imports scitex_app hard; hub
-    # floors scitex-app, so a missing scitex_app is a broken install and must
-    # fail at startup rather than be papered over here.
+    # apps.workspace.scholar_app. Its AppConfig imports scitex_app hard
+    # (leaf-side); hub no longer floors scitex-app (sourced from scitex-sdk
+    # since hub-sdk-import-switch-20261015), so that name resolves only via
+    # the leaf's own dependency chain — a missing scitex_app is a broken
+    # leaf install and must fail at startup rather than be papered over here.
     if _installed("scitex_scholar._django"):
         entries.append("scitex_scholar._django.apps.ScholarEditorConfig")
 
