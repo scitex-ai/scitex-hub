@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """SDK project scope in the hub: explicit project beats last visited; listing is access-scoped."""
 
+import contextlib
 import json
 
 import pytest
@@ -177,16 +178,23 @@ class ProjectScopeTest(TestCase):
     def test_figrecipe_opens_the_url_project_over_last_visited(self):
         # Arrange
         self.client.login(username="scope-me", password=PASSWORD)
-        # Act
-        response = self.client.get("/apps/figrecipe/?project=scope-me/paper")
+        # Act (CUTOVER CCT-2784: the hub adapter page lives ONLY at
+        # old-direct now — /apps/figrecipe/ serves the leaf, which 404s
+        # JSON-loud on SDK authority absence instead of degrading to the
+        # hub shell. Same view, same assertions, only the prefix moved.)
+        with _figrecipe_old_direct_urls():
+            response = self.client.get(
+                "/apps/figrecipe/old-direct/?project=scope-me/paper"
+            )
         # Assert
         assert b'data-project-slug="paper"' in response.content
 
     def test_figrecipe_opens_last_visited_without_url_project(self):
         # Arrange
         self.client.login(username="scope-me", password=PASSWORD)
-        # Act
-        response = self.client.get("/apps/figrecipe/")
+        # Act (same cutover retarget as above.)
+        with _figrecipe_old_direct_urls():
+            response = self.client.get("/apps/figrecipe/old-direct/")
         # Assert
         assert b'data-project-slug="notes"' in response.content
 
@@ -194,8 +202,11 @@ class ProjectScopeTest(TestCase):
         # Arrange
         _require_sdk_host_service()
         self.client.login(username="scope-me", password=PASSWORD)
-        # Act
-        response = self.client.get("/apps/figrecipe/?project=scope-me/paper")
+        # Act (same cutover retarget as above.)
+        with _figrecipe_old_direct_urls():
+            response = self.client.get(
+                "/apps/figrecipe/old-direct/?project=scope-me/paper"
+            )
         # Assert
         assert (
             b'<meta name="stx-project-provider" content="/api/project/scope/">'
@@ -244,3 +255,42 @@ def _require_sdk_host_service():
     module = pytest.importorskip("scitex_ui.templatetags.scitex_project_picker")
     if not hasattr(module, "scitex_project_provider_meta"):
         pytest.skip("scitex-ui predates the project provider host service")
+
+
+@contextlib.contextmanager
+def _figrecipe_old_direct_urls():
+    """Serve the old-direct parity reference to the Django test client.
+
+    CUTOVER (CCT-2784) + OPERATOR ROUTE RULE (CCT 2763/2764): /apps/figrecipe/
+    serves the LEAF now; the pre-cutover hub-native adapter page
+    (``views.figure_editor``) lives ONLY at /apps/figrecipe/old-direct/ in
+    dev (dev-gated, never in production). The suite runs prod-shaped (Django
+    flips DEBUG False under test), so the gate is off in the ambient urlconf:
+    turn it on around ONE client drive — reload the REAL root urlconf with
+    the explicit flag, clear the cached resolver so the client sees the fresh
+    patterns, then restore (reload + clear) AFTER the override exits.
+    Restoring inside the flag window would re-mount old-direct and leak the
+    gate into the suite's ambient urlconf.
+
+    A context manager (not a pytest fixture) ON PURPOSE: this module is a
+    Django ``TestCase``, where fixture-as-argument injection does not apply —
+    ``with`` blocks around the client drive are framework-proof. Same
+    reload + clear_url_caches pattern as the ``figrecipe_old_direct`` /
+    ``scholar_old_direct`` fixtures and the security e2e's local fixture.
+    """
+    import importlib
+
+    import config.urls as root_urlconf
+    from django.test.utils import override_settings
+    from django.urls import clear_url_caches
+
+    gate = override_settings(FIGRECIPE_OLD_DIRECT_ENABLED=True)
+    gate.enable()
+    try:
+        importlib.reload(root_urlconf)
+        clear_url_caches()
+        yield
+    finally:
+        gate.disable()
+        importlib.reload(root_urlconf)
+        clear_url_caches()
