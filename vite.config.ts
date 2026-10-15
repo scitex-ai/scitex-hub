@@ -23,6 +23,8 @@ function discoverScitexUiStatic(): string | null {
   const candidates = [
     resolve(__dirname, ".apps/scitex-ui/src/scitex_ui/static/scitex_ui"),
     resolve(__dirname, "../scitex-ui/src/scitex_ui/static/scitex_ui"),
+    // Linked worktrees live under .worktrees/<name>/ (three levels up)
+    resolve(__dirname, "../../../scitex-ui/src/scitex_ui/static/scitex_ui"),
   ];
   for (const candidate of candidates) {
     if (fs.existsSync(candidate)) return candidate;
@@ -39,6 +41,76 @@ function discoverScitexUiStatic(): string | null {
 }
 
 const SCITEX_UI_STATIC = discoverScitexUiStatic();
+
+/**
+ * Discover the scitex-sdk npm package root (sibling checkout file layout).
+ * Same pattern as discoverScitexUiStatic — supports a Docker/CI `.apps/`
+ * layout, the standard sibling checkout, and an explicit env override.
+ */
+function discoverScitexSdkRoot(): string | null {
+  if (process.env.SCITEX_SDK_ROOT) {
+    return process.env.SCITEX_SDK_ROOT;
+  }
+  const candidates = [
+    resolve(__dirname, ".apps/scitex-sdk/src/scitex_sdk"),
+    resolve(__dirname, "../scitex-sdk/src/scitex_sdk"),
+    // Linked worktrees live under .worktrees/<name>/ (three levels up)
+    resolve(__dirname, "../../../scitex-sdk/src/scitex_sdk"),
+  ];
+  for (const candidate of candidates) {
+    if (fs.existsSync(resolve(candidate, "package.json"))) return candidate;
+  }
+  return null;
+}
+
+const SCITEX_SDK_ROOT = discoverScitexSdkRoot();
+
+/**
+ * Build `@scitex/sdk/*` aliases from the SDK package's own exports map.
+ *
+ * WHY THIS EXISTS: no `@scitex/sdk` package lives in hub's node_modules
+ * (hub does not declare the dep — leaf frontends do, e.g. figrecipe's
+ * `file:../../../../../../scitex-sdk/src/scitex_sdk`), so the generic
+ * resolveBridgedBareImports() retry against hub node_modules cannot help,
+ * and Rollup aborts the build with "failed to resolve import" (observed
+ * 2026-10-15: figrecipe workspace.ts `@scitex/sdk/ui/css/app.css`, added
+ * by the Oct-02 SDK-owner migration, broke `npm run build`, which left the
+ * manifest without shared entries and 500'd every page via vite_script).
+ *
+ * A single `"@scitex/sdk"` prefix alias is WRONG here: Vite aliases do not
+ * apply the target package.json `exports` remapping, so
+ * `@scitex/sdk/ui/css/app.css` would resolve to the non-existent
+ * `<root>/ui/css/app.css` instead of the exported
+ * `<root>/ui/static/scitex_sdk/ui/css/app.css`. Only wildcard exports
+ * (`./x/*`) are mapped, with slash-terminated keys whose prefix semantics
+ * are exact; exact-file exports are left out (no bridged leaf imports one
+ * today — add a regex entry if that changes).
+ */
+function scitexSdkSubpathAliases(): Record<string, string> {
+  if (!SCITEX_SDK_ROOT) return {};
+  try {
+    const pkg = JSON.parse(
+      fs.readFileSync(resolve(SCITEX_SDK_ROOT, "package.json"), "utf-8"),
+    );
+    const exports = pkg.exports ?? {};
+    const aliases: Record<string, string> = {};
+    for (const [key, target] of Object.entries(exports)) {
+      if (typeof target !== "string") continue;
+      const sub = key.replace(/^\.\//, "");
+      const dest = (target as string).replace(/^\.\//, "");
+      if (!sub.endsWith("/*") || !dest.endsWith("/*")) continue;
+      // Strip "/*" (not just "*"): @rollup/plugin-alias appends its own "/"
+      // when prefix-matching, so a trailing-slash key would never match.
+      aliases[`@scitex/sdk/${sub.slice(0, -2)}`] = resolve(
+        SCITEX_SDK_ROOT,
+        dest.slice(0, -2),
+      );
+    }
+    return aliases;
+  } catch {
+    return {};
+  }
+}
 
 /** Discovered app bridge configuration. */
 interface AppBridgeInfo {
@@ -317,6 +389,10 @@ export default defineConfig(({ command }) => ({
         : {}),
       // Auto-discovered app bridges (e.g. "figrecipe-editor" → sibling repo)
       ...APP_BRIDGES.aliases,
+      // @scitex/sdk subpaths (exports-derived; hub node_modules carries no
+      // @scitex/sdk, so bridged leaf imports like figrecipe's
+      // `@scitex/sdk/ui/css/app.css` resolve here instead of aborting build)
+      ...scitexSdkSubpathAliases(),
     },
     extensions: [".ts", ".js", ".tsx", ".jsx", ".json"],
   },
