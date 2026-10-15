@@ -134,12 +134,12 @@ def _gated(patterns):
 
 if _LEAF_IMPORT_ERROR is not None:
     logger.error(
-        "scitex-scholar's Django app could not be imported, so %s is NOT "
-        "mounted. The legacy /apps/scholar/ is unaffected. Cause: %r. Check "
+        "scitex-scholar's Django app could not be imported, so /apps/scholar/ "
+        "(and the v2/ compat alias) is NOT mounted. The dev-only "
+        "/apps/scholar/old-direct/ reference is unaffected. Cause: %r. Check "
         "that the installed scitex-scholar and its own dependencies agree — "
         "note that editable installs from bind-mounted working trees ignore "
         "hub's pyproject floors entirely.",
-        "/apps/scholar/" + _MOUNT_PREFIX,
         _LEAF_IMPORT_ERROR,
     )
     urlpatterns = []
