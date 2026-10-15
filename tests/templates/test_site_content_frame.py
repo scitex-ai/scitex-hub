@@ -39,7 +39,7 @@ def _desktop_rule_for(selector: str) -> str:
     return ""
 
 
-def _inject(html: str, path: str = "/apps/scholar/v2/") -> str:
+def _inject(html: str, path: str = "/apps/scholar/") -> str:
     request = RequestFactory().get(path)
     request.user = AnonymousUser()
     response = HttpResponse(html, content_type="text/html; charset=utf-8")
@@ -162,7 +162,7 @@ def test_embed_mode_gets_no_header():
     html = STANDALONE_PAGE
 
     # Act
-    rendered = _inject(html, path="/apps/scholar/v2/?embed=1")
+    rendered = _inject(html, path="/apps/scholar/?embed=1")
 
     # Assert
     assert 'id="mobile-hamburger-btn"' not in rendered

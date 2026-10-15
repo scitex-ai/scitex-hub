@@ -372,13 +372,14 @@ def optional_upstream_apps() -> list[str]:
         )
 
     # scitex-scholar's Django app. Its VIEWS were already mounted at
-    # /apps/scholar/v2/ (apps/workspace/scholar_app/urls/scholar_django.py)
+    # /apps/scholar/ (apps/workspace/scholar_app/urls/scholar_django.py;
+    # before the cutover the leaf lived at /apps/scholar/v2/)
     # without the APP being installed, and a mounted view whose app is not in
     # INSTALLED_APPS cannot find its own templates: app_directories.Loader
     # walks INSTALLED_APPS and nothing else. Measured on production 2026-09-05
     # after the rebuild — scitex_scholar/_django/templates/scholar/scholar.html
-    # was on disk in the installed 1.10.0 wheel, and every visitor request to
-    # /apps/scholar/v2/ answered 500 with TemplateDoesNotExist('scholar/
+    # was on disk in the installed 1.10.0 wheel, and every visitor request
+    # (then at /apps/scholar/v2/) answered 500 with TemplateDoesNotExist('scholar/
     # scholar.html'); anonymous requests never reached the view (login
     # redirect), which is why curl looked healthy. The leaf's label is
     # "scholar_editor", chosen upstream precisely not to collide with hub's own
