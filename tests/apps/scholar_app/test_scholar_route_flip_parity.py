@@ -7,6 +7,13 @@
 pre-cutover hub-native routes live ONLY at /apps/scholar/old-direct/ in
 dev — never in production, no tiles/links, no user path.
 
+STANDING CUTOVER RULE (CCT 2768, operator, binding): every listed app serves
+ONLY via its leaf plugin. Default = leaf; old hub-side = old-direct dev-only
+(this file); anything unmigrated = 404 — no path may silently serve hub-side
+content for a listed app in production. Target model: hub is an empty shell +
+App Store; official apps are published by scitex.ai/ywatanabe and installed
+by ywatanabe.
+
 WHAT EACH TEST PINS
   default_root_serves_the_leaf      /apps/scholar/ resolves into the
                                     scholar-leaf namespace (the flip).
@@ -102,6 +109,7 @@ PARITY_GAP_ROUTES = [
     "api/pdf/serve/",  # PDF serve
     "api/library/papers/",  # legacy personal library
     "bibtex/enrichment/",  # bibtex page
+    "api/import/bibtex/",  # library "Import BibTeX (.bib)" posts here
     "citation-graph/network/",  # hub citation-graph
 ]
 
@@ -183,18 +191,20 @@ def test_v2_compat_alias_still_resolves(route):
 def test_old_direct_serves_the_parity_gap(route):
     # Arrange — the REAL root urlconf reloaded with the explicit dev flag on
     # (the suite runs prod-shaped: pytest-django forces DEBUG=False, so the
-    # mount is absent unless the flag opts in — exactly the rule).
+    # mount is absent unless the flag opts in — exactly the rule). The
+    # restore reload runs AFTER the override exits, so a later test never
+    # inherits a gated urlconf from here.
     import config.urls as root_urlconf
     from django.urls.resolvers import RoutePattern, URLResolver
 
-    with override_settings(SCHOLAR_OLD_DIRECT_ENABLED=True):
-        reloaded = importlib.reload(root_urlconf)
-        try:
+    try:
+        with override_settings(SCHOLAR_OLD_DIRECT_ENABLED=True):
+            reloaded = importlib.reload(root_urlconf)
             resolver = URLResolver(RoutePattern(""), reloaded.urlpatterns)
             # Act
             match = resolver.resolve("apps/scholar/old-direct/" + route)
-        finally:
-            importlib.reload(root_urlconf)
+    finally:
+        importlib.reload(root_urlconf)
     # Assert — the reference serves the gap under the legacy app namespace
     # (the old-direct mount defaults its instance namespace to the app_name,
     # exactly like the pre-cutover user-path mount did).
@@ -213,13 +223,13 @@ def test_legacy_redirect_names_still_reverse_to_old_direct():
     import config.urls as root_urlconf
     from django.urls import reverse
 
-    with override_settings(SCHOLAR_OLD_DIRECT_ENABLED=True):
-        reloaded = importlib.reload(root_urlconf)
-        try:
+    try:
+        with override_settings(SCHOLAR_OLD_DIRECT_ENABLED=True):
+            reloaded = importlib.reload(root_urlconf)
             # Act
             url = reverse("scholar_app:api_keys", urlconf=reloaded)
-        finally:
-            importlib.reload(root_urlconf)
+    finally:
+        importlib.reload(root_urlconf)
     # Assert
     assert url == "/apps/scholar/old-direct/api-keys/", url
 

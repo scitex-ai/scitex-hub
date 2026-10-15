@@ -43,9 +43,14 @@ from pathlib import Path
 
 import pytest
 
-# The URL the operator screenshotted. Everything else in this file is derived
-# from it; this is the only literal about routing.
-SCHOLAR_URL = "/apps/scholar/"
+# The URL this file derives everything from. CUTOVER (CCT 2760): the URL the
+# operator screenshotted (/apps/scholar/) now serves the Scholar LEAF, not
+# the hub-native page whose tab bar this file guards — resolving THROUGH it
+# would assert about leaf markup, which hub does not own. The hub tab-bar
+# contract lives on at the old-direct parity reference (dev-gated, CCT
+# 2763/2764): the only hub surface that still renders hub templates. This is
+# the only literal about routing.
+SCHOLAR_URL = "/apps/scholar/old-direct/"
 
 # The contract, in one place: Search leads. A new visitor has an empty Library,
 # so leading with it opens the app on a blank list; Search is the thing they can
@@ -67,10 +72,44 @@ _TAB_CONTENT_RE = re.compile(
 # ---------------------------------------------------------------------------
 # Derivation helpers: URL -> view -> template name -> file on disk -> tab order
 # ---------------------------------------------------------------------------
+def _resolve_old_direct(url):
+    """Resolve an old-direct URL against the REAL root urlconf, gate on.
+
+    Old-direct is dev-gated and the suite runs prod-shaped (DEBUG False),
+    so the ambient urlconf does not mount it — resolving through the global
+    ``resolve()`` would land on the project_app catch-all. Reloading the
+    real root urlconf with the explicit flag is the same pattern as
+    test_scholar_route_flip_parity.py. The restore reload runs AFTER the
+    override exits (outer finally), so it rebuilds the urlconf prod-shaped;
+    restoring inside the `with` would re-mount old-direct and leak the gate
+    into the suite's ambient urlconf.
+    """
+    import importlib
+
+    from django.test.utils import override_settings
+    from django.urls.resolvers import RoutePattern, URLResolver
+
+    import config.urls as root_urlconf
+
+    try:
+        with override_settings(SCHOLAR_OLD_DIRECT_ENABLED=True):
+            reloaded = importlib.reload(root_urlconf)
+            resolver = URLResolver(RoutePattern(""), reloaded.urlpatterns)
+            return resolver.resolve(url.lstrip("/"))
+    finally:
+        importlib.reload(root_urlconf)
+
+
 def _view_for(url):
-    """The view callable the URLconf actually dispatches ``url`` to."""
+    """The view callable the URLconf actually dispatches ``url`` to.
+
+    Old-direct URLs resolve with the dev gate on (above); every other URL
+    resolves against the ambient urlconf as before.
+    """
     from django.urls import resolve
 
+    if url.startswith("/apps/scholar/old-direct/"):
+        return inspect.unwrap(_resolve_old_direct(url).func)
     return inspect.unwrap(resolve(url).func)
 
 
@@ -175,6 +214,22 @@ def _rendered_tab_order():
 # ---------------------------------------------------------------------------
 class TestTheRenderedScholarPageLeadsWithSearch:
     """Follow the route, then assert the order. This is the one that matters."""
+
+    def test_the_url_resolves_to_the_hub_scholar_view_not_the_leaf(self):
+        # Cutover pin: the derived chain must start at the hub-native page,
+        # not the leaf index and not the project_app catch-all. Without
+        # this, the assertions below could go green about the WRONG surface.
+        # Arrange
+        from apps.workspace.scholar_app.views.search.page_views import (
+            scholar_unified,
+        )
+
+        # Act
+        view = _view_for(SCHOLAR_URL)
+        # Assert
+        assert view is scholar_unified, (
+            f"{SCHOLAR_URL} resolves to {view!r}, not the hub scholar page."
+        )
 
     def test_the_url_resolves_to_a_view_that_renders_a_template(self):
         # Without this the assertions below could pass vacuously on an empty
