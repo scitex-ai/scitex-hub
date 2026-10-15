@@ -102,9 +102,10 @@ from apps.infra.project_app.models import Project
 pytestmark = [
     pytest.mark.security,
     pytest.mark.django_db,
+    pytest.mark.usefixtures("figrecipe_old_direct_here"),
     pytest.mark.guards(
         defect=(
-            "The figrecipe mount /apps/figrecipe/figrecipe/ can silently stop "
+            "The figrecipe mount /apps/figrecipe/old-direct/figrecipe/ can silently stop "
             "authorizing: its path jail lives in a wrapper guard that a "
             "refactor can unwire (or a nginx 'return 403' someone deletes), "
             "letting a caller-controlled path in the query string, the JSON "
@@ -114,9 +115,41 @@ pytestmark = [
     ),
 ]
 
-# The REAL routed prefix: config/urls.py mounts figrecipe_app at
-# "apps/figrecipe/", and urls/figrecipe.py routes "figrecipe/<path:endpoint>".
-MOUNT = "/apps/figrecipe/figrecipe/"
+
+@pytest.fixture
+def figrecipe_old_direct_here():
+    """Serve the old-direct parity reference to the Django test client.
+
+    Cutover CCT-2784: the guarded wrapper this suite pins lives ONLY at
+    old-direct now (dev-gated, off in the prod-shaped suite), so the suite
+    turns the gate on around each test — same reload + clear_url_caches
+    pattern as the scholar_old_direct / figrecipe_old_direct fixtures.
+    """
+    import importlib
+
+    import config.urls as root_urlconf
+    from django.test.utils import override_settings
+    from django.urls import clear_url_caches
+
+    gate = override_settings(FIGRECIPE_OLD_DIRECT_ENABLED=True)
+    gate.enable()
+    try:
+        importlib.reload(root_urlconf)
+        clear_url_caches()
+        yield
+    finally:
+        gate.disable()
+        importlib.reload(root_urlconf)
+        clear_url_caches()
+
+
+# The REAL routed prefix: config/urls.py mounts the old-direct reference at
+# "apps/figrecipe/old-direct/" (dev-gated), and urls/figrecipe.py routes
+# "figrecipe/<path:endpoint>" beneath it. Cutover CCT-2784 moved the guarded
+# wrapper off the user path — the user path serves the leaf now, so an
+# end-to-end guard suite must drive the reference mount, exactly like
+# scholar's DB tests retargeted to /apps/scholar/old-direct/ (#1074).
+MOUNT = "/apps/figrecipe/old-direct/figrecipe/"
 
 CALLER = "figjail-caller"
 VICTIM = "figjail-victim"

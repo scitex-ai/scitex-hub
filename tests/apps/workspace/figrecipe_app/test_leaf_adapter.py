@@ -12,14 +12,15 @@ serves the frontend and the leaf template extends the SDK shell.
 
 Fail loud: a missing/failing leaf raises instead of rendering stale hub
 keys. The guarded API base is derived from the hub URLconf
-(``figrecipe_app:figrecipe_editor``), never from ``request.path``, so the
-workspace content endpoint (``/apps/workspace/content/figrecipe/``)
-stamps the same mount the page does.
+(``figrecipe-leaf:figrecipe_editor`` -> the leaf nested mount), never from
+``request.path``, so the workspace content endpoint
+(``/apps/workspace/content/figrecipe/``) stamps the same mount the page does.
 
-Mount dedupe: the bespoke ``apps/figrecipe/`` include stays the single
-serving mount (jail guard + auth gate); the generic plugin mount skips the
-leaf's route via ``_route_taken`` (pinned below), so the leaf urlconf is
-never double-mounted raw.
+Mount dedupe: the bespoke ``apps/figrecipe/`` default serves the leaf
+through the login-gated wrapper (cutover CCT-2784); the generic plugin mount
+skips the leaf's route via ``_route_taken`` (pinned below), so the leaf
+urlconf is never double-mounted raw. The pre-cutover hub views serve ONLY
+the dev-only old-direct reference now.
 """
 
 from __future__ import annotations
@@ -68,7 +69,7 @@ def leaf_serving(monkeypatch):
         views, "import_string", lambda path: _builder if path == views._LEAF_BUILDER_PATH else None
     )
     monkeypatch.setattr(
-        views, "reverse", lambda name: f"{_GUARDED_MOUNT}/" if name == "figrecipe_app:figrecipe_editor" else None
+        views, "reverse", lambda name: f"{_GUARDED_MOUNT}/" if name == "figrecipe-leaf:figrecipe_editor" else None
     )
     return sentinel
 
@@ -127,7 +128,7 @@ def test_stx_mount_derives_from_guarded_route_not_request_path(freq, leaf_servin
     # Act
     ctx = views.build_figrecipe_context(content_request, leaf_serving)
     # Assert
-    assert seen["name"] == "figrecipe_app:figrecipe_editor"
+    assert seen["name"] == "figrecipe-leaf:figrecipe_editor"
     assert ctx["stx_mount"] == _GUARDED_MOUNT
     assert not ctx["stx_mount"].endswith("/")
 
@@ -197,7 +198,8 @@ def test_figure_editor_shares_single_builder_and_renders_leaf(freq, leaf_serving
 
 
 def test_bespoke_mount_blocks_plugin_remount():
-    # Arrange — the bespoke apps/figrecipe/ include already serves the leaf route
+    # Arrange — the bespoke apps/figrecipe/ default (leaf via login-gated
+    # wrapper) already serves the leaf route
     from django.urls import path
 
     from apps.workspace.apps_app.services.plugin_apps import _route_taken

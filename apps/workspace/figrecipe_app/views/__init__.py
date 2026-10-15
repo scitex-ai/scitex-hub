@@ -16,15 +16,24 @@ is a thin adapter, not an owner:
   retired: the leaf bundle serves the frontend, and the leaf template
   extends the SDK shell, not ``shared/app_editor.html``.
 - SECURITY: ``urls/figrecipe.py`` (SITE-2 jail guard) is untouched by this
-  move — see that module's docstring. The SPA's API base (``stx_mount``)
-  points at the guarded wrapper (``figrecipe_app:figrecipe_editor``), so
-  every API call the leaf frontend makes passes the hub jail guard.
-- MOUNTS (triple-serve dedupe): the bespoke ``apps/figrecipe/`` include
-  (config/urls.py) stays the single serving mount — it carries the jail
-  guard and the auth gate. The generic plugin mount
-  (``plugin_urlpatterns``) skips the leaf's ``apps/figrecipe/`` route via
-  ``_route_taken`` (pinned by test), so the leaf urlconf is never
-  double-mounted raw. No route file changes at flip.
+  move — see that module's docstring. It now serves the old-direct
+  reference mount (``figrecipe_app:figrecipe_editor`` ->
+  ``/apps/figrecipe/old-direct/figrecipe/``) while the user path is the
+  leaf. The SPA's API base (``stx_mount``) points at the LEAF mount
+  (``figrecipe-leaf:figrecipe_editor``), which the leaf jails itself via
+  SDK project authority + ``prepare_request`` (declared in its manifest
+  ``mount_policy``, figrecipe#456) — so every API call the leaf frontend
+  makes is contained without depending on which hub wrapper served the page.
+- MOUNTS (cutover CCT-2784, Scholar #1074 template): the user path
+  ``apps/figrecipe/`` serves the leaf through the login-gated wrapper
+  (``urls/figrecipe_django.py``). The pre-cutover bespoke mount
+  (``pages.py`` adapter + SITE-2 guarded ``figrecipe.py``) serves ONLY the
+  dev-only ``apps/figrecipe/old-direct/`` reference (mount + gate in
+  config/urls.py, listed BEFORE the default because the leaf's
+  ``<path:endpoint>`` catch-all would otherwise swallow it). The generic
+  plugin mount (``plugin_urlpatterns``) keeps skipping the leaf's
+  ``apps/figrecipe/`` route via ``_route_taken`` (the bespoke default still
+  takes it), so the leaf urlconf is never double-mounted raw.
 - FAIL LOUD: a missing leaf (below the ``figrecipe>=0.36`` floor) raises
   instead of rendering stale hub keys — a wrong-answer-that-looks-right
   page is worse than an error with the floor version in it. A leaf that is
@@ -89,16 +98,18 @@ HUB_FALLBACK_TEMPLATE = "shared/app_editor.html"
 
 
 def _stx_mount() -> str:
-    """Return the SPA's API base: the guarded figrecipe wrapper mount.
+    """Return the SPA's API base: the LEAF nested API mount.
 
-    Derived from the hub URLconf (``figrecipe_app:figrecipe_editor`` ->
-    ``/apps/figrecipe/figrecipe/``), never from ``request.path``: the
+    Derived from the hub URLconf (``figrecipe-leaf:figrecipe_editor`` ->
+    ``/apps/figrecipe/figrecipe``), never from ``request.path``: the
     workspace content endpoint serves the same partial from
     ``/apps/workspace/content/figrecipe/``, where a path-derived prefix
-    would point the SPA at unguarded 404s. This is the legacy mount the
-    leaf's own frontend mount test pins (``/apps/figrecipe/figrecipe``).
+    would point the SPA at unguarded 404s. The leaf name (not the legacy
+    ``figrecipe_app:`` one) ON PURPOSE: old-direct is dev-only and absent
+    in production, so reversing a legacy name here would 500 every prod
+    caller; the leaf mount ships everywhere the page does.
     """
-    return reverse("figrecipe_app:figrecipe_editor").rstrip("/")
+    return reverse("figrecipe-leaf:figrecipe_editor").rstrip("/")
 
 
 def _mount_marker(request):
