@@ -82,6 +82,41 @@ def _scholar_old_direct_patterns():
     ]
 
 
+def _figrecipe_old_direct_patterns():
+    """Dev-only old-direct reference for FigRecipe (CCT 2763/2764 + CCT 2806).
+
+    The pre-cutover hub-native routes at apps/figrecipe/old-direct/, for
+    parity comparison while v1 parity is open. [] in production by rule —
+    the gate lives in figrecipe_app/urls/legacy.py so mount and tests read
+    one definition. No registry/manifest entry exists for old-direct, so
+    no launcher tile or link can render it. Scholar #1074 template.
+
+    ORDER MATTERS (figrecipe-only): this list is spliced BEFORE the default
+    mount below. The leaf urlconf carries a ``<path:endpoint>`` catch-all,
+    so a default-first order would swallow every old-direct URL into the
+    leaf dispatcher (scholar's leaf has no catch-all, which is why scholar
+    can list the default first).
+    """
+    from apps.workspace.figrecipe_app.urls.legacy import (
+        old_direct_enabled,
+        urlpatterns as legacy_patterns,
+    )
+
+    if not old_direct_enabled():
+        return []
+    # No explicit instance namespace ON PURPOSE: it defaults to the
+    # app_name ("figrecipe_app"), byte-identical to the pre-cutover user-path
+    # mount — so the adapter's reverse() calls keep resolving, now to
+    # old-direct URLs. That is exactly what a parity reference should be:
+    # the old tree, same names, different prefix.
+    return [
+        path(
+            "apps/figrecipe/old-direct/",
+            include((legacy_patterns, "figrecipe_app")),
+        ),
+    ]
+
+
 urlpatterns = [
     # Language selection. Django's set_language view writes the chosen language
     # to the session/cookie and redirects back to `next`. LocaleMiddleware then
@@ -223,16 +258,31 @@ urlpatterns = [
     # same pattern: hub-side app routes move to apps/<app>/old-direct as the
     # parity reference, and old-direct NEVER ships in production — dev-gated,
     # no launcher tiles/links, no user path, deleted outright once parity
-    # closes. Scholar is the first instance; figrecipe / writer / console
-    # follow the identical pattern as each migrates (same mount shape, same
-    # gate, same no-tiles rule — no registry/manifest entry exists for
+    # closes. Scholar was the first instance; figrecipe follows the identical
+    # pattern as of its cutover below (writer / console follow as each
+    # migrates; same mount shape, same gate, same no-tiles rule — no
+    # registry/manifest entry exists for
     # old-direct by construction, so no tile can render it; no /v2/ alias).
     *_scholar_old_direct_patterns(),
     path("apps/console/", include(("apps.workspace.console_app.urls", "console_app"))),
-    path(
-        "apps/figrecipe/",
-        include(("apps.workspace.figrecipe_app.urls", "figrecipe_app")),
-    ),
+    # FigRecipe cutover (CCT-2784, Scholar #1074 template) + RED START
+    # (CCT 2806, binding): /apps/figrecipe/ serves the LEAF ONLY
+    # (login-gated wrapper in figrecipe_app/urls/figrecipe_django.py) — the
+    # plain hub-side routes went dark first (404) and the plain route is
+    # relit ONLY by the working leaf plugin. The pre-cutover hub-native
+    # routes (adapter page + SITE-2 guarded API) are NOT on the user path
+    # anymore: they live ONLY at /apps/figrecipe/old-direct/ in dev.
+    # Old-direct is spliced FIRST on purpose (see _figrecipe_old_direct_patterns:
+    # the leaf's <path:endpoint> catch-all would otherwise swallow it).
+    # Plain include (no app_name tuple) ON PURPOSE: the leaf carries its own
+    # namespace and Django only propagates it to reverse() through a
+    # namespace-transparent outer mount (see figrecipe_app/urls/__init__.py).
+    # No alias mount is added (CCT 2795 lesson): the leaf's hosted-compat
+    # names travel inside the single mount. The generic plugin mount keeps
+    # skipping this route via _route_taken (the bespoke default still takes
+    # it), so the leaf urlconf is never double-mounted.
+    *_figrecipe_old_direct_patterns(),
+    path("apps/figrecipe/", include("apps.workspace.figrecipe_app.urls")),
     path("apps/writer/", include(("apps.workspace.writer_app.urls", "writer_app"))),
     # NOTE: the raw ``path("writer/", include("scitex_writer._django.urls"))``
     # mount (card hub-mount-writer-django-app-20260707) was REMOVED as a P0
