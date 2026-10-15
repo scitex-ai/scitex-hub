@@ -261,7 +261,12 @@ dependencies = [
     # by bridged apps. Pack the selected Python SDK before npm installation.
     # >=0.3.2 carries the canonical project-scope and preflight/final
     # write-grant contract qualified for the current leaf integration.
-    "scitex-sdk>=0.3.2",
+    # >=0.3.5 is the first release carrying `scitex_sdk.app.jail`
+    # (validate_mount_policy + JailScopedView — verified absent from the
+    # published 0.3.4 wheel, present in 0.3.5/0.3.6), which Writer Slice 2
+    # builds on and test_sdk_jail_contract_present pins. A lower floor
+    # would resolve an SDK without the jail contract.
+    "scitex-sdk>=0.3.5",
     "gitpython>=3.1.51",
 ]
 
