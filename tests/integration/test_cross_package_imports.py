@@ -42,12 +42,6 @@ import pytest
 # ===== AUTO-GENERATED: cross-package imports =====
 CROSS_PACKAGE_IMPORTS = [
     'scitex.cli.introspect',
-    'scitex_app.appmaker',
-    'scitex_app.appmaker._license',
-    'scitex_app.appmaker._publish',
-    'scitex_app.appmaker._validate',
-    'scitex_app.sdk',
-    'scitex_app.sdk._client',
     'scitex_config._ecosystem',
     'scitex_dev',
     'scitex_dev._cli._completion',
@@ -56,6 +50,12 @@ CROSS_PACKAGE_IMPORTS = [
     'scitex_dev.jobs',
     'scitex_dev.jobs._placement',
     'scitex_logging',
+    'scitex_sdk.app.appmaker',
+    'scitex_sdk.app.appmaker._license',
+    'scitex_sdk.app.appmaker._publish',
+    'scitex_sdk.app.appmaker._validate',
+    'scitex_sdk.app.sdk',
+    'scitex_sdk.app.sdk._client',
 ]
 # ===== END AUTO-GENERATED =====
 

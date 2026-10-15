@@ -318,18 +318,27 @@ def test_leaf_declares_no_mount_policy_yet():
     assert "mount_policy" not in _leaf_manifest()
 
 
-def test_sdk_jail_contract_missing_tripwire():
-    # Slice 2 needs the SDK jail surface (SDK PR #49: scitex_sdk/app/jail.py
-    # + validate_mount_policy). It is absent from the installed SDK 0.3.4,
-    # so hub-side jail enforcement cannot be built on the generic contract
-    # yet. When this test FAILS, the contract has landed: delete this test
-    # and build Slice 2 (file/content write paths) on validate_mount_policy
-    # + JailScopedView per the FigRecipe #1068 shape.
-    assert importlib.util.find_spec("scitex_sdk.app.jail") is None, (
-        "SDK jail contract has landed — remove this tripwire and build "
-        "Writer Slice 2 (file/content write paths) on validate_mount_policy "
-        "+ JailScopedView per the FigRecipe #1068 shape"
-    )
+def test_sdk_jail_contract_present():
+    # The SDK jail surface (SDK: scitex_sdk/app/jail.py +
+    # validate_mount_policy) has LANDED — it shipped in scitex-sdk 0.3.5
+    # (absent from the published 0.3.4 wheel, present in 0.3.5+; the
+    # previous missing-tripwire asserted the opposite and failed once CI
+    # resolved 0.3.5). Slice 2 builds the Writer file/content write paths
+    # on validate_mount_policy + JailScopedView per the FigRecipe #1068
+    # shape, so this test pins the contract members Slice 2 needs. If it
+    # FAILS, the SDK regressed (or the floor dropped below the contract):
+    # fail loud, do NOT silently fall back to the bespoke wrapper.
+    from scitex_sdk.app import jail
+
+    for member in (
+        "validate_mount_policy",  # mount-time declaration check
+        "JailScopedView",  # host-enforced request bar
+        "is_in_jail",  # containment primitive
+        "resolve_against",  # path-join primitive
+        "MOUNT_POLICY_KEY",  # manifest key ("mount_policy")
+    ):
+        assert hasattr(jail, member), f"scitex_sdk.app.jail.{member} missing"
+    assert jail.MOUNT_POLICY_KEY == "mount_policy"
 
 
 # EOF
