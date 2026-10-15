@@ -150,6 +150,14 @@ class AppsModule(models.Model):
         blank=True,
         help_text="SHA of the approved commit (set on approval)",
     )
+    pinned_version = models.CharField(
+        max_length=20,
+        blank=True,
+        default="",
+        help_text="Version string certified with the pin (set on submission; "
+        "the Verified badge is bound to it — a different version shows no "
+        "badge in production until re-certified)",
+    )
     pinned_at = models.DateTimeField(null=True, blank=True)
 
     # Registry fork URL (set on approval — canonical copy under scitex-apps org)
@@ -182,6 +190,37 @@ class AppsModule(models.Model):
         else:
             self.avg_rating = 0
         self.save(update_fields=["star_count", "install_count", "avg_rating"])
+
+    def latest_released_version(self):
+        """Newest version string in the module's version history, or None."""
+        return (
+            self.versions.order_by("-released_at")
+            .values_list("version", flat=True)
+            .first()
+        )
+
+    def shows_verified_badge(self):
+        """Whether the official Verified badge renders for this module.
+
+        Genuineness = badge + version pin (operator CCT 2941/2942): the
+        badge is bound to the certified (publisher, version) pin, so a
+        different version shows NO badge until re-certified.
+
+        Env-gated strictness (operator CCT 2946): RELAXED outside
+        production — develop/dev-mode shows the badge on ``is_verified``
+        alone with zero extra queries, so develop cycles never slow.
+        STRICT only when ``SCITEX_ENV == "production"``: the pin must be
+        recorded and must equal the latest released version.
+        """
+        if not self.is_verified:
+            return False
+        from django.conf import settings
+
+        if getattr(settings, "SCITEX_ENV", "development") != "production":
+            return True
+        if not self.pinned_version:
+            return False
+        return self.latest_released_version() == self.pinned_version
 
 
 def _validate_version(value):

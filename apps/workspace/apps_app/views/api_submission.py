@@ -50,9 +50,12 @@ def api_submit_for_review(request, module_name):
 
     version = getattr(app_module, "latest_version", "0.1.0") or "0.1.0"
 
-    # Update pinned commit
+    # Update pinned commit + version: the certification record the
+    # Verified badge is bound to (publisher, version-hash). A different
+    # version shows no badge in production until re-certified.
     app_module.pinned_commit = pinned_commit
-    app_module.save(update_fields=["pinned_commit"])
+    app_module.pinned_version = version
+    app_module.save(update_fields=["pinned_commit", "pinned_version"])
 
     pr_url = _submit_app_pr(
         app_module=app_module,
