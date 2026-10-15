@@ -455,6 +455,60 @@ def app_config_identity(entry: str) -> AppIdentity:
     return _Declarations().selected(entry)
 
 
+def runtime_certified_identity(entry: str) -> AppIdentity:
+    """Import-first fallback for entries the source-only reader refuses.
+
+    The static reader admits only literal module forwarders; leaf entry
+    modules that import their AppConfig symbol lazily (``__getattr__``
+    returning a class, not a module) are refused at
+    :class:`ModuleBindings` with "not a literal module forwarder" and the
+    plugin is skipped at boot. This fallback imports the claimed dotted
+    path and verifies the REAL object instead of its source shape:
+
+    - the attribute exists and is a class;
+    - it subclasses ``django.apps.config.AppConfig``;
+    - its ``name`` names an actually importable package;
+    - its label (explicit or derived exactly as the static reader derives
+      it) is a valid identifier.
+
+    That is the same identity the static path establishes (name, label,
+    default selection), proved against the live class rather than its AST
+    — equal strength, no weaker admission. Any failure (including an
+    exception raised by the leaf import itself) becomes
+    ``MetadataUnavailable`` so the caller keeps its skip path; nothing
+    here changes Django population.
+    """
+    from importlib import import_module
+
+    module_path, separator, attr = entry.rpartition(".")
+    if not separator or not attr:
+        raise MetadataUnavailable("Entry does not name an AppConfig attribute")
+    try:
+        module = import_module(module_path)
+        claimed = getattr(module, attr, None)
+        from django.apps.config import AppConfig
+
+        if not (isinstance(claimed, type) and issubclass(claimed, AppConfig)):
+            raise MetadataUnavailable("Entry does not name an AppConfig subclass")
+        name = getattr(claimed, "name", None)
+        if not isinstance(name, str) or not name:
+            raise MetadataUnavailable("AppConfig has no declared name")
+        import_module(name)
+        label = getattr(claimed, "label", None) or name.rsplit(".", 1)[-1]
+        if not isinstance(label, str) or not label.isidentifier():
+            raise MetadataUnavailable("AppConfig label is invalid")
+        default = getattr(claimed, "default", None)
+        if default is not None and not isinstance(default, bool):
+            raise MetadataUnavailable("AppConfig default field is not boolean")
+    except MetadataUnavailable:
+        raise
+    except Exception as error:
+        raise MetadataUnavailable(
+            f"AppConfig runtime import is not certifiable: {error}"
+        ) from error
+    return AppIdentity(name, label, default)
+
+
 def app_installation_entries(module: str) -> tuple[str, ...]:
     """Read the leaf's literal companion declaration without importing it.
 
