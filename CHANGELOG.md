@@ -9,6 +9,25 @@ verbatim. See [ADR-0001](docs/adr/0001-rename-scitex-cloud-to-scitex-hub.md).
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.21.0a1] - 2026-10-15
+
+Pre-release cut from develop at #1076. Base pytest-matrix/quality suite is
+red at this commit (program CCT 2954/55, tracked per-family under
+hub-review-queue-manage-20260929) — the tag pipeline gates publishing on
+green tests, so this release stays PR-staged until the suite greens.
+
+### Added
+- Scholar app cutover: `/apps/scholar/` served from the leaf plugin by
+  default, hub routes to dev-only old-direct (#1074, fix-forward #1073
+  SDK import switch: live `scitex_app` imports -> `scitex_sdk`).
+- FigRecipe app cutover: `/apps/figrecipe/` served from the leaf plugin
+  by default, hub routes to dev-only old-direct (#1075).
+
+### Fixed
+- Vite build resolves `@scitex/sdk/*` subpaths from the SDK exports map;
+  the Oct-02 SDK-owner migration import no longer aborts the build and
+  the manifest carries shared entries again (#1076).
+
 ## [0.20.0a2] - 2026-09-17
 
 Second follow-up alpha for the signed-in-only SciTeX application platform.
