@@ -68,8 +68,8 @@ logger = logging.getLogger(__name__)
 # a floor binds only where something installs against it.
 #
 # NOT A SILENT FALLBACK. The failure is logged at ERROR with the exception and
-# the routes are omitted, so /apps/scholar/v2/ 404s while the legacy
-# /apps/scholar/ keeps serving. Hub already uses exactly this shape for optional
+# the routes are omitted, so /apps/scholar/* 404s fail-closed while the
+# dev-only /apps/scholar/old-direct/ reference is unaffected. Hub already uses exactly this shape for optional
 # plugin mounts (config/urls.py: "Only mounted when the package is importable").
 # The alternative — letting one leaf's dependency skew 500 the whole site — is
 # not "failing loud", it is failing everywhere.
@@ -82,6 +82,19 @@ else:
     _LEAF_IMPORT_ERROR = None
 
 _MOUNT_PREFIX = "v2/"
+
+# CUTOVER (CCT 2760) + OPERATOR ROUTE RULE (CCT 2763/2764): the leaf is the
+# DEFAULT at /apps/scholar/ and the ONLY thing on the user path.
+#
+# Root mount ("" = /apps/scholar/) serves the SAME login-gated leaf urlconf;
+# v2/ is kept as a compat alias so existing links keep resolving. The
+# pre-cutover hub-native routes are NOT mounted here anymore — they live in
+# legacy.py and are served ONLY at /apps/scholar/old-direct/ in dev (mount
+# + gate in config/urls.py), never in production. When the leaf is missing
+# or broken, urlpatterns is [] exactly as before and /apps/scholar/* 404s
+# fail-closed. Deleting the bespoke mount / moving to the pure generic
+# plugin mount is a separate retire step once the leaf publishes a
+# scitex.apps entry point (it has none in 1.13.x) and v1 parity closes.
 
 
 class ImproperlyGatedURLConf(RuntimeError):
@@ -131,10 +144,19 @@ if _LEAF_IMPORT_ERROR is not None:
     )
     urlpatterns = []
 else:
+    # One gated copy, mounted twice: the cutover default at "" (= the
+    # /apps/scholar/ root) plus the v2/ compat alias. Distinct namespaces so
+    # reverse() stays unambiguous; resolve() by path is what matters.
+    assert _leaf is not None  # else-branch: the import above succeeded
+    _gated_patterns = _gated(_leaf.urlpatterns)
     urlpatterns = [
         path(
+            "",
+            include((_gated_patterns, "scholar"), namespace="scholar-leaf"),
+        ),
+        path(
             _MOUNT_PREFIX,
-            include((_gated(_leaf.urlpatterns), "scholar"), namespace="scholar-leaf"),
+            include((_gated_patterns, "scholar"), namespace="scholar-leaf-v2"),
         ),
     ]
 

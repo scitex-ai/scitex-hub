@@ -1,38 +1,27 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""Scholar app URLs package.
+"""Scholar app URLs: the LEAF is the whole user path.
 
-Re-exports all URL patterns from submodules for Django URL configuration.
+CUTOVER (CCT 2760) + OPERATOR ROUTE RULE (CCT 2763/2764): /apps/scholar/
+serves the Scholar LEAF plugin (login-gated wrapper in scholar_django.py —
+see that module for why the gate is not optional). The pre-cutover
+hub-native routes are NOT mounted here anymore; they live in legacy.py and
+are served ONLY at /apps/scholar/old-direct/ in dev (mount + gate in
+config/urls.py), never in production, with no tiles or links.
 """
 
 from __future__ import annotations
 
-from .api import urlpatterns as api_patterns
-from .bibtex import urlpatterns as bibtex_patterns
-from .library import urlpatterns as library_patterns
-from .repository import urlpatterns as repository_patterns
 from .scholar_django import urlpatterns as scholar_django_patterns
-from .search import urlpatterns as search_patterns
-from .workspace import urlpatterns as workspace_patterns
 
-app_name = "scholar_app"
-
-# Combine all URL patterns
-urlpatterns = (
-    workspace_patterns
-    + search_patterns
-    + library_patterns
-    + bibtex_patterns
-    + repository_patterns
-    + api_patterns
-    # The upstream scitex-scholar UI, behind hub's login. Mounted at
-    # /apps/scholar/v2/ ALONGSIDE the legacy routes above, not in place of
-    # them — same gradual cut-over shape writer used (#146), so the page the
-    # operator is looking at right now does not change under him. Flipping the
-    # default is a separate, one-line decision once the leaf has been read on a
-    # running site. See scholar_django.py for why the gate is not optional.
-    + scholar_django_patterns
-)
+# No app_name here ON PURPOSE. The leaf is mounted under its own namespaces
+# (scholar-leaf / scholar-leaf-v2), and Django only propagates nested
+# namespaces to reverse() when the outer include sets no app_name of its own
+# (resolvers.py _populate: an app_name'd resolver registers only itself).
+# An outer app_name would make scholar-leaf:index unresolvable by reverse()
+# — the skill check (llm_app.E001) caught exactly this. The hub-side
+# "scholar_app" app_name lives on in legacy.py for the old-direct mount.
+urlpatterns = scholar_django_patterns
 
 
 # EOF
