@@ -21,18 +21,13 @@ def check_project_read_access(request, project) -> bool:
     Returns:
         True if user has read access, False otherwise
     """
-    if request.user.is_authenticated:
-        return (
-            project.owner == request.user
-            or project.collaborators.filter(id=request.user.id).exists()
-            or project.visibility == "public"
-        )
-    else:
-        # For visitor users, check if this is their allocated visitor project
-        visitor_project_id = request.session.get("visitor_project_id")
-        return project.visibility == "public" or (
-            visitor_project_id and project.id == visitor_project_id
-        )
+    if project.visibility == "public":
+        return True
+    if not request.user.is_authenticated:
+        return False
+    return project.owner == request.user or project.collaborators.filter(
+        id=request.user.id
+    ).exists()
 
 
 def check_project_write_access(request, project) -> bool:

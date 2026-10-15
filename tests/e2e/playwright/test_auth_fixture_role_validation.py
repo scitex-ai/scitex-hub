@@ -3,11 +3,11 @@
 """Tests for the authenticated-test-user role validation used by the E2E
 mobile fixtures (tests/e2e/playwright/conftest.py).
 
-The mobile fixtures authenticate as an EXPLICIT registered test user (not a
-pooled visitor) and must only hand a page to a test once the context is
+The mobile fixtures authenticate as an explicit synthetic registered test user
+and must only hand a page to a test once the context is
 provably a registered user. This pins the role predicate and its failure
 text so a future fixture change cannot silently accept an anonymous /
-readonly / pooled session -- a logged-out page still returns 200, so only an
+unknown session -- a logged-out page still returns 200, so only an
 explicit role check can catch it.
 
 Browser-free and pure: no Playwright fixtures, so this runs in the ordinary
@@ -18,9 +18,7 @@ import pytest
 
 from tests.e2e.playwright.session_role_check import (
     ROLE_ANONYMOUS,
-    ROLE_READONLY_VISITOR,
     ROLE_USER,
-    ROLE_VISITOR,
     authenticated_user_role_failure,
     is_authenticated_user_role,
 )
@@ -37,15 +35,6 @@ class TestIsAuthenticatedUserRole:
     def test_rejects_missing_role_attribute(self):
         # "" means the page has no data-session-role at all -- cannot vouch.
         assert is_authenticated_user_role("") is False
-
-    def test_rejects_readonly_visitor_role(self):
-        # A readonly fallback is NOT a registered user; running against it
-        # would be the same vacuous-pass defect.
-        assert is_authenticated_user_role(ROLE_READONLY_VISITOR) is False
-
-    def test_rejects_pooled_visitor_role(self):
-        # The mobile fixtures log in as a real account, not a pooled slot.
-        assert is_authenticated_user_role(ROLE_VISITOR) is False
 
     def test_rejects_unrecognised_role(self):
         assert is_authenticated_user_role("something-new") is False
@@ -69,10 +58,9 @@ class TestAuthenticatedUserRoleFailure:
 
     def test_message_names_unknown_role_honestly(self):
         msg = authenticated_user_role_failure("mystery-role", "ctx")
-        # An unrecognised role gets "we do not know what this is", not a
-        # borrowed diagnosis.
+        # An unrecognised role gets its own diagnosis, not a borrowed one.
         assert "mystery-role" in msg
-        assert "not recognise" in msg
+        assert "unrecognised role" in msg
 
 
 if __name__ == "__main__":

@@ -25,18 +25,15 @@ def api_file_tree(request, username, slug):
     user = get_object_or_404(User, username=username)
     project = get_object_or_404(Project, slug=slug, owner=user)
 
-    # Check access (allow public access for public projects)
-    if request.user.is_authenticated:
-        has_access = (
+    # Public projects are readable by anyone; private projects require an
+    # authenticated owner/collaborator. Session keys never confer identity.
+    has_access = project.visibility == "public" or (
+        request.user.is_authenticated
+        and (
             project.owner == request.user
             or project.collaborators.filter(id=request.user.id).exists()
-            or project.visibility == "public"
         )
-    else:
-        visitor_project_id = request.session.get("visitor_project_id")
-        has_access = project.visibility == "public" or (
-            visitor_project_id and project.id == visitor_project_id
-        )
+    )
 
     if not has_access:
         return JsonResponse({"success": False, "error": "Permission denied"})

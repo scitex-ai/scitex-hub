@@ -231,7 +231,21 @@ def signup(request):
             # The verify, resend and cleanup paths all require it. Resend and
             # email-change deliberately never create one — that separation is
             # what stops a suspended account acquiring signup authority.
-            PendingSignup.objects.create(user=user, email=email)
+            # The fleet store requires plan NOT NULL: an allowlisted ?plan=
+            # wins, otherwise the newcomer default subscription-free.
+            requested_plan = (request.POST.get("plan") or request.GET.get("plan") or "").strip()
+            signup_plan = "subscription-free"
+            if requested_plan:
+                try:
+                    from apps.infra.public_app.services.billing_provider import (
+                        resolve_signup_plan,
+                    )
+
+                    if resolve_signup_plan(requested_plan) is not None:
+                        signup_plan = requested_plan
+                except Exception:
+                    pass
+            PendingSignup.objects.create(user=user, email=email, plan=signup_plan)
 
             # Create Gitea user account (sync with Gitea)
             try:
@@ -247,30 +261,6 @@ def signup(request):
             except Exception as e:
                 logger.warning(f"Gitea sync failed for {username}: {e}")
                 # Don't fail signup if Gitea sync fails
-
-            # Migrate visitor session data if exists
-            if request.session.session_key:
-                from apps.infra.project_app.services.anonymous_storage import (
-                    migrate_to_user_storage,
-                )
-
-                migrated = migrate_to_user_storage(request.session.session_key, user)
-                if migrated:
-                    logger.info(
-                        f"Migrated visitor session data for new user {username}"
-                    )
-
-            # Claim visitor project if user was using visitor pool
-            # This transfers visitor-XXX's default-project to the new user's default-project
-            from apps.infra.project_app.services.visitor_pool import VisitorPool
-
-            claimed_project = VisitorPool.claim_project_on_signup(request.session, user)
-            if claimed_project:
-                logger.info(
-                    f"Claimed visitor project for new user {username}: {claimed_project.id}"
-                )
-            else:
-                logger.info(f"No visitor project to claim for new user {username}")
 
             # Create email verification record
 
@@ -352,27 +342,6 @@ def login_view(request):
             user = authenticate(request, username=username, password=password)
 
             if user is not None:
-                # Migrate visitor session data before login if exists
-                if request.session.session_key:
-                    from apps.infra.project_app.services.anonymous_storage import (
-                        migrate_to_user_storage,
-                    )
-
-                    migrated = migrate_to_user_storage(
-                        request.session.session_key, user
-                    )
-                    if migrated:
-                        import logging
-
-                        logger = logging.getLogger(__name__)
-                        logger.info(
-                            f"Migrated visitor session data for user {user.username}"
-                        )
-                        messages.info(
-                            request,
-                            "Your previous session data has been saved to your account!",
-                        )
-
                 login(request, user)
 
                 # Handle remember me

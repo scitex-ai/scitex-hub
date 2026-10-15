@@ -421,3 +421,79 @@
     min-height: 360px;
   }
 }
+
+/* Template clarity: per-card facts, expandable steps, confirm box. */
+
+.appmaker-starter {
+  flex-direction: column;
+  align-items: stretch;
+}
+
+.appmaker-starter-pick {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  cursor: pointer;
+}
+
+.appmaker-starter-creates,
+.appmaker-starter-time {
+  display: block;
+  margin-top: 4px;
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--workspace-text-secondary);
+}
+
+.appmaker-starter-creates strong,
+.appmaker-starter-time strong {
+  color: var(--workspace-text-primary);
+  font-weight: 600;
+}
+
+.appmaker-starter-more {
+  width: 100%;
+  margin-top: 4px;
+  padding-top: 8px;
+  border-top: 1px dashed var(--workspace-border-default);
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--workspace-text-secondary);
+}
+
+.appmaker-starter-more summary {
+  display: inline-block;
+  padding: 8px 0;
+  font-weight: 600;
+  font-size: 13px;
+  color: var(--color-accent-emphasis);
+  cursor: pointer;
+}
+
+.appmaker-starter-more ol {
+  margin: 4px 0 8px;
+  padding-left: 22px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  list-style: decimal;
+}
+
+.appmaker-confirm {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  margin: 0 0 16px;
+  padding: 12px;
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--workspace-text-primary);
+  background: var(--workspace-bg-secondary);
+  border: 1px solid var(--workspace-border-default);
+  border-radius: 10px;
+}
+
+.appmaker-confirm i {
+  margin-top: 2px;
+  color: var(--color-accent-emphasis);
+}

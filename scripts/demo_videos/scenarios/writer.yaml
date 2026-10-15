@@ -7,6 +7,15 @@ title:
 languages:
   en: {locale: en}
   ja: {locale: ja}
+# Known limit (docs/ops/demo-videos.md): the Writer page itself is not translated,
+# so the Japanese-narrated recording necessarily shows English Writer labels. The
+# spec (private-beta section 8) asks for a matching UI+audio rendition in that
+# case, recorded from the same action timeline, so Japanese viewers get a video
+# that agrees with the screen they will actually see.
+alternates:
+  - language: ja
+    ui_locale: en
+    reason: The Writer editor and details panel are not translated yet; the Japanese narration is offered over the English UI it describes.
 viewports: [desktop]
 sign_in: true
 steps:

@@ -212,6 +212,12 @@ class LauncherTemplateAvailabilityTest(TestCase):
             visibility="public",
             availability="coming_soon",
         )
+        AppsModule.objects.create(
+            module_name="desktop-only-test-app",
+            category="other",
+            visibility="public",
+            availability="desktop_only",
+        )
 
     def setUp(self):
         self.client.login(
@@ -255,6 +261,14 @@ class LauncherTemplateAvailabilityTest(TestCase):
     def test_coming_soon_tile_is_aria_disabled(self):
         # Arrange
         expected = b'aria-disabled="true"'
+        # Act
+        resp = self.client.get("/")
+        # Assert
+        assert expected in resp.content
+
+    def test_desktop_only_tile_carries_data_availability(self):
+        # Arrange — a public catalog row declares desktop_only
+        expected = b'data-availability="desktop_only"'
         # Act
         resp = self.client.get("/")
         # Assert

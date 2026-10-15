@@ -5,7 +5,7 @@
 WHY THIS EXISTS. ``.github/workflows/screenshots.yml`` says its second job
 is that "a page that starts erroring is caught by the job that photographs
 it". Until this module existed it did not do that. The capture asserted
-three things — HTTP < 400, ``body[data-session-role] == "visitor"``, and
+three things — HTTP < 400, ``body[data-session-role] == "user"``, and
 ``document.body.innerText`` being non-empty — and every one of them passes
 on a page that rendered nothing a human would call content.
 
@@ -14,7 +14,8 @@ MEASURED 2026-08-17, from the artifact of a GREEN run on develop
 
   * ``04-figrecipe.png`` — the header strip, and then the entire body
     blank. ``#app-mount`` is the FigRecipe bundle's mount point
-    (``figrecipe_app/templates/figrecipe_app/figrecipe_partial.html``);
+    (leaf ``figrecipe/workspace_partial.html`` since the leaf flip
+    hub-figrecipe-leaf-move-20261009; hub partial retired);
     nothing had mounted into it.
   * ``02-writer.png`` — the file selector still reading "Loading...",
     the word count still "0", the manuscript pane empty. Those are the
@@ -115,13 +116,11 @@ RUNTIME_MEDIA_REASON = (
 #: per page, by the tests — the probe only measures.
 PAGE_ELEMENT_SIGNALS = {
     "/apps/writer/": {
-        # index_partials/main_editor.html ships this reading "Loading...".
-        # It is replaced by ts/utils/_section-dropdown/SectionDropdown.ts
-        # once the file tree resolves; still reading "Loading..." means it
-        # never did.
+        # The Hub reference editor remains the current /apps/writer/ product
+        # route until its package-owned replacement reaches parity. Its
+        # dropdown starts as "Loading..." and is replaced after sections load.
         "file_selector": "#section-selector-text",
-        # Same partial ships this as "0". A manuscript with no words in it
-        # is the empty editor the operator was shown.
+        # The reference template ships this as "0" until content loads.
         "word_count": "#current-word-count",
     },
     "/apps/figrecipe/": {

@@ -10,7 +10,7 @@ import os
 __FILE__ = "./apps/scholar_app/views/search/engines/arxiv.py"
 __DIR__ = os.path.dirname(__FILE__)
 # ----------------------------------------
-import requests
+from ....services.network_jail import jailed_get  # Slice 1: jailed egress (allowlisted hosts, capped body/timeout)
 from scitex import logging
 
 logger = logging.getLogger(__name__)
@@ -46,7 +46,7 @@ def search_arxiv_real(query, max_results=15, filters=None):
         }
 
         logger.info(f"   Requesting: {base_url} with query: {search_query}")
-        response = requests.get(base_url, params=params, timeout=60)
+        response = jailed_get(base_url, params=params, timeout=60)
         response.raise_for_status()
 
         # Parse XML response
@@ -169,7 +169,7 @@ def search_arxiv(query, max_results=50, filters=None):
             "sortOrder": "descending",
         }
 
-        response = requests.get(base_url, params=params, timeout=60)
+        response = jailed_get(base_url, params=params, timeout=60)
         response.raise_for_status()
 
         # Parse XML response (simplified)

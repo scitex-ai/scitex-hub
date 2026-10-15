@@ -3,7 +3,7 @@
 """Put the site-wide dock on leaf-app pages that do not extend global_base.html.
 
 Hub pages get the dock from ``global_base.html`` (``{% site_dock %}``). Mounted
-leaf apps such as Scholar's /apps/scholar/v2/ are served as the leaf package's
+leaf apps such as Scholar's /apps/scholar/ are served as the leaf package's
 OWN HTML document (scitex-app's host view factory), so no hub template is ever
 involved and the base-template dock cannot reach them. The operator asked for
 the dock on EVERY page (2026-09-14), so this middleware appends the same partial

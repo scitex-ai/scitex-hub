@@ -32,65 +32,89 @@ from config.pwa import serve_root_static
 from config.urls_helpers import RESERVED_PATHS, dev_module_view  # noqa: F401
 
 
-def _scitex_cards_installed() -> bool:
-    """True when the upstream cards package is importable.
+def _sdk_creator_patterns():
+    """URL patterns for the SDK App Creator wizard, login-gated.
 
-    Mirrors the guarded THIRD_PARTY_APPS import in settings_shared.py so
-    the /apps/cards/ mount and the installed app always agree.
-
-    Checks the CANONICAL name first. ``scitex_todo`` is a deprecated alias
-    of ``scitex_cards`` (renamed 2026-07-16) whose own DeprecationWarning
-    says it "ships for one transition window only". Gating the mount on the
-    alias made the board's existence depend on a package the upstream has
-    already announced it will delete — and the failure is SILENT: when the
-    alias goes, find_spec returns None, the mount is skipped, and
-    /apps/cards/ quietly falls through to the username catch-all. No error,
-    no log, the board simply stops existing.
-
-    The alias is still accepted as a fallback so an environment pinned to
-    the pre-rename dist keeps working; drop that arm once nothing ships it.
+    Thin-hub mount, no SDK view symbol named: scitex-sdk 0.2.0 declares no
+    ``scitex.apps`` entry point, so the generic plugin mount
+    (``plugin_urlpatterns``) cannot discover it and the mount is explicit.
+    The whole tree is login-wrapped with the same generic wrapper the plugin
+    mount uses, so a new upstream view is gated with zero hub changes. []
+    when the package is absent, so the hub boots without it.
     """
-    from importlib.util import find_spec
+    try:
+        from scitex_sdk.creator import urls as creator_urls
+    except ImportError:
+        return []
+    from apps.workspace.apps_app.services.plugin_apps import _wrap_login
 
-    return (
-        find_spec("scitex_cards") is not None
-        or find_spec("scitex_todo") is not None
+    return [_wrap_login(p) for p in creator_urls.urlpatterns]
+
+
+def _scholar_old_direct_patterns():
+    """Dev-only old-direct reference for Scholar (CCT 2763/2764 + CCT 2806).
+
+    The pre-cutover hub-native routes at apps/scholar/old-direct/, for
+    parity comparison while v1 parity is open. [] in production by rule —
+    the gate lives in scholar_app/urls/legacy.py so mount and tests read
+    one definition. No registry/manifest entry exists for old-direct, so
+    no launcher tile or link can render it. Per-app template for the RED
+    START sequence (plain goes dark first, relit only by a working leaf;
+    CCT 2795: no /v2/ alias remains).
+    """
+    from apps.workspace.scholar_app.urls.legacy import (
+        old_direct_enabled,
+        urlpatterns as legacy_patterns,
     )
 
+    if not old_direct_enabled():
+        return []
+    # No explicit instance namespace ON PURPOSE: it defaults to the
+    # app_name ("scholar_app"), byte-identical to the pre-cutover user-path
+    # mount — so the legacy views' redirect("scholar_app:...") calls keep
+    # resolving, now to old-direct URLs. That is exactly what a parity
+    # reference should be: the old tree, same names, different prefix.
+    return [
+        path(
+            "apps/scholar/old-direct/",
+            include((legacy_patterns, "scholar_app")),
+        ),
+    ]
 
-def _scitex_storage_installed() -> bool:
-    """True when scitex-storage's _django app is importable.
 
-    Mirrors the guarded THIRD_PARTY_APPS import in settings_shared.py so
-    the /apps/storage/ mount and the installed app always agree. Gates on the
-    _django submodule (the include target), so a scitex_storage present
-    without its _django app doesn't mount a broken include.
+def _figrecipe_old_direct_patterns():
+    """Dev-only old-direct reference for FigRecipe (CCT 2763/2764 + CCT 2806).
+
+    The pre-cutover hub-native routes at apps/figrecipe/old-direct/, for
+    parity comparison while v1 parity is open. [] in production by rule —
+    the gate lives in figrecipe_app/urls/legacy.py so mount and tests read
+    one definition. No registry/manifest entry exists for old-direct, so
+    no launcher tile or link can render it. Scholar #1074 template.
+
+    ORDER MATTERS (figrecipe-only): this list is spliced BEFORE the default
+    mount below. The leaf urlconf carries a ``<path:endpoint>`` catch-all,
+    so a default-first order would swallow every old-direct URL into the
+    leaf dispatcher (scholar's leaf has no catch-all, which is why scholar
+    can list the default first).
     """
-    from importlib.util import find_spec
+    from apps.workspace.figrecipe_app.urls.legacy import (
+        old_direct_enabled,
+        urlpatterns as legacy_patterns,
+    )
 
-    # find_spec of a SUBMODULE raises ModuleNotFoundError (rather than
-    # returning None) when the PARENT package scitex_storage is absent
-    # entirely — the state pytest CI hits (no install_apps, no package).
-    # Treat that as not-installed instead of exploding the urlconf import.
-    try:
-        return find_spec("scitex_storage._django") is not None
-    except ModuleNotFoundError:
-        return False
-
-
-def _scitex_agent_container_installed() -> bool:
-    """True when SAC's optional Django dashboard URL contract is importable.
-
-    Probe the include target, not merely the top-level distribution: an older
-    scitex-agent-container checkout can be installed without shipping the
-    dashboard at all.
-    """
-    from importlib.util import find_spec
-
-    try:
-        return find_spec("scitex_agent_container._django.urls") is not None
-    except ModuleNotFoundError:
-        return False
+    if not old_direct_enabled():
+        return []
+    # No explicit instance namespace ON PURPOSE: it defaults to the
+    # app_name ("figrecipe_app"), byte-identical to the pre-cutover user-path
+    # mount — so the adapter's reverse() calls keep resolving, now to
+    # old-direct URLs. That is exactly what a parity reference should be:
+    # the old tree, same names, different prefix.
+    return [
+        path(
+            "apps/figrecipe/old-direct/",
+            include((legacy_patterns, "figrecipe_app")),
+        ),
+    ]
 
 
 urlpatterns = [
@@ -183,6 +207,16 @@ urlpatterns = [
         name="app_workspace_run",
     ),
     path("apps/", include(("apps.workspace.tools_app.urls", "tools_app"))),
+    # --- App Creator wizard (scitex-sdk) ---
+    # The SDK owns the wizard (STARTERS SSOT + `scitex_sdk.creator.urls`);
+    # the hub only mounts it. Canonical home is /apps/new/ (like /new/ for
+    # projects); the old root-level /create-app/ is dropped entirely.
+    # The hub's own /apps/create/* project flow above is the
+    # fallback workspace backend.
+    path(
+        "apps/new/",
+        include((_sdk_creator_patterns(), "scitex_sdk_creator")),
+    ),
     # --- Admin ---
     path("admin/", admin.site.urls),
     # --- AI Setup (AI agent configuration hub) ---
@@ -210,12 +244,45 @@ urlpatterns = [
         include(("apps.workspace.public_projects_app.urls", "public_projects_app")),
     ),
     # --- App modules (/apps/) ---
-    path("apps/scholar/", include(("apps.workspace.scholar_app.urls", "scholar_app"))),
+    # Scholar cutover (CCT 2760) + RED START (CCT 2806, binding):
+    # /apps/scholar/ serves the LEAF ONLY (login-gated wrapper in
+    # scholar_app/urls/scholar_django.py) — the plain hub-side routes went
+    # dark first (404) and the plain route is relit ONLY by the working leaf
+    # plugin. The pre-cutover hub-native routes are NOT on the user path
+    # anymore. CCT 2795: NO /v2/ alias remains.
+    # Plain include (no app_name tuple) ON PURPOSE: the leaf carries its own
+    # namespaces and Django only propagates them to reverse() through a
+    # namespace-transparent outer mount (see scholar_app/urls/__init__.py).
+    path("apps/scholar/", include("apps.workspace.scholar_app.urls")),
+    # OPERATOR ROUTE RULE (CCT 2763/2764) + RED START (CCT 2806), ALL apps,
+    # same pattern: hub-side app routes move to apps/<app>/old-direct as the
+    # parity reference, and old-direct NEVER ships in production — dev-gated,
+    # no launcher tiles/links, no user path, deleted outright once parity
+    # closes. Scholar was the first instance; figrecipe follows the identical
+    # pattern as of its cutover below (writer / console follow as each
+    # migrates; same mount shape, same gate, same no-tiles rule — no
+    # registry/manifest entry exists for
+    # old-direct by construction, so no tile can render it; no /v2/ alias).
+    *_scholar_old_direct_patterns(),
     path("apps/console/", include(("apps.workspace.console_app.urls", "console_app"))),
-    path(
-        "apps/figrecipe/",
-        include(("apps.workspace.figrecipe_app.urls", "figrecipe_app")),
-    ),
+    # FigRecipe cutover (CCT-2784, Scholar #1074 template) + RED START
+    # (CCT 2806, binding): /apps/figrecipe/ serves the LEAF ONLY
+    # (login-gated wrapper in figrecipe_app/urls/figrecipe_django.py) — the
+    # plain hub-side routes went dark first (404) and the plain route is
+    # relit ONLY by the working leaf plugin. The pre-cutover hub-native
+    # routes (adapter page + SITE-2 guarded API) are NOT on the user path
+    # anymore: they live ONLY at /apps/figrecipe/old-direct/ in dev.
+    # Old-direct is spliced FIRST on purpose (see _figrecipe_old_direct_patterns:
+    # the leaf's <path:endpoint> catch-all would otherwise swallow it).
+    # Plain include (no app_name tuple) ON PURPOSE: the leaf carries its own
+    # namespace and Django only propagates it to reverse() through a
+    # namespace-transparent outer mount (see figrecipe_app/urls/__init__.py).
+    # No alias mount is added (CCT 2795 lesson): the leaf's hosted-compat
+    # names travel inside the single mount. The generic plugin mount keeps
+    # skipping this route via _route_taken (the bespoke default still takes
+    # it), so the leaf urlconf is never double-mounted.
+    *_figrecipe_old_direct_patterns(),
+    path("apps/figrecipe/", include("apps.workspace.figrecipe_app.urls")),
     path("apps/writer/", include(("apps.workspace.writer_app.urls", "writer_app"))),
     # NOTE: the raw ``path("writer/", include("scitex_writer._django.urls"))``
     # mount (card hub-mount-writer-django-app-20260707) was REMOVED as a P0
@@ -236,44 +303,19 @@ urlpatterns = [
     # URL a user reads. To a user these are simply apps. It also kept them out
     # of hub's own namespace, where a future top-level route could collide.
     #
-    # Upstream scitex-todo's own contract-compliant Django board app
-    # (phase 1: read-only). Only mounted when the package is importable —
-    # mirror of the settings_shared.py guarded import. Per-request
-    # workspace tenancy + the read-only gate are enforced by
-    # apps.workspace.todo_app.middleware.TodoBoardTenancyMiddleware (whose
-    # path prefix tracks this mount).
-    *(
-        [
-            path("apps/cards/", include("scitex_cards._django.urls")),
-            # Legacy mount: the board lived at /apps/todo/ before the Cards
-            # rebrand (operator live review 2026-07-17). Permanent-redirect
-            # the whole subtree so old links and pinned tiles keep working.
-            re_path(
-                r"^apps/todo/(?P<rest>.*)$",
-                RedirectView.as_view(
-                    url="/apps/cards/%(rest)s", permanent=True, query_string=True
-                ),
-            ),
-        ]
-        if _scitex_cards_installed()
-        else []
-    ),
-    # Upstream scitex-storage's own contract-compliant Django app. Only
-    # mounted when the package is importable — mirror of the
-    # settings_shared.py guarded import. SECURITY: mounted through the
-    # hub-side wrapper (apps.workspace.storage_app.urls), NOT the raw
-    # upstream urls, so ?path= is login-gated and containment-validated to
-    # the requester's own jail (card sec-working-dir-passthrough-family,
-    # SITE 4 — the raw view scanned ANY host directory unauthenticated).
-    *(
-        [path("apps/storage/", include("apps.workspace.storage_app.urls"))]
-        if _scitex_storage_installed()
-        else []
-    ),
-    *(
-        [path("apps/agents/", include("apps.workspace.agents_app.urls"))]
-        if _scitex_agent_container_installed()
-        else []
+    # Agents, Cards and Storage mount EXCLUSIVELY through the generic plugin
+    # mount (plugin_urlpatterns at the bottom of this file: the plugin's own
+    # urlconf + manifest tile, login-wrapped and mount-policy-guarded without
+    # app-specific code). There are no bespoke hub mounts here on purpose —
+    # the thin-hub rule forbids the hub knowing what a plugin provides.
+    # Legacy mount: the board lived at /apps/todo/ before the Cards
+    # rebrand (operator live review 2026-07-17). Permanent-redirect
+    # the whole subtree so old links and pinned tiles keep working.
+    re_path(
+        r"^apps/todo/(?P<rest>.*)$",
+        RedirectView.as_view(
+            url="/apps/cards/%(rest)s", permanent=True, query_string=True
+        ),
     ),
     path(
         "apps/workspace/", include(("apps.infra.workspace_app.urls", "workspace_app"))

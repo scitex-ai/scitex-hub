@@ -31,6 +31,12 @@ import {
   recordVisit,
 } from "./_site-dock/history-stack";
 import { initChatPanel } from "./_site-dock/chat-panel";
+import { enforceDockBoundary } from "./_site-dock/dock-boundary";
+import {
+  FOCUS_AVOID_CLASS,
+  FOCUS_SHIFT_VAR,
+  focusAvoidanceShift,
+} from "./_site-dock/focus-avoid";
 import {
   gripTap,
   isDrag,
@@ -41,6 +47,7 @@ import {
 } from "./_site-dock/minimize";
 import {
   type DockPosition,
+  clampDockToViewport,
   fromPixels,
   parsePosition,
   toPixels,
@@ -121,12 +128,62 @@ class SiteDock {
       this.restorePosition();
       syncDockHeight(this.dock);
     });
+    // Re-park once the stylesheets and fonts have settled. restorePosition()
+    // measures the dock's live box, and at DOMContentLoaded that box can still
+    // be the unstyled one — the fractions then convert to pixels for the wrong
+    // size and the dock (or the minimized pill) parks off-screen with nothing
+    // to bring it back until a resize (launcher page #2, 2026-09-27). Skipped
+    // mid-drag so a press that started before load is never yanked away.
+    // The module itself can execute after load (slow dev servers), so a load
+    // already past means re-park now instead of waiting for an event that
+    // will never fire.
+    const reparkAfterSettle = (): void => {
+      if (this.dock.classList.contains("site-dock--dragging")) return;
+      this.restorePosition();
+      syncDockHeight(this.dock);
+    };
+    if (document.readyState === "complete") reparkAfterSettle();
+    else window.addEventListener("load", reparkAfterSettle);
     if (typeof ResizeObserver !== "undefined") {
       new ResizeObserver(() => syncDockHeight(this.dock)).observe(this.dock);
     }
     this.initDrag();
+    this.initFocusAvoidance();
     this.initHistory();
     initChatPanel(this.dock);
+  }
+
+  /* ── Keyboard focus visibility ──────────────────────────── */
+
+  private avoidFocusedControl(target: EventTarget | null): void {
+    this.dock.classList.remove(FOCUS_AVOID_CLASS);
+    this.dock.style.removeProperty(FOCUS_SHIFT_VAR);
+    if (
+      !(target instanceof HTMLElement) ||
+      this.dock.contains(target) ||
+      this.dock.classList.contains("site-dock--floating") ||
+      isMinimized(this.dock)
+    ) {
+      return;
+    }
+    const shift = focusAvoidanceShift(
+      this.dock.getBoundingClientRect(),
+      target.getBoundingClientRect(),
+    );
+    if (shift <= 0) return;
+    this.dock.style.setProperty(FOCUS_SHIFT_VAR, `-${shift}px`);
+    this.dock.classList.add(FOCUS_AVOID_CLASS);
+  }
+
+  private initFocusAvoidance(): void {
+    document.addEventListener("focusin", (event) =>
+      this.avoidFocusedControl(event.target),
+    );
+    document.addEventListener("focusout", () => {
+      requestAnimationFrame(() =>
+        this.avoidFocusedControl(document.activeElement),
+      );
+    });
   }
 
   /* ── Position ───────────────────────────────────────────── */
@@ -151,9 +208,15 @@ class SiteDock {
 
   private float(pos: DockPosition): void {
     this.dock.classList.add("site-dock--floating");
-    const { left, top } = toPixels(pos, this.box(), this.viewport());
-    this.dock.style.left = `${left}px`;
-    this.dock.style.top = `${top}px`;
+    const box = this.box();
+    const vp = this.viewport();
+    const { left, top } = toPixels(pos, box, vp);
+    // Clamp the RESULT against the live box, not just the fractions: the box
+    // above can be stale (pre-stylesheet, or a minimized pill measured while
+    // expanded), and then even clamped fractions park a corner off-screen.
+    const pinned = clampDockToViewport(left, top, box, vp);
+    this.dock.style.left = `${pinned.left}px`;
+    this.dock.style.top = `${pinned.top}px`;
   }
 
   private dockToBottom(): void {
@@ -175,6 +238,7 @@ class SiteDock {
 
   private toggleMinimized(on: boolean): void {
     const before = this.dock.getBoundingClientRect();
+    const gripBefore = this.grabber?.getBoundingClientRect();
     const wasFloating = this.dock.classList.contains("site-dock--floating");
     setMinimized(this.dock, on);
     if (!wasFloating) {
@@ -185,12 +249,20 @@ class SiteDock {
       return;
     }
 
-    // A floating launcher contracts/expands around its current centre rather
-    // than treating its old top-left as the new anchor and jumping sideways.
-    const after = this.box();
-    const left = before.left + before.width / 2 - after.width / 2;
-    const top = before.top + before.height / 2 - after.height / 2;
-    this.settle(left, top);
+    // Keep the GRABBER pixel-stable, not the box centre: the grip sits
+    // off-centre, so centring the box walks it sideways on every
+    // minimize/restore (operator 2026-09-26).
+    const boxAfter = this.dock.getBoundingClientRect();
+    const gripAfter = this.grabber?.getBoundingClientRect();
+    const anchorX = gripBefore
+      ? gripBefore.left + gripBefore.width / 2
+      : before.left + before.width / 2;
+    const anchorY = gripBefore
+      ? gripBefore.top + gripBefore.height / 2
+      : before.top + before.height / 2;
+    const gripOffsetX = gripAfter ? gripAfter.left - boxAfter.left : boxAfter.width / 2;
+    const gripOffsetY = gripAfter ? gripAfter.top - boxAfter.top : boxAfter.height / 2;
+    this.settle(anchorX - gripOffsetX, anchorY - gripOffsetY);
   }
 
   private initDrag(): void {
@@ -352,7 +424,7 @@ class SiteDock {
 }
 
 function initSiteDock(): void {
-  const dock = document.querySelector<HTMLElement>("[data-site-dock]");
+  const dock = enforceDockBoundary(document, window.self !== window.top);
   if (!dock || dock.dataset.siteDockReady === "1") return;
   dock.dataset.siteDockReady = "1";
   new SiteDock(dock).init();

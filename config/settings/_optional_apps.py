@@ -19,10 +19,10 @@ read the same.
 
 from __future__ import annotations
 
-import importlib.util
 import logging
 import os
 from importlib import import_module
+from pathlib import Path
 from types import ModuleType
 
 logger = logging.getLogger(__name__)
@@ -182,12 +182,12 @@ def publish_cards_store_target(environ: dict | None = None) -> str | None:
 
        EXCEPT IN PRODUCTION. Tier 3 is a development convenience: on a laptop
        or the dev preview, "the fleet's shared board" is what a developer
-       wants to see. On scitex.ai it is an exposure: the board's middleware
-       gates on ``is_authenticated`` only (apps/workspace/todo_app/
-       middleware.py), so a production hub that fell through to tier 3 would
-       hand the fleet's live task board — every agent's cards, DMs and
-       operator notes — to any signed-in customer. That is the exact config
-       change the parent card forbade (hub-cards-store-contract-and-multihost-
+       wants to see. On scitex.ai it is an exposure: the fleet's live task
+       board — every agent's cards, DMs and operator notes — is one mount
+       decision away from any signed-in customer (the generic mount-policy
+       guard holds a restricted audience UNTIL per-user scoping is proven
+       live, and that protection must never depend on which store tier won
+       here). That is the exact config change the parent card forbade (hub-cards-store-contract-and-multihost-
        20260730, comment c_1971278e38ee), and #705 introduced it by accident;
        measured 2026-09-03 on scitex-nas-03, only the container's inability to
        resolve ``scitex-primary`` stood between the two. So when
@@ -334,11 +334,11 @@ def optional_upstream_apps() -> list[str]:
     NOTE — one deliberate side effect, kept HERE rather than in the caller
     because separating it from the mount is how it would get lost: mounting the
     cards board also disables its host-side lane discovery. The board's service
-    layer unions per-project lanes (default glob
-    ``~/proj/*/.scitex/todo/tasks.yaml``) into every load; on the hub each
+    layer unions per-project lanes into every load; on the hub each
     request must see ONLY the requesting user's workspace store (injected by
-    ``apps.workspace.todo_app.middleware``), so an empty glob list — the
-    documented opt-out seam in that module — is set alongside the mount.
+    the generic mount-policy guard from the leaf's own manifest policy), so
+    an empty glob list — the documented opt-out seam in that module — is set
+    alongside the mount.
 
     SECOND SIDE EFFECT, SAME REASON: mounting the board also publishes the
     deployment's chosen card store (:func:`publish_cards_store_target`). It
@@ -355,30 +355,39 @@ def optional_upstream_apps() -> list[str]:
         entries.append("scitex_writer._django.apps.WriterEditorConfig")
 
     if _installed("scitex_storage._django"):
+        # INSTALLED_APPS continuity only: URL mounting + tiles come from the
+        # generic plugin mount (scitex.apps entry point). The explicit path
+        # is replaced in place by with_plugin_apps() once the installed
+        # release declares the entry point, and keeps templates resolving on
+        # releases that predate it.
         entries.append("scitex_storage._django.apps.StorageConfig")
 
-    # scitex-agent-container's browser dashboard. The explicit AppConfig
-    # path is the package's mounted-host contract; gating on apps.py keeps an
-    # older SAC install (without the optional GUI) from breaking Hub startup.
+    # scitex-agent-container's browser dashboard. Same continuity contract as
+    # storage above: the explicit AppConfig path keeps an older SAC install
+    # (without the optional GUI) from breaking Hub startup; URL mounting +
+    # tiles come from the generic plugin mount.
     if _installed("scitex_agent_container._django.apps"):
         entries.append(
             "scitex_agent_container._django.apps.AgentContainerDashboardConfig"
         )
 
     # scitex-scholar's Django app. Its VIEWS were already mounted at
-    # /apps/scholar/v2/ (apps/workspace/scholar_app/urls/scholar_django.py)
+    # /apps/scholar/ (apps/workspace/scholar_app/urls/scholar_django.py;
+    # before the cutover the leaf lived at /apps/scholar/v2/)
     # without the APP being installed, and a mounted view whose app is not in
     # INSTALLED_APPS cannot find its own templates: app_directories.Loader
     # walks INSTALLED_APPS and nothing else. Measured on production 2026-09-05
     # after the rebuild — scitex_scholar/_django/templates/scholar/scholar.html
-    # was on disk in the installed 1.10.0 wheel, and every visitor request to
-    # /apps/scholar/v2/ answered 500 with TemplateDoesNotExist('scholar/
+    # was on disk in the installed 1.10.0 wheel, and every visitor request
+    # (then at /apps/scholar/v2/) answered 500 with TemplateDoesNotExist('scholar/
     # scholar.html'); anonymous requests never reached the view (login
     # redirect), which is why curl looked healthy. The leaf's label is
     # "scholar_editor", chosen upstream precisely not to collide with hub's own
-    # apps.workspace.scholar_app. Its AppConfig imports scitex_app hard; hub
-    # floors scitex-app, so a missing scitex_app is a broken install and must
-    # fail at startup rather than be papered over here.
+    # apps.workspace.scholar_app. Its AppConfig imports scitex_app hard
+    # (leaf-side); hub no longer floors scitex-app (sourced from scitex-sdk
+    # since hub-sdk-import-switch-20261015), so that name resolves only via
+    # the leaf's own dependency chain — a missing scitex_app is a broken
+    # leaf install and must fail at startup rather than be papered over here.
     if _installed("scitex_scholar._django"):
         entries.append("scitex_scholar._django.apps.ScholarEditorConfig")
 
@@ -413,38 +422,242 @@ def optional_upstream_apps() -> list[str]:
         os.environ[cards_lane_globs_env()] = ""
         publish_cards_store_target()
 
+    # App Creator wizard (scitex-sdk>=0.2.0). The bare module entry resolves
+    # AppCreatorConfig via `default = True`; its label is fully namespaced
+    # (`scitex_sdk_creator`), so it cannot collide. The package declares no
+    # `scitex.apps` entry point, so with_plugin_apps() cannot see it — the
+    # URL mount in config/urls.py is explicit for the same reason.
+    if _installed("scitex_sdk.creator"):
+        entries.append("scitex_sdk.creator")
+
+    # SDK app shell (card hub-sdk-ui-shell-bridge-20261007). Registers the
+    # app-contract app so its template (scitex_sdk/app/app_shell.html)
+    # resolves through Django's AppDirectoriesFinder for the bridge template
+    # to extend. Its label is `scitex_app` (ScitexAppConfig in
+    # scitex_sdk/app/apps.py) — proven collision-free: no other
+    # INSTALLED_APPS entry claims it. No views, no URLs, no behavior
+    # change — template resolution only.
+    if _installed("scitex_sdk.app"):
+        entries.append("scitex_sdk.app")
+    # SDK UI shell deliberately NOT registered (mutual exclusion): the
+    # installed scitex_sdk.ui claims label `scitex_ui` (ScitexUiConfig in
+    # scitex_sdk/ui/apps.py), identical to the REQUIRED retired scitex-ui
+    # entry (config/settings/settings_shared.py:213-214,
+    # `THIRD_PARTY_APPS.append("scitex_ui")`, default label `scitex_ui`).
+    # Registering both makes django.setup() raise ImproperlyConfigured
+    # (duplicate app label) with zero tests running. Re-add scitex_sdk.ui
+    # only after the retired scitex-ui requirement is removed, or after
+    # the SDK relabels its UI config away from `scitex_ui`.
+
     return entries
 
 
-def with_plugin_apps(entries: list[str], plugins=None) -> list[str]:
-    """``entries`` plus every ``scitex.apps`` entry point (``pip install`` = app).
+def optional_sdk_ui_template_dirs() -> list:
+    """Return filesystem template dirs for the SDK UI shell, if installed.
 
-    A plugin replaces a hand-written entry for the same app package in place.
-    One whose AppConfig module cannot be found is skipped with a warning, so a
-    broken wheel costs its own app, not hub startup.
+    Card hub-sdk-ui-shell-bridge-20261007 slice 2: the bridge adapter
+    extends ``scitex_sdk/app/app_shell.html``, which itself extends
+    ``scitex_sdk/ui/standalone_shell.html``. The UI app must stay OUT of
+    ``INSTALLED_APPS`` (duplicate ``scitex_ui`` label — see above), so the
+    app-directories loader can never resolve its templates. The filesystem
+    loader can: this returns the installed ``scitex_sdk.ui`` package's
+    ``templates/`` dir for ``TEMPLATES[0]["DIRS"]``. No app registration,
+    no label claim, no views/URLs — template-file resolution only.
+    Returns [] when the package (or its templates dir) is absent.
+    """
+    mod = _installed("scitex_sdk.ui")
+    mod_file = getattr(mod, "__file__", None) if mod is not None else None
+    if not mod_file:
+        return []
+    candidate = Path(mod_file).resolve().parent / "templates"
+    if not candidate.is_dir():
+        return []
+    return [candidate]
+
+
+def _entry_claimed_labels(entry: str) -> set[str]:
+    """App labels an ``INSTALLED_APPS`` entry already provides.
+
+    Retained for the SDK shell-bridge contract
+    (tests/config/test_sdk_shell_bridge.py probes this module standalone):
+    identity now comes from :mod:`config.settings._app_config_metadata`
+    instead of importing the AppConfig class, so class bodies never execute
+    at settings time. Never raises: anything unresolvable yields the
+    syntactic fallback (last dotted component), which is exactly Django's
+    default-label rule for a bare package entry.
     """
     try:
-        from scitex_app.plugins import discover_plugin_apps, installed_app_paths
+        from config.settings._app_config_metadata import (
+            MetadataUnavailable,
+            app_config_identity,
+        )
+    except ImportError:
+        mod_path, _, tail = entry.rpartition(".")
+        return set() if tail[:1].isupper() else {tail}
+    try:
+        return {app_config_identity(entry).label}
+    except MetadataUnavailable:
+        mod_path, _, tail = entry.rpartition(".")
+        if tail[:1].isupper():
+            return set()
+        return {tail}
+
+
+def with_plugin_apps(entries: list[str], plugins=None) -> list[str]:
+    """Merge optional plugins, retaining existing owners of Django app labels."""
+    return _with_host_plugin_apps(entries, (), plugins)
+
+
+def _with_host_plugin_apps(
+    entries: list[str], registered_entries=(), plugins=None
+) -> list[str]:
+    """Merge plugins without duplicating apps registered elsewhere by the host.
+
+    ``registered_entries`` are retained by the caller, in their original order.
+    Django's AppConfig metadata supplies identity; population remains with setup.
+    """
+    try:
+        from scitex_sdk.app.plugins import discover_plugin_apps, installed_app_paths
     except ImportError:
         return entries
-    usable = []
-    for plugin in discover_plugin_apps() if plugins is None else plugins:
-        module = plugin.app_config.rpartition(".")[0]
+
+    discovered = discover_plugin_apps() if plugins is None else list(plugins)
+    if not discovered:
+        return entries
+
+    from ._app_config_metadata import (
+        MetadataUnavailable,
+        app_config_identity,
+        app_installation_entries,
+    )
+
+    configurations = {}
+    unavailable = {}
+    for entry in [*registered_entries, *entries]:
         try:
-            found = importlib.util.find_spec(module) is not None
-        except (ImportError, ValueError):
-            found = False
-        if found:
-            usable.append(plugin)
-        else:
+            configurations[entry] = app_config_identity(entry)
+        except MetadataUnavailable as error:
+            unavailable[entry] = str(error)
+    reserved = [configurations[entry] for entry in registered_entries if entry in configurations]
+    reserved_names = {config.name for config in reserved}
+    usable = []
+    companions = []
+    sdk_companion_support = True
+
+    def merge(selected, selected_companions):
+        if selected_companions:
+            if not sdk_companion_support:
+                # Older SDKs only merge primaries. Keep already-registered
+                # declared companions in their original positions, preventing
+                # primary inference from replacing their migration owners.
+                protected = set(selected_companions)
+                existing = [entry for entry in entries if entry not in protected]
+                merged = installed_app_paths(existing, selected)
+                replacements = iter(merged[:len(existing)])
+                retained = [entry if entry in protected else next(replacements)
+                            for entry in entries]
+                return [*retained, *merged[len(existing):]]
+            return installed_app_paths(entries, selected, selected_companions)
+        return installed_app_paths(entries, selected)
+
+    for plugin in discovered:
+        try:
+            config = app_config_identity(plugin.app_config)
+            declared = app_installation_entries(plugin.app_module)
+            if declared:
+                try:
+                    from scitex_sdk.app.plugins import partition_companions
+                except ImportError:
+                    sdk_companion_support = False
+                    logger.warning(
+                        "Installed SDK does not support leaf companion declarations "
+                        "for %r; primary app and registered companions retained, "
+                        "new companions require a supporting SDK.", plugin.name,
+                    )
+                    needed = [entry for entry in entries if entry in declared
+                              and entry not in {plugin.app_config, plugin.app_module}]
+                else:
+                    needed = partition_companions(declared, [plugin])
+            else:
+                needed = []
+        except MetadataUnavailable as error:
             logger.warning(
-                "scitex.apps entry point %r names %s, whose module %s is not "
-                "importable; app skipped.",
+                "scitex.apps entry point %r has unavailable AppConfig metadata "
+                "(%s); app skipped.",
                 plugin.name,
-                plugin.app_config,
-                module,
+                str(error),
             )
-    return installed_app_paths(entries, usable)
+            continue
+        if config.name in reserved_names:
+            logger.warning(
+                "scitex.apps entry point %r names %s, already registered "
+                "elsewhere by the host; registered app retained, plugin skipped.",
+                plugin.name,
+                config.name,
+            )
+            continue
+
+        configurations[plugin.app_config] = config
+        retained_companions = []
+        try:
+            for entry in needed:
+                identity = app_config_identity(entry)
+                configurations[entry] = identity
+                owner = next((owner for owner in reserved if owner.name == identity.name), None)
+                if owner is not None:
+                    if owner.label != identity.label:
+                        raise MetadataUnavailable("Registered companion has a different label")
+                    continue
+                retained_companions.append(entry)
+            proposed_companions = [*companions, *retained_companions]
+            proposed = merge([*usable, plugin], proposed_companions)
+            for entry in proposed:
+                if entry not in configurations and entry not in unavailable:
+                    configurations[entry] = app_config_identity(entry)
+        except MetadataUnavailable as error:
+            logger.warning(
+                "scitex.apps entry point %r has unavailable companion metadata "
+                "(%s); registered apps retained, plugin skipped.",
+                plugin.name, str(error),
+            )
+            continue
+        unknown = next((entry for entry in [*registered_entries, *proposed] if entry in unavailable), None)
+        if unknown is not None:
+            logger.warning(
+                "scitex.apps entry point %r cannot certify registered owner %s "
+                "(%s); registered app retained, plugin skipped.",
+                plugin.name, unknown, unavailable[unknown],
+            )
+            continue
+        names = set()
+        label_owners = {}
+        collision = None
+        # Configuration-file packages can alias a different actual app name.
+        # Validate the merger's effective entries, not an assumed replacement.
+        for registered in [*reserved, *(configurations[entry] for entry in proposed)]:
+            if registered.name in names:
+                collision = ("app name", registered.name, registered.name)
+                break
+            if registered.label in label_owners:
+                collision = ("label", registered.label, label_owners[registered.label])
+                break
+            names.add(registered.name)
+            label_owners[registered.label] = registered.name
+        if collision is not None:
+            identity, value, owner = collision
+            logger.warning(
+                "scitex.apps entry point %r names %s with duplicate %s %r already "
+                "registered by %s; registered app retained, plugin skipped.",
+                plugin.name,
+                config.name,
+                identity,
+                value,
+                owner,
+            )
+            continue
+        usable.append(plugin)
+        companions = proposed_companions
+    return merge(usable, companions)
 
 
 # EOF

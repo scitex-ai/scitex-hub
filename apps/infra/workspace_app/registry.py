@@ -31,6 +31,7 @@ logger = logging.getLogger(__name__)
 # badged + blocked on a phone. The manifest is the SSoT for built-ins;
 # the AppsModule catalog row carries it for store-published apps.
 AVAILABILITY_STATES = ("available", "coming_soon", "desktop_only")
+SCOPE_STATES = ("user", "project")
 
 
 @dataclass
@@ -92,6 +93,10 @@ class ModuleConfig:
     availability: str = ""
     availability_reason: str = ""
     builtin: bool = True
+
+    # Persistence scope declared by the app manifest. Project-scoped apps get
+    # the active Hub project in their launch URL; user-scoped apps do not.
+    scope: str = "user"
 
     # Launcher-grid visibility. Some registered modules are workspace
     # panes / nav items, not standalone launcher apps — e.g. Clew (opens
@@ -218,46 +223,11 @@ _BUILTIN_MANIFEST_PATHS: list[str] = [
     "workspace/files_app/manifest.json",
 ]
 
-# Upstream plugin-app tiles (the package ships its own Django app; hub mounts
-# it and carries only a manifest + any tenancy glue). Appended CONDITIONALLY so
-# the launcher never shows a dead tile on a host where the package is not
-# installed — mirror of the guarded imports in settings_shared.py and the URL
-# guards in config/urls.py.
-# Each entry probes a TUPLE of names, canonical first. The board package was
-# renamed scitex-todo -> scitex-cards on 2026-07-16 and this probe kept asking
-# for the OLD name; scitex-cards 0.41.0 (2026-08-16) then DELETED the
-# `scitex_todo` alias outright, so the probe started returning None on a host
-# where the board is installed, mounted and reachable at /apps/cards/. The tile
-# would simply vanish from the launcher while the app kept working — a
-# user-visible regression with no error anywhere.
-#
-# Both names are accepted while both can be in play: an older wheel still ships
-# only the alias. Canonical first so hub stops depending on the deprecated name
-# the moment it can.
-for _pkg_names, _tile_manifest in (
-    (("scitex_cards", "scitex_todo"), "workspace/todo_app/manifest.json"),
-    (("scitex_storage",), "workspace/storage_app/manifest.json"),
-    (
-        ("scitex_agent_container._django",),
-        "workspace/agents_app/manifest.json",
-    ),
-):
-    try:
-        from importlib.util import find_spec as _find_spec
-
-        # A submodule probe raises ModuleNotFoundError when its parent package
-        # is absent. Absence is the expected state for optional apps, not an
-        # exceptional registry failure worth a traceback on every boot.
-        def _available(_name: str) -> bool:
-            try:
-                return _find_spec(_name) is not None
-            except ModuleNotFoundError:
-                return False
-
-        if any(_available(_name) for _name in _pkg_names):
-            _BUILTIN_MANIFEST_PATHS.append(_tile_manifest)
-    except Exception:
-        logger.exception("[registry] %s tile probe failed", _pkg_names[0])
+# Upstream plugin-app tiles (agents, cards, storage, ...) need NO hub-side
+# manifest and NO conditional probe here: the generic plugin mount lists
+# each tile from the plugin's OWN manifest (register_plugin_modules, via
+# the scitex.apps entry point), and only installed plugins are listed — so
+# the launcher never shows a dead tile, with zero hub-side package names.
 
 
 _SUPPORTED_SCHEMA_VERSIONS = {"1.0.0", "2.0.0"}
@@ -321,10 +291,22 @@ def _resolve_availability(data: dict) -> str:
     return availability
 
 
+def _resolve_scope(data: dict) -> str:
+    """Validate and return an app manifest's persistence scope."""
+    scope = data.get("scope", "user")
+    if scope not in SCOPE_STATES:
+        raise ValueError(
+            f"Unknown scope {scope!r} in manifest for {data.get('name')!r}; "
+            f"expected one of {SCOPE_STATES}"
+        )
+    return scope
+
+
 def _manifest_to_module_config(data: dict) -> ModuleConfig:
     """Convert a manifest dict to a ModuleConfig dataclass."""
     name = data["name"]
     overrides = _MANIFEST_OVERRIDES.get(name, {})
+    effective_data = {**data, **overrides}
 
     return ModuleConfig(
         name=name,
@@ -341,9 +323,10 @@ def _manifest_to_module_config(data: dict) -> ModuleConfig:
         keyboard_shortcut=data.get("keyboard_shortcut", ""),
         order=data.get("order", 50),
         category=data.get("category", ""),
-        availability=_resolve_availability(data),
-        availability_reason=str(data.get("availability_reason", "")),
-        builtin=bool(data.get("builtin", True)),
+        availability=_resolve_availability(effective_data),
+        scope=_resolve_scope(effective_data),
+        availability_reason=str(effective_data.get("availability_reason", "")),
+        builtin=bool(effective_data.get("builtin", True)),
         default_enabled=data.get("default_enabled", True),
         show_in_launcher=data.get("show_in_launcher", True),
         visibility=data.get("visibility", "public"),
@@ -450,6 +433,9 @@ def register_module(config: ModuleConfig) -> None:
             f"[registry] Module '{config.name}' already registered, skipping."
         )
         return
+    for field_name, value in _MANIFEST_OVERRIDES.get(config.name, {}).items():
+        if hasattr(config, field_name):
+            setattr(config, field_name, value)
     _registry.append(config)
     _registry_by_name[config.name] = config
     logger.info(f"[registry] Registered external module: {config.name}")

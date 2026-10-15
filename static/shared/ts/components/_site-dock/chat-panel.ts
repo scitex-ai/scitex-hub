@@ -14,9 +14,14 @@ import {
   parentNavigationUrl,
   toggleMaximized,
 } from "./chat-float";
+import { trustedParentNavigationPath } from "./embed-navigation";
 
 const OPEN_KEY = "stx-site-dock-chat-open";
 const MAX_KEY = "stx-site-dock-chat-max";
+
+export interface ChatPanelOptions {
+  navigate?: (path: string) => void;
+}
 
 function readFlag(key: string): boolean {
   try {
@@ -35,7 +40,12 @@ function writeFlag(key: string, on: boolean): void {
   }
 }
 
-export function initChatPanel(dock: HTMLElement): void {
+export function initChatPanel(
+  dock: HTMLElement,
+  options: ChatPanelOptions = {},
+): void {
+  const navigate =
+    options.navigate ?? ((path: string) => window.location.assign(path));
   const toggle = dock.querySelector<HTMLElement>("[data-dock-chat-toggle]");
   const panel = document.querySelector<HTMLElement>("[data-dock-chat-panel]");
   const frame = panel?.querySelector<HTMLIFrameElement>(
@@ -81,6 +91,7 @@ export function initChatPanel(dock: HTMLElement): void {
   });
   darkQuery?.addEventListener?.("change", syncTheme);
 
+  const resetFrame = () => frame.removeAttribute("src");
   const canonicalEmbedUrl = () =>
     embedUrl(window.location.pathname, document.title, pageTheme());
   const resetNestedFrame = () => {
@@ -97,9 +108,8 @@ export function initChatPanel(dock: HTMLElement): void {
     }
     if (!frame.getAttribute("src") || nested) frame.src = canonicalEmbedUrl();
   };
-
   const setOpen = (open: boolean) => {
-    resetNestedFrame();
+    if (open) resetNestedFrame();
     panel.hidden = !open;
     toggle.setAttribute("aria-expanded", String(open));
     toggle.classList.toggle("is-active", open);
@@ -121,6 +131,21 @@ export function initChatPanel(dock: HTMLElement): void {
   };
   setMaximized(maximized);
 
+  let navigationPending = false;
+  window.addEventListener("message", (event) => {
+    if (navigationPending) return;
+    const target = trustedParentNavigationPath(
+      event,
+      frame.contentWindow,
+      window.location.origin,
+    );
+    if (!target) return;
+    navigationPending = true;
+    setMaximized(false);
+    setOpen(false);
+    resetFrame();
+    navigate(target);
+  });
   window.addEventListener("message", (event) => {
     if (
       event.source !== frame.contentWindow ||
@@ -132,7 +157,13 @@ export function initChatPanel(dock: HTMLElement): void {
     if (!target) return;
     setMaximized(false);
     setOpen(false);
-    window.location.assign(target);
+    navigate(target);
+  });
+  // A top-level Back or a Settings Cancel may restore this page from bfcache.
+  // Release the click guard and discard any stale nested iframe document.
+  window.addEventListener("pageshow", () => {
+    navigationPending = false;
+    if (panel.hidden) resetFrame();
   });
 
   toggle.addEventListener("click", (e) => {
@@ -151,6 +182,7 @@ export function initChatPanel(dock: HTMLElement): void {
     ?.addEventListener("click", () => {
       setMaximized(false);
       setOpen(false);
+      resetFrame();
     });
   panel.addEventListener("keydown", (e) => {
     if (e.key === "Escape") setOpen(false);

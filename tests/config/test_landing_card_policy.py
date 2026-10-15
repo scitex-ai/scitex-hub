@@ -88,6 +88,7 @@ _PUBLIC_NAMES = (
     "cookies",
     "demos",
     "donate",
+    "open_source",
     "pricing",
     "privacy",
     "publications",

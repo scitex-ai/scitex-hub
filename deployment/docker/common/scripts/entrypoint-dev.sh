@@ -175,31 +175,6 @@ else
 fi
 
 # ============================================
-# Initialize Visitor Pool
-# ============================================
-# Creation is idempotent; only web boot may create or quarantine slots.
-if [ "$IS_WEB_ROLE" = true ]; then
-    initialize_visitor_pool() {
-        echo_info "Initializing visitor pool..."
-        python manage.py create_visitor_pool --verbosity 0 2>&1 | grep -v "ERRO\|WARN" || true
-        echo_success "Visitor pool ready"
-    }
-    initialize_visitor_pool
-
-# Boot fail-safe (runs on EVERY web-container start, including restarts after
-# an unclean shutdown): quarantine every slot as unverified (synchronous,
-# DB-only), then ENQUEUE the per-slot wipe+verify re-clean to Celery via
-# --async so Django serves immediately instead of blocking on the clone
-# loop. Slots stay quarantined until a worker verifies each clean; until
-# then allocation serves readonly-visitor (fail-loud).
-echo_info "Reconciling visitor slots (quarantine now, re-clean dispatched async)..."
-python manage.py reconcile_visitor_slots --async 2>&1 | grep -v "ERRO\|WARN" || true
-echo_success "Visitor slots reconciled (re-clean dispatched async; only verified-clean slots distributable)"
-else
-    echo_info "Skipping visitor pool init/reconcile (non-web service)"
-fi
-
-# ============================================
 # Initialize Test User (Development Only)
 # ============================================
 # Create test-user for development and E2E testing

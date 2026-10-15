@@ -33,10 +33,7 @@ export class FileTabManager {
       this.projectId = projectDataEl.getAttribute("data-project-id");
       console.log("[FileTabManager] Project ID:", this.projectId);
     } else {
-      const urlMatch = window.location.pathname.match(
-        /\/visitor-\d+\/([^\/]+)/,
-      );
-      this.projectId = urlMatch ? urlMatch[1] : "default";
+      this.projectId = "default";
       console.log("[FileTabManager] Project ID (fallback):", this.projectId);
     }
   }

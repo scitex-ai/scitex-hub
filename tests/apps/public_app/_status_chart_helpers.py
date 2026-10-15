@@ -31,7 +31,7 @@ SETTINGS_DEV_PATH = REPO_ROOT / "config" / "settings" / "settings_dev.py"
 STATUS_URL = "/server-status/"
 SERIES_URL = "/api/server-metrics/series/"
 
-# The eight metric panels the page renders.
+# The seven metric panels the page renders.
 CHART_METRICS = (
     "cpu",
     "memory",
@@ -39,7 +39,6 @@ CHART_METRICS = (
     "gpu",
     "disk_io",
     "net_io",
-    "visitor_pool",
     "active_users",
 )
 
@@ -125,8 +124,6 @@ def seed_metrics(
             disk_write_mb=50.0 * i,
             net_sent_mb=20.0 * i,
             net_recv_mb=30.0 * i,
-            visitor_pool_allocated=i % 4,
-            visitor_pool_total=4,
             active_users_count=i % 3,
         )
         for i in range(samples)

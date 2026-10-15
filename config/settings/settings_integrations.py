@@ -47,7 +47,8 @@ SCITEX_SCHOLAR_DEFAULT_MODE = os.getenv("SCITEX_SCHOLAR_DEFAULT_MODE", "parallel
 #
 # So exporting the variable is not enough, and that is exactly how this hid:
 # the value was set in the prod container and in both .env.example files, and
-# defined in no .py file, so /apps/scholar/v2/ answered 503 "not configured"
+# defined in no .py file, so /apps/scholar/ answered 503 "not configured"
+# (before the cutover the leaf lived at /apps/scholar/v2/; same trap)
 # while every place a human would look showed it configured. This line is what
 # makes the environment reach the code.
 #

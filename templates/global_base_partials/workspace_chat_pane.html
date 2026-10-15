@@ -12,6 +12,11 @@
                 </div>
             </div>
             <div class="chat-welcome-input-area">
+                {# Free-message allowance, before the user sends (card             #}
+                {# hub-chat-free-daily-message-allowance-20260917). Renders the    #}
+                {# explicit unknown state until the backend supplies              #}
+                {# `chat_allowance`; it never invents a count.                    #}
+                {% include "chat/partials/chat_allowance.html" with allowance=chat_allowance %}
                 <div class="chat-welcome-input-box">
                     {% trans "• " context "chat example bullet" as bullet %}
                     <textarea id="chat-welcome-input"
@@ -30,7 +35,13 @@
                             <i class="fas fa-pen"></i>
                         </button>
                         <span class="chat-welcome-model" id="chat-welcome-model">
-                            <span id="chat-welcome-model-name"></span>
+                            {% comment %}
+                            Filled from the same allowance context as the line
+                            above, so the model is on screen before the first
+                            send rather than waiting on JS (card
+                            hub-chat-free-daily-message-allowance-20260917).
+                            {% endcomment %}
+                            <span id="chat-welcome-model-name">{{ chat_allowance.model|default:'' }}</span>
                         </span>
                         <button class="chat-welcome-btn" id="chat-welcome-mic" title="Voice input">
                             <i class="fas fa-microphone"></i>
@@ -45,6 +56,7 @@
         </div>
         <!-- Persistent input area (shown during conversation, hidden by CSS initially) -->
         <div class="chat-input-area hidden" id="chat-input-area">
+            {% include "chat/partials/chat_allowance.html" with allowance=chat_allowance %}
             <div class="chat-input-box">
                 <textarea id="chat-input"
                           class="chat-input"

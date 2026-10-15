@@ -1,0 +1,167 @@
+{% load i18n static %}
+{# landing_opensource.html — open-source org + full research demo on the landing page. #}
+{# Included from landing.html (after the modules sections, before pricing). #}
+{# The 40-minute research demo is the VIDEO_CATALOG entry #}
+{# "scitex-automated-research" (media/videos/scitex-automated-research-demo.mp4, #}
+{# 2613s); the embed, the watch page, and the demos index share that file. #}
+{# This section is the canonical link hub for the demo videos. #}
+<section class="landing-v2-section landing-v2-oss" id="open-source" aria-labelledby="landing-v2-oss-title">
+    <div class="container landing-v2-shell">
+        <div class="landing-v2-intro">
+            <div>
+                <p class="landing-v2-eyebrow">{% trans "Open source" %}</p>
+                <h2 id="landing-v2-oss-title">{% trans "The whole stack is open source" %} <a class="section-anchor" href="#open-source" aria-label="Link to this section">#</a></h2>
+            </div>
+            <p>
+                {% trans "Everything behind SciTeX Cloud — this platform and the research packages around it — lives in the open under AGPL-3.0. Audit it, fork it, self-host it." %}
+            </p>
+        </div>
+        <div class="landing-oss-orgrow">
+            <a class="landing-v2-button landing-v2-button-primary"
+               href="https://github.com/scitex-ai"
+               target="_blank"
+               rel="noopener noreferrer"><i class="fab fa-github" aria-hidden="true"></i> {% trans "Explore scitex-ai on GitHub" %}<span aria-hidden="true">↗</span></a>
+            <a class="landing-v2-button"
+               href="{% url 'public_app:open_source' %}">{% trans "Why open source matters for research" %}<span aria-hidden="true">→</span></a>
+        </div>
+        <ul class="landing-oss-packages">
+            <li>
+                <h3>scitex-hub</h3>
+                <p>{% trans "This cloud platform: projects, apps, and accounts in one workspace." %}</p>
+                <a href="https://github.com/scitex-ai/scitex-hub" target="_blank" rel="noopener noreferrer"><i class="fab fa-github" aria-hidden="true"></i> scitex-ai/scitex-hub</a>
+            </li>
+            <li>
+                <h3>scitex-agent-container</h3>
+                <p>{% trans "Declarative YAML framework to define, run, and orchestrate AI coding agents." %}</p>
+                <a href="https://github.com/scitex-ai/scitex-agent-container" target="_blank" rel="noopener noreferrer"><i class="fab fa-github" aria-hidden="true"></i> scitex-ai/scitex-agent-container</a>
+            </li>
+            <li>
+                <h3>scitex-cards</h3>
+                <p>{% trans "Canonical YAML task store with pluggable adapters and mermaid graphs." %}</p>
+                <a href="https://github.com/scitex-ai/scitex-cards" target="_blank" rel="noopener noreferrer"><i class="fab fa-github" aria-hidden="true"></i> scitex-ai/scitex-cards</a>
+            </li>
+            <li>
+                <h3>scitex-storage</h3>
+                <p>{% trans "Browse your storage across the machines you can reach." %}</p>
+                <a href="https://github.com/scitex-ai/scitex-storage" target="_blank" rel="noopener noreferrer"><i class="fab fa-github" aria-hidden="true"></i> scitex-ai/scitex-storage</a>
+            </li>
+            <li>
+                <h3>scitex-scholar</h3>
+                <p>{% trans "Scientific paper search, enrichment, download, and management." %}</p>
+                <a href="https://github.com/scitex-ai/scitex-scholar" target="_blank" rel="noopener noreferrer"><i class="fab fa-github" aria-hidden="true"></i> scitex-ai/scitex-scholar</a>
+            </li>
+            <li>
+                <h3>scitex-writer</h3>
+                <p>{% trans "LaTeX manuscript compilation for scientific documents, with MCP server." %}</p>
+                <a href="https://github.com/scitex-ai/scitex-writer" target="_blank" rel="noopener noreferrer"><i class="fab fa-github" aria-hidden="true"></i> scitex-ai/scitex-writer</a>
+            </li>
+            <li>
+                <h3>scitex-sdk</h3>
+                <p>{% trans "DataStore, FileVault, and JobQueue: the app contract for Custom Apps." %}</p>
+                <a href="https://github.com/scitex-ai/scitex-sdk" target="_blank" rel="noopener noreferrer"><i class="fab fa-github" aria-hidden="true"></i> scitex-ai/scitex-sdk</a>
+            </li>
+        </ul>
+        <div class="landing-oss-demo" id="research-demo" aria-labelledby="landing-oss-demo-title">
+            <p class="landing-v2-eyebrow">{% trans "Research demo" %}</p>
+            <h3 id="landing-oss-demo-title">{% trans "Watch a full research cycle in 40 minutes" %} <a class="section-anchor" href="#research-demo" aria-label="Link to this section">#</a></h3>
+            <p>
+                {% trans "The SciTeX ecosystem spans 78 open-source modules, proven by a 40-minute fully automated research run. On scitex.ai, those same packages run as web apps — for everyone, with no environment setup." %}
+            </p>
+            <div class="landing-oss-video-wrapper">
+                <video autoplay
+                       loop
+                       muted
+                       playsinline
+                       controls
+                       preload="metadata"
+                       class="landing-oss-video"
+                       poster="{{ research_demo_poster_url }}">
+                    <source src="{{ research_demo_url }}" type="video/mp4" />
+                    {% trans "Your browser does not support the video tag." %}
+                </video>
+            </div>
+            <p class="landing-v2-small">
+                {% trans "Full-length demo — 40 minutes, end to end." %}
+            </p>
+            <p class="landing-oss-more">
+                <a href="{% url 'public_app:demos' %}">{% trans "More demo videos" %}<span aria-hidden="true">→</span></a>
+            </p>
+            <p class="landing-oss-comingsoon">
+                <strong>{% trans "Coming soon:" %}</strong> {% trans "SDK custom-app creation (scitex-sdk GUI / App Creator) — shot as a demo video and linked here when ready." %}
+            </p>
+        </div>
+    </div>
+</section>
+<style>
+    .landing-oss-orgrow {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.75rem;
+        margin: 1.25rem 0 2rem;
+    }
+    .landing-oss-packages {
+        list-style: none;
+        padding: 0;
+        margin: 0 0 3rem;
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+        gap: 1rem;
+    }
+    .landing-oss-packages li {
+        border: 1px solid var(--border-default);
+        border-radius: 8px;
+        padding: 1rem 1.25rem;
+        background: var(--bg-secondary);
+    }
+    .landing-oss-packages h3 {
+        margin: 0 0 0.5rem;
+        font-size: 1.05rem;
+    }
+    .landing-oss-packages p {
+        margin: 0 0 0.75rem;
+        color: var(--text-secondary);
+        font-size: 0.95rem;
+        line-height: 1.6;
+    }
+    .landing-oss-packages a {
+        font-family: var(--font-mono);
+        font-size: 0.85rem;
+    }
+    .landing-oss-demo {
+        border-top: 1px solid var(--border-default);
+        padding-top: 2.5rem;
+    }
+    .landing-oss-demo h3 {
+        font-size: 1.5rem;
+        margin: 0 0 1rem;
+    }
+    .landing-oss-video-wrapper {
+        position: relative;
+        width: 100%;
+        max-width: 1100px;
+        padding-bottom: 56.25%;
+        overflow: hidden;
+        border-radius: 8px;
+        margin: 1.5rem 0;
+    }
+    .landing-oss-video {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        border-radius: 8px;
+    }
+    .landing-oss-more {
+        margin: 1rem 0;
+        font-size: 1.05rem;
+    }
+    .landing-oss-comingsoon {
+        margin-top: 1rem;
+        padding: 0.75rem 1rem;
+        border: 1px dashed var(--border-default);
+        border-radius: 6px;
+        color: var(--text-secondary);
+        font-size: 0.95rem;
+    }
+</style>

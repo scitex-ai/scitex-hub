@@ -1,0 +1,26 @@
+{% load i18n %}
+{% comment %}
+Generic restricted-audience placeholder for plugin mounts.
+
+Rendered by the generic mount-policy guard when a signed-in user reaches a
+plugin mount whose leaf-declared audience excludes them. Shows NO board,
+fleet, or file data — only the app label the leaf itself declares. Replaces
+the retired per-app own-scope placeholders.
+{% endcomment %}
+<main class="own-scope-soon" data-own-scope-app="restricted">
+    <div class="own-scope-soon__card">
+        <i class="fas fa-lock own-scope-soon__icon" aria-hidden="true"></i>
+        <h1 class="own-scope-soon__title">{{ app_label }}</h1>
+        <p class="own-scope-soon__lead">{% blocktranslate with app=app_label %}Your {{ app }} access is being prepared.{% endblocktranslate %}</p>
+        <p class="own-scope-soon__note">{% translate "Nothing from other people is shown here." %}</p>
+        <a class="own-scope-soon__back" href="/apps/">{% translate "Back to Home" %}</a>
+    </div>
+</main>
+<style>
+    .own-scope-soon { display: flex; justify-content: center; padding: 3rem 1rem 6rem; }
+    .own-scope-soon__card { max-width: 32rem; width: 100%; text-align: center; padding: 2rem; }
+    .own-scope-soon__icon { font-size: 2rem; margin-bottom: 1rem; }
+    .own-scope-soon__title { font-size: 1.5rem; margin-bottom: .5rem; }
+    .own-scope-soon__lead { font-size: 1.05rem; margin-bottom: .5rem; }
+    .own-scope-soon__note { opacity: .75; margin-bottom: 1.5rem; }
+</style>

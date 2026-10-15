@@ -231,7 +231,13 @@ def test_no_test_posts_a_field_the_signup_form_ignores():
         )
 
 
-def test_the_signup_form_expects_password2():
+def test_the_signup_form_takes_one_password():
+    """The form collects a password once (card hub-signup-email-stripe-funnel).
+
+    It used to require ``password2`` and compare the two; the field is gone from
+    the markup, the form and the client, so the payload these tests post must not
+    pretend otherwise — and no confirmation key may reappear under another name.
+    """
     # Arrange
     from apps.infra.auth_app.forms import SignupForm
 
@@ -239,7 +245,8 @@ def test_the_signup_form_expects_password2():
     names = set(SignupForm.base_fields)
 
     # Assert
-    assert "password2" in names
+    assert names == {"username", "email", "password", "agree_terms"}, names
+    assert "password2" not in names
     assert "confirm_password" not in names
 
 
@@ -253,7 +260,6 @@ def test_the_request_payload_shape_is_actually_form_valid():
             "username": "payload_probe",
             "email": "payload_probe@example.com",
             "password": "Gx7-quiet-harbour-42",
-            "password2": "Gx7-quiet-harbour-42",
             "agree_terms": "on",
         }
     )

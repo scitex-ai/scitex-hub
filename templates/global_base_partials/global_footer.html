@@ -12,7 +12,7 @@
                     </div>
                     <p class="footer-tagline">{{ SITE_TAGLINE }}</p>
                     <div class="footer-social">
-                        <a href="https://github.com/ywatanabe1989" title="GitHub"><i class="fab fa-github"></i></a>
+                        <a href="https://github.com/scitex-ai" title="GitHub"><i class="fab fa-github"></i></a>
                         <a href="https://app.slack.com/client/T08TMR9RZQR/C08TMRA20AD" title="Slack"><i class="fab fa-slack"></i></a>
                         <a href="https://twitter.com/SciTeX_AI" title="Twitter"><i class="fab fa-twitter"></i></a>
                         <a href="https://www.linkedin.com/company/scitex-ai" title="LinkedIn (Company)"><i class="fab fa-linkedin"></i></a>
@@ -40,19 +40,13 @@
                             <a href="{% url 'public_app:contributors' %}">{% trans "Contributors" %}</a>
                         </li>
                         <li>
-                            <a href="{% url 'public_app:recruit' %}">{% trans "Recruit" %}</a>
-                        </li>
-                        <li>
                             <a href="{% url 'public_app:publications' %}">{% trans "Publications" %}</a>
                         </li>
                         <li>
                             <a href="{% url 'public_app:pricing' %}">{% trans "Premium" %}</a>
                         </li>
                         <li>
-                            <a href="{% url 'public_app:donate' %}">{% trans "Support SciTeX" %}</a>
-                        </li>
-                        <li>
-                            <a href="{% url 'public_app:setup' %}">{% trans "Self-Hosting Guide" %}</a>
+                            <a href="{% url 'public_app:recruit' %}">{% trans "Recruit" %}</a>
                         </li>
                     </ul>
                 </div>
@@ -89,6 +83,9 @@
                         {% endif %}
                         <li>
                             <a href="{% url 'public_app:server_status' %}">{% trans "Server Status" %}</a>
+                        </li>
+                        <li>
+                            <a href="{% url 'public_app:setup' %}">{% trans "Self-Hosting Guide" %}</a>
                         </li>
                     </ul>
                 </div>
@@ -133,39 +130,22 @@
         {# Staff only: dev is used by real testers, and these buttons cancel every SLURM job. #}
         {% if DEBUG and request.user.is_staff %}
             <div class="footer-dev-tools">
-                <span class="dev-tools-label">Dev Tools:</span>
-                <button id="page-refresh-btn" class="dev-tool-btn" title="Refresh page (Ctrl+Shift+R)">
-                    <i class="fas fa-sync-alt"></i> Refresh
+                <span class="dev-tools-label">{% trans "Dev Tools:" %}</span>
+                <button id="page-refresh-btn" class="dev-tool-btn" title="{% trans 'Refresh page (Ctrl+Shift+R)' %}">
+                    <i class="fas fa-sync-alt"></i> {% trans "Refresh" %}
                 </button>
                 <button id="clear-localstorage-btn"
                         class="dev-tool-btn"
-                        title="Clear localStorage cache"
+                        title="{% trans 'Clear localStorage cache' %}"
                         onclick="if(confirm('Clear all localStorage? This will reset theme preferences and cached data.')) { localStorage.clear(); location.reload(); }">
-                    <i class="fas fa-eraser"></i> Clear Cache
+                    <i class="fas fa-eraser"></i> {% trans "Clear Cache" %}
                 </button>
-                <button id="init-visitor-pool-btn"
-                        class="dev-tool-btn"
-                        title="Initialize Visitor Pool (Dev)"
-                        onclick="initVisitorPool()">
-                    <i class="fas fa-users-cog"></i> Init Visitors
-                </button>
-                <button id="fill-visitor-slots-btn"
-                        class="dev-tool-btn"
-                        title="Fill all visitor slots to trigger read-only mode"
-                        onclick="fillVisitorSlots()">
-                    <i class="fas fa-user-lock"></i> Fill Slots
-                </button>
-                <button id="free-visitor-slots-btn"
-                        class="dev-tool-btn"
-                        title="Free all visitor slots"
-                        onclick="freeVisitorSlots()">
-                    <i class="fas fa-user-check"></i> Free Slots
-                </button>
+
                 <button id="cancel-all-jobs-btn"
                         class="dev-tool-btn"
-                        title="Cancel all SLURM jobs"
+                        title="{% trans 'Cancel all SLURM jobs' %}"
                         onclick="cancelAllJobs()">
-                    <i class="fas fa-ban"></i> Cancel Jobs
+                    <i class="fas fa-ban"></i> {% trans "Cancel Jobs" %}
                 </button>
             </div>
         {% endif %}

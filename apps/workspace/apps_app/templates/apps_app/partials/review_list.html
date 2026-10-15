@@ -1,12 +1,13 @@
+{% load i18n %}
 {% if reviews %}
-    <ul class="ap-review-list" aria-label="User reviews">
+    <ul class="ap-review-list" aria-label="{% trans 'User reviews' %}">
         {% for review in reviews %}
             <li class="ap-review-item">
                 <div class="ap-review-header">
                     <div class="ap-review-avatar" aria-hidden="true">{{ review.user.username|slice:":1"|upper }}</div>
                     <div class="ap-review-user-info">
                         <span class="ap-review-username">{{ review.user.username }}</span>
-                        <div class="ap-review-stars" aria-label="Rating: {{ review.rating }} out of 5">
+                        <div class="ap-review-stars" aria-label="{% blocktrans with rating=review.rating %}Rating: {{ rating }} out of 5{% endblocktrans %}">
                             {% for i in "12345" %}
                                 <i class="{% if forloop.counter <= review.rating %}fas{% else %}far{% endif %} fa-star"
                                    aria-hidden="true"></i>
@@ -21,7 +22,7 @@
                 {% if review.body %}<p class="ap-review-body">{{ review.body }}</p>{% endif %}
                 {% if review.is_from_installer %}
                     <span class="ap-badge ap-badge-verified ap-badge-sm">
-                        <i class="fas fa-download" aria-hidden="true"></i> Verified Install
+                        <i class="fas fa-download" aria-hidden="true"></i> {% trans "Verified Install" %}
                     </span>
                 {% endif %}
             </li>
@@ -30,6 +31,6 @@
 {% else %}
     <div class="ap-review-empty">
         <i class="far fa-comment-dots" aria-hidden="true"></i>
-        <p>No reviews yet. Be the first to review this app.</p>
+        <p>{% trans "No reviews yet. Be the first to review this app." %}</p>
     </div>
 {% endif %}

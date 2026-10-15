@@ -1,4 +1,5 @@
 import json
+import uuid
 
 from channels.layers import get_channel_layer
 from django.contrib.auth.decorators import login_required
@@ -6,9 +7,54 @@ from django.db import transaction
 from django.http import HttpResponse, JsonResponse
 from django.views.decorators.http import require_http_methods
 
+from apps.infra.llm_app.funded_chat.config import (
+    FundedChatConfigurationError,
+    load_funded_chat_config,
+)
+from apps.infra.llm_app.funded_chat.errors import provider_error_payload
+from apps.infra.llm_app.funded_chat.provider import litellm_provider_call
+from apps.infra.llm_app.funded_chat.service import FundedChatDenied, FundedChatService
 from apps.infra.llm_app.services import UserLLMService
 from apps.infra.llm_app.utils import LLM_PROVIDERS, litellm_model_string
 from apps.infra.llm_app.views.sse_utils import build_multimodal_user_msg, with_keepalive
+
+MAX_CHAT_HTTP_BODY_BYTES = 131_072
+
+
+def _request_idempotency_key(request) -> str:
+    value = request.headers.get("Idempotency-Key")
+    if value is None:
+        return uuid.uuid4().hex
+    if value != value.strip() or not 1 <= len(value) <= 200:
+        raise ValueError("invalid Idempotency-Key")
+    return value
+
+
+def _execute_funded_chat(user, messages: list[dict], idempotency_key: str):
+    """The sole executor for every no-BYOK provider request."""
+
+    config = load_funded_chat_config()
+    request_body = json.dumps(
+        {"messages": messages}, separators=(",", ":"), ensure_ascii=False
+    ).encode("utf-8")
+    return FundedChatService(config=config).execute(
+        user,
+        idempotency_key=idempotency_key,
+        request_body=request_body,
+        provider_call=litellm_provider_call,
+    )
+
+
+def _funded_error_payload(exc: FundedChatDenied, *, model: str) -> dict:
+    return {
+        "category": exc.category,
+        "remaining": None,
+        "reset_at": "",
+        "model": model,
+        "error": "AI provider request failed",
+        "retry_after": exc.retry_after_seconds,
+        "support_id": exc.support_id,
+    }
 
 
 def _model_display_name(service_id: str, model_id: str) -> str:
@@ -30,27 +76,43 @@ def _model_display_name(service_id: str, model_id: str) -> str:
     return f"{provider_display} · {base}"
 
 
+def _sanitized_provider_payload(exc: BaseException, *, model: str = "") -> dict:
+    """Build the browser contract without retaining provider exception text."""
+
+    return provider_error_payload(
+        exc,
+        remaining=None,
+        reset_at="",
+        model=model,
+    )
+
+
+def _service_model(service: UserLLMService) -> str:
+    if not service.connection or not service.llm_connection:
+        return ""
+    return litellm_model_string(
+        service.connection.service,
+        service.llm_connection.default_model,
+    )
+
+
 @login_required
 @require_http_methods(["GET"])
 def api_current_model(request):
     """Return the model name that will be used for the next chat request."""
     service = UserLLMService(request.user)
     if not service.connection or not service.llm_connection:
-        # Fall back to campaign mode if available
-        from apps.infra.llm_app.services.campaign_service import (
-            get_campaign_config,
-            is_campaign_enabled,
-        )
-
-        if is_campaign_enabled():
-            config = get_campaign_config()
-            model_id = config["model"]
+        try:
+            config = load_funded_chat_config()
+        except FundedChatConfigurationError:
+            return JsonResponse({"success": False, "model": None}, status=503)
+        if config.enabled:
             return JsonResponse(
                 {
                     "success": True,
-                    "model": f"anthropic/{model_id}",
-                    "display": _model_display_name("anthropic", model_id),
-                    "campaign": True,
+                    "model": config.litellm_model,
+                    "display": _model_display_name(config.provider, config.model),
+                    "funded": True,
                 }
             )
         return JsonResponse({"success": False, "model": None})
@@ -235,6 +297,16 @@ async def api_chat_stream(request):
 
     from apps.infra.llm_app.services.llm_service import UserLLMService as _ULS
 
+    if len(request.body) > MAX_CHAT_HTTP_BODY_BYTES:
+        return JsonResponse(
+            {"success": False, "error": "Request too large"}, status=413
+        )
+    try:
+        idempotency_key = _request_idempotency_key(request)
+    except ValueError:
+        return JsonResponse(
+            {"success": False, "error": "Invalid Idempotency-Key"}, status=400
+        )
     try:
         data = _json.loads(request.body)
     except _json.JSONDecodeError:
@@ -262,16 +334,16 @@ async def api_chat_stream(request):
     app_name = _derive_app_name(context)
 
     service = await sync_to_async(_ULS)(user=request.user)
-    use_campaign = False
-    if not service.connection:
-        # Check campaign mode before returning error
-        from apps.infra.llm_app.services.campaign_service import (
-            check_campaign_rate_limit,
-            increment_campaign_usage,
-            is_campaign_enabled,
-        )
-
-        if not is_campaign_enabled():
+    use_funded = not service.connection
+    funded_model = ""
+    if use_funded:
+        try:
+            funded_config = load_funded_chat_config()
+        except FundedChatConfigurationError:
+            return JsonResponse(
+                {"success": False, "error": "AI provider unavailable"}, status=503
+            )
+        if not funded_config.enabled:
             return JsonResponse(
                 {
                     "success": False,
@@ -280,15 +352,7 @@ async def api_chat_stream(request):
                 },
                 status=400,
             )
-        allowed, remaining, err_msg = await sync_to_async(check_campaign_rate_limit)(
-            request
-        )
-        if not allowed:
-            return JsonResponse(
-                {"success": False, "error": err_msg, "campaign": True},
-                status=429,
-            )
-        use_campaign = True
+        funded_model = funded_config.litellm_model
 
     # Resolve project root for media detection in tool results
     project_slug = context.get("project_slug", "")
@@ -320,19 +384,11 @@ async def api_chat_stream(request):
                 f"data: {_json.dumps({'type': 'context', 'username': username, 'slug': project_slug})}\n\n"
             )
         try:
-            if use_campaign:
-                from apps.infra.llm_app.services.campaign_service import (
-                    campaign_complete_streaming,
-                )
-
-                resp = await campaign_complete_streaming(messages)
-                full_text = ""
-                async for chunk in resp:
-                    delta = chunk.choices[0].delta
-                    if delta.content:
-                        full_text += delta.content
-                        yield f"data: {_json.dumps({'type': 'chunk', 'text': delta.content})}\n\n"
-                await sync_to_async(increment_campaign_usage)(request)
+            if use_funded:
+                result = await sync_to_async(
+                    _execute_funded_chat, thread_sensitive=True
+                )(request.user, messages, idempotency_key)
+                yield f"data: {_json.dumps({'type': 'chunk', 'text': result.text})}\n\n"
             else:
                 async for event in with_keepalive(
                     service.complete_with_tools_streaming(
@@ -343,8 +399,16 @@ async def api_chat_stream(request):
                     )
                 ):
                     yield event
-        except Exception as e:
-            yield f"data: {_json.dumps({'type': 'error', 'error': str(e)})}\n\n"
+        except FundedChatDenied as exc:
+            payload = {
+                "type": "error",
+                **_funded_error_payload(exc, model=funded_model),
+            }
+            yield f"data: {_json.dumps(payload)}\n\n"
+        except Exception as exc:
+            model = funded_model if use_funded else _service_model(service)
+            payload = {"type": "error", **_sanitized_provider_payload(exc, model=model)}
+            yield f"data: {_json.dumps(payload)}\n\n"
         yield "data: [DONE]\n\n"
 
     response = StreamingHttpResponse(sse_generator(), content_type="text/event-stream")
@@ -362,6 +426,16 @@ async def api_chat(request):
 
     from apps.infra.llm_app.services.llm_service import LLMProviderError, RateLimitError
 
+    if len(request.body) > MAX_CHAT_HTTP_BODY_BYTES:
+        return JsonResponse(
+            {"success": False, "error": "Request too large"}, status=413
+        )
+    try:
+        idempotency_key = _request_idempotency_key(request)
+    except ValueError:
+        return JsonResponse(
+            {"success": False, "error": "Invalid Idempotency-Key"}, status=400
+        )
     try:
         data = json.loads(request.body)
     except json.JSONDecodeError:
@@ -389,15 +463,13 @@ async def api_chat(request):
 
     service = await sync_to_async(UserLLMService)(user=request.user)
     if not service.connection:
-        # Check campaign mode before returning error
-        from apps.infra.llm_app.services.campaign_service import (
-            campaign_complete_streaming,
-            check_campaign_rate_limit,
-            increment_campaign_usage,
-            is_campaign_enabled,
-        )
-
-        if not is_campaign_enabled():
+        try:
+            funded_config = load_funded_chat_config()
+        except FundedChatConfigurationError:
+            return JsonResponse(
+                {"success": False, "error": "AI provider unavailable"}, status=503
+            )
+        if not funded_config.enabled:
             return JsonResponse(
                 {
                     "success": False,
@@ -406,41 +478,32 @@ async def api_chat(request):
                 },
                 status=400,
             )
-        allowed, remaining, err_msg = await sync_to_async(check_campaign_rate_limit)(
-            request
-        )
-        if not allowed:
-            return JsonResponse(
-                {"success": False, "error": err_msg, "campaign": True},
-                status=429,
-            )
-
         try:
             import time
 
             t0 = time.monotonic()
-            resp = await campaign_complete_streaming(messages)
-            full_text = ""
-            async for chunk in resp:
-                delta = chunk.choices[0].delta
-                if delta.content:
-                    full_text += delta.content
+            result = await sync_to_async(_execute_funded_chat, thread_sensitive=True)(
+                request.user, messages, idempotency_key
+            )
             elapsed = int((time.monotonic() - t0) * 1000)
-            await sync_to_async(increment_campaign_usage)(request)
             return JsonResponse(
                 {
                     "success": True,
-                    "text": full_text,
+                    "text": result.text,
                     "tools_used": [],
                     "response_time_ms": elapsed,
-                    "campaign": True,
+                    "funded": True,
                 }
             )
-        except Exception as e:
-            return JsonResponse(
-                {"success": False, "error": f"Campaign chat failed: {e}"},
-                status=500,
+        except FundedChatDenied as exc:
+            payload = _funded_error_payload(exc, model=funded_config.litellm_model)
+            status = 429 if exc.category in {"quota_reached", "rate_limit"} else 502
+            return JsonResponse({"success": False, **payload}, status=status)
+        except Exception as exc:
+            payload = _sanitized_provider_payload(
+                exc, model=funded_config.litellm_model
             )
+            return JsonResponse({"success": False, **payload}, status=502)
 
     try:
         result = await service.complete_with_tools(
@@ -457,15 +520,12 @@ async def api_chat(request):
             }
         )
 
-    except RateLimitError as e:
-        return JsonResponse(
-            {"success": False, "error": f"Rate limit exceeded: {e}"},
-            status=429,
-        )
-    except LLMProviderError as e:
-        return JsonResponse({"success": False, "error": str(e)}, status=400)
-    except Exception as e:
-        return JsonResponse(
-            {"success": False, "error": f"AI request failed: {e}"},
-            status=500,
-        )
+    except RateLimitError as exc:
+        payload = _sanitized_provider_payload(exc, model=_service_model(service))
+        return JsonResponse({"success": False, **payload}, status=429)
+    except LLMProviderError as exc:
+        payload = _sanitized_provider_payload(exc, model=_service_model(service))
+        return JsonResponse({"success": False, **payload}, status=502)
+    except Exception as exc:
+        payload = _sanitized_provider_payload(exc, model=_service_model(service))
+        return JsonResponse({"success": False, **payload}, status=502)

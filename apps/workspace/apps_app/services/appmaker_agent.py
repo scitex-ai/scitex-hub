@@ -4,7 +4,7 @@
 
 Skills are plain named text blocks so another harness (e.g. Hermes) can load
 the same list instead of this module's flat system prompt. The chat itself
-streams through ``scitex_app._chat`` over the hub's bring-your-own-key
+streams through ``scitex_sdk.app._chat`` over the hub's bring-your-own-key
 provider registration (llm_app), never a hardcoded vendor.
 """
 
@@ -51,7 +51,7 @@ class Skill:
 
 def _read_sdk_skill(filename: str) -> str:
     try:
-        root = resources.files("scitex_app") / "_skills" / "scitex-app"
+        root = resources.files("scitex_sdk.app") / "_skills" / "scitex-app"
         return (root / filename).read_text(encoding="utf-8")
     except (FileNotFoundError, ModuleNotFoundError, OSError):
         logger.warning("[appmaker_agent] SDK skill %s not found", filename)
@@ -78,7 +78,7 @@ def build_system_prompt(skills: List[Skill], files: List[str]) -> str:
 
 
 class HubUserChatBackend:
-    """``scitex_app._chat.ChatBackend`` over the user's registered AI provider."""
+    """``scitex_sdk.app._chat.ChatBackend`` over the user's registered AI provider."""
 
     def __init__(self, model: str, api_key: Optional[str]):
         self._model = model
@@ -112,22 +112,19 @@ class HubUserChatBackend:
                 if delta.content:
                     yield {"type": "chunk", "text": delta.content}
             yield {"type": "done"}
-        except Exception as exc:
-            logger.exception("[appmaker_agent] chat stream failed")
-            yield {"type": "error", "error": str(exc)}
+        except Exception:
+            # Provider exceptions can contain credentials or response bodies.
+            logger.error("[appmaker_agent] chat stream failed")
+            yield {"type": "error", "error": "AI provider request failed"}
 
 
 def resolve_chat_backend(user) -> Optional[HubUserChatBackend]:
-    """The same provider Chat uses: the user's own key, else the campaign key.
+    """Return a BYOK backend only.
 
-    Returns None when nothing is configured — the caller shows the
-    "connect an AI provider" state.
+    Server-funded calls require the durable funded-chat executor and cannot use
+    this streaming adapter, so the legacy campaign-key fallback is forbidden.
     """
     from apps.infra.llm_app.services import UserLLMService
-    from apps.infra.llm_app.services.campaign_service import (
-        get_campaign_config,
-        is_campaign_enabled,
-    )
     from apps.infra.llm_app.utils import litellm_model_string
 
     service = UserLLMService(user)
@@ -143,9 +140,6 @@ def resolve_chat_backend(user) -> Optional[HubUserChatBackend]:
             model or service.llm_connection.default_model,
             service.connection.get_api_key(),
         )
-    if is_campaign_enabled():
-        config = get_campaign_config()
-        return HubUserChatBackend(f"anthropic/{config['model']}", config["api_key"])
     return None
 
 

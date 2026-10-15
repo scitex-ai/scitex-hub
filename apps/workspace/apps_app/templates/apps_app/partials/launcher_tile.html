@@ -10,6 +10,7 @@
    data-module="{{ tile.name }}"
    data-group="{{ tile.group }}"
    data-category="{{ tile.category }}"
+   data-scope="{{ tile.scope }}"
    data-label="{{ tile.label }}"
    data-availability="{{ tile.availability }}"
    data-installed="{% if tile.is_installed %}1{% else %}0{% endif %}"
@@ -22,10 +23,10 @@
    data-manifest-icon="{{ tile.manifest_icon_fa }}"
    {% if tile.is_link %}data-link-only="1"{% endif %}
    {% if tile.is_dev_only %}data-dev-only="1"{% endif %}
-   title="{{ tile.label }}{% if tile.version_label %} {{ tile.version_label }}{% endif %}{% if tile.availability == 'coming_soon' %} — {% if tile.availability_reason %}{{ tile.availability_reason }}{% else %}Coming Soon{% endif %}{% endif %}{% if tile.description %} — {{ tile.description }}{% endif %}">
-    {% if tile.is_installed %}<span class="launcher-dot-installed" title="Installed"></span>{% endif %}
-    {% if tile.can_uninstall %}<span role="button" tabindex="-1" class="launcher-edit-control launcher-uninstall-control" aria-label="Uninstall {{ tile.label }}" title="Uninstall {{ tile.label }}"><i class="fas fa-minus" aria-hidden="true"></i></span>{% endif %}
-    {% if tile.can_edit_display %}<span role="button" tabindex="-1" class="launcher-edit-control launcher-display-control" aria-label="Edit {{ tile.label }} display" title="Edit display"><i class="fas fa-pen" aria-hidden="true"></i></span>{% endif %}
+   title="{{ tile.label }}{% if tile.version_label %} {{ tile.version_label }}{% endif %}{% if tile.availability == 'coming_soon' %} — {% if tile.availability_reason %}{{ tile.availability_reason }}{% else %}{% trans 'Coming Soon' %}{% endif %}{% endif %}{% if tile.description %} — {{ tile.description }}{% endif %}">
+    {% if tile.is_installed %}<span class="launcher-dot-installed" title="{% trans 'Installed' %}"></span>{% endif %}
+    {% if tile.can_uninstall %}<span role="button" tabindex="-1" class="launcher-edit-control launcher-uninstall-control" aria-label="{% blocktrans with label=tile.label %}Uninstall {{ label }}{% endblocktrans %}" title="{% blocktrans with label=tile.label %}Uninstall {{ label }}{% endblocktrans %}"><i class="fas fa-minus" aria-hidden="true"></i></span>{% endif %}
+    {% if tile.can_edit_display %}<span role="button" tabindex="-1" class="launcher-edit-control launcher-display-control" aria-label="{% blocktrans with label=tile.label %}Edit {{ label }} display{% endblocktrans %}" title="{% trans 'Edit display' %}"><i class="fas fa-pen" aria-hidden="true"></i></span>{% endif %}
     <span class="launcher-tile-icon" data-tile-category="{{ tile.category }}"{% if tile.icon_color %} style="--launcher-glyph-color: {{ tile.icon_color }}"{% endif %}>
         <i class="{{ tile.icon_fa }}" aria-hidden="true"></i>
         {% if tile.icon_badge %}

@@ -32,7 +32,6 @@
   --chart-disk-write: #d9812b;
   --chart-net-sent: #d94466;
   --chart-net-recv: #1f7fc4;
-  --chart-visitor-pool: #6b7280;
   --chart-active-users: #2b9c9c;
 }
 
@@ -52,7 +51,6 @@
   --chart-disk-write: #dda05e;
   --chart-net-sent: #e0788f;
   --chart-net-recv: #5aa9dd;
-  --chart-visitor-pool: #a3adb8;
   --chart-active-users: #63b8b8;
 }
 

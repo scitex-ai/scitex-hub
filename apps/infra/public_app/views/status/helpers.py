@@ -13,13 +13,11 @@ __DIR__ = os.path.dirname(__FILE__)
 """
 Status View Helper Functions
 
-Utility functions for GPU info, GPU utilization, and visitor pool status.
+Utility functions for GPU info, GPU utilization, and user counts.
 """
 
 import logging
 import subprocess
-
-from django.utils import timezone
 
 logger = logging.getLogger("scitex")
 
@@ -82,77 +80,4 @@ def check_registered_users_count(status_data):
     except Exception as e:
         logger.warning(f"Could not get registered users count: {e}")
         status_data["registered_users"] = {"total": 0, "error": str(e)}
-
-
-def check_visitor_pool_status(request, status_data):
-    """Check visitor pool status and allocations."""
-    try:
-        from apps.infra.project_app.services.visitor_pool import VisitorPool
-        from apps.infra.project_app.models import VisitorAllocation
-
-        pool_status = VisitorPool.get_pool_status()
-
-        # Get current user's allocation
-        user_allocation = None
-        allocation_token = request.session.get(VisitorPool.SESSION_KEY_ALLOCATION_TOKEN)
-        if allocation_token:
-            try:
-                user_allocation = VisitorAllocation.objects.get(
-                    allocation_token=allocation_token,
-                    is_active=True,
-                    expires_at__gt=timezone.now(),
-                )
-            except VisitorAllocation.DoesNotExist:
-                pass
-
-        user_visitor_number = (
-            user_allocation.visitor_number if user_allocation else None
-        )
-
-        # Get all allocations
-        allocations = []
-        for i in range(1, VisitorPool.POOL_SIZE + 1):
-            allocation = VisitorAllocation.objects.filter(visitor_number=i).first()
-            is_current_user = user_visitor_number == i
-
-            if (
-                allocation
-                and allocation.is_active
-                and allocation.expires_at > timezone.now()
-            ):
-                time_remaining = allocation.expires_at - timezone.now()
-                total_minutes = int(time_remaining.total_seconds() / 60)
-
-                allocations.append(
-                    {
-                        "slot_number": i,
-                        "status": "allocated",
-                        "expires_at": allocation.expires_at,
-                        "minutes_remaining": total_minutes,
-                        "visitor_username": f"visitor-{allocation.visitor_number:03d}",
-                        "is_current_user": is_current_user,
-                    }
-                )
-            else:
-                allocations.append(
-                    {
-                        "slot_number": i,
-                        "status": "free",
-                        "expires_at": None,
-                        "minutes_remaining": None,
-                        "visitor_username": None,
-                        "is_current_user": False,
-                    }
-                )
-
-        status_data["visitor_pool"] = {
-            "pool_status": pool_status,
-            "allocations": allocations,
-            "session_lifetime_hours": VisitorPool.SESSION_LIFETIME_HOURS,
-        }
-    except Exception as e:
-        logger.warning(f"Could not get visitor pool status: {e}")
-        status_data["visitor_pool"] = {"error": str(e)}
-
-
 # EOF

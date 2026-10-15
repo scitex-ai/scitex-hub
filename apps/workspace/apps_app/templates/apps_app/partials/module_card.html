@@ -1,3 +1,4 @@
+{% load i18n %}
 <article class="ap-card{% if mod_item.is_dev %} ap-card-private{% endif %}"
          data-module="{{ mod_item.app.module_name }}"
          data-category="{{ mod_item.app.category }}"
@@ -10,7 +11,7 @@
          data-tab-order="{{ mod_item.tab_order }}">
     <a href="{% if mod_item.is_dev %}/{{ mod_item.dev_owner }}/{{ mod_item.dev_repo }}/{% else %}/apps/{{ mod_item.app.module_name }}/{% endif %}"
        class="ap-card-link"
-       aria-label="View {{ mod_item.app.module_name }}">
+       aria-label="{% blocktrans with name=mod_item.app.module_name %}View {{ name }}{% endblocktrans %}">
         {% comment %}
            Version = the installed pip package's version (mod_item.reg.version,
            resolved via importlib.metadata in the registry) for built-in apps;
@@ -43,13 +44,13 @@
                 </h3>
                 {% if app_ver %}<span class="ap-card-version">v{{ app_ver }}</span>{% endif %}
                 <div class="ap-card-badges">
-                    <span class="ap-category-badge ap-category-{{ mod_item.app.category }}">{{ mod_item.app.get_category_display }}</span>
+                    <span class="ap-category-badge ap-category-{{ mod_item.app.category }}">{% trans mod_item.app.get_category_display %}</span>
                     {% if mod_item.app.is_builtin %}
-                        <span class="ap-badge ap-badge-builtin" title="Built-in app">built-in</span>
+                        <span class="ap-badge ap-badge-builtin" title="{% trans 'Built-in app' %}">{% trans "built-in" %}</span>
                     {% endif %}
                     {% if mod_item.app.visibility == "private" %}
-                        <span class="ap-badge ap-badge-private" title="Private app">
-                            <i class="fas fa-lock" aria-hidden="true"></i> Private
+                        <span class="ap-badge ap-badge-private" title="{% trans 'Private app' %}">
+                            <i class="fas fa-lock" aria-hidden="true"></i> {% trans "Private" %}
                         </span>
                     {% endif %}
                 </div>
@@ -83,16 +84,16 @@
         {% endif %}
     </div>
     <div class="ap-card-stats">
-        <span class="ap-stat" title="Stars">
+        <span class="ap-stat" title="{% trans 'Stars' %}">
             <i class="fas fa-star" aria-hidden="true"></i>
             {{ mod_item.app.star_count }}
         </span>
-        <span class="ap-stat" title="Installs">
+        <span class="ap-stat" title="{% trans 'Installs' %}">
             <i class="fas fa-download" aria-hidden="true"></i>
             {{ mod_item.app.install_count }}
         </span>
         {% if mod_item.app.avg_rating %}
-            <span class="ap-stat" title="Rating">
+            <span class="ap-stat" title="{% trans 'Rating' %}">
                 <i class="fas fa-star-half-alt" aria-hidden="true"></i>
                 {{ mod_item.app.avg_rating }}
             </span>
@@ -102,24 +103,24 @@
         {% if mod_item.is_dev %}
             <a href="/{{ mod_item.dev_owner }}/{{ mod_item.dev_repo }}/"
                class="ap-btn-hub"
-               title="App details"
+               title="{% trans 'App details' %}"
                onclick="event.stopPropagation();">
-                <i class="fas fa-info-circle" aria-hidden="true"></i> Details
+                <i class="fas fa-info-circle" aria-hidden="true"></i> {% trans "Details" %}
             </a>
         {% else %}
             <a href="/apps/{{ mod_item.app.module_name }}/"
                class="ap-btn-hub"
-               title="App details"
+               title="{% trans 'App details' %}"
                onclick="event.stopPropagation();">
-                <i class="fas fa-info-circle" aria-hidden="true"></i> Details
+                <i class="fas fa-info-circle" aria-hidden="true"></i> {% trans "Details" %}
             </a>
         {% endif %}
         {% if mod_item.app.author and user.is_staff %}
             <a href="{% if mod_item.is_dev %}/{{ mod_item.dev_owner }}/{{ mod_item.dev_repo }}/{% else %}/{{ mod_item.app.author.username }}/{{ mod_item.app.module_name }}/{% endif %}"
                class="ap-btn-hub"
-               title="View in {{ mod_item.app.author.username }}'s Hub"
+               title="{% blocktrans with owner=mod_item.app.author.username %}View in {{ owner }}'s Hub{% endblocktrans %}"
                onclick="event.stopPropagation();">
-                <i class="fas fa-user" aria-hidden="true"></i> Owner Hub
+                <i class="fas fa-user" aria-hidden="true"></i> {% trans "Owner Hub" %}
             </a>
         {% endif %}
         {% if mod_item.app.registry_repo_url %}
@@ -136,8 +137,8 @@
             <button class="ap-btn-star {% if mod_item.is_starred %}ap-btn-star--active{% endif %}"
                     data-module="{{ mod_item.app.module_name }}"
                     data-starred="{{ mod_item.is_starred|yesno:'true,false' }}"
-                    aria-label="{% if mod_item.is_starred %}Unstar{% else %}Star{% endif %} {{ mod_item.app.module_name }}"
-                    title="{% if mod_item.is_starred %}Unstar{% else %}Star{% endif %}">
+                    aria-label="{% if mod_item.is_starred %}{% blocktrans with name=mod_item.app.module_name %}Unstar {{ name }}{% endblocktrans %}{% else %}{% blocktrans with name=mod_item.app.module_name %}Star {{ name }}{% endblocktrans %}{% endif %}"
+                    title="{% if mod_item.is_starred %}{% trans 'Unstar' %}{% else %}{% trans 'Star' %}{% endif %}">
                 <i class="{% if mod_item.is_starred %}fas{% else %}far{% endif %} fa-star"
                    aria-hidden="true"></i>
             </button>
@@ -147,7 +148,7 @@
                          data-dev-owner="{{ mod_item.dev_owner }}"
                          data-dev-repo="{{ mod_item.dev_repo }}">
                         <button type="button" class="ap-badge-installed ap-status-trigger" data-enabled="true">
-                            <i class="fas fa-check" aria-hidden="true"></i> Installed <i class="fas fa-caret-down ap-caret" aria-hidden="true"></i>
+                            <i class="fas fa-check" aria-hidden="true"></i> {% trans "Installed" %} <i class="fas fa-caret-down ap-caret" aria-hidden="true"></i>
                         </button>
                         <div class="ap-status-menu">
                             <button type="button"
@@ -155,7 +156,7 @@
                                     data-action="dev-uninstall"
                                     data-owner="{{ mod_item.dev_owner }}"
                                     data-repo="{{ mod_item.dev_repo }}">
-                                <i class="fas fa-trash" aria-hidden="true"></i> Uninstall
+                                <i class="fas fa-trash" aria-hidden="true"></i> {% trans "Uninstall" %}
                             </button>
                         </div>
                     </div>
@@ -163,8 +164,8 @@
                     <button class="ap-btn-install dev-reinstall-btn"
                             data-owner="{{ mod_item.dev_owner }}"
                             data-repo="{{ mod_item.dev_repo }}"
-                            aria-label="Install {{ mod_item.app.module_name }}">
-                        <i class="fas fa-download" aria-hidden="true"></i> Install
+                            aria-label="{% blocktrans with name=mod_item.app.module_name %}Install {{ name }}{% endblocktrans %}">
+                        <i class="fas fa-download" aria-hidden="true"></i> {% trans "Install" %}
                     </button>
                 {% endif %}
             {% elif mod_item.is_installed %}
@@ -173,9 +174,9 @@
                             class="{% if mod_item.is_enabled %}ap-badge-installed{% else %}ap-badge-disabled{% endif %} ap-status-trigger"
                             data-enabled="{{ mod_item.is_enabled|yesno:'true,false' }}">
                         {% if mod_item.is_enabled %}
-                            <i class="fas fa-check" aria-hidden="true"></i> Installed <i class="fas fa-caret-down ap-caret" aria-hidden="true"></i>
+                            <i class="fas fa-check" aria-hidden="true"></i> {% trans "Installed" %} <i class="fas fa-caret-down ap-caret" aria-hidden="true"></i>
                         {% else %}
-                            <i class="fas fa-ban" aria-hidden="true"></i> Disabled <i class="fas fa-caret-down ap-caret" aria-hidden="true"></i>
+                            <i class="fas fa-ban" aria-hidden="true"></i> {% trans "Disabled" %} <i class="fas fa-caret-down ap-caret" aria-hidden="true"></i>
                         {% endif %}
                     </button>
                     <div class="ap-status-menu">
@@ -183,16 +184,16 @@
                                 class="ap-status-item ap-btn-toggle"
                                 data-module="{{ mod_item.app.module_name }}">
                             {% if mod_item.is_enabled %}
-                                <i class="fas fa-pause" aria-hidden="true"></i> Disable
+                                <i class="fas fa-pause" aria-hidden="true"></i> {% trans "Disable" %}
                             {% else %}
-                                <i class="fas fa-play" aria-hidden="true"></i> Enable
+                                <i class="fas fa-play" aria-hidden="true"></i> {% trans "Enable" %}
                             {% endif %}
                         </button>
                         {% if not mod_item.app.is_builtin %}
                             <button type="button"
                                     class="ap-status-item ap-status-item--danger ap-btn-uninstall"
                                     data-module="{{ mod_item.app.module_name }}">
-                                <i class="fas fa-trash" aria-hidden="true"></i> Uninstall
+                                <i class="fas fa-trash" aria-hidden="true"></i> {% trans "Uninstall" %}
                             </button>
                         {% endif %}
                     </div>
@@ -200,14 +201,14 @@
             {% else %}
                 <button class="ap-btn-install"
                         data-module="{{ mod_item.app.module_name }}"
-                        aria-label="Install {{ mod_item.app.module_name }}">
-                    <i class="fas fa-download" aria-hidden="true"></i> Install
+                        aria-label="{% blocktrans with name=mod_item.app.module_name %}Install {{ name }}{% endblocktrans %}">
+                    <i class="fas fa-download" aria-hidden="true"></i> {% trans "Install" %}
                 </button>
             {% endif %}
         {% else %}
             {# /auth/login/ is the real login route — /accounts/login/ 404s. #}
             <a href="/auth/login/?next=/apps/store/" class="ap-btn-install ap-btn-login">
-                <i class="fas fa-sign-in-alt" aria-hidden="true"></i> Login to install
+                <i class="fas fa-sign-in-alt" aria-hidden="true"></i> {% trans "Login to install" %}
             </a>
         {% endif %}
     </div>

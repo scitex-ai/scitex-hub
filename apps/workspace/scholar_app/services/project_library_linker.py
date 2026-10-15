@@ -4,18 +4,19 @@
 Project Library Linker Service
 
 Orchestrates the paper-to-project linking workflow:
-- Links papers from user library to specific projects via symlinks
+- Links the user's home library into projects (one symlink, package verb)
 - Maintains UserLibrary.project FK relationships
 - Syncs project BibTeX files from linked papers
 
-Architecture:
-    User Library: ~/.scitex/scholar/library/papers/{doi|pmid|arxiv}/
-    Project Links: {project_path}/.scitex/scholar/library/papers/ -> user library
+Architecture (package layout):
+    User Library: ~/.scitex/scholar/library/ (MASTER/<paper_id>/ storage)
+    Project Links: {project_path}/.scitex/scholar/library -> user library
     BibTeX Sync: {project_path}/.scitex/scholar/project.bib
 
 This service is a thin Django wrapper that delegates to:
-- UserLibraryService for symlink management
-- scitex.scholar package for BibTeX operations (future)
+- UserLibraryService for path resolution + project linking
+- scitex-scholar package for the link verb (`link_project_tree`) and
+  BibTeX operations (future)
 """
 
 import logging
@@ -58,7 +59,7 @@ class ProjectLibraryLinker:
         Workflow:
         1. Verify paper is in user library (storage_mode=user_library)
         2. Get project's filesystem path
-        3. Create symlink in project's .scitex/scholar/library/papers/
+        3. Ensure the project tree link (.scitex/scholar/library -> home)
         4. Update UserLibrary.project FK
         5. Sync project's BibTeX file
 
@@ -153,7 +154,8 @@ class ProjectLibraryLinker:
         Remove paper link from project.
 
         Workflow:
-        1. Remove symlink from project's .scitex/scholar/library/papers/
+        1. Clean any legacy per-paper symlink (tree link stays while papers
+           remain; pruned when the last paper leaves)
         2. Clear UserLibrary.project FK
         3. Sync project's BibTeX file (remove this paper's entry)
 
@@ -207,6 +209,19 @@ class ProjectLibraryLinker:
         # Clear UserLibrary.project FK
         user_library_entry.project = None
         user_library_entry.save(update_fields=["project"])
+
+        # Last paper out removes the project tree link (package layout:
+        # one symlink for the whole library, not per-paper).
+        try:
+            from apps.workspace.scholar_app.models import UserLibrary
+
+            remaining = UserLibrary.objects.filter(
+                user=self.user, project=project
+            ).exists()
+            if not remaining:
+                self.library_service.prune_project_link(project_path)
+        except Exception as e:
+            logger.error(f"Failed to prune project link: {e}")
 
         # Sync project BibTeX
         try:

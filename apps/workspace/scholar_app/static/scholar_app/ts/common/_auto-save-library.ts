@@ -6,6 +6,7 @@
  */
 
 import { getCsrfToken } from "./_scholar-index/utilities";
+import { getSelectedProjectId as getProjectId } from "./_project-context";
 
 const BATCH_SIZE = 100;
 
@@ -19,16 +20,6 @@ interface PaperData {
   source?: string;
   url?: string;
   pmid?: string;
-}
-
-function getProjectId(): string | null {
-  // Try sessionStorage first (set by project-selector dropdown)
-  const stored = sessionStorage.getItem("scholar_selected_project_id");
-  if (stored) return stored;
-
-  // Fall back to project ID from page config (set by Django template)
-  const configEl = document.getElementById("scholar-global-config");
-  return configEl?.dataset.projectId ?? null;
 }
 
 /**

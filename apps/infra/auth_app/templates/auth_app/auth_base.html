@@ -1,11 +1,11 @@
 {% extends 'global_base.html' %}
 
-{% load static %}
+{% load static i18n %}
 
 {% block meta_description %}
-    SciTeX Authentication - Secure login and registration for scientific research platform
+    {% trans "SciTeX Authentication - Secure login and registration for scientific research platform" %}
 {% endblock %}
-{% block title %}SciTeX Authentication{% endblock %}
+{% block title %}{% trans "SciTeX Authentication" %}{% endblock %}
 {% block extra_css %}
     <!-- Auth-specific CSS -->
     <link rel="stylesheet" href="{% static 'auth_app/css/auth.css' %}" />

@@ -4,6 +4,12 @@ The checkbox was posted as ``remember-me`` while LoginForm reads
 ``remember_me``, so every sign-in fell into ``set_expiry(0)``: a browser-close
 cookie. An iPhone home-screen app drops such a cookie whenever it is closed,
 so the operator was asked for a password every time.
+
+NOT HERE: what the sign-in page is allowed to SAY about passwords. This file is
+about the sign-in form's remember-me contract; the password-policy question (a
+returning user's existing password is not governed by the creation rules) lives
+with the other surface assertions in
+``test_password_requirement_surfaces.py``.
 """
 
 import re

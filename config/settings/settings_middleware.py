@@ -28,37 +28,24 @@ MIDDLEWARE = [
     # touching any view. See apps/infra/accounts_app/middleware.py.
     "apps.infra.accounts_app.middleware.JWTBearerToSessionMiddleware",
     "apps.infra.project_app.middleware.OnSiteAuthMiddleware",
+    # The signup funnel's product gate (PR #934 review, blocker 1). Must sit
+    # AFTER every authentication source so request.user is final: a
+    # verified-but-unpaid account may reach its own settings, the payment step
+    # and sign-out, and nothing else. See
+    # apps/infra/accounts_app/middleware.OnboardingGateMiddleware.
+    "apps.infra.accounts_app.middleware.OnboardingGateMiddleware",
     "allauth.account.middleware.AccountMiddleware",
-    # VisitorAutoLoginMiddleware / VisitorExpirationMiddleware /
-    # VisitorAppRedirectMiddleware were RETIRED 2026-09-10 (operator ruling:
-    # "drop visitor entirely" — compass-impl-visitor-pool-retirement-20260910).
-    # Anonymous browsers are no longer auto-provisioned into visitor-001..N;
-    # they get a plain anonymous session and are funneled to signup (email
-    # verify + card → 30-day free trial). The pool classes in
-    # apps/infra/project_app/services/visitor_pool/ remain importable for
-    # role-detection (VisitorPool / is_visitor_session / is_readonly_visitor)
-    # that ~30 non-middleware call sites still use — they just stop being
-    # fed by the middleware.
-    # Default-deny site-wide write guard for the shared readonly-visitor
-    # role (card hub-visitor-slot-isolation-audit — closes the exact gap
-    # that produced the field-found "Plaque" leak: per-view opt-in guards
-    # had missed project creation entirely). Kept as a safety net for any
-    # readonly-visitor row that predates the retirement; no longer fed by
-    # the middleware it used to run after. Per-view guards (file_save.py,
-    # todo_app middleware below) still apply first for their richer error
-    # copy; this is the backstop.
-    "apps.infra.project_app.middleware_readonly_write_guard.ReadonlyVisitorWriteGuardMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
-    "apps.infra.project_app.middleware.GuestSessionMiddleware",
+    "apps.infra.project_app.middleware.AuthenticatedProjectSessionMiddleware",
     # Desktop 90% content frame for leaf apps that render scitex-ui's own shell.
     "apps.infra.workspace_app.middleware_site_content_frame.SiteContentFrameMiddleware",
-    # Scope the mounted scitex-todo board (/todo/) to the requesting
-    # user's workspace store + enforce the phase-1 read-only gate. Must
-    # run AFTER Authentication + VisitorAutoLogin so request.user is
-    # final; no-ops in one prefix check for every other path (and when
-    # the scitex_cards package is not installed).
-    "apps.workspace.todo_app.middleware.TodoBoardTenancyMiddleware",
+    # Generic mount-policy guard for plugin apps (scitex.apps): enforces each
+    # leaf's own manifest mount_policy (audience, tenancy, query-seam
+    # discard, write allowlist + CSRF re-arm) with zero app-specific code.
+    # Must run AFTER Authentication so request.user is final; no-ops in one
+    # prefix check for every non-plugin path.
+    "apps.workspace.apps_app.services.plugin_guards.PluginMountGuardMiddleware",
     # Site-wide dock on leaf-app pages that do not extend global_base.html
     # (hub pages render it themselves; the data-site-dock marker prevents a
     # second copy). Operator 2026-09-14: the dock on EVERY page.

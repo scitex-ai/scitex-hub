@@ -24,7 +24,7 @@ _CATEGORY_MAP = {
     "store": "utility",
     "public_projects": "social",
     "docs": "reference",
-    "todo": "utility",
+    "scitex-cards": "utility",
     "storage": "data",
     "files": "data",
 }
@@ -41,7 +41,7 @@ _DESCRIPTIONS = {
     "store": "Browse, install, and manage workspace modules.",
     "public_projects": "Discover public repositories, researchers, and organizations across the SciTeX community.",
     "docs": "Documentation hub — Python packages, MCP tools, API reference, and self-hosting guide.",
-    "todo": "Task and collaboration management.",
+    "scitex-cards": "Task and collaboration management.",
     "agents": "Agent lifecycle management.",
     "stats": "Statistical analysis.",
     "storage": "Browse your storage across the machines you can reach.",

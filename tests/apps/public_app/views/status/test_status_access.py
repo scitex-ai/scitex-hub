@@ -54,7 +54,12 @@ FULL_STATUS_DATA = {
     ],
     "ssh_services": [],
     "api_services": [
-        dict(name="Gitea", status="up", health_class="healthy", url="http://10.0.0.5:3000")
+        {
+            "name": "Gitea",
+            "status": "up",
+            "health_class": "healthy",
+            "url": "http://10.0.0.5:3000",
+        }
     ],
     "database": {"status": "connected", "health_class": "healthy", "name": "scitex_prod"},
     "redis": {},
@@ -120,6 +125,11 @@ class HostMetricsApisAreAdminOnlyTest(TestCase):
         response = self.client.get(SERVER_STATUS_API)
         # Assert
         assert response.status_code == 200
+
+    def test_staff_server_status_api_has_no_visitor_capacity_fields(self):
+        self.client.force_login(_make_user("staff-capacity-user", is_staff=True))
+        body = json.loads(self.client.get(SERVER_STATUS_API).content)
+        assert not any(key.startswith("visitor_pool") for key in body)
 
     def test_superuser_server_status_api_is_200(self):
         # Arrange
