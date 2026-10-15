@@ -51,6 +51,37 @@ def _sdk_creator_patterns():
     return [_wrap_login(p) for p in creator_urls.urlpatterns]
 
 
+def _scholar_old_direct_patterns():
+    """Dev-only old-direct reference for Scholar (CCT 2763/2764 + CCT 2806).
+
+    The pre-cutover hub-native routes at apps/scholar/old-direct/, for
+    parity comparison while v1 parity is open. [] in production by rule —
+    the gate lives in scholar_app/urls/legacy.py so mount and tests read
+    one definition. No registry/manifest entry exists for old-direct, so
+    no launcher tile or link can render it. Per-app template for the RED
+    START sequence (plain goes dark first, relit only by a working leaf;
+    CCT 2795: no /v2/ alias remains).
+    """
+    from apps.workspace.scholar_app.urls.legacy import (
+        old_direct_enabled,
+        urlpatterns as legacy_patterns,
+    )
+
+    if not old_direct_enabled():
+        return []
+    # No explicit instance namespace ON PURPOSE: it defaults to the
+    # app_name ("scholar_app"), byte-identical to the pre-cutover user-path
+    # mount — so the legacy views' redirect("scholar_app:...") calls keep
+    # resolving, now to old-direct URLs. That is exactly what a parity
+    # reference should be: the old tree, same names, different prefix.
+    return [
+        path(
+            "apps/scholar/old-direct/",
+            include((legacy_patterns, "scholar_app")),
+        ),
+    ]
+
+
 urlpatterns = [
     # Language selection. Django's set_language view writes the chosen language
     # to the session/cookie and redirects back to `next`. LocaleMiddleware then
@@ -178,7 +209,25 @@ urlpatterns = [
         include(("apps.workspace.public_projects_app.urls", "public_projects_app")),
     ),
     # --- App modules (/apps/) ---
-    path("apps/scholar/", include(("apps.workspace.scholar_app.urls", "scholar_app"))),
+    # Scholar cutover (CCT 2760) + RED START (CCT 2806, binding):
+    # /apps/scholar/ serves the LEAF ONLY (login-gated wrapper in
+    # scholar_app/urls/scholar_django.py) — the plain hub-side routes went
+    # dark first (404) and the plain route is relit ONLY by the working leaf
+    # plugin. The pre-cutover hub-native routes are NOT on the user path
+    # anymore. CCT 2795: NO /v2/ alias remains.
+    # Plain include (no app_name tuple) ON PURPOSE: the leaf carries its own
+    # namespaces and Django only propagates them to reverse() through a
+    # namespace-transparent outer mount (see scholar_app/urls/__init__.py).
+    path("apps/scholar/", include("apps.workspace.scholar_app.urls")),
+    # OPERATOR ROUTE RULE (CCT 2763/2764) + RED START (CCT 2806), ALL apps,
+    # same pattern: hub-side app routes move to apps/<app>/old-direct as the
+    # parity reference, and old-direct NEVER ships in production — dev-gated,
+    # no launcher tiles/links, no user path, deleted outright once parity
+    # closes. Scholar is the first instance; figrecipe / writer / console
+    # follow the identical pattern as each migrates (same mount shape, same
+    # gate, same no-tiles rule — no registry/manifest entry exists for
+    # old-direct by construction, so no tile can render it; no /v2/ alias).
+    *_scholar_old_direct_patterns(),
     path("apps/console/", include(("apps.workspace.console_app.urls", "console_app"))),
     path(
         "apps/figrecipe/",

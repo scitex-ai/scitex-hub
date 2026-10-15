@@ -68,8 +68,8 @@ logger = logging.getLogger(__name__)
 # a floor binds only where something installs against it.
 #
 # NOT A SILENT FALLBACK. The failure is logged at ERROR with the exception and
-# the routes are omitted, so /apps/scholar/v2/ 404s while the legacy
-# /apps/scholar/ keeps serving. Hub already uses exactly this shape for optional
+# the routes are omitted, so /apps/scholar/* 404s fail-closed while the
+# dev-only /apps/scholar/old-direct/ reference is unaffected. Hub already uses exactly this shape for optional
 # plugin mounts (config/urls.py: "Only mounted when the package is importable").
 # The alternative — letting one leaf's dependency skew 500 the whole site — is
 # not "failing loud", it is failing everywhere.
@@ -81,7 +81,23 @@ except Exception as exc:  # noqa: BLE001 - any import-time failure must be caugh
 else:
     _LEAF_IMPORT_ERROR = None
 
-_MOUNT_PREFIX = "v2/"
+# CCT 2795: NO /v2/ alias remains. The v2/ compat mount was transitional
+# scaffolding only and is deleted, not kept. The leaf serves the plain
+# route; nothing reverses a scholar-leaf-v2 namespace anymore.
+
+# CUTOVER (CCT 2760) + OPERATOR ROUTE RULE (CCT 2763/2764) + RED START
+# (CCT 2806, binding): the leaf is the DEFAULT at /apps/scholar/ and the
+# ONLY thing on the user path. RED START means the plain hub-side routes
+# went dark FIRST (404 through the catch-all) and the plain route is relit
+# ONLY by this working leaf plugin through the gated wrapper below — no app
+# earns its route back without one. The pre-cutover hub-native routes live
+# in legacy.py and are served ONLY at /apps/scholar/old-direct/ in dev
+# (mount + gate in config/urls.py), never in production, and old-direct is
+# deleted outright once v1 parity closes. When the leaf is missing
+# or broken, urlpatterns is [] exactly as before and /apps/scholar/* 404s
+# fail-closed. Deleting the bespoke mount / moving to the pure generic
+# plugin mount is a separate retire step once the leaf publishes a
+# scitex.apps entry point (it has none in 1.13.x) and v1 parity closes.
 
 
 class ImproperlyGatedURLConf(RuntimeError):
@@ -121,20 +137,27 @@ def _gated(patterns):
 
 if _LEAF_IMPORT_ERROR is not None:
     logger.error(
-        "scitex-scholar's Django app could not be imported, so %s is NOT "
-        "mounted. The legacy /apps/scholar/ is unaffected. Cause: %r. Check "
+        "scitex-scholar's Django app could not be imported, so /apps/scholar/ "
+        "is NOT mounted. The dev-only "
+        "/apps/scholar/old-direct/ reference is unaffected. Cause: %r. Check "
         "that the installed scitex-scholar and its own dependencies agree — "
         "note that editable installs from bind-mounted working trees ignore "
         "hub's pyproject floors entirely.",
-        "/apps/scholar/" + _MOUNT_PREFIX,
         _LEAF_IMPORT_ERROR,
     )
     urlpatterns = []
 else:
+    # One gated copy, mounted once: the cutover default at "" (=
+    # /apps/scholar/). CCT 2795: the v2/ compat alias is deleted, not kept —
+    # transitional scaffolding only, and no live caller needs it. reverse()
+    # stays unambiguous with the single scholar-leaf namespace; resolve() by
+    # path is what matters.
+    assert _leaf is not None  # else-branch: the import above succeeded
+    _gated_patterns = _gated(_leaf.urlpatterns)
     urlpatterns = [
         path(
-            _MOUNT_PREFIX,
-            include((_gated(_leaf.urlpatterns), "scholar"), namespace="scholar-leaf"),
+            "",
+            include((_gated_patterns, "scholar"), namespace="scholar-leaf"),
         ),
     ]
 

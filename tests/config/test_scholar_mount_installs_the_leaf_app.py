@@ -3,14 +3,16 @@
 """A mounted view is not a mounted app: scholar's templates need its AppConfig installed.
 
 apps/workspace/scholar_app/urls/scholar_django.py mounts scitex-scholar's Django
-VIEWS at /apps/scholar/v2/. Until 2026-09-05 nothing added scitex-scholar's Django
+VIEWS at /apps/scholar/ (cutover root; CCT 2795 deleted the old /v2/ alias).
+Until 2026-09-05 nothing added scitex-scholar's Django
 APP to INSTALLED_APPS, and Django's app_directories template loader walks
 INSTALLED_APPS and nothing else — so the view's own template,
 scitex_scholar/_django/templates/scholar/scholar.html, was on disk in the
 installed wheel and unreachable. Measured on production after the rebuild:
-every visitor request to /apps/scholar/v2/ answered 500 with
+every visitor request to /apps/scholar/ answered 500 with
 TemplateDoesNotExist; anonymous requests never reached the view (login
 redirect), so curl looked healthy while every real user got the error page.
+(The incident predates the cutover, when the leaf lived at /apps/scholar/v2/.)
 
 The fix registers ``scitex_scholar._django.apps.ScholarEditorConfig`` next to
 the other optional leaf apps in config/settings/_optional_apps.py, guarded on

@@ -146,7 +146,9 @@ class SiteDockOnEveryPageTest(TestCase):
 
     def test_middleware_injects_the_dock_into_a_leaf_page(self):
         # Arrange — a leaf app serves its OWN document, no hub template.
-        request = RequestFactory().get("/apps/scholar/v2/")
+        # (CCT 2795: the scholar leaf lives at the cutover root now; the old
+        # /v2/ alias is deleted. The path is just a leaf-page example.)
+        request = RequestFactory().get("/apps/scholar/")
         request.user = self.user
         response = HttpResponse("<html><body><main>leaf</main></body></html>")
         # Act
@@ -165,8 +167,8 @@ class SiteDockOnEveryPageTest(TestCase):
         assert b"site-dock-chat.css?v=\"" not in response.content
 
     def test_middleware_leaves_an_embedded_frame_alone(self):
-        # Arrange
-        request = RequestFactory().get("/apps/scholar/v2/", HTTP_SEC_FETCH_DEST="iframe")
+        # Arrange (same leaf-page example as above, embedded as an iframe).
+        request = RequestFactory().get("/apps/scholar/", HTTP_SEC_FETCH_DEST="iframe")
         request.user = self.user
         response = HttpResponse("<html><body><main>leaf</main></body></html>")
         # Act

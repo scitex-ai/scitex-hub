@@ -4,7 +4,7 @@ The scitex-sdk app manifest is the single source of truth for a leaf app's
 release scope (``user`` vs ``project``, d8528de / #185). scitex-sdk's host
 view layer (``scitex_editor_page`` -> ``_inject_scope_meta``) stamps
 ``<meta name="stx-app-scope" content="project">`` into the served HTML ONLY
-for leaves embedded through that factory (e.g. Scholar's /apps/scholar/v2/).
+for leaves embedded through that factory (e.g. Scholar's /apps/scholar/).
 
 The Hub's Writer + FigRecipe bridges do NOT go through that factory — they
 call the raw leaf ``editor_page`` via WorkingDirScopedView (a pure
