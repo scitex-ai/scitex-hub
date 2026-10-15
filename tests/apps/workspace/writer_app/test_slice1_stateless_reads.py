@@ -10,6 +10,14 @@ dispatched through the SITE-3 wrapper
 (``apps/workspace/writer_app/urls/writer_django.py``). Gate: authed render
 parity (pages mount, read endpoints answer) with the wrapper byte-intact.
 
+CUTOVER (this file, post-handover): the SITE-3 view functions this suite
+drives are UNCHANGED — only their mount prefix moved (v2 paths live ONLY
+at /apps/writer/old-direct/ in dev; the same function objects serve the
+leaf paths at /apps/writer/ — see test_writer_route_flip_parity.py). The
+v2-route and owner-render tests below take the ``writer_old_direct``
+fixture; every direct view call is untouched. The R1 tripwire is now
+generation-aware (2.43.9+ declares the policy; older leaves must not).
+
 OPERATOR COUPLING CONSTRAINT
 ----------------------------
 Leaves must not be tightly coupled to scitex-hub, in BOTH directions: the
@@ -111,11 +119,15 @@ def _get(view, path, user=None, **extra):
 
 
 # -- mount contract ----------------------------------------------------
+# CUTOVER: the v2 paths live ONLY at old-direct in dev now (the gate is off
+# in the ambient prod-shaped suite, so reverse()/client drives need the
+# writer_old_direct fixture, which reloads the real root urlconf with the
+# explicit flag). Same views, same assertions — only the prefix moved.
 
 
-def test_v2_routes_resolve():
-    assert reverse("writer_app:writer_v2_editor") == "/apps/writer/editor-v2/"
-    assert reverse("writer_app:writer_v2_viewer") == "/apps/writer/viewer-v2/"
+def test_v2_routes_resolve(writer_old_direct):
+    assert reverse("writer_app:writer_v2_editor") == "/apps/writer/old-direct/editor-v2/"
+    assert reverse("writer_app:writer_v2_viewer") == "/apps/writer/old-direct/viewer-v2/"
 
 
 def test_anon_viewer_is_login_gated():
@@ -155,21 +167,21 @@ def _owner_with_workspace(tmp_path, username, slug):
 
 
 @pytest.mark.django_db
-def test_viewer_page_renders_for_owner(tmp_path):
+def test_viewer_page_renders_for_owner(tmp_path, writer_old_direct):
     _owner_with_workspace(tmp_path, "slice1-owner", "slice1-study")
     client = Client()
     client.login(username="slice1-owner", password=PASSWORD)
-    response = client.get("/apps/writer/viewer-v2/")
+    response = client.get("/apps/writer/old-direct/viewer-v2/")
     assert response.status_code == 200, response.content[:500]
     assert b"stx-app-scope" in response.content
 
 
 @pytest.mark.django_db
-def test_editor_page_renders_for_owner(tmp_path):
+def test_editor_page_renders_for_owner(tmp_path, writer_old_direct):
     _owner_with_workspace(tmp_path, "slice1-editor", "slice1-editor-study")
     client = Client()
     client.login(username="slice1-editor", password=PASSWORD)
-    response = client.get("/apps/writer/editor-v2/")
+    response = client.get("/apps/writer/old-direct/editor-v2/")
     assert response.status_code == 200, response.content[:500]
     assert b"stx-app-scope" in response.content
 
@@ -264,11 +276,12 @@ def test_safe_method_with_foreign_origin_still_reads(resolve_to):
 # =====================================================================
 
 # Hub production modules allowed to import scitex_writer: the pre-existing
-# SITE-3 wrapper + legacy writer surface. Slice 1 adds NONE; this set must
-# only shrink (leaf moves), never grow.
+# SITE-3 wrapper + legacy writer surface. The cutover SHRINKS this set by
+# one (urls/__init__.py no longer touches the leaf — it only re-exports the
+# wrapper's leaf mount); it must only shrink further (leaf moves), never
+# grow.
 GRANDFATHERED_SCITEX_WRITER_IMPORTERS = frozenset(
     {
-        "apps/workspace/writer_app/urls/__init__.py",
         "apps/workspace/writer_app/urls/writer_django.py",
         "apps/workspace/writer_app/views/editor/api/compilation_full_job.py",
         "apps/workspace/writer_app/views/overleaf/api.py",
@@ -311,11 +324,43 @@ def _leaf_manifest():
     return json.loads(manifest.read_text())
 
 
-def test_leaf_declares_no_mount_policy_yet():
-    # R1 (writer lane): mount_policy {login_required, jail:{...}} is absent
-    # from the leaf manifest, so the generic plugin mount cannot enforce
-    # tenancy for this leaf — the bespoke SITE-3 wrapper stays the only bar.
-    assert "mount_policy" not in _leaf_manifest()
+def test_leaf_mount_policy_matches_installed_generation():
+    # R1 (writer lane, card hub-wrapper-plugin-writer-entrypoint-20260926):
+    # the plugin contract is `mount_policy` {login_required, touches_files,
+    # jail} in the leaf manifest, first carried by the 2.43.9 release
+    # (writer #438 -> e14f6d79; hub floor scitex-writer>=2.43.9). The env
+    # this suite runs in may still predate the publish (PyPI latest was
+    # 2.43.6 at the cutover — no scitex.apps entry, no mount_policy key),
+    # and the cutover is fail-closed under the older leaf, so this tripwire
+    # pins GENERATION-CONSISTENCY, not a fixed generation: a 2.43.9+ leaf
+    # WITHOUT the policy fails loudly (the floor's promise broke), and a
+    # pre-2.43.9 leaf WITH an unexpected policy fails loudly too (the
+    # wrapper's two-treatment contract was written against known shapes).
+    from importlib.metadata import version
+
+    manifest = _leaf_manifest()
+    installed = tuple(int(x) for x in version("scitex-writer").split(".")[:3])
+    if installed >= (2, 43, 9):
+        policy = manifest.get("mount_policy")
+        assert policy is not None, (
+            "scitex-writer>=2.43.9 must declare manifest mount_policy "
+            "(writer #438) — the hub floor promises it."
+        )
+        assert policy.get("login_required") is True
+        assert policy.get("touches_files") is True
+        jail = policy.get("jail") or {}
+        assert jail.get("scope") == "project"
+        assert jail.get("working_dir_param") == "working_dir"
+        for param in ("path", "target", "output_file", "pdf"):
+            assert param in jail.get("path_params", []), (
+                f"jail.path_params lost {param!r} — the SITE-3 wrapper's "
+                "threat model assumes these channels are declared."
+            )
+    else:
+        assert "mount_policy" not in manifest, (
+            "pre-2.43.9 leaf unexpectedly declares mount_policy — re-read "
+            "the wrapper's two-treatment contract against this shape."
+        )
 
 
 def test_sdk_jail_contract_present():

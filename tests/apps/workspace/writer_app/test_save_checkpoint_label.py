@@ -20,6 +20,9 @@ from apps.infra.project_app.models import Project
 from apps.infra.project_app.services.project_filesystem import (
     get_project_filesystem_manager,
 )
+from tests.apps.workspace.writer_app._old_direct_gate import (
+    writer_old_direct_urls,
+)
 
 PASSWORD = "TestPass123!"  # pragma: allowlist secret
 ACTION_LABEL = "Save checkpoint"
@@ -38,11 +41,15 @@ class SaveCheckpointLabelTest(TestCase):
         )
 
     def _page(self):
+        # CUTOVER: the hub index adapter lives ONLY at old-direct in dev
+        # now (same view, same assertions — only the prefix moved; the gate
+        # reloads the real root urlconf because the suite runs prod-shaped).
         client = Client()
         client.login(username="label-owner", password=PASSWORD)
-        return client.get(
-            f"/apps/writer/?project={self.owner.username}/{self.project.slug}"
-        )
+        with writer_old_direct_urls():
+            return client.get(
+                f"/apps/writer/old-direct/?project={self.owner.username}/{self.project.slug}"
+            )
 
     def test_the_save_action_is_labelled_save_checkpoint(self):
         # Arrange / Act

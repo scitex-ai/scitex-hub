@@ -32,6 +32,9 @@ from apps.infra.project_app.services.project_filesystem import (
 from apps.workspace.writer_app.views.editor.api.compilation import (
     _explain_compile_failure,
 )
+from tests.apps.workspace.writer_app._old_direct_gate import (
+    writer_old_direct_urls,
+)
 
 PASSWORD = "TestPass123!"  # pragma: allowlist secret
 TOOLCHAIN_STDERR = (
@@ -124,11 +127,13 @@ class CompileEndpointContractTest(TestCase):
         client = Client()
         client.login(username="compile-contract-owner", password=PASSWORD)
         body = json.dumps({"content": "\\section{A}\ntext\n", "doc_type": "manuscript"})
-        # Act
-        response = client.post(
-            f"/apps/writer/api/project/{self.project.pk}/compile/",
-            data=body, content_type="application/json",
-        )
+        # Act (CUTOVER: the hub compile route lives ONLY at old-direct in
+        # dev now — same view, same assertions, only the prefix moved.)
+        with writer_old_direct_urls():
+            response = client.post(
+                f"/apps/writer/old-direct/api/project/{self.project.pk}/compile/",
+                data=body, content_type="application/json",
+            )
         payload = json.loads(response.content)
         # Assert: on a machine WITH LaTeX this may succeed; either way the response
         # must never be a failure that explains nothing.

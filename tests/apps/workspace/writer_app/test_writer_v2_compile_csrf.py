@@ -11,6 +11,9 @@ from django.contrib.auth.models import User
 from django.test import Client, TestCase
 
 from apps.infra.project_app.models import Project
+from tests.apps.workspace.writer_app._old_direct_gate import (
+    writer_old_direct_urls,
+)
 
 PASSWORD = "TestPass123!"  # pragma: allowlist secret
 
@@ -34,10 +37,12 @@ class WriterV2CompileCsrfTest(TestCase):
         # Arrange
         client = Client(enforce_csrf_checks=True)
         client.login(username="csrf-owner", password=PASSWORD)
-        # Act
-        response = client.post(
-            "/apps/writer/v2/api/compile", data="{}", content_type="application/json"
-        )
+        # Act (CUTOVER: the v2 path lives ONLY at old-direct in dev now —
+        # same view, same assertions, only the prefix moved.)
+        with writer_old_direct_urls():
+            response = client.post(
+                "/apps/writer/old-direct/v2/api/compile", data="{}", content_type="application/json"
+            )
         # Assert
         assert response.status_code != 403, response.content
 
