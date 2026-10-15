@@ -2,8 +2,9 @@
 # -*- coding: utf-8 -*-
 """Guard the Django SETTING scitex-scholar reads for its crossref endpoint.
 
-/apps/scholar/v2/ answers 503 "not configured" on production while the
-environment variable it appears to need is plainly set. Both halves are true at
+/apps/scholar/ answers 503 "not configured" on production while the
+environment variable it appears to need is plainly set. (Before the cutover
+the leaf lived at /apps/scholar/v2/; the trap is mount-independent.) Both halves are true at
 once, and that is the whole trap:
 
     prod container   SCITEX_SCHOLAR_CROSSREF_API_URL   SET

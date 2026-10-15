@@ -25,7 +25,7 @@ PAGES = [
     "/pricing/",
     "/accounts/settings/",
     f"/{TEST_USER}/dotfiles/",
-    "/apps/scholar/v2/",
+    "/apps/scholar/",
     "/apps/docs/",
 ]
 

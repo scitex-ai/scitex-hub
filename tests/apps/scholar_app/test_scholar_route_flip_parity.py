@@ -1,11 +1,16 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 # File: tests/apps/scholar_app/test_scholar_route_flip_parity.py
-"""Cutover (CCT 2760) + old-direct rule (CCT 2763/2764).
+"""Cutover (CCT 2760) + old-direct rule (CCT 2763/2764) + RED START (CCT 2806).
 
 /apps/scholar/ serves the LEAF and ONLY the leaf (login-gated). The
 pre-cutover hub-native routes live ONLY at /apps/scholar/old-direct/ in
-dev — never in production, no tiles/links, no user path.
+dev — never in production, no tiles/links, no user path, deleted outright
+once v1 parity closes. RED START (binding, supersedes the gradual flip):
+the plain hub-side routes went dark FIRST (404) and the plain route is
+relit ONLY by the working leaf plugin — no app earns its route back
+without one. CCT 2795: NO /v2/ alias remains (transitional scaffolding
+only, deleted — no live caller needed it).
 
 STANDING CUTOVER RULE (CCT 2768, operator, binding): every listed app serves
 ONLY via its leaf plugin. Default = leaf; old hub-side = old-direct dev-only
@@ -26,7 +31,9 @@ WHAT EACH TEST PINS
                                     (fail-closed; SITE-3 lesson).
   gated_wrapper_is_not_the_raw_view the mounted callback wraps the leaf's
                                     own view (structural pair to the 302).
-  v2_compat_alias_still_resolves     old /apps/scholar/v2/ links keep working.
+  no_v2_alias_remains               /apps/scholar/v2/ resolves to NO
+                                    scholar view anymore (CCT 2795: the
+                                    compat alias is deleted, not kept).
   old_direct_serves_the_parity_gap  the v1 parity surface the leaf does NOT
                                     publish yet (search page, save-to-library,
                                     PDF download, library, bibtex,
@@ -68,7 +75,8 @@ from django.urls import resolve
 from django.urls.exceptions import Resolver404
 
 ROOT = "/apps/scholar/"
-V2 = "/apps/scholar/v2/"
+# CCT 2795: the v2/ compat alias is deleted, not kept — no V2 constant, no
+# alias test. no_v2_alias_remains below pins the deletion.
 OLD_DIRECT = "/apps/scholar/old-direct/"
 
 pytestmark = pytest.mark.skipif(
@@ -176,14 +184,30 @@ def test_gated_root_index_wraps_the_leaf_view():
 
 
 @pytest.mark.parametrize("route", LEAF_ROUTES)
-def test_v2_compat_alias_still_resolves(route):
+def test_no_v2_alias_remains(route):
+    # CCT 2795: the v2/ compat alias was transitional scaffolding only and
+    # is deleted, not kept. Every leaf route resolves at the plain root; the
+    # v2/ path must resolve to NO scholar view (leaf or hub-side) — unmatched
+    # /apps/* paths fall through to the pre-existing project_app catch-all.
     # Arrange
-    url = V2 + _sample_url(route)
+    url = "/apps/scholar/v2/" + _sample_url(route)
     # Act
-    match = resolve(url)
+    try:
+        match = resolve(url)
+    except Resolver404:
+        return
     # Assert
-    assert "scholar-leaf-v2" in match.namespaces, (
-        f"{url} resolves into {match.namespaces} — the compat alias broke."
+    assert "scholar-leaf" not in match.namespaces, (
+        f"{url} still serves the leaf under a v2 alias — CCT 2795 deleted it."
+    )
+    assert "scholar-leaf-v2" not in match.namespaces, (
+        f"{url} still serves the deleted scholar-leaf-v2 namespace."
+    )
+    assert match.namespaces != ["scholar_app"], (
+        f"{url} is served by hub-side scholar under the legacy namespace."
+    )
+    assert not match.func.__module__.startswith("apps.workspace.scholar_app"), (
+        f"{url} is served by hub-side scholar {match.func}."
     )
 
 
@@ -257,19 +281,43 @@ def test_legacy_routes_are_off_the_user_path(route):
 
 @pytest.mark.parametrize("route", PARITY_GAP_ROUTES)
 def test_old_direct_never_ships_without_the_gate(route):
-    # Arrange — the suite's ambient prod shape (DEBUG False, no flag).
-    url = OLD_DIRECT + route
-    # Act
+    # CCT 2763/2764: old-direct NEVER ships in production. This test rebuilds
+    # the REAL root urlconf under explicit prod-shaped settings (DEBUG off,
+    # no flag) and resolves against the FRESH patterns — it never reads the
+    # suite's ambient urlconf module.
+    #
+    # WHY NOT AMBIENT resolve(): the gate is evaluated ONCE, at import time
+    # of config/urls (measured: all 10 params failed on CI legs while green
+    # locally). pytest-django's session fixture flips DEBUG to False only
+    # AFTER collection, so in a full-suite worker config/urls is first
+    # imported with settings_dev's DEBUG=True and old-direct baked in — and
+    # Django's get_resolver is functools.cached, so the gate-on resolver
+    # persists for the process. The gate predicate itself is correct
+    # (production has DEBUG False and no flag, so the mount is [] there —
+    # see test_old_direct_gate_truth_table); the ambient assertion was what
+    # was wrong. Resolving against explicitly prod-shaped fresh patterns
+    # tests the rule, not the worker's import history.
+    import config.urls as root_urlconf
+    from django.urls.resolvers import RoutePattern, URLResolver
+
     try:
-        match = resolve(url)
-    except Resolver404:
-        return
+        with override_settings(DEBUG=False, SCHOLAR_OLD_DIRECT_ENABLED=False):
+            reloaded = importlib.reload(root_urlconf)
+            resolver = URLResolver(RoutePattern(""), reloaded.urlpatterns)
+            # Act
+            try:
+                match = resolver.resolve("apps/scholar/old-direct/" + route)
+            except Resolver404:
+                return
+    finally:
+        importlib.reload(root_urlconf)
     # Assert — old-direct must not answer; the catch-all may, scholar may not.
     assert match.namespaces != ["scholar_app"], (
-        f"{url} resolves into old-direct WITHOUT the gate — it ships in prod."
+        f"old-direct/{route} resolves WITHOUT the gate — it ships in prod."
     )
     assert not match.func.__module__.startswith("apps.workspace.scholar_app"), (
-        f"{url} is served by hub-side scholar WITHOUT the gate: {match.func}."
+        f"old-direct/{route} is served by hub-side scholar WITHOUT the gate: "
+        f"{match.func}."
     )
 
 

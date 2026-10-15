@@ -80,7 +80,7 @@ dependencies = [
     # >=1.9.0 is a MOUNT requirement, not a feature preference. Below it the
     # leaf's client JS builds API urls from the SITE ROOT
     # (static/scholar/js/graph/citation-graph.js: fetch("/api/graph/health")),
-    # so mounted at /apps/scholar/v2/ every graph call goes to hub's root and
+    # so mounted under a subpath every graph call goes to hub's root and
     # misses. The page still renders — the shell looks correct and only the
     # graph is dead — and an import check cannot see it: 1.7.1 imports
     # `scitex_scholar._django.urls` perfectly well. 1.9.0 prefixes with
