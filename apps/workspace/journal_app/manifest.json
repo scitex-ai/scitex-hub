@@ -2,7 +2,7 @@
   "$schema": "scitex-app-manifest",
   "$schema_version": "2.0.0",
   "name": "agentic-journal",
-  "label": "Journal",
+  "label": "Agentic Journal",
   "app_name": "journal_app",
   "scope": "user",
   "url": "/apps/journal/",

@@ -278,6 +278,7 @@ def _build_tiles(request) -> list[dict]:
                 "icon_fa": mod.icon_fa or "fas fa-puzzle-piece",
                 "icon_badge": mod.icon_badge,
                 "is_dev_only": _is_dev_only(mod.visibility, row),
+                "experimental": mod.experimental,
                 "launch_url": (
                     mod.get_url()
                     if (row and row.is_builtin) or mod.name in installed_names

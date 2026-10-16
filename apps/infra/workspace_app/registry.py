@@ -122,6 +122,11 @@ class ModuleConfig:
     is_active: bool = False
     is_dev: bool = False  # True for private (non-published) apps
     status: str = ""  # Module status: stable, wip, beta, deprecated
+    # Operator-marked experimental: shows the flask badge titled
+    # "Experimental" INSTEAD of the dev-only badge. Set from the manifest
+    # "experimental" key or MANIFEST_OVERRIDES; the leaf's own
+    # visibility/status stay untouched.
+    experimental: bool = False
 
     # LLM integration
     ai_hint: str = ""  # Short description for data-ai-hint (shown to LLM)
@@ -331,6 +336,7 @@ def _manifest_to_module_config(data: dict) -> ModuleConfig:
         default_enabled=data.get("default_enabled", True),
         show_in_launcher=data.get("show_in_launcher", True),
         visibility=data.get("visibility", "public"),
+        experimental=bool(effective_data.get("experimental", False)),
         ai_hint=data.get("ai_hint", ""),
         accent_color=data.get("accent_color", ""),
         docs_slug=data.get("docs_slug", ""),

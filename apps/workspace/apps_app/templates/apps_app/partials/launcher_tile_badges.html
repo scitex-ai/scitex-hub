@@ -17,7 +17,7 @@
     dev-only      visibility "internal" or catalog status "wip" (launcher._is_dev_only)
     NEW           published within NEW_BADGE_DAYS
 {% endcomment %}
-{% if tile.availability == 'coming_soon' or tile.availability == 'desktop_only' or tile.is_dev_only or tile.is_new %}
+{% if tile.availability == 'coming_soon' or tile.availability == 'desktop_only' or tile.is_dev_only or tile.experimental or tile.is_new %}
     <span class="launcher-tile-badges">
         {% if tile.availability == 'coming_soon' %}
             <span class="launcher-badge launcher-badge-coming-soon" role="img" aria-label="{% if tile.availability_reason %}{{ tile.availability_reason }}{% else %}{% trans 'Coming Soon' %}{% endif %}" title="{% if tile.availability_reason %}{{ tile.availability_reason }}{% else %}{% trans 'Coming Soon' %}{% endif %}">
@@ -28,7 +28,11 @@
                 <i class="fas fa-desktop" aria-hidden="true"></i>
             </span>
         {% endif %}
-        {% if tile.is_dev_only %}
+        {% if tile.experimental %}
+            <span class="launcher-badge launcher-badge-dev-only" role="img" aria-label="{% trans 'Experimental' %}" title="{% trans 'Experimental' %}">
+                <i class="fas fa-flask" aria-hidden="true"></i>
+            </span>
+        {% elif tile.is_dev_only %}
             <span class="launcher-badge launcher-badge-dev-only" role="img" aria-label="{% trans 'Dev-only' %}" title="{% trans 'Dev-only' %}">
                 <i class="fas fa-flask" aria-hidden="true"></i>
             </span>
