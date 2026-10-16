@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""Apps (formerly Marketplace) app configuration."""
+"""Apps (App Store) app configuration."""
 
 from django.apps import AppConfig
 
