@@ -465,7 +465,26 @@ def _build_tiles(request) -> list[dict]:
         tile["user_ordered"] = tile["name"] in user_orders
         tile["group"] = group_of(tile["name"])
         tile["is_add_slot"] = tile["name"] == APP_CREATOR_SLOT
+        if tile["is_add_slot"]:
+            tile["creator_starters"] = _creator_starter_previews()
     return tiles
+
+
+def _creator_starter_previews() -> list[dict]:
+    """Starter preview for the App Creator slot (operator screenshot fix).
+
+    Returns [{icon, label}] from the SDK-owned STARTERS so the tile shows
+    WHAT the creator builds, not just a dashed box. SDK import failure
+    degrades to [] and the tile renders as before — the slot must never
+    break the launcher.
+    """
+    try:
+        from scitex_sdk.creator import STARTERS
+    except ImportError:
+        return []
+    return [
+        {"icon": starter.icon, "label": starter.label} for starter in STARTERS
+    ]
 
 
 def _first_login_context(request):
