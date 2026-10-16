@@ -503,10 +503,60 @@ def runtime_certified_identity(entry: str) -> AppIdentity:
     except MetadataUnavailable:
         raise
     except Exception as error:
-        raise MetadataUnavailable(
-            f"AppConfig runtime import is not certifiable: {error}"
-        ) from error
+        return _declared_fallback_identity(module_path, attr, error)
     return AppIdentity(name, label, default)
+
+
+def _declared_fallback_identity(
+    module_path: str, attr: str, import_error: Exception
+) -> AppIdentity:
+    """Second rung: the leaf body does not import in this process.
+
+    Causes seen live: a missing/stale optional dependency behind the
+    leaf's loud import guard, or models pulled in at settings time
+    (``AppRegistryNotReady``). Executing the body is impossible here, so
+    prove the next-best thing WITHOUT executing it: the same declared
+    literals the static reader accepts (class name/label/default read
+    from source), plus the declared app package being genuinely present
+    (import when possible, module-find when not). A leaf whose source
+    does not even declare the literals stays unavailable; Django's own
+    population still imports the real object later and fails loudly on
+    garbage, so no weaker admission reaches the registry.
+    """
+    from importlib import import_module
+
+    try:
+        declared = _Declarations().identity(module_path, attr)
+    except MetadataUnavailable:
+        raise MetadataUnavailable(
+            f"AppConfig runtime import is not certifiable: {import_error}"
+        ) from import_error
+    if (
+        declared is None
+        or not isinstance(declared.name, str)
+        or not declared.name
+    ):
+        raise MetadataUnavailable(
+            f"AppConfig runtime import is not certifiable: {import_error}"
+        ) from import_error
+    try:
+        import_module(declared.name)
+    except Exception:
+        if _find_module(declared.name) is None:
+            raise MetadataUnavailable(
+                "Declared app module is absent"
+            ) from import_error
+    label = declared.label or declared.name.rsplit(".", 1)[-1]
+    if not isinstance(label, str) or not label.isidentifier():
+        raise MetadataUnavailable(
+            f"AppConfig runtime import is not certifiable: {import_error}"
+        ) from import_error
+    default = declared.default
+    if default is not None and not isinstance(default, bool):
+        raise MetadataUnavailable(
+            f"AppConfig runtime import is not certifiable: {import_error}"
+        ) from import_error
+    return AppIdentity(declared.name, label, default)
 
 
 def app_installation_entries(module: str) -> tuple[str, ...]:
