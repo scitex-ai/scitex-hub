@@ -144,6 +144,45 @@ jobs:
           uv pip install --python .venv/bin/python -e ".[all,dev]" \
             || uv pip install --python .venv/bin/python -e ".[dev]" \
             || uv pip install --python .venv/bin/python -e .
+      - name: Setup Node.js (for Vite build below)
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: Install sibling workspace apps (Vite bridges)
+        run: bash scripts/apps/install_apps.sh
+      - name: Check out scitex-sdk source (Vite @scitex/sdk alias)
+        # install_apps.sh does not cover scitex-sdk, but the figrecipe bridge
+        # imports @scitex/sdk/* (Oct-02 SDK-owner migration) and hub's
+        # node_modules carries no @scitex/sdk: without the source tree the
+        # build aborts with "Rollup failed to resolve import" exactly as the
+        # live dev checkout did pre-#1076. .apps/ is vite.config.ts's first
+        # discovery candidate (CI/Docker fallback). Sparse: only the npm
+        # package root is needed. Intentionally NOT added to .scitex-apps.json
+        # — that file also drives production boots, where the SDK must stay a
+        # pinned pip dependency, not a develop-tip checkout.
+        uses: actions/checkout@v4
+        with:
+          repository: scitex-ai/scitex-sdk
+          ref: develop
+          path: .apps/scitex-sdk
+          sparse-checkout: |
+            src/scitex_sdk
+          sparse-checkout-cone-mode: true
+      - name: Build Vite bundle and stage for DEBUG serving
+        # Without a built manifest (gitignored, pytest forces DEBUG=False so
+        # every page takes the manifest path), all vite_script tags emit
+        # "[vite] missing entry" and content-asserting page tests fail
+        # (measured 2026-10-15: base-red family F1).
+        run: |
+          set -euo pipefail
+          npm install
+          npm run build
+          # Same staging as screenshots.yml: DEBUG serving reads FINDERS
+          # (STATICFILES_DIRS + app dirs), never STATIC_ROOT where the build
+          # lands — copy under static/vite so /static/vite/* URLs resolve.
+          rm -rf static/vite
+          cp -r staticfiles/vite static/vite
+          echo "vite assets staged: $(find static/vite -type f | wc -l) files"
       - name: Run tests
         # Django settings hard-fail (ValueError, per "no silent fallback")
         # if SCITEX_HUB_DJANGO_SECRET_KEY is unset. CI doesn't need a real
