@@ -472,12 +472,14 @@ def optional_sdk_ui_template_dirs() -> list:
 
     Card hub-sdk-ui-shell-bridge-20261007 slice 2: the bridge adapter
     extends ``scitex_sdk/app/app_shell.html``, which itself extends
-    ``scitex_sdk/ui/standalone_shell.html``. The UI app must stay OUT of
-    ``INSTALLED_APPS`` (duplicate ``scitex_ui`` label — see above), so the
-    app-directories loader can never resolve its templates. The filesystem
-    loader can: this returns the installed ``scitex_sdk.ui`` package's
-    ``templates/`` dir for ``TEMPLATES[0]["DIRS"]``. No app registration,
-    no label claim, no views/URLs — template-file resolution only.
+    ``scitex_sdk/ui/standalone_shell.html``. The UI app registers in
+    INSTALLED_APPS only when its config label is the namespaced
+    ``scitex_sdk_ui``; pre-relabel SDKs stay out (duplicate ``scitex_ui``
+    label), so the app-directories loader can never be relied on for its
+    templates. The filesystem loader can: this returns the installed
+    ``scitex_sdk.ui`` package's ``templates/`` dir for
+    ``TEMPLATES[0]["DIRS"]``. No app registration, no label claim,
+    no views/URLs — template-file resolution only.
     Returns [] when the package (or its templates dir) is absent.
     """
     mod = _installed("scitex_sdk.ui")
