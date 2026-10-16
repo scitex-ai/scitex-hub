@@ -255,7 +255,7 @@ class Project(
         default=False, help_text="Manuscript generated"
     )
 
-    # App Marketplace fields (nullable — only required at submission)
+    # App Store fields (nullable — only required at submission)
     is_app = models.BooleanField(
         default=False,
         help_text="Whether this project is a SciTeX app plugin",
@@ -265,7 +265,7 @@ class Project(
         blank=True,
         null=True,
         default="",
-        help_text="App category for marketplace listing",
+        help_text="App category for App Store listing",
     )
     app_license = models.CharField(
         max_length=50,
@@ -286,7 +286,7 @@ class Project(
             ("rejected", "Rejected"),
         ],
         default="draft",
-        help_text="Marketplace submission status",
+        help_text="App Store submission status",
     )
     app_submitted_at = models.DateTimeField(blank=True, null=True)
     app_reviewed_at = models.DateTimeField(blank=True, null=True)
