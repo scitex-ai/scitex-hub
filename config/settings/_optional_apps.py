@@ -354,6 +354,14 @@ def optional_upstream_apps() -> list[str]:
     if _installed("scitex_writer"):
         entries.append("scitex_writer._django.apps.WriterEditorConfig")
 
+    # scitex-stats' Django app. Same contract as writer: the leaf's AppConfig
+    # imports the SDK base through the package attribute path
+    # (``app.embed.ScitexAppConfig``), so the static certifier proves it.
+    # Mounted at /apps/stats/ by the generic plugin mount (scitex.apps
+    # entry point); the explicit path here keeps templates resolving.
+    if _installed("scitex_stats._django"):
+        entries.append("scitex_stats._django.apps.StatsCalculatorConfig")
+
     if _installed("scitex_storage._django"):
         # INSTALLED_APPS continuity only: URL mounting + tiles come from the
         # generic plugin mount (scitex.apps entry point). The explicit path
