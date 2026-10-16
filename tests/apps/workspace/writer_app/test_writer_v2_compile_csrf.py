@@ -44,6 +44,10 @@ class WriterV2CompileCsrfTest(TestCase):
                 "/apps/writer/old-direct/v2/api/compile", data="{}", content_type="application/json"
             )
         # Assert
+        # TEMPORARY DIAGNOSTIC (remove after one CI cycle): the 403 reason
+        # lives past the 500-char assert cut — discriminate csrf-vs-jail.
+        if response.status_code == 403:
+            print("DIAG-CSRF-BODY:", response.content[500:1500])
         assert response.status_code != 403, response.content
 
 
