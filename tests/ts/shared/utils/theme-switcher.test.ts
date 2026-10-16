@@ -142,3 +142,47 @@ describe("theme-switcher stx-theme convergence", () => {
     expect(document.documentElement.getAttribute("data-theme")).toBe("dark");
   });
 });
+
+describe("theme toggle label follows the rendered theme", () => {
+  beforeEach(() => {
+    localStorage.clear();
+    document.documentElement.removeAttribute("data-theme");
+    window.history.replaceState({}, "", "/");
+    document.body.innerHTML =
+      '<button id="theme-toggle" data-label-dark="Switch to dark mode" ' +
+      'data-label-light="Switch to light mode">' +
+      '<span data-theme-toggle-label></span></button>';
+  });
+
+  function label(): string | null {
+    return document.querySelector("[data-theme-toggle-label]")?.textContent ?? null;
+  }
+
+  it("says switch-to-light when the embed pins dark over light storage", async () => {
+    // The reported defect: an embed-pinned (or profile-applied) theme
+    // diverges from storage, and the label kept describing storage
+    // ("Switch to dark mode" on a dark page).
+    localStorage.setItem(CANONICAL_KEY, "light");
+    window.history.replaceState({}, "", "/?embed=1&theme=dark");
+    await importFresh();
+    expect(document.documentElement.getAttribute("data-theme")).toBe("dark");
+    expect(label()).toBe("Switch to light mode");
+  });
+
+  it("says switch-to-dark when the embed pins light over dark storage", async () => {
+    localStorage.setItem(CANONICAL_KEY, "dark");
+    window.history.replaceState({}, "", "/?embed=1&theme=light");
+    await importFresh();
+    expect(document.documentElement.getAttribute("data-theme")).toBe("light");
+    expect(label()).toBe("Switch to dark mode");
+  });
+
+  it("falls back to storage when nothing rendered yet", async () => {
+    localStorage.setItem(CANONICAL_KEY, "light");
+    await importFresh();
+    // No pin, no pre-set attribute; boot applies light and the label
+    // follows the freshly rendered theme.
+    expect(document.documentElement.getAttribute("data-theme")).toBe("light");
+    expect(label()).toBe("Switch to dark mode");
+  });
+});
