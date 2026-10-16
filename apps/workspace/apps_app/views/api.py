@@ -423,17 +423,28 @@ def api_fork(request, module_name):
 @require_http_methods(["GET"])
 def api_list_public(request):
     """Public JSON listing of all public apps (unauthenticated)."""
-    modules = AppsModule.objects.filter(visibility="public").values(
-        "module_name",
-        "short_description",
-        "category",
-        "star_count",
-        "install_count",
-        "is_builtin",
-        "is_verified",
-        "status",
-    )
-    return JsonResponse({"success": True, "apps": list(modules)})
+    apps = []
+    # Prefetch versions once: shows_verified_badge() reads the prefetched
+    # cache per row instead of issuing N queries (strict mode is production).
+    # Meta.ordering (-released_at) makes cached[0] the latest release.
+    for module in AppsModule.objects.filter(visibility="public").prefetch_related(
+        "versions"
+    ):
+        # is_verified here is the BADGE decision (version-pinned in
+        # production), not the raw certification flag.
+        apps.append(
+            {
+                "module_name": module.module_name,
+                "short_description": module.short_description,
+                "category": module.category,
+                "star_count": module.star_count,
+                "install_count": module.install_count,
+                "is_builtin": module.is_builtin,
+                "is_verified": module.shows_verified_badge(),
+                "status": module.status,
+            }
+        )
+    return JsonResponse({"success": True, "apps": apps})
 
 
 # EOF
