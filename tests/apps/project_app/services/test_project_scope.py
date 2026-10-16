@@ -230,11 +230,20 @@ class ProjectScopeTest(TestCase):
         _require_sdk_host_service()
         from django.template.loader import render_to_string
 
-        # Act
-        html = render_to_string(
-            "writer_app/shared/_app_header.html",
-            {"request": self._request(), "current_project": self.paper},
+        from tests.apps.workspace.writer_app._old_direct_gate import (
+            writer_old_direct_urls,
         )
+
+        # Act (CUTOVER: the writer_app namespace lives ONLY at
+        # /apps/writer/old-direct/ in dev now — the shared header's logo
+        # link reverses writer_app:index, which is unresolvable in the
+        # ambient prod-shaped urlconf. Same template, same assertions,
+        # rendered with the parity reference mounted.)
+        with writer_old_direct_urls():
+            html = render_to_string(
+                "writer_app/shared/_app_header.html",
+                {"request": self._request(), "current_project": self.paper},
+            )
         # Assert
         assert 'data-current="scope-me/paper"' in html
 

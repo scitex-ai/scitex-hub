@@ -62,7 +62,23 @@ dependencies = [
     # project root; older writers compose root/00_shared and fail to compile.
     # >=2.43.6: PDF provenance follows the running source tree and the
     # compile/re-vendor paths share one version-stamp template.
-    "scitex-writer>=2.43.6",
+    # >=2.43.9: the plugin contract (card
+    # hub-wrapper-plugin-writer-entrypoint-20260926). 2.43.9 is the FIRST
+    # release carrying the quoted [project.entry-points."scitex.apps"]
+    # `writer = scitex_writer._django.apps:WriterEditorConfig` entry PLUS the
+    # leaf manifest `mount_policy` {login_required, touches_files,
+    # jail:{scope: project, working_dir_param, path_params}} (writer #438 ->
+    # e14f6d79 on develop; verified against the writer develop checkout, whose
+    # pyproject version is 2.43.9). Measured at the cutover: PyPI latest is
+    # STILL 2.43.6 (no scitex.apps entry at all; installed 2.43.6 manifest
+    # carries NO mount_policy key), so the floor runs AHEAD of the published
+    # index until the 2.43.9 release publishes — the cutover is fail-closed
+    # under the older leaf (default 404s without it, never falls back), and
+    # the Docker C0 ==2.43.6 exact pin stays until publish day (exact pins
+    # must resolve; see Dockerfile.prod's own convention). Do NOT lower this
+    # floor to re-green an env that has not published yet: below 2.43.9 the
+    # generic plugin mount cannot enforce tenancy for this leaf.
+    "scitex-writer>=2.43.9",
     # >=1.9.0 is a MOUNT requirement, not a feature preference. Below it the
     # leaf's client JS builds API urls from the SITE ROOT
     # (static/scholar/js/graph/citation-graph.js: fetch("/api/graph/health")),

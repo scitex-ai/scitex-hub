@@ -78,6 +78,37 @@ def test_unrelated_path_gets_no_api_base_key():
     assert context == {}
 
 
+def test_leaf_editor_root_resolves_the_leaf_api_base():
+    # Arrange — CUTOVER: /apps/writer/ serves the leaf editor (same
+    # template, same {{ api_base }} read). Without this branch the page
+    # relapses scitex-hub#146 Part B: fetches to "/" root and 404.
+    request = RequestFactory().get("/apps/writer/")
+    # Act
+    context = writer_api_base(request)
+    # Assert — the leaf dispatches its API at its own root (HANDLERS keys
+    # already carry their own "api/" prefix).
+    assert context["api_base"] == "/apps/writer/"
+
+
+def test_leaf_viewer_root_resolves_the_leaf_api_base():
+    # Arrange — same cutover branch for the leaf viewer page.
+    request = RequestFactory().get("/apps/writer/viewer/")
+    # Act
+    context = writer_api_base(request)
+    # Assert
+    assert context["api_base"] == "/apps/writer/"
+
+
+def test_old_direct_v2_path_still_resolves_the_old_direct_api_base():
+    # Arrange — the parity reference keeps working through the suffix
+    # branch: the old-direct v2 API mouth, not the leaf root.
+    request = RequestFactory().get("/apps/writer/old-direct/editor-v2/")
+    # Act
+    context = writer_api_base(request)
+    # Assert
+    assert context["api_base"] == "/apps/writer/old-direct/v2/"
+
+
 if __name__ == "__main__":
     import os
 

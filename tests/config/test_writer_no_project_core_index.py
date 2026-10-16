@@ -19,6 +19,10 @@ from django.contrib.auth import get_user_model
 from django.test import Client
 from django.urls import NoReverseMatch, reverse
 
+from tests.apps.workspace.writer_app._old_direct_gate import (
+    writer_old_direct_urls,
+)
+
 User = get_user_model()
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
@@ -62,7 +66,14 @@ def test_core_namespace_stays_unregistered():
 
 @pytest.mark.django_db
 class TestWriterIndexWithoutProject:
-    """Authed user with no project renders /apps/writer/ (no 500)."""
+    """Authed user with no project renders the hub index reference (no 500).
+
+    CUTOVER: the hub index adapter lives ONLY at old-direct in dev now —
+    /apps/writer/ serves the leaf editor (which fail-closes a project-less
+    owner to /new/). Same adapter view, same assertions, only the prefix
+    moved; the gate reloads the real root urlconf because the suite runs
+    prod-shaped.
+    """
 
     def test_writer_index_renders_create_project_prompt(self):
         # Arrange — a user that owns zero projects
@@ -72,7 +83,8 @@ class TestWriterIndexWithoutProject:
 
         # Act — the test client re-raises view exceptions, so a stale
         # {% url %} fails here with NoReverseMatch instead of a bare 500
-        response = http.get("/apps/writer/")
+        with writer_old_direct_urls():
+            response = http.get("/apps/writer/old-direct/")
 
         # Assert
         assert response.status_code == 200
