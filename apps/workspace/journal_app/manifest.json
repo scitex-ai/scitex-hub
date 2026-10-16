@@ -1,0 +1,26 @@
+{
+  "$schema": "scitex-app-manifest",
+  "$schema_version": "2.0.0",
+  "name": "agentic-journal",
+  "label": "Journal",
+  "app_name": "journal_app",
+  "scope": "user",
+  "url": "/apps/journal/",
+  "icon": "fas fa-book-open",
+  "description": "Agentic Journal: submit manuscripts, agent-assisted review and reproduction, editorial decisions.",
+  "pip_package": "scitex-agentic-journal",
+  "license": "AGPL-3.0",
+  "keyboard_shortcut": "J",
+  "order": 30,
+  "accent_color": "journal",
+  "body_class": "journal-page",
+  "builtin": true,
+  "dependencies": {
+    "python": [],
+    "system": [],
+    "node": [],
+    "r": [],
+    "other": []
+  },
+  "container": null
+}

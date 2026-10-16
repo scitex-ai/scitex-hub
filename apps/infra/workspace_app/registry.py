@@ -200,6 +200,7 @@ _BUILTIN_MANIFEST_PATHS: list[str] = [
     "workspace/writer_app/manifest.json",
     "workspace/scholar_app/manifest.json",
     "workspace/figrecipe_app/manifest.json",
+    "workspace/journal_app/manifest.json",
     "workspace/clew_app/manifest.json",
     # NOTE: infra/public_app/manifest.json is intentionally NOT listed here.
     # It declares name="tools", which collided with workspace/tools_app

@@ -362,6 +362,14 @@ def optional_upstream_apps() -> list[str]:
     if _installed("scitex_stats._django"):
         entries.append("scitex_stats._django.apps.StatsCalculatorConfig")
 
+    # scitex-agentic-journal's Django app (first release 0.1.0a0). Plain
+    # AppConfig (no SDK base); explicit path keeps templates resolving.
+    # Mounted at /apps/journal/ by the gated wrapper (journal_app).
+    if _installed("scitex_agentic_journal._django.apps"):
+        entries.append(
+            "scitex_agentic_journal._django.apps.SciTeXAgenticJournalConfig"
+        )
+
     if _installed("scitex_storage._django"):
         # INSTALLED_APPS continuity only: URL mounting + tiles come from the
         # generic plugin mount (scitex.apps entry point). The explicit path
