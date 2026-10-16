@@ -40,6 +40,7 @@ from __future__ import annotations
 import importlib.util
 import json
 from pathlib import Path
+from types import SimpleNamespace
 
 import pytest
 from django.contrib.auth import get_user_model
@@ -93,7 +94,14 @@ def workspace(tmp_path):
 
 @pytest.fixture
 def resolve_to(workspace, monkeypatch):
-    """Point the wrapper's server-side resolver at the fixture workspace."""
+    """Point the wrapper's server-side resolver at the fixture workspace.
+
+    The SITE-3 views bind the server dir, AND the leaf's own host boundary
+    (writer >=2.43.9 reads SDK host.project_access, never GET working_dir)
+    is stubbed to the same fixture: otherwise the leaf raises
+    CapabilityUnavailable (503) for the stub _User, which owns nothing in
+    the hub DB. Both bindings fail closed the same way in production.
+    """
 
     def _bind(view):
         monkeypatch.setattr(view, "resolver", lambda request: workspace)
@@ -101,6 +109,20 @@ def resolve_to(workspace, monkeypatch):
     _bind(writer_urls._editor_view)
     _bind(writer_urls._viewer_view)
     _bind(writer_urls._api_view)
+
+    from scitex_sdk import host as _sdk_host
+
+    access = SimpleNamespace(
+        root=workspace,
+        id="slice1-study",
+        name="slice1-study",
+        path=lambda relative: None,
+    )
+    monkeypatch.setattr(
+        _sdk_host,
+        "project_access",
+        lambda request, **kwargs: access,
+    )
     return workspace
 
 
