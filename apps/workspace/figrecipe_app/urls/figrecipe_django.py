@@ -146,7 +146,11 @@ def _with_mount_marker(view):
         if "html" not in content_type.lower():
             return response
         html = response.content.decode("utf-8", "replace")
-        if 'name="stx-mount"' in html or "data-api-base" in html:
+        if (
+            'name="stx-mount"' in html
+            or "name='stx-mount'" in html
+            or "data-api-base" in html
+        ):
             return response
         tag = '<meta name="stx-mount" content="/apps/figrecipe" />'
         if "</head>" not in html:

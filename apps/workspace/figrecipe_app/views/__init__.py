@@ -203,9 +203,6 @@ def figure_editor(request, figrecipe_embedded=False):
             "app_label": "FigRecipe",
             "current_project": current_project,
         }
-        # The fallback shell runs the same bundle: it needs the mount
-        # marker too, or mountPrefix() throws and the page is blank.
-        context.update(_mount_marker(request))
         if current_project:
             context["project"] = current_project
         else:
