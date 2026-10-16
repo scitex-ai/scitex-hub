@@ -193,6 +193,13 @@ class AppsModule(models.Model):
 
     def latest_released_version(self):
         """Newest version string in the module's version history, or None."""
+        # Prefetch-aware: api_list_public prefetches versions in
+        # released_at order, so the badge check costs zero extra queries
+        # per row (strict mode runs in production — N+1 is an outage-class
+        # cost on a public listing).
+        cached = getattr(self, "_prefetched_objects_cache", {}).get("versions")
+        if cached is not None:
+            return cached[0].version if cached else None
         return (
             self.versions.order_by("-released_at")
             .values_list("version", flat=True)
