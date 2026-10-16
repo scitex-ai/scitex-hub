@@ -142,6 +142,16 @@ def plugin_mount_prefixes():
 
 def _match_mount(path: str):
     """The ``(prefix, label, policy)`` governing ``path``, or ``None``."""
+    if "/old-direct/" in f"/{path.strip('/')}/":
+        # Dev-only parity references (CCT 2763/2764: ``<app>/old-direct/``)
+        # are hub-native views, not plugin routes: their own pre-cutover
+        # gates (401/302/403 per view) apply, never the leaf's
+        # ``mount_policy``. Without this, the prefix match below would
+        # govern e.g. ``/apps/writer/old-direct/...`` by the writer leaf
+        # policy and 302 anonymous callers at the middleware, shadowing the
+        # hub views' own 401s. Old-direct never ships in production
+        # (dev-gated mount), so this exemption cannot open a plugin mount.
+        return None
     for prefix, label, policy in _mount_table():
         if path == prefix.rstrip("/") or path.startswith(prefix):
             return prefix, label, policy

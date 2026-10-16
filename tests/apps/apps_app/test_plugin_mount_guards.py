@@ -301,6 +301,34 @@ def test_non_plugin_paths_pass_through_untouched():
     assert (response.status_code, seen.get("called")) == (200, True)
 
 
+def test_old_direct_parity_reference_passes_through_untouched():
+    # Arrange — CCT 2763/2764: `<app>/old-direct/` is the dev-only
+    # hub-native parity reference, not a plugin route. Its views enforce
+    # their own pre-cutover gates (401/302/403 per view); the leaf's
+    # mount_policy must not intercept them at the middleware — otherwise
+    # an anonymous old-direct API call 302s here instead of reaching the
+    # hub view's own 401 (writer #1077: section/pdf anonymous sisters).
+    anon = _request(AnonymousUser(), path="/apps/writer/old-direct/api/project/26/section/abstract/")
+    signed = _request(_user(username="visitor"), path="/apps/writer/old-direct/api/project/26/section/abstract/")
+    # A writer-shaped mount table: without the exemption, the prefix match
+    # below would govern old-direct by the leaf policy and 302 the
+    # anonymous call. The leaf default itself must STAY governed.
+    leaf = _request(AnonymousUser(), path="/apps/writer/viewer/")
+    table = [("/apps/writer/", "Writer", {"login_required": True})]
+
+    # Act
+    anon_response, anon_seen = _run(anon, table=table)
+    signed_response, signed_seen = _run(signed, table=table)
+    leaf_response, leaf_seen = _run(leaf, table=table)
+
+    # Assert — downstream both times; no login redirect, no audience gate.
+    assert (anon_response.status_code, anon_seen.get("called")) == (200, True)
+    assert (signed_response.status_code, signed_seen.get("called")) == (200, True)
+    # ...while the leaf default keeps its login boundary.
+    assert leaf_response.status_code == 302
+    assert leaf_seen == {}
+
+
 # =====================================================================
 # plugin_access_allowed / can_open_plugin_mount units (tile/mount agreement)
 # =====================================================================

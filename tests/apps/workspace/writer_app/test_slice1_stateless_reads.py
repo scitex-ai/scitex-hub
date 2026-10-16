@@ -239,24 +239,54 @@ def test_anon_read_api_is_login_gated():
 # -- authed page parity (needs postgres; runs in CI) -----------------------
 
 
-def _owner_with_workspace(tmp_path, username, slug):
-    (tmp_path / "00_shared" / "bib_files").mkdir(parents=True)
-    owner = User.objects.create_user(username=username, password=PASSWORD)
-    project = Project.objects.create(
-        slug=slug,
-        owner=owner,
-        name=slug,
-        visibility="private",
-        local_path=str(tmp_path),
+@pytest.fixture
+def slice1_owner_factory():
+    """Create owners with REAL on-disk workspaces, cleaned up afterwards.
+
+    The 2.43.9 leaf guards the page with the SDK host contract
+    (``HubProjectStorage.project_path`` → ``get_project_root_path``, which
+    needs ``data/users/<owner>/proj/<slug>/`` ON DISK), while the hub
+    wrapper injects ``?working_dir=`` from ``project.get_local_path()``
+    (``local_path`` when set, else the same ``base_path/slug``). A
+    ``tmp_path`` workspace satisfies neither — the guard 404s with
+    "Project workspace not found". So the workspace is created the way the
+    product creates it (filesystem manager), and ``local_path`` is left
+    unset so both contracts resolve to the same on-disk root. The database
+    rolls back per test; the filesystem does not, hence the finalizer.
+    """
+    import shutil
+
+    from apps.infra.project_app.services.project_filesystem import (
+        get_project_filesystem_manager,
     )
-    owner.profile.last_active_repository = project
-    owner.profile.save(update_fields=["last_active_repository"])
-    return owner
+
+    roots = []
+
+    def make(username, slug):
+        owner = User.objects.create_user(username=username, password=PASSWORD)
+        project = Project.objects.create(
+            slug=slug,
+            owner=owner,
+            name=slug,
+            visibility="private",
+        )
+        manager = get_project_filesystem_manager(owner)
+        _created, root = manager.create_project_directory(project, use_template=False)
+        assert root is not None, "filesystem manager did not create a workspace"
+        (root / "00_shared" / "bib_files").mkdir(parents=True, exist_ok=True)
+        owner.profile.last_active_repository = project
+        owner.profile.save(update_fields=["last_active_repository"])
+        roots.append(root)
+        return owner
+
+    yield make
+    for root in roots:
+        shutil.rmtree(root, ignore_errors=True)
 
 
 @pytest.mark.django_db
-def test_viewer_page_renders_for_owner(tmp_path, writer_old_direct):
-    _owner_with_workspace(tmp_path, "slice1-owner", "slice1-study")
+def test_viewer_page_renders_for_owner(slice1_owner_factory, writer_old_direct):
+    slice1_owner_factory("slice1-owner", "slice1-study")
     client = Client()
     client.login(username="slice1-owner", password=PASSWORD)
     response = client.get("/apps/writer/old-direct/viewer-v2/")
@@ -265,8 +295,8 @@ def test_viewer_page_renders_for_owner(tmp_path, writer_old_direct):
 
 
 @pytest.mark.django_db
-def test_editor_page_renders_for_owner(tmp_path, writer_old_direct):
-    _owner_with_workspace(tmp_path, "slice1-editor", "slice1-editor-study")
+def test_editor_page_renders_for_owner(slice1_owner_factory, writer_old_direct):
+    slice1_owner_factory("slice1-editor", "slice1-editor-study")
     client = Client()
     client.login(username="slice1-editor", password=PASSWORD)
     response = client.get("/apps/writer/old-direct/editor-v2/")

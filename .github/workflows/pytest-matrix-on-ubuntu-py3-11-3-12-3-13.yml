@@ -153,6 +153,12 @@ jobs:
           SCITEX_HUB_DJANGO_SECRET_KEY: ci-test-secret-do-not-use-in-prod  # pragma: allowlist secret
           # settings_dev.py: require_env("SCITEX_HUB_GITEA_SSH_PORT_DEV")
           SCITEX_HUB_GITEA_SSH_PORT_DEV: "2222"
+          # No Gitea server runs in CI: the token stays deliberately empty
+          # so Gitea-backed paths take their fast "not configured" branch
+          # (a dummy value would only turn instant skips into connection
+          # timeouts). Declared explicitly so the absence is a decision,
+          # not an omission (writer #1077 fixture-gap close-out).
+          SCITEX_HUB_GITEA_TOKEN_DEV: ""
           # Point Django at the postgres service declared above. settings_dev
           # reads the _DEV-suffixed variants, not the bare names.
           SCITEX_HUB_DB_NAME_DEV: scitex_test

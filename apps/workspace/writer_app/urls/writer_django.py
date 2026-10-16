@@ -192,10 +192,14 @@ def api_dispatch(request, endpoint):
     return _api_view(request, endpoint)
 
 
-# The writer's bundled frontend sends no CSRF token, so the leaf marks
-# api_dispatch csrf_exempt; follow the leaf's decision (functools.wraps and
-# login_required do not carry it) and rely on the Origin check above instead.
-api_dispatch.csrf_exempt = getattr(_raw_api_dispatch, "csrf_exempt", False)
+# The writer's bundled frontend sends no CSRF token, so api_dispatch stays
+# csrf_exempt HERE regardless of the leaf's own decision: the 2.43.9 leaf
+# guards its dispatch with @project_boundary (csrf_protect), which would
+# 403 the token-less frontend's compile POSTs. Hub's bar for this route is
+# the Origin check in api_dispatch above, not the cookie token — exempting
+# here does not weaken it (and the leaf-authorized routes mounted
+# login-only in _leaf_view_for DO keep the leaf's csrf decision).
+api_dispatch.csrf_exempt = True
 
 
 class ImproperlyGatedURLConf(RuntimeError):
@@ -216,27 +220,28 @@ _SITE3_VIEW_BY_LEAF_NAME = {
 # `test_writer_route_flip_parity` pins the set so an upstream addition fails
 # loudly in CI instead of silently changing treatment. Derived from the leaf:
 # 2.43.6 ships {editor, viewer, api}; 2.43.9 adds {api_section,
-# api_manuscript_status} (writer #438) AND the v2_* twins
-# {writer_v2_editor, writer_v2_viewer, writer_v2_api,
-# writer_v2_api_section, writer_v2_api_manuscript_status} — same callbacks,
-# same paths, leaf-namespace aliases the leaf itself publishes. The twins get
-# the SAME treatment as their primaries (SITE-3 for the ?working_dir=
-# readers, login-only for the leaf-authorized pair) so both spellings behave
-# identically; omission would darken one spelling while the other serves.
-_V2_TWIN_SITE3 = {
-    "writer_v2_editor": "editor",
-    "writer_v2_viewer": "viewer",
-    "writer_v2_api": "api",
-}
-_V2_TWIN_AUTHORIZED = {
-    "writer_v2_api_section": "api_section",
-    "writer_v2_api_manuscript_status": "api_manuscript_status",
-}
+# api_manuscript_status} (writer #438).
+#
+# Deliberately NOT classified (CCT 2795: no v2 alias mount): the 2.43.9 leaf
+# also publishes v2_* twins {writer_v2_editor, writer_v2_viewer,
+# writer_v2_api, writer_v2_api_section, writer_v2_api_manuscript_status} —
+# same callbacks, same paths, legacy spellings. Mounting them would add a
+# second spelling beside the canonical routes (an alias); omitting them
+# lets the leaf's own `<path:endpoint>` catch-all dispatch e.g. editor-v2/
+# through the SITE-3 API guard as an opaque endpoint. Pinned by
+# test_known_leaf_routes_have_a_defined_treatment (omission set) and
+# test_leaf_is_mounted_once_no_alias (catch-all dispatch).
+_V2_TWIN_ALIASES = frozenset(
+    {
+        "writer_v2_editor",
+        "writer_v2_viewer",
+        "writer_v2_api",
+        "writer_v2_api_section",
+        "writer_v2_api_manuscript_status",
+    }
+)
 _KNOWN_LEAF_ROUTE_NAMES = frozenset(
-    set(_SITE3_VIEW_BY_LEAF_NAME)
-    | {"api_section", "api_manuscript_status"}
-    | set(_V2_TWIN_SITE3)
-    | set(_V2_TWIN_AUTHORIZED)
+    set(_SITE3_VIEW_BY_LEAF_NAME) | {"api_section", "api_manuscript_status"}
 )
 
 
@@ -250,10 +255,6 @@ def _leaf_view_for(entry: URLPattern):
     """
     if entry.name in _SITE3_VIEW_BY_LEAF_NAME:
         return _SITE3_VIEW_BY_LEAF_NAME[entry.name]
-    if entry.name in _V2_TWIN_SITE3:
-        # v2_* twin of a SITE-3 primary: same injection views, never the raw
-        # leaf callback (which would read caller-supplied ?working_dir=).
-        return _SITE3_VIEW_BY_LEAF_NAME[_V2_TWIN_SITE3[entry.name]]
     if entry.name in _KNOWN_LEAF_ROUTE_NAMES:
         callback = login_required(entry.callback)
         # Preserve the leaf's csrf decision (functools.wraps/login_required

@@ -239,11 +239,14 @@ def test_site3_routes_rebind_the_guard():
             f"leaf route {name!r} is served by {mounted}, not the SITE-3 "
             f"guard {hub[name]} — the working_dir bar moved or duplicated."
         )
-    # The API keeps the leaf's csrf decision (its frontend sends no token;
-    # the Origin check above it is the CSRF bar instead).
-    assert getattr(_wrapper.api_dispatch, "csrf_exempt", False) == getattr(
-        _leaf_views.api_dispatch, "csrf_exempt", False
-    ), "csrf_exempt propagation broke — leaf frontend POSTs would 403."
+    # The API stays csrf_exempt HERE (its frontend sends no token; the
+    # Origin check above is the CSRF bar instead) — deliberately NOT the
+    # leaf's decision: the 2.43.9 leaf guards its dispatch with
+    # @project_boundary (csrf_protect), and following it would 403 the
+    # token-less compile POSTs (writer #1077: v2 compile CSRF sister).
+    assert getattr(_wrapper.api_dispatch, "csrf_exempt", False) is True, (
+        "hub api_dispatch lost csrf_exempt — leaf frontend POSTs would 403."
+    )
 
 
 def test_leaf_authorized_routes_keep_login():
@@ -279,15 +282,21 @@ def test_known_leaf_routes_have_a_defined_treatment():
         name for name in LEAF_NAMES if name not in _wrapper._KNOWN_LEAF_ROUTE_NAMES
     ]
     site3 = [name for name in LEAF_NAMES if name in _wrapper._SITE3_VIEW_BY_LEAF_NAME]
-    # Assert — every installed route is classified (an unclassified upstream
-    # addition is omitted fail-closed at runtime AND fails loudly here);
+    # Assert — every installed route is either classified, or a deliberately
+    # unmounted v2 alias (CCT 2795: no v2 alias mount — the leaf's own
+    # `<path:endpoint>` catch-all dispatches those spellings through the
+    # SITE-3 API guard as opaque endpoints, pinned by
+    # test_leaf_is_mounted_once_no_alias). An upstream addition OUTSIDE the
+    # alias set is omitted fail-closed at runtime AND fails loudly here;
     # the SITE-3 set is exactly the `?working_dir=` readers — if the leaf
     # renames one, the injection silently stops covering it unless this
-    # trips.
-    assert unknown == [], (
+    # trips. Generation-aware: pre-2.43.9 leaves publish no twins, so the
+    # expected omission is empty there.
+    assert set(unknown) == _wrapper._V2_TWIN_ALIASES & set(LEAF_NAMES), (
         f"writer leaf publishes unclassified routes {unknown} — they are "
         "OMITTED fail-closed at runtime. Classify each in "
-        "_KNOWN_LEAF_ROUTE_NAMES (SITE-3 injection vs leaf-authorized)."
+        "_KNOWN_LEAF_ROUTE_NAMES (SITE-3 injection vs leaf-authorized), or "
+        "in _V2_TWIN_ALIASES when it is a deliberately unmounted v2 alias."
     )
     assert set(site3) == {"editor", "viewer", "api"} & set(LEAF_NAMES), (
         f"SITE-3 covers {site3}: a `?working_dir=` reader moved treatment "
