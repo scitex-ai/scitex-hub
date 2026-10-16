@@ -45,11 +45,13 @@ leaf-code imports:
 
 from __future__ import annotations
 
+import dataclasses
 import importlib.util
 import json
 from pathlib import Path
 
 import pytest
+from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import AnonymousUser
 from django.test import Client, RequestFactory
@@ -92,6 +94,81 @@ class _User:
         self.is_authenticated = True
 
 
+# -- SDK host doubles (scitex-writer>=2.43.9, DB-free) -----------------------
+# The 2.43.9 leaf guards api_dispatch/editor_page/viewer_page with
+# @project_boundary (scitex_writer/_django/_host_boundary.py), which demands
+# the SDK host contract BEFORE the wrapper-injected ?working_dir= is ever
+# read: scitex_sdk.host.project_access() -> project identity (settings
+# SCITEX_PROJECT_PROVIDER via project_context.resolve_active_project) +
+# storage root and write permission (settings SCITEX_PROJECT_STORAGE).
+# Without them the guard answers 503 "Project capability is unavailable"
+# (measured on /apps/writer/v2/ping: provider STATE_UNAVAILABLE, because the
+# real HubProjectProvider needs a database these tests deliberately lack).
+#
+# These doubles provision that contract for the DB-free suite through the
+# SAME two settings the real host uses — the leaf guard executes for real,
+# nothing is bypassed. Authorization-first, mirroring HubProjectStorage:
+# anonymous callers and unknown project ids get no path and no grant.
+_SDK_TEST_PROJECT_ID = "slice1-owner/slice1-study"
+
+
+@dataclasses.dataclass(frozen=True)
+class _SDKTestProjectEntry:
+    id: str
+    name: str
+    detail: str = ""
+
+
+class _SDKTestProjectProvider:
+    """Identity double: one accessible project, stored, never a database."""
+
+    project_id = _SDK_TEST_PROJECT_ID
+    project_name = "slice1-study"
+
+    def list_projects(self, request):
+        if not getattr(getattr(request, "user", None), "is_authenticated", False):
+            return []
+        return [_SDKTestProjectEntry(id=self.project_id, name=self.project_name)]
+
+    def last_visited(self, request):
+        if not getattr(getattr(request, "user", None), "is_authenticated", False):
+            return None
+        return self.project_id
+
+    def remember(self, request, project_id):
+        return None
+
+
+class _SDKTestProjectStorage:
+    """Storage + permissions double: the fixture workspace, owner may write."""
+
+    root = None
+
+    def _authorized(self, project_id, request):
+        user = getattr(request, "user", None)
+        if user is None or not getattr(user, "is_authenticated", False):
+            return False
+        if not project_id or project_id != _SDKTestProjectProvider.project_id:
+            return False
+        return self.root is not None
+
+    def project_path(self, project_id, request):
+        if not self._authorized(project_id, request):
+            return None
+        return str(self.root)
+
+    def can_write(self, project_id, request):
+        return bool(self._authorized(project_id, request))
+
+
+_SDK_TEST_PROVIDER_PATH = (
+    "tests.apps.workspace.writer_app.test_slice1_stateless_reads._SDKTestProjectProvider"
+)
+_SDK_TEST_STORAGE_PATH = (
+    "tests.apps.workspace.writer_app.test_slice1_stateless_reads._SDKTestProjectStorage"
+)
+
+
 @pytest.fixture
 def workspace(tmp_path):
     """Minimal writer workspace (00_shared/ => is_workspace)."""
@@ -101,7 +178,15 @@ def workspace(tmp_path):
 
 @pytest.fixture
 def resolve_to(workspace, monkeypatch):
-    """Point the wrapper's server-side resolver at the fixture workspace."""
+    """Point the wrapper's server-side resolver at the fixture workspace.
+
+    ... and provision the SDK host contract (2.43.9+) for the DB-free
+    suite: the leaf @project_boundary reads project identity from
+    SCITEX_PROJECT_PROVIDER and storage/permissions from
+    SCITEX_PROJECT_STORAGE, neither of which the real Hub providers can
+    answer without a database. The doubles above stand in through those
+    same two settings, bound to this fixture's workspace.
+    """
 
     def _bind(view):
         monkeypatch.setattr(view, "resolver", lambda request: workspace)
@@ -109,6 +194,9 @@ def resolve_to(workspace, monkeypatch):
     _bind(writer_urls._editor_view)
     _bind(writer_urls._viewer_view)
     _bind(writer_urls._api_view)
+    _SDKTestProjectStorage.root = workspace
+    monkeypatch.setattr(settings, "SCITEX_PROJECT_PROVIDER", _SDK_TEST_PROVIDER_PATH)
+    monkeypatch.setattr(settings, "SCITEX_PROJECT_STORAGE", _SDK_TEST_STORAGE_PATH)
     return workspace
 
 
