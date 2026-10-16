@@ -20,8 +20,10 @@ def _install_fake_sdk_ui(label):
 
     class ScitexUiConfig:
         name = "scitex_sdk.ui"
-        label = label
 
+    # NOTE: assigned after creation — names in a class body do not close
+    # over the enclosing function scope, so `label = label` would NameError.
+    ScitexUiConfig.label = label
     apps.ScitexUiConfig = ScitexUiConfig
     ui.apps = apps
     sys.modules["scitex_sdk.ui"] = ui
@@ -54,14 +56,9 @@ def test_pre_relabel_sdk_ui_stays_excluded():
     assert not any("scitex_sdk.ui" in e for e in entries)
 
 
-def test_absent_sdk_ui_registers_nothing():
-    saved = {
-        name: sys.modules.pop(name)
-        for name in ("scitex_sdk.ui", "scitex_sdk.ui.apps")
-        if name in sys.modules
-    }
-    try:
-        entries = optional.optional_upstream_apps()
-    finally:
-        sys.modules.update(saved)
+def test_absent_sdk_ui_registers_nothing(monkeypatch):
+    # Popping sys.modules does NOT simulate absence: _installed() re-imports
+    # from disk, so a real install would still resolve. Block resolution.
+    monkeypatch.setattr(optional, "_installed", lambda module_path: None)
+    entries = optional.optional_upstream_apps()
     assert not any("scitex_sdk.ui" in e for e in entries)
