@@ -216,10 +216,27 @@ _SITE3_VIEW_BY_LEAF_NAME = {
 # `test_writer_route_flip_parity` pins the set so an upstream addition fails
 # loudly in CI instead of silently changing treatment. Derived from the leaf:
 # 2.43.6 ships {editor, viewer, api}; 2.43.9 adds {api_section,
-# api_manuscript_status} (writer #438).
+# api_manuscript_status} (writer #438) AND the v2_* twins
+# {writer_v2_editor, writer_v2_viewer, writer_v2_api,
+# writer_v2_api_section, writer_v2_api_manuscript_status} — same callbacks,
+# same paths, leaf-namespace aliases the leaf itself publishes. The twins get
+# the SAME treatment as their primaries (SITE-3 for the ?working_dir=
+# readers, login-only for the leaf-authorized pair) so both spellings behave
+# identically; omission would darken one spelling while the other serves.
+_V2_TWIN_SITE3 = {
+    "writer_v2_editor": "editor",
+    "writer_v2_viewer": "viewer",
+    "writer_v2_api": "api",
+}
+_V2_TWIN_AUTHORIZED = {
+    "writer_v2_api_section": "api_section",
+    "writer_v2_api_manuscript_status": "api_manuscript_status",
+}
 _KNOWN_LEAF_ROUTE_NAMES = frozenset(
     set(_SITE3_VIEW_BY_LEAF_NAME)
     | {"api_section", "api_manuscript_status"}
+    | set(_V2_TWIN_SITE3)
+    | set(_V2_TWIN_AUTHORIZED)
 )
 
 
@@ -233,6 +250,10 @@ def _leaf_view_for(entry: URLPattern):
     """
     if entry.name in _SITE3_VIEW_BY_LEAF_NAME:
         return _SITE3_VIEW_BY_LEAF_NAME[entry.name]
+    if entry.name in _V2_TWIN_SITE3:
+        # v2_* twin of a SITE-3 primary: same injection views, never the raw
+        # leaf callback (which would read caller-supplied ?working_dir=).
+        return _SITE3_VIEW_BY_LEAF_NAME[_V2_TWIN_SITE3[entry.name]]
     if entry.name in _KNOWN_LEAF_ROUTE_NAMES:
         callback = login_required(entry.callback)
         # Preserve the leaf's csrf decision (functools.wraps/login_required
