@@ -546,6 +546,7 @@ def _with_host_plugin_apps(
         MetadataUnavailable,
         app_config_identity,
         app_installation_entries,
+        runtime_certified_identity,
     )
 
     configurations = {}
@@ -580,6 +581,32 @@ def _with_host_plugin_apps(
     for plugin in discovered:
         try:
             config = app_config_identity(plugin.app_config)
+        except MetadataUnavailable as error:
+            # Runtime fallback (option (a)): the source-only reader refuses
+            # lazy symbol imports ("not a literal module forwarder") even
+            # when the leaf names a genuine AppConfig. Import the claimed
+            # path and verify the live class (subclass + package identity)
+            # instead of skipping a healthy plugin.
+            try:
+                config = runtime_certified_identity(plugin.app_config)
+            except MetadataUnavailable as fallback_error:
+                logger.warning(
+                    "scitex.apps entry point %r has unavailable AppConfig metadata "
+                    "(%s); app skipped.",
+                    plugin.name,
+                    str(fallback_error),
+                )
+                continue
+            logger.warning(
+                "scitex.apps entry point %r STATIC certification unavailable "
+                "(%s); RUNTIME fallback CERTIFIED %s (genuine AppConfig "
+                "subclass, package %s present).",
+                plugin.name,
+                str(error),
+                config.label,
+                config.name,
+            )
+        try:
             declared = app_installation_entries(plugin.app_module)
             if declared:
                 try:
