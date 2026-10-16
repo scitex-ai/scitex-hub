@@ -157,8 +157,20 @@ jobs:
         # repos allow anonymous ls-remote (verified 2026-10-16).
         run: |
           set -euo pipefail
-          git clone --depth 1 --branch develop https://github.com/scitex-ai/scitex-ui.git ../scitex-ui
-          git clone --depth 1 --branch develop https://github.com/scitex-ai/figrecipe.git ../figrecipe
+          # Self-hosted runners reuse the workspace parent across runs, so a
+          # sibling may already exist (stale or foreign). Resync deterministi-
+          # cally: fast-forward a live repo, otherwise replace it outright.
+          sync_sibling() {
+            if [ -d "$2/.git" ]; then
+              git -C "$2" fetch --depth 1 origin develop
+              git -C "$2" reset --hard origin/develop
+            else
+              rm -rf "$2"
+              git clone --depth 1 --branch develop "https://github.com/scitex-ai/$1.git" "$2"
+            fi
+          }
+          sync_sibling scitex-ui ../scitex-ui
+          sync_sibling figrecipe ../figrecipe
           # scitex-sdk source (NOT covered by the sibling set) - the figrecipe
           # bridge imports @scitex/sdk/* and hub's node_modules carries no
           # @scitex/sdk, so without this the build aborts with "Rollup failed
@@ -166,7 +178,7 @@ jobs:
           # Intentionally CI-local, not .scitex-apps.json - that file also
           # drives production boots, where the SDK must stay a pinned pip
           # dependency, not a develop-tip checkout.
-          git clone --depth 1 --branch develop https://github.com/scitex-ai/scitex-sdk.git ../scitex-sdk
+          sync_sibling scitex-sdk ../scitex-sdk
           test -f ../scitex-sdk/src/scitex_sdk/package.json
       - name: Build Vite bundle and stage for DEBUG serving
         # Without a built manifest (gitignored, pytest forces DEBUG=False so
