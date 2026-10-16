@@ -17,6 +17,7 @@
     dev-only      visibility "internal" or catalog status "wip" (launcher._is_dev_only)
     NEW           published within NEW_BADGE_DAYS
 {% endcomment %}
+{% if not tile.hide_badges %}
 {% if tile.availability == 'coming_soon' or tile.availability == 'desktop_only' or tile.is_dev_only or tile.experimental or tile.is_new %}
     <span class="launcher-tile-badges">
         {% if tile.availability == 'coming_soon' %}
@@ -43,4 +44,5 @@
             </span>
         {% endif %}
     </span>
+{% endif %}
 {% endif %}

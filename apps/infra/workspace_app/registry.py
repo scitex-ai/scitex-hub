@@ -127,6 +127,9 @@ class ModuleConfig:
     # "experimental" key or MANIFEST_OVERRIDES; the leaf's own
     # visibility/status stay untouched.
     experimental: bool = False
+    # Operator-ordered badge silence for a specific tile (e.g. Storage):
+    # no badge of any kind renders. Hub-side override only.
+    hide_badges: bool = False
 
     # LLM integration
     ai_hint: str = ""  # Short description for data-ai-hint (shown to LLM)
@@ -337,6 +340,7 @@ def _manifest_to_module_config(data: dict) -> ModuleConfig:
         show_in_launcher=data.get("show_in_launcher", True),
         visibility=data.get("visibility", "public"),
         experimental=bool(effective_data.get("experimental", False)),
+        hide_badges=bool(effective_data.get("hide_badges", False)),
         ai_hint=data.get("ai_hint", ""),
         accent_color=data.get("accent_color", ""),
         docs_slug=data.get("docs_slug", ""),
