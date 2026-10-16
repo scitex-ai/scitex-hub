@@ -120,6 +120,18 @@ def ensure_builtin_modules(author_username="ywatanabe"):
                 version="0.1.0", is_stable=True
             )
 
+        if obj.is_verified and not obj.pinned_version:
+            # Backfill the certification pin so production badges survive:
+            # the badge is bound to the certified version.
+            latest = (
+                obj.versions.order_by("-released_at")
+                .values_list("version", flat=True)
+                .first()
+            )
+            if latest:
+                obj.pinned_version = latest
+                obj.save(update_fields=["pinned_version"])
+
         if was_created:
             created += 1
         else:

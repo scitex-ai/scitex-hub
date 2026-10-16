@@ -41,6 +41,70 @@ def test_plugin_with_missing_module_is_skipped():
     assert merged == ["scitex_ui"]
 
 
+@pytest.fixture
+def lazy_symbol_package(tmp_path):
+    """A leaf whose AppConfig is visible only through a lazy symbol import.
+
+    The module-level ``__getattr__`` performs an absolute
+    ``from <pkg>.impl import LazyConfig`` — exactly the shape the
+    source-only reader refuses ("not a literal module forwarder") — while
+    the live object is a genuine AppConfig subclass.
+    """
+    import sys
+
+    prefix = "plugin_lazy_symbol_" + tmp_path.name.replace("-", "_")
+    root = tmp_path / prefix
+    (root / "apps_pkg").mkdir(parents=True)
+    (root / "__init__.py").write_text("")
+    (root / "apps_pkg" / "__init__.py").write_text("")
+    (root / "apps_pkg" / "impl.py").write_text(
+        "from django.apps import AppConfig\n"
+        "class LazyConfig(AppConfig):\n"
+        f"    name = {prefix + '.apps_pkg'!r}\n"
+        "    label = 'lazy_symbol_label'\n"
+    )
+    (root / "apps_pkg" / "apps.py").write_text(
+        "def __getattr__(name):\n"
+        '    if name == "LazyConfig":\n'
+        f"        from {prefix}.apps_pkg.impl import LazyConfig\n"
+        "        return LazyConfig\n"
+        '    raise AttributeError(f"module has no attribute {name!r}")\n'
+    )
+    sys.path.insert(0, str(tmp_path))
+    try:
+        yield f"{prefix}.apps_pkg"
+    finally:
+        sys.path.remove(str(tmp_path))
+        for name in tuple(sys.modules):
+            if name == prefix or name.startswith(prefix + "."):
+                del sys.modules[name]
+
+
+def test_lazy_symbol_import_plugin_is_runtime_certified(
+    lazy_symbol_package, caplog
+):
+    # Arrange
+    caplog.set_level(logging.WARNING, logger="config.settings._optional_apps")
+    plugins = [PluginApp("lazy", lazy_symbol_package + ".apps.LazyConfig")]
+    # Act
+    merged = with_plugin_apps(["scitex_ui"], plugins)
+    # Assert
+    assert merged == ["scitex_ui", lazy_symbol_package + ".apps.LazyConfig"]
+    assert "RUNTIME fallback CERTIFIED lazy_symbol_label" in caplog.text
+
+
+def test_non_config_symbol_is_still_skipped(config_packages, caplog):
+    # Arrange: names an object that is not an AppConfig subclass at all.
+    caplog.set_level(logging.WARNING, logger="config.settings._optional_apps")
+    plugins = [
+        PluginApp("bogus", config_packages["host"] + ".apps.not_a_config")
+    ]
+    # Act
+    merged = with_plugin_apps(["scitex_ui"], plugins)
+    # Assert
+    assert merged == ["scitex_ui"] and "app skipped" in caplog.text
+
+
 def test_route_the_hub_serves_is_not_remounted():
     # Arrange
     existing = [path("apps/figrecipe/", _view)]

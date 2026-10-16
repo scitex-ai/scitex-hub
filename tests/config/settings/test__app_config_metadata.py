@@ -6,7 +6,11 @@ import sys
 
 import pytest
 
-from config.settings._app_config_metadata import MetadataUnavailable, app_config_identity
+from config.settings._app_config_metadata import (
+    MetadataUnavailable,
+    _declared_fallback_identity,
+    app_config_identity,
+)
 
 
 @pytest.fixture
@@ -594,3 +598,54 @@ def test_annotations_and_proven_instances_preserve_identity(declaration_package,
     identity = app_config_identity(entry)
     # Assert
     assert (identity.name, identity.label, name in sys.modules) == (name, "declared_owner", False)
+
+
+def _write_guarded_apps(root, name):
+    (root / "apps.py").write_text(
+        "try:\n"
+        "    import no_such_sdk_xyz\n"
+        "except ImportError as exc:\n"
+        '    raise ImportError("simulated SDK-guard failure") from exc\n'
+        "from django.apps import AppConfig\n"
+        "class GuardedConfig(AppConfig):\n"
+        f"    name = {name!r}\n"
+        "    label = 'guarded_owner'\n"
+    )
+
+
+def test_declared_fallback_certifies_unimportable_package(declaration_package):
+    # Arrange: the package __init__ raises on import (fixture sentinel), so
+    # even the declared app package cannot be imported; module-find must
+    # carry presence. The class is declared with literal name/label.
+    name, root = declaration_package
+    _write_guarded_apps(root, name)
+    # Act
+    identity = _declared_fallback_identity(
+        name + ".apps", "GuardedConfig", ImportError("simulated guard")
+    )
+    # Assert
+    assert (identity.name, identity.label, name in sys.modules) == (
+        name,
+        "guarded_owner",
+        False,
+    )
+
+
+def test_declared_fallback_refuses_absent_module():
+    # Arrange: nothing on sys.path provides this module.
+    # Act / Assert
+    with pytest.raises(MetadataUnavailable):
+        _declared_fallback_identity(
+            "no_such_pkg_xyz.apps", "GhostConfig", ImportError("x")
+        )
+
+
+def test_declared_fallback_refuses_undeclared_symbol(declaration_package):
+    # Arrange: source exists but names no such class.
+    name, root = declaration_package
+    _write_guarded_apps(root, name)
+    # Act / Assert
+    with pytest.raises(MetadataUnavailable):
+        _declared_fallback_identity(
+            name + ".apps", "MissingConfig", ImportError("x")
+        )

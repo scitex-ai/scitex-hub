@@ -294,9 +294,10 @@ TEMPLATES = [
     {
         "BACKEND": "django.template.backends.django.DjangoTemplates",
         # SDK UI shell templates (card hub-sdk-ui-shell-bridge-20261007):
-        # scitex_sdk.ui must stay OUT of INSTALLED_APPS (duplicate
-        # scitex_ui label), so its templates resolve via the filesystem
-        # loader from the installed package dir. [] when not installed.
+        # scitex_sdk.ui registers in INSTALLED_APPS only when its config
+        # label is the namespaced scitex_sdk_ui (pre-relabel SDKs claiming
+        # scitex_ui stay out: duplicate label). The filesystem loader entry
+        # below covers the unregistered case. [] when not installed.
         "DIRS": [BASE_DIR / "templates", *optional_sdk_ui_template_dirs()],
         "OPTIONS": {
             "context_processors": [
@@ -323,9 +324,10 @@ TEMPLATES = [
                 "apps.workspace.apps_app.template_loader.UserAppTemplateLoader",
             ],
             # SDK UI shell tag library (card hub-sdk-ui-shell-bridge-20261007):
-            # scitex_sdk.ui stays out of INSTALLED_APPS, so tag discovery
-            # never sees its templatetags package — register scitex_i18n
-            # (also provides {% scitex_js_catalog %}) by Python path.
+            # scitex_sdk.ui may or may not be in INSTALLED_APPS (label-gated
+            # registration), so tag discovery cannot be relied on — register
+            # scitex_i18n (also provides {% scitex_js_catalog %}) by Python
+            # path.
             # Lazy: only imported by templates that {% load %} it.
             "libraries": {
                 "scitex_i18n": "scitex_sdk.ui.templatetags.scitex_i18n",
