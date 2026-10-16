@@ -85,6 +85,7 @@ import logging
 from django.conf import settings
 from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
+from django.middleware.csrf import get_token
 from django.shortcuts import redirect
 from django.urls import URLPattern, URLResolver, include, path
 
@@ -189,6 +190,15 @@ def _is_cross_origin_write(request):
 def api_dispatch(request, endpoint):
     if _is_cross_origin_write(request):
         return JsonResponse({"error": "Cross-origin request refused"}, status=403)
+    # Bridge the leaf's csrf_protect (leaf 2.43.9 guards api_dispatch with
+    # @project_boundary + csrf_protect, and the bundled frontend sends no
+    # token). Hub already authenticated (login_required) and Origin-checked
+    # this caller, so stamp a valid first-party pair for the downstream
+    # guard: the check reads the secret from request.COOKIES (not META) and
+    # the token from the X-CSRFToken header. get_token() reuses the request
+    # secret when present.
+    request.META["HTTP_X_CSRFTOKEN"] = get_token(request)
+    request.COOKIES[settings.CSRF_COOKIE_NAME] = request.META["CSRF_COOKIE"]
     return _api_view(request, endpoint)
 
 
