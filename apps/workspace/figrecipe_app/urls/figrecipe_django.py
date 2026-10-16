@@ -115,12 +115,52 @@ def _gated(patterns):
         gated.append(
             URLPattern(
                 entry.pattern,
-                login_required(entry.callback),
+                _with_mount_marker(login_required(entry.callback)),
                 entry.default_args,
                 entry.name,
             )
         )
     return gated
+
+
+def _with_mount_marker(view):
+    """Ensure served HTML pages carry the mount marker the bundle requires.
+
+    The bundle's mountPrefix() throws (blank page) when the page carries
+    neither <body data-api-base> nor <meta name="stx-mount">. The leaf is
+    supposed to stamp it via SDK mount_context, but any page that arrives
+    without one gets it here, derived from the mount hub serves (never
+    guessed from content). Idempotent: pages already carrying a marker pass
+    through byte-identical. Non-HTML responses pass through untouched.
+    """
+    from functools import wraps
+
+    from django.http import HttpResponse
+
+    @wraps(view)
+    def wrapper(request, *args, **kwargs):
+        response = view(request, *args, **kwargs)
+        if not isinstance(response, HttpResponse):
+            return response
+        content_type = response.get("Content-Type", "") or ""
+        if "html" not in content_type.lower():
+            return response
+        html = response.content.decode("utf-8", "replace")
+        if (
+            'name="stx-mount"' in html
+            or "name='stx-mount'" in html
+            or "data-api-base" in html
+        ):
+            return response
+        tag = '<meta name="stx-mount" content="/apps/figrecipe" />'
+        if "</head>" not in html:
+            return response
+        response.content = html.replace("</head>", tag + "</head>", 1).encode(
+            "utf-8"
+        )
+        return response
+
+    return wrapper
 
 
 if _LEAF_IMPORT_ERROR is not None:
