@@ -439,15 +439,30 @@ def optional_upstream_apps() -> list[str]:
     # change — template resolution only.
     if _installed("scitex_sdk.app"):
         entries.append("scitex_sdk.app")
-    # SDK UI shell deliberately NOT registered (mutual exclusion): the
-    # installed scitex_sdk.ui claims label `scitex_ui` (ScitexUiConfig in
-    # scitex_sdk/ui/apps.py), identical to the REQUIRED retired scitex-ui
-    # entry (config/settings/settings_shared.py:213-214,
-    # `THIRD_PARTY_APPS.append("scitex_ui")`, default label `scitex_ui`).
-    # Registering both makes django.setup() raise ImproperlyConfigured
-    # (duplicate app label) with zero tests running. Re-add scitex_sdk.ui
-    # only after the retired scitex-ui requirement is removed, or after
-    # the SDK relabels its UI config away from `scitex_ui`.
+    # SDK UI shell app: REGISTERED (CSS 404 fix). The old exclusion below
+    # assumed the pre-relabel SDK whose UI config claimed label `scitex_ui`
+    # (colliding with the retired scitex-ui entry). The SDK has since
+    # relabeled its UI config to `scitex_sdk_ui` (namespaced, no models, so
+    # migration-free) and its own apps.py directs hosts to install it.
+    # Registration is what makes collectstatic (and runserver's app-static
+    # serving) pick up its static/, so standalone_shell.html CSS resolves
+    # on SDK-shell leaf pages. The label is verified — not the version
+    # number — so a pre-relabel SDK can never collide: anything else keeps
+    # the old exclusion path.
+    if _installed("scitex_sdk.ui"):
+        try:
+            from scitex_sdk.ui.apps import ScitexUiConfig as _sdk_ui_config
+
+            _sdk_ui_label = getattr(_sdk_ui_config, "label", "")
+        except ImportError:
+            _sdk_ui_label = ""
+        if _sdk_ui_label == "scitex_sdk_ui":
+            entries.append("scitex_sdk.ui.apps.ScitexUiConfig")
+    # Pre-relabel SDKs (UI config claiming `scitex_ui`, identical to the
+    # REQUIRED retired scitex-ui entry) still cannot register: django.setup()
+    # would raise ImproperlyConfigured (duplicate app label). That case falls
+    # through here with no entry — templates keep resolving via
+    # optional_sdk_ui_template_dirs(), static stays uncollected.
 
     return entries
 
