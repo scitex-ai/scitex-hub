@@ -187,6 +187,7 @@ def register_sphinx_packages(docs_pages, pages_by_slug):
             "template": "docs_app/docs_sphinx_package.html",
             "badges": ["pkg"],
             "group": "packages",
+            "section": "packages",
         }
         docs_pages.append(page)
         pages_by_slug[slug] = page
