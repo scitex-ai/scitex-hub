@@ -7,6 +7,31 @@
 <link rel="stylesheet" href="{% static 'public_app/css/api-docs.css' %}" />
 <link rel="stylesheet" href="{% static 'docs_app/css/docs-sphinx-inline.css' %}" />
 <div class="docs-workspace module-mobile-stack" data-mode="docs" data-active-doc="{{ active_doc }}">
+    <!-- Mobile cascade nav: two labeled dropdowns (section → page).
+         Visible ≤767px only; desktop keeps the sidebar. Reuses docs_sections
+         from the same DOCS_PAGES source — selects only, no slide-out panel. -->
+    <nav class="docs-mobile-nav" aria-label="Documentation navigation">
+        <div class="docs-mobile-field">
+            <label for="docs-mobile-section">Section</label>
+            <select id="docs-mobile-section" class="docs-mobile-select">
+                {% for section in docs_sections %}
+                    <option value="{{ section.key }}"{% if section.key == active_section %} selected{% endif %}>{{ section.label }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="docs-mobile-field">
+            <label for="docs-mobile-page">Page</label>
+            <select id="docs-mobile-page" class="docs-mobile-select">
+                {% for section in docs_sections %}
+                    <optgroup label="{{ section.label }}" data-section="{{ section.key }}">
+                        {% for page in section.pages %}
+                            <option value="{{ page.slug }}"{% if page.slug == active_doc %} selected{% endif %}>{{ page.label }}</option>
+                        {% endfor %}
+                    </optgroup>
+                {% endfor %}
+            </select>
+        </div>
+    </nav>
     <!-- Sidebar: doc page navigation -->
     <aside class="docs-sidebar">
         <nav class="docs-nav">

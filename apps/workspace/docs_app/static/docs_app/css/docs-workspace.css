@@ -342,23 +342,68 @@
   page-break-after: always;
 }
 
+/* ── Mobile cascade nav (two labeled dropdowns) ──────────── */
+/* Hidden on desktop — the sidebar is the desktop nav. Shown ≤767px
+   where it REPLACES the sidebar (see media query below). */
+.docs-mobile-nav {
+  display: none;
+}
+
 /* ── Mobile (≤767px) ────────────────────────────────────── */
-/* Sidebar stacks above the content as a height-capped scrollable list.
-   The column stack and width normalization come from the shared
-   module-mobile-collapse.css (.module-mobile-stack on .docs-workspace);
-   only docs-specific sizing lives here. Breakpoint matches
-   workspace-shell.css (767px). */
+/* The sidebar is replaced by the two-dropdown cascade nav
+   (section → page). The column stack and width normalization come from
+   the shared module-mobile-collapse.css (.module-mobile-stack on
+   .docs-workspace); only docs-specific sizing lives here. Breakpoint
+   matches workspace-shell.css (767px). */
 @media (max-width: 767px) {
   .docs-sidebar {
+    display: none;
+  }
+
+  .docs-mobile-nav {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
     flex: 0 0 auto;
-    height: auto;
-    max-height: 40vh;
-    border-right: none;
+    padding: 10px 12px;
     border-bottom: 1px solid var(--workspace-border-default, #30363d);
+    background: var(--workspace-bg-secondary, #161b22);
+  }
+
+  .docs-mobile-field {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    min-width: 0;
+  }
+
+  .docs-mobile-field > label {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--text-tertiary, #8b949e);
+  }
+
+  .docs-mobile-select {
+    width: 100%;
+    max-width: 100%;
+    /* 16px prevents iOS Safari auto-zoom on focus */
+    font-size: 16px;
+    line-height: 1.4;
+    padding: 8px 10px;
+    color: var(--text-primary, #e6edf3);
+    background: var(--workspace-bg-default, #0d1117);
+    border: 1px solid var(--workspace-border-default, #30363d);
+    border-radius: 6px;
+    /* Whole-word wrap only — never char-by-char token shredding */
+    white-space: normal;
+    overflow-wrap: normal;
+    word-break: normal;
   }
 
   .docs-content {
     flex: 1 1 auto;
-    min-height: 0;
+    min-height: 330px;
   }
 }
