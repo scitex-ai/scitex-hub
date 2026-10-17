@@ -9148,3 +9148,7 @@ msgstr "ミリ単位の精度"
 #: apps/infra/public_app/templates/public_app/landing_partials/features/hub_features.html
 msgid "1 project"
 msgstr "1つのプロジェクト"
+
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_modules.html
+msgid "Hub"
+msgstr "ハブ"
