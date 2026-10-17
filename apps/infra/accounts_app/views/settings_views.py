@@ -5,7 +5,9 @@ import secrets
 from django.contrib import messages
 from django.contrib.auth import get_user_model, update_session_auth_hash
 from django.contrib.auth.decorators import login_required
+from django.http import JsonResponse
 from django.shortcuts import redirect, render
+from django.views.decorators.http import require_GET
 from scitex_ui.keymap import keymap_defaults
 
 from apps.infra.accounts_app.keymap_preferences import (
@@ -13,9 +15,11 @@ from apps.infra.accounts_app.keymap_preferences import (
     KeymapConflictError,
     bind_shortcut,
     build_shortcut_rows,
+    empty_preferences,
     reset_shortcuts,
     unbind_shortcut,
 )
+from apps.infra.accounts_app.keymap_runtime import effective_keymap
 from apps.infra.accounts_app.models import UserProfile
 from apps.infra.accounts_app.views.project_health_i18n import project_health_catalog
 
@@ -159,6 +163,23 @@ def keyboard_shortcuts(request):
             ),
         },
     )
+
+
+@require_GET
+def keymap_api(request):
+    """Serve the shell runtime's resolved keymap as JSON.
+
+    Authenticated users get their Settings overrides merged over the
+    published command catalog (same resolution as the settings page, so the
+    browser can never disagree with it); anonymous visitors get the
+    defaults. Read-only: never creates a profile row.
+    """
+    preferences = empty_preferences()
+    if request.user.is_authenticated:
+        profile = getattr(request.user, "profile", None)
+        if profile is not None:
+            preferences = profile.keymap_preferences or empty_preferences()
+    return JsonResponse({"commands": effective_keymap(preferences)})
 
 
 @login_required
