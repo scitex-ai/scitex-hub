@@ -9184,3 +9184,7 @@ msgstr "%(app)sに進むためにサインインしています — サインイ
 #: apps/infra/auth_app/templates/auth_app/signin.html
 msgid "After signing in you'll return to the page you requested."
 msgstr "サインイン後にリクエストしたページに戻ります。"
+
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_modules.html
+msgid "Hub"
+msgstr "ハブ"
