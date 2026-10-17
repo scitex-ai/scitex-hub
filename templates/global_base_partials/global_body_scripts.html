@@ -1,5 +1,9 @@
 {% load static vite %}
 
+<!-- Load-error fallback banner FIRST: it must be registered before any
+     other bundle can fail, so a failed script/stylesheet renders an error
+     state instead of a blank region (UX standard, operator 2026-10-16). -->
+{% vite_script 'shared/utils/load-error-banner' %}
 <!-- Global: Prevent Enter key from submitting forms & route Enter to action buttons -->
 <link rel="stylesheet" href="{% static 'shared/css/utils/form-enter-handler.css' %}" />
 {% vite_script 'shared/utils/form-enter-handler' %}
