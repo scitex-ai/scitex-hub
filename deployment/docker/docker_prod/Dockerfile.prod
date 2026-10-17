@@ -197,8 +197,6 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
         libpq-dev \
         git \
         curl \
-        `# Fast file finder (Storage page scan needs fd or fdfind on PATH)` \
-        fd-find \
     && rm -rf /var/lib/apt/lists/*
 
 # Install uv
@@ -366,6 +364,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     git \
     gosu \
     parallel \
+    # Fast file finder (Storage page scan needs fd or fdfind on PATH)
+    fd-find \
     # --- Container management ---
     docker.io \
     uidmap \
