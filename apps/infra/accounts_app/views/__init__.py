@@ -26,6 +26,7 @@ from .settings_views import (
     account_settings,
     git_integrations,
     keyboard_shortcuts,
+    keymap_api,
     repository_health,
 )
 
@@ -55,6 +56,7 @@ __all__ = [
     "account_settings",
     "git_integrations",
     "keyboard_shortcuts",
+    "keymap_api",
     "repository_health",
     # AI providers views
     "ai_providers",
