@@ -307,12 +307,12 @@
   }
 }
 
-/* Phone settings nav: "Settings › <current page>" disclosure.
+/* Phone settings nav: three cascading selects (Section > Group > Page).
    The full 13-item list used to fill the first phone screen, so a settings
    page's own content started below the fold (site audit 2026-09-14, D7). On
-   phones the list lives inside a closed <details> above the content; the
+   phones the sidebar list hides and the cascade sits above the content; the
    desktop sidebar is untouched. Markup: accounts_app/partials/settings_nav.html. */
-.settings-nav-compact {
+.settings-nav-cascade {
   display: none;
 }
 
@@ -334,61 +334,41 @@
     display: none;
   }
 
-  .settings-nav-compact {
-    display: block;
+  .settings-nav-cascade {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
     width: 100%;
     background: var(--bg-surface);
     border: 1px solid var(--border-default);
     border-radius: 6px;
-  }
-
-  .settings-nav-compact-summary {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    min-height: 44px;
-    padding: 0 12px;
-    color: var(--text-secondary);
-    font-size: 14px;
-    cursor: pointer;
-    list-style: none;
-    user-select: none;
-  }
-
-  .settings-nav-compact-summary::-webkit-details-marker {
-    display: none;
-  }
-
-  .settings-nav-compact-summary strong {
-    color: var(--text-primary);
-  }
-
-  .settings-nav-compact-summary::after {
-    content: "";
-    margin-left: auto;
-    width: 0;
-    height: 0;
-    border-style: solid;
-    border-width: 6px 5px 0 5px;
-    border-color: var(--text-secondary) transparent transparent transparent;
-    transition: transform 0.15s;
-  }
-
-  .settings-nav-compact[open] > .settings-nav-compact-summary::after {
-    transform: rotate(180deg);
-  }
-
-  .settings-nav-compact[open] > .settings-nav-compact-summary {
-    border-bottom: 1px solid var(--border-default);
-  }
-
-  .settings-nav-compact-list {
     padding: 8px;
   }
 
-  .settings-nav-compact-list .settings-nav-item {
+  .settings-nav-cascade-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .settings-nav-cascade-row label {
+    flex: 0 0 64px;
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+    color: var(--text-secondary);
+  }
+
+  .settings-nav-cascade-select {
+    flex: 1;
+    min-width: 0;
     min-height: 44px;
-    white-space: normal;
+    padding: 0 8px;
+    font-size: 14px;
+    color: var(--text-primary);
+    background: var(--bg-page);
+    border: 1px solid var(--border-default);
+    border-radius: 6px;
   }
 }
 

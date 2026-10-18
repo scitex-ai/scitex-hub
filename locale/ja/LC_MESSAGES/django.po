@@ -3423,6 +3423,14 @@ msgstr "AI プロバイダー"
 msgid "AI usage"
 msgstr "AI 使用量"
 
+#: apps/infra/accounts_app/templates/accounts_app/partials/settings_nav.html
+msgid "Section"
+msgstr "セクション"
+
+#: apps/infra/accounts_app/templates/accounts_app/partials/settings_nav.html
+msgid "Page"
+msgstr "ページ"
+
 #: apps/infra/accounts_app/templates/accounts_app/api_keys.html apps/infra/accounts_app/templates/accounts_app/partials/settings_nav.html
 msgid "MCP tools"
 msgstr "MCP ツール"
