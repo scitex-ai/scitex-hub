@@ -124,6 +124,112 @@ function teardownScrollspy(): void {
   }
 }
 
+// ── Mobile Cascade Nav (section → page dropdowns) ─────────
+// Two labeled <select>s rendered server-side from docs_sections (same
+// DOCS_PAGES source as the sidebar). Level 1 picks the section, level 2
+// lists pages within it. Desktop keeps the sidebar; CSS shows this nav
+// ≤767px only.
+
+interface CascadePage {
+  value: string;
+  label: string;
+}
+
+const cascadePagesBySection = new Map<string, CascadePage[]>();
+const cascadeSectionBySlug = new Map<string, string>();
+
+function snapshotCascadeOptions(pageSelect: HTMLSelectElement): void {
+  cascadePagesBySection.clear();
+  cascadeSectionBySlug.clear();
+  pageSelect.querySelectorAll("optgroup").forEach((group) => {
+    const key = group.getAttribute("data-section") ?? "";
+    if (!key) return;
+    const pages: CascadePage[] = [];
+    group.querySelectorAll("option").forEach((opt) => {
+      pages.push({
+        value: opt.value,
+        label: opt.textContent?.trim() ?? opt.value,
+      });
+      cascadeSectionBySlug.set(opt.value, key);
+    });
+    cascadePagesBySection.set(key, pages);
+  });
+}
+
+function populateCascadePages(
+  sectionSelect: HTMLSelectElement,
+  pageSelect: HTMLSelectElement,
+  sectionKey: string,
+): void {
+  const pages = cascadePagesBySection.get(sectionKey) ?? [];
+  pageSelect.textContent = "";
+  pages.forEach((page) => {
+    const opt = document.createElement("option");
+    opt.value = page.value;
+    opt.textContent = page.label;
+    pageSelect.appendChild(opt);
+  });
+  pageSelect.disabled = pages.length === 0;
+}
+
+/** Keep both dropdowns in sync with the currently displayed doc page. */
+function syncMobileCascade(slug: string): void {
+  const sectionSelect = document.getElementById(
+    "docs-mobile-section",
+  ) as HTMLSelectElement | null;
+  const pageSelect = document.getElementById(
+    "docs-mobile-page",
+  ) as HTMLSelectElement | null;
+  if (!sectionSelect || !pageSelect || !cascadePagesBySection.size) return;
+  const sectionKey = cascadeSectionBySlug.get(slug);
+  if (!sectionKey) return;
+  if (sectionSelect.value !== sectionKey) {
+    sectionSelect.value = sectionKey;
+    populateCascadePages(sectionSelect, pageSelect, sectionKey);
+  }
+  if (pageSelect.value !== slug) pageSelect.value = slug;
+}
+
+function initMobileCascade(
+  contentArea: HTMLElement,
+  sidebar: Element,
+  navItems: NodeListOf<HTMLAnchorElement>,
+): void {
+  const sectionSelect = document.getElementById(
+    "docs-mobile-section",
+  ) as HTMLSelectElement | null;
+  const pageSelect = document.getElementById(
+    "docs-mobile-page",
+  ) as HTMLSelectElement | null;
+  if (!sectionSelect || !pageSelect) return;
+
+  snapshotCascadeOptions(pageSelect);
+  // Flatten to the active section's pages on init (optgroups are only the
+  // no-JS fallback carrying the full section → page map).
+  const initialSection =
+    sectionSelect.value || sectionSelect.options[0]?.value || "";
+  if (initialSection) {
+    populateCascadePages(sectionSelect, pageSelect, initialSection);
+    if (currentSlug) pageSelect.value = currentSlug;
+  }
+
+  sectionSelect.addEventListener("change", () => {
+    const key = sectionSelect.value;
+    populateCascadePages(sectionSelect, pageSelect, key);
+    // Cascade: selecting a section navigates to its first page.
+    const first = cascadePagesBySection.get(key)?.[0];
+    if (first) {
+      loadDocPage(first.value, undefined, contentArea, sidebar, navItems);
+    }
+  });
+
+  pageSelect.addEventListener("change", () => {
+    if (pageSelect.value) {
+      loadDocPage(pageSelect.value, undefined, contentArea, sidebar, navItems);
+    }
+  });
+}
+
 // ── Export Helpers ────────────────────────────────────────────
 
 function openPrintWindow(html: string): void {
@@ -190,6 +296,9 @@ function loadDocPage(
   navItems.forEach((item) => {
     item.classList.toggle("active", item.dataset.docSlug === slug);
   });
+
+  // Keep the mobile cascade dropdowns (section → page) in sync
+  syncMobileCascade(slug);
 
   // Show loading
   contentArea.style.opacity = "0.5";
@@ -418,6 +527,9 @@ function initDocsWorkspace(): void {
 
   // Dropdown toggles
   initDropdowns();
+
+  // Mobile cascade nav (section → page selects)
+  initMobileCascade(contentArea, sidebar, navItems);
 
   // Global "All PDF" button
   const allPdfBtn = document.getElementById("docs-export-all-pdf");
