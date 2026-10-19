@@ -136,6 +136,7 @@ class TestKeptWorkSurvives:
 
     @pytest.mark.django_db
     def test_cta_not_restyled_by_this_lane(self, signup_html):
-        # Navy CTA belongs to PR #1103. This lane must not touch the button.
-        assert "btn-success" in signup_html
-        assert "btn-primary" not in signup_html
+        # The CTA's color belongs to #1103 (navy-by-construction, no color
+        # class). This lane only requires the submit itself to survive.
+        assert "auth-primary-cta" in signup_html
+        assert "Create Account" in signup_html
