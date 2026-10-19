@@ -321,7 +321,10 @@
  * gold in dark — consumed as tokens, never hardcoded hexes, so a palette
  * retune propagates. This REPLACES the #1059 vibrant-green dark override
  * (#2ea043/#3fb950): the operator rejected green in both themes (sage
- * #5a9a7e in light via .btn-success, vibrant green in dark).
+ * #5a9a7e in light via .btn-success, vibrant green in dark). The signup
+ * button itself no longer carries btn-success (2026-10-19 precedence fix):
+ * its color comes ONLY from .auth-primary-cta, so no Bootstrap or shell
+ * .btn-success redeclaration can ever win the cascade again.
  * Signin keeps .btn-primary (selector separation from the signup CTA is
  * unchanged); only its dark hover is re-scoped below.
  * ------------------------------------------------------------------------- */
