@@ -9156,3 +9156,31 @@ msgstr "ミリ単位の精度"
 #: apps/infra/public_app/templates/public_app/landing_partials/features/hub_features.html
 msgid "1 project"
 msgstr "1つのプロジェクト"
+
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_modules.html
+msgid "Open a built-in app"
+msgstr "組み込みアプリを開く"
+
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_modules.html
+msgid "Screenshots above — open the live apps:"
+msgstr "上はスクリーンショットです — ライブアプリはこちらから開けます:"
+
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_modules.html
+msgid "Open your apps"
+msgstr "アプリを開く"
+
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_modules.html
+msgid "Open Stats"
+msgstr "統計を開く"
+
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_modules.html
+msgid "Browse all apps"
+msgstr "すべてのアプリを見る"
+
+#: apps/infra/auth_app/templates/auth_app/signin.html
+msgid "You're signing in to continue to %(app)s — you'll return there after signing in."
+msgstr "%(app)sに進むためにサインインしています — サインイン後に元のページに戻ります。"
+
+#: apps/infra/auth_app/templates/auth_app/signin.html
+msgid "After signing in you'll return to the page you requested."
+msgstr "サインイン後にリクエストしたページに戻ります。"

@@ -228,3 +228,33 @@ def next_url(user) -> str:
     if step_for(user) == PAYMENT:
         return payment_step_url()
     return getattr(settings, "LOGIN_REDIRECT_URL", "/") or "/"
+
+
+def resolve_post_login_url(user, unsafe_next=None, request=None) -> str:
+    """Post-login destination honoring a login-gate ``?next=`` (B2 beta triage).
+
+    The funnel is still the authority: an account that owes a payment method
+    goes to the payment step no matter what ``next`` says. Otherwise a
+    same-origin ``next`` is honored so a gate like ``/apps/stats/`` returns
+    the user to the app that was requested; anything else (missing, external,
+    protocol-relative) falls back to :func:`next_url`'s ordinary destination.
+
+    Validation closes the open redirect the raw ``redirect(request.GET["next"])``
+    form previously allowed.
+    """
+    from django.conf import settings
+    from django.utils.http import url_has_allowed_host_and_scheme
+
+    if step_for(user) == PAYMENT:
+        from apps.infra.accounts_app.funnel import payment_step_url
+
+        return payment_step_url()
+    default = getattr(settings, "LOGIN_REDIRECT_URL", "/") or "/"
+    if unsafe_next and request is not None:
+        if url_has_allowed_host_and_scheme(
+            unsafe_next,
+            allowed_hosts={request.get_host()},
+            require_https=request.is_secure(),
+        ):
+            return unsafe_next
+    return default
