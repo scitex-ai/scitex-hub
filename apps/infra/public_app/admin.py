@@ -4,9 +4,11 @@ from .models import (
     APIKey,
     CloudResource,
     Contributor,
+    DiscountAppeal,
     ServiceIntegration,
     Subscription,
     SubscriptionPlan,
+    UserDiscount,
 )
 
 # EmailVerification admin now in apps.infra.auth_app.admin
@@ -203,3 +205,94 @@ class PublicationAdmin(admin.ModelAdmin):
     @admin.display(description="Title")
     def title_short(self, obj):
         return obj.title[:60] + "..." if len(obj.title) > 60 else obj.title
+
+
+@admin.register(DiscountAppeal)
+class DiscountAppealAdmin(admin.ModelAdmin):
+    """The academic-appeal review queue (operator CCT4558).
+
+    Approve issues the UserDiscount grant through the same audited path as
+    the code (``grant_approved_appeal``); reject records a note the
+    requester can read on the appeal page. See docs/product/ACADEMIC_DISCOUNT.md
+    for reviewer best practice.
+    """
+
+    list_display = [
+        "user",
+        "institution",
+        "claimed_email",
+        "status",
+        "created_at",
+    ]
+    list_filter = ["status", "created_at"]
+    search_fields = ["institution", "claimed_email", "user__username"]
+    readonly_fields = [
+        "user",
+        "claimed_email",
+        "institution",
+        "evidence",
+        "decided_by",
+        "decided_at",
+        "created_at",
+        "updated_at",
+    ]
+    date_hierarchy = "created_at"
+    actions = ["approve_appeals", "reject_appeals"]
+
+    @admin.action(description="Approve — verify affiliation, issue grant")
+    def approve_appeals(self, request, queryset):
+        from apps.infra.public_app.services.academic_discount import (
+            grant_approved_appeal,
+        )
+
+        approved, skipped = 0, 0
+        for appeal in queryset.filter(status=DiscountAppeal.Status.OPEN):
+            try:
+                grant_approved_appeal(appeal, by_user=request.user)
+            except ValueError as exc:
+                skipped += 1
+                self.message_user(request, f"#{appeal.pk}: {exc}")
+            else:
+                approved += 1
+        self.message_user(
+            request, f"Approved {approved}, skipped {skipped}."
+        )
+
+    @admin.action(description="Reject selected open appeals")
+    def reject_appeals(self, request, queryset):
+        # Note: the per-row reviewer_note is edited on the appeal itself
+        # (it stays editable); the action only moves OPEN rows to REJECTED
+        # so a note written first is never silently dropped by a bulk pass.
+        from django.utils import timezone
+
+        rejected = queryset.filter(status=DiscountAppeal.Status.OPEN).update(
+            status=DiscountAppeal.Status.REJECTED,
+            decided_by=request.user,
+            decided_at=timezone.now(),
+        )
+        self.message_user(request, f"Rejected {rejected}.")
+
+
+@admin.register(UserDiscount)
+class UserDiscountAdmin(admin.ModelAdmin):
+    """Issued grants, read-mostly: the appeal link answers "why $19"."""
+
+    list_display = [
+        "user",
+        "code",
+        "status",
+        "verified_email",
+        "basis_domain",
+        "appeal",
+    ]
+    list_filter = ["status", "code"]
+    search_fields = ["user__username", "verified_email", "basis_domain"]
+    readonly_fields = [
+        "user",
+        "code",
+        "verified_email",
+        "basis_domain",
+        "appeal",
+        "created_at",
+        "updated_at",
+    ]

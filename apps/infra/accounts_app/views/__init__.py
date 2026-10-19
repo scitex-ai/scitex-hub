@@ -36,6 +36,9 @@ from .ssh_views import (
     ssh_keys,
 )
 
+# Academic discount appeal (operator CCT4558)
+from .discount_appeal_views import discount_appeal
+
 __all__ = [
     # Profile views
     "profile_view",
@@ -50,6 +53,7 @@ __all__ = [
     # Billing
     "billing_settings",
     "payment_step",
+    "discount_appeal",
     # API keys views
     "api_keys",
     # Settings and integrations views

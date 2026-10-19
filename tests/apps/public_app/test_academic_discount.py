@@ -269,6 +269,55 @@ def test_eligibility_read_is_safe_for_nobody():
 
 
 # ---------------------------------------------------------------------------
+# appeal form (Django forms alone: minimal settings, no apps registry)
+# ---------------------------------------------------------------------------
+
+
+@pytest.fixture(scope="module")
+def appeal_form_class():
+    from django.conf import settings
+
+    if not settings.configured:
+        settings.configure(USE_I18N=False)
+    import django
+
+    django.setup()
+    from apps.infra.accounts_app.forms_discount_appeal import DiscountAppealForm
+
+    return DiscountAppealForm
+
+
+def _appeal_data(**overrides):
+    data = {
+        "claimed_email": "taro@new-university.ac.jp",
+        "institution": "New University",
+        "evidence": "https://new-university.ac.jp/staff/taro",
+    }
+    data.update(overrides)
+    return data
+
+
+def test_appeal_form_accepts_a_full_case(appeal_form_class):
+    assert appeal_form_class(data=_appeal_data()).is_valid()
+
+
+def test_appeal_form_evidence_is_optional(appeal_form_class):
+    assert appeal_form_class(data=_appeal_data(evidence="")).is_valid()
+
+
+def test_appeal_form_rejects_a_bad_address(appeal_form_class):
+    form = appeal_form_class(data=_appeal_data(claimed_email="not-an-email"))
+    assert not form.is_valid()
+    assert "claimed_email" in form.errors
+
+
+def test_appeal_form_requires_the_institution(appeal_form_class):
+    form = appeal_form_class(data=_appeal_data(institution=""))
+    assert not form.is_valid()
+    assert "institution" in form.errors
+
+
+# ---------------------------------------------------------------------------
 # payment-step surface (source-level: the template needs a Django render env)
 # ---------------------------------------------------------------------------
 
@@ -282,3 +331,31 @@ def test_payment_step_names_the_grant_when_present():
     assert 'data-payment-disclosure="academic-discount"' in template
     # display-only: the flag must not smuggle a second plan decision in
     assert template.count("academic_discount") <= 3
+
+
+def test_payment_step_links_the_appeal_where_a_price_is_quoted():
+    template = (
+        PROJECT_ROOT
+        / "apps/infra/accounts_app/templates/accounts_app/payment_step.html"
+    ).read_text(encoding="utf-8")
+    assert 'data-payment-disclosure="academic-appeal"' in template
+    assert "accounts_app:discount_appeal" in template
+    # only where a price is actually quoted — never on not_open/plan_unset
+    lines = template.splitlines()
+    marker = next(i for i, l in enumerate(lines) if "academic-appeal" in l)
+    gate = next(l for l in lines[:marker][::-1] if "elif" in l and "state" in l)
+    for state in ("pending", "setup_cancelled", "setup_failed", "processing"):
+        assert state in gate
+    assert "not_open" not in gate and "plan_unset" not in gate
+
+
+def test_appeal_route_and_template_exist():
+    urls = (
+        PROJECT_ROOT / "apps/infra/accounts_app/urls.py"
+    ).read_text(encoding="utf-8")
+    assert "discount-appeal" in urls and "discount_appeal" in urls
+    template = (
+        PROJECT_ROOT
+        / "apps/infra/accounts_app/templates/accounts_app/discount_appeal.html"
+    ).read_text(encoding="utf-8")
+    assert "open_appeal" in template and "history" in template

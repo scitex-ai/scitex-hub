@@ -25,9 +25,10 @@ from apps.infra.auth_app.onboarding import (
     begin_social_signup,
     mark_verified,
 )
-from apps.infra.public_app.billing_models import UserDiscount
+from apps.infra.public_app.billing_models import DiscountAppeal, UserDiscount
 from apps.infra.public_app.services.academic_discount import (
     grant_academic_discount,
+    grant_approved_appeal,
     user_has_academic_discount,
 )
 
@@ -111,3 +112,68 @@ def test_begin_social_signup_grants_for_academic_address():
     begin_social_signup(user, provider="google")
     grant = UserDiscount.objects.filter(user=user).first()
     assert grant is not None and grant.is_active is True
+
+
+def _appeal(user, **overrides):
+    data = {
+        "claimed_email": "taro@new-university.example",
+        "institution": "New University",
+        "evidence": "https://new-university.example/staff/taro",
+    }
+    data.update(overrides)
+    return DiscountAppeal.objects.create(user=user, **data)
+
+
+def test_appeal_approval_issues_a_linked_grant():
+    requester = _user("taro@gmail.com", active=True)
+    reviewer = _user("staff@scitex.ai", active=True)
+    appeal = _appeal(requester)
+    grant = grant_approved_appeal(appeal, by_user=reviewer, note="staff page checks out")
+    assert grant.is_active is True
+    assert grant.verified_email == "taro@new-university.example"
+    assert grant.basis_domain == "new-university.example"
+    assert grant.appeal_id == appeal.pk
+    appeal.refresh_from_db()
+    assert appeal.status == DiscountAppeal.Status.APPROVED
+    assert appeal.decided_by_id == reviewer.pk
+    # and the funnel now treats the account as eligible
+    assert user_has_academic_discount(requester) is True
+
+
+def test_appeal_double_approval_returns_the_same_grant():
+    requester = _user("taro@gmail.com", active=True)
+    appeal = _appeal(requester)
+    first = grant_approved_appeal(appeal)
+    second = grant_approved_appeal(appeal)
+    assert first.pk == second.pk
+    assert UserDiscount.objects.filter(user=requester).count() == 1
+
+
+def test_second_open_appeal_is_refused_by_the_constraint():
+    from django.db import IntegrityError
+
+    requester = _user("taro@gmail.com", active=True)
+    _appeal(requester)
+    with pytest.raises(IntegrityError):
+        _appeal(requester, institution="Second try")
+
+
+def test_decided_appeal_cannot_be_approved():
+    requester = _user("taro@gmail.com", active=True)
+    appeal = _appeal(requester)
+    appeal.status = DiscountAppeal.Status.REJECTED
+    appeal.save(update_fields=["status", "updated_at"])
+    with pytest.raises(ValueError):
+        grant_approved_appeal(appeal)
+    assert UserDiscount.objects.filter(user=requester).count() == 0
+
+
+def test_approval_never_resurrects_a_revoked_grant():
+    requester = _user("taro@gmail.com", active=True)
+    grant = grant_academic_discount(requester, "taro@u-tokyo.ac.jp")
+    assert grant is not None
+    grant.status = UserDiscount.Status.REVOKED
+    grant.save(update_fields=["status", "updated_at"])
+    appeal = _appeal(requester)
+    with pytest.raises(ValueError):
+        grant_approved_appeal(appeal)

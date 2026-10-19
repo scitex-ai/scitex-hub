@@ -217,6 +217,17 @@ class UserDiscount(models.Model):
     verified_email = models.EmailField(max_length=254)
     #: Its domain, lowercased — the eligibility evidence in one glance.
     basis_domain = models.CharField(max_length=253, blank=True, default="")
+    #: Set when the grant came from an approved appeal rather than the
+    #: automatic checker (operator CCT4558). NULL means auto-check.
+    appeal = models.ForeignKey(
+        "DiscountAppeal",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        default=None,
+        related_name="grants",
+        help_text="The approved appeal this grant was issued for, if any.",
+    )
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -230,3 +241,80 @@ class UserDiscount(models.Model):
     @property
     def is_active(self):
         return self.status == self.Status.ACTIVE
+
+
+class DiscountAppeal(models.Model):
+    """A request for human review when the automatic checker says no.
+
+    Operator CCT4558. The checker knows the listed JP domains; it misses new
+    institutions, university hospitals on provider domains, overseas partners
+    on joint projects — every real miss is a researcher quoted the wrong
+    price. The appeal is their door back in, and this row is the reviewer's
+    queue.
+
+    Lifecycle: OPEN on submit (one open appeal per account — enforced below,
+    so a double-click cannot stack the queue); a reviewer APPROVEs (which
+    issues the ``UserDiscount`` grant through
+    :func:`academic_discount.grant_approved_appeal`) or REJECTs with a note
+    the requester can read. WITHDRAWN is the requester's own cancel.
+    """
+
+    class Status(models.TextChoices):
+        OPEN = "open", "Awaiting review"
+        APPROVED = "approved", "Approved — grant issued"
+        REJECTED = "rejected", "Rejected"
+        WITHDRAWN = "withdrawn", "Withdrawn by requester"
+
+    user = models.ForeignKey(
+        User, on_delete=models.CASCADE, related_name="discount_appeals"
+    )
+    #: The address the requester claims is academic. May equal their account
+    #: address (the checker missed it) or a second institutional address.
+    claimed_email = models.EmailField(max_length=254)
+    #: Institution name in the requester's own words.
+    institution = models.CharField(max_length=200)
+    #: Where a reviewer can verify: staff page URL, personnel listing, or a
+    #: sentence describing the affiliation. Free text, never a file upload —
+    #: uploads would make this endpoint a malware drop.
+    evidence = models.TextField(
+        blank=True,
+        default="",
+        help_text="Staff page URL or affiliation note a reviewer can check.",
+    )
+    status = models.CharField(
+        max_length=16, choices=Status.choices, default=Status.OPEN
+    )
+    #: What the reviewer decided, in words the requester can read.
+    reviewer_note = models.TextField(blank=True, default="")
+    decided_by = models.ForeignKey(
+        User,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        default=None,
+        related_name="decided_discount_appeals",
+    )
+    decided_at = models.DateTimeField(null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["-created_at"]
+        verbose_name = "Discount Appeal"
+        verbose_name_plural = "Discount Appeals"
+        constraints = [
+            # One open appeal per account: a double-click must not stack the
+            # reviewer's queue. History (approved/rejected/withdrawn) is kept.
+            models.UniqueConstraint(
+                fields=["user"],
+                condition=models.Q(status="open"),
+                name="unique_open_discount_appeal_per_user",
+            ),
+        ]
+
+    def __str__(self):
+        return f"{self.user.username} — {self.institution} ({self.status})"
+
+    @property
+    def is_open(self):
+        return self.status == self.Status.OPEN

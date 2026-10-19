@@ -36,6 +36,7 @@ __all__ = [
     "DEFAULT_FUNNEL_PRICING_IDS",
     "academic_row_for",
     "grant_academic_discount",
+    "grant_approved_appeal",
     "user_has_academic_discount",
 ]
 
@@ -100,6 +101,78 @@ def user_has_academic_discount(user) -> bool:
         # No row (RelatedObjectDoesNotExist), no database, half-built user
         # in a migration — all of those mean "not eligible", never a 500.
         return False
+
+
+def grant_approved_appeal(appeal, *, by_user=None, note=""):
+    """Issue the grant for an APPROVED appeal (operator CCT4558).
+
+    The reviewer's decision substitutes for the automatic checker: the
+    claimed address never passed it (that is why there is an appeal), and a
+    human verified the affiliation instead. The grant records the appeal so
+    the audit trail answers "why does this account pay $19".
+
+    Idempotent and safe to call twice: an already-approved appeal returns
+    its grant; an existing live grant for the account is linked to the
+    appeal rather than duplicated (the 1:1 mapping holds). A revoked grant
+    is NOT resurrected — revoke the revocation first, explicitly.
+    """
+    from django.db import transaction
+    from django.utils import timezone
+
+    from apps.infra.public_app.billing_models import DiscountAppeal, UserDiscount
+
+    if appeal is None or getattr(appeal, "pk", None) is None:
+        raise ValueError("grant_approved_appeal needs a saved appeal")
+    with transaction.atomic():
+        appeal = DiscountAppeal.objects.select_for_update().get(pk=appeal.pk)
+        if appeal.status == DiscountAppeal.Status.APPROVED:
+            existing = UserDiscount.objects.filter(appeal=appeal).first()
+            if existing is not None:
+                return existing
+        if appeal.status != DiscountAppeal.Status.OPEN:
+            raise ValueError(
+                f"appeal {appeal.pk} is {appeal.status}, not open"
+            )
+        user = appeal.user
+        email = (appeal.claimed_email or "").strip()
+        domain = email.lower().split("@", 1)[1] if "@" in email else ""
+        grant, _ = UserDiscount.objects.get_or_create(
+            user=user,
+            defaults={
+                "code": ACADEMIC_CODE,
+                "verified_email": email,
+                "basis_domain": domain,
+                "appeal": appeal,
+            },
+        )
+        if not grant.is_active:
+            raise ValueError(
+                f"account {user.pk} holds a revoked grant; "
+                "un-revoke it explicitly instead of appealing around it"
+            )
+        if grant.appeal_id != appeal.pk:
+            grant.appeal = appeal
+            grant.save(update_fields=["appeal", "updated_at"])
+        appeal.status = DiscountAppeal.Status.APPROVED
+        appeal.reviewer_note = note or appeal.reviewer_note
+        appeal.decided_by = by_user
+        appeal.decided_at = timezone.now()
+        appeal.save(
+            update_fields=[
+                "status",
+                "reviewer_note",
+                "decided_by",
+                "decided_at",
+                "updated_at",
+            ]
+        )
+        logger.info(
+            "Appeal %s approved by %s: grant for account %s",
+            appeal.pk,
+            getattr(by_user, "pk", None),
+            user.pk,
+        )
+        return grant
 
 
 def academic_row_for(user, allowlist_rows) -> dict | None:

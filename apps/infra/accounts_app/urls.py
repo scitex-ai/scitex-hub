@@ -10,6 +10,7 @@ from .views import (
     appearance_settings,
     auto_response_prefs_api,
     billing_settings,
+    discount_appeal,
     git_integrations,
     keyboard_shortcuts,
     keymap_api,
@@ -61,6 +62,11 @@ urlpatterns = [
     # The pre-payment step a verified signup lands on (card
     # hub-signup-email-stripe-funnel-20260917): terms first, then the provider.
     path("settings/payment/", payment_step, name="payment_step"),
+    # Academic discount appeal (operator CCT4558): human review when the
+    # automatic checker misses.
+    path(
+        "settings/discount-appeal/", discount_appeal, name="discount_appeal"
+    ),
     # API Endpoints
     path(
         "api/keymap/",

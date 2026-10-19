@@ -103,6 +103,8 @@
                 <dd data-payment-disclosure="price">{{ price_per_month }}{% trans " / month (USD)" %}</dd>
                 {% if academic_discount %}
                 <dd data-payment-disclosure="academic-discount" class="payment-step-academic-note">{% trans "Academic discount applied — 50% off Pro for your institution." %}</dd>
+                {% elif state == "pending" or state == "setup_cancelled" or state == "setup_failed" or state == "processing" %}
+                <dd data-payment-disclosure="academic-appeal" class="payment-step-academic-note">{% trans "At an academic or research institution but quoted the full price?" %} <a href="{% url 'accounts_app:discount_appeal' %}">{% trans "Request academic review" %}</a></dd>
                 {% endif %}
                 <dt>{% trans "Due today" %}</dt>
                 <dd data-payment-disclosure="due-today">{{ due_today }}</dd>

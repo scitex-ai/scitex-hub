@@ -1,0 +1,52 @@
+{% extends "auth_app/auth_base.html" %}
+{% load i18n %}
+
+{% block title %}{% trans "Academic discount appeal" %} - SciTeX{% endblock %}
+
+{% block auth_content %}
+    <div class="payment-step" data-appeal-form="true">
+        <h1 class="payment-step-title">{% trans "Request academic review" %}</h1>
+        <p class="payment-step-lead">
+            {% trans "Our automatic check recognises listed Japanese academic domains. If yours was missed — a new institution, a hospital or provider address, an overseas partner — state your case and a reviewer will decide." %}
+        </p>
+
+        {% if open_appeal %}
+            <p class="payment-step-card-note" data-appeal-status="open">
+                {% blocktrans with institution=open_appeal.institution since=open_appeal.created_at|date:"Y-m-d" %}Your appeal for {{ institution }} (opened {{ since }}) is awaiting review. The academic price applies from approval; nothing is charged differently while you wait.{% endblocktrans %}
+            </p>
+        {% else %}
+            <form method="post" class="payment-step-form">
+                {% csrf_token %}
+                {{ form.non_field_errors }}
+                <p>
+                    {{ form.claimed_email.label_tag }}<br />
+                    {{ form.claimed_email }}{{ form.claimed_email.errors }}
+                </p>
+                <p>
+                    {{ form.institution.label_tag }}<br />
+                    {{ form.institution }}{{ form.institution.errors }}
+                </p>
+                <p>
+                    {{ form.evidence.label_tag }}<br />
+                    {{ form.evidence }}{{ form.evidence.errors }}
+                    <br /><small>{{ form.evidence.help_text }}</small>
+                </p>
+                <button type="submit" class="payment-step-continue" data-payment-action="continue">
+                    {% trans "Submit appeal" %}
+                </button>
+            </form>
+        {% endif %}
+
+        {% if history %}
+            <h2>{% trans "Earlier appeals" %}</h2>
+            <ul>
+                {% for appeal in history %}
+                    <li data-appeal-status="{{ appeal.status }}">
+                        {{ appeal.institution }} — {{ appeal.get_status_display }}
+                        {% if appeal.reviewer_note %} — {{ appeal.reviewer_note }}{% endif %}
+                    </li>
+                {% endfor %}
+            </ul>
+        {% endif %}
+    </div>
+{% endblock %}

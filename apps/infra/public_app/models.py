@@ -11,6 +11,7 @@ from apps.infra.auth_app.models import EmailVerification  # noqa
 from .billing_models import (  # noqa: F401
     BillingEvent,
     BillingSetupSession,
+    DiscountAppeal,
     PaymentMethod,
     PlanSubscription,
     UserDiscount,
