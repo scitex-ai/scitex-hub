@@ -247,3 +247,30 @@ def test_render_is_language_sensitive_both_ways():
     assert ja != source, "under `ja` the section heading is still the English source"
     assert en == source, f"under `en` the heading resolved to {en!r}, not the English source"
     assert ja != en, "both locales resolved identically — the catalog is not locale-scoped"
+
+
+# ---------------------------------------------------------------------------
+# Operator terminology unification (CCT via apps-lead, 2026-09-28)
+# ---------------------------------------------------------------------------
+def test_terms_uses_unified_person_and_mark_terms():
+    """On /terms/, the reader is あなた (not お客様) and marks are マーク (not 標章).
+
+    Operator direction binds the unified forms. This scans only entries sourced
+    from the terms template, so footer/pricing wording elsewhere is unaffected.
+    """
+    # Arrange
+    catalog = _ja_catalog()
+    strings = _template_trans_strings()
+    offenders: list[str] = []
+    # Act
+    for source in strings:
+        resolved = catalog.get(source)
+        if not resolved or resolved in PASS_THROUGH:
+            continue
+        hits = [w for w in ("お客様", "標章") if w in resolved]
+        if hits:
+            offenders.append(f"{source[:80]!r}: {hits}")
+    # Assert
+    assert not offenders, (
+        "terms template entries use non-unified wording:\n" + "\n".join(offenders)
+    )
