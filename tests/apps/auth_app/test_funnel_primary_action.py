@@ -155,6 +155,26 @@ def test_the_signin_dark_hover_deepens_to_brand_active_gold():
     )
 
 
+def test_the_signup_cta_does_not_carry_btn_success():
+    """Operator 2026-10-19 (Create Account still green on live dev): the CTA
+    color must come ONLY from .auth-primary-cta. As long as the button also
+    carries btn-success, any shell rule redeclaring .btn-success (e.g. the
+    head-styles-base `background-color: var(--success-color)`) or any
+    specificity/order regression resurrects green. Dropping the class kills
+    the failure mode instead of out-specifying it."""
+    html = SIGNUP.read_text()
+
+    buttons = [
+        line for line in html.splitlines()
+        if "<button" in line and "Create Account" in line
+    ]
+    assert buttons, "the Create Account submit button moved — update this guard"
+    assert "btn-success" not in buttons[0], (
+        "the signup CTA re-acquired btn-success; green can win the cascade "
+        f"again: {buttons[0].strip()!r}"
+    )
+
+
 def test_the_signin_button_does_not_carry_the_cta_class():
     """The dark CTA override must not leak onto signin: signin stays on the
     tan .btn-primary the operator praised, guarded by selector separation."""
