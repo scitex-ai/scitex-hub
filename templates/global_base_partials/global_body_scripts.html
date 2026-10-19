@@ -34,10 +34,12 @@
 {% vite_script 'shared/code-blocks' %}
 {% vite_script 'shared/utils/django-messages' %}
 {% vite_script 'shared/components/confirm-modal' %}
-<!-- Development Tools (only in DEBUG mode) -->
-{% if DEBUG %}
-    {% vite_script 'shared/utils/element-inspector' %}
-{% endif %}
+<!-- Development Tools: the Alt+I element inspector is served by
+     ElementInspectorMiddleware (the single hub emission path) — do NOT add
+     a second copy here. A duplicate evaluation constructs a second inspector
+     with its own keydown listener, which double-invokes Alt+I and creates
+     duplicate overlays (card hub-element-inspector-double-invocation-20261019).
+     The middleware already skips pages whose shell provides its own copy. -->
 <!-- Click-to-expand for collapsed panels (global) -->
 {% vite_script 'shared/collapsible-panel-click-expand' %}
 <!-- Global Header Scripts (Vite) -->
