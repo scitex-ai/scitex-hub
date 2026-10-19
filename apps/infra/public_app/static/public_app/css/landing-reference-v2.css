@@ -146,6 +146,25 @@
   flex-wrap: wrap;
 }
 
+/* Live app entries below the screenshots carousel (B1 beta triage). The
+   carousel dots switch screenshots in place; these are the real links. */
+.landing-v2-app-entries {
+  margin-top: 1.5rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid rgb(20 29 42 / 12%);
+}
+.landing-v2-app-entries-note {
+  margin: 0 0 0.8rem;
+  font-size: 0.95rem;
+  opacity: 0.85;
+}
+.landing-v2-app-entries-links {
+  display: flex;
+  gap: 0.8rem;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
 .landing-v2-button,
 .landing-v2-hero .hero-cta-button {
   min-height: 48px;
