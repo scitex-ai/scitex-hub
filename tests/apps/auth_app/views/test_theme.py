@@ -14,8 +14,6 @@ import json
 import pytest
 from django.urls import reverse
 
-from apps.infra.auth_app.models import UserProfile
-
 pytestmark = pytest.mark.django_db
 
 GET_THEME = reverse("auth_app:api_get_theme")
@@ -23,17 +21,22 @@ SAVE_THEME = reverse("auth_app:api_save_theme")
 
 
 def _login_with_saved_theme(client, django_user_model, username, theme):
-    """Log a fresh user in, then stamp ``theme`` onto their profile row.
+    """Log a fresh user in, then save ``theme`` via the real endpoint.
 
-    The row is stamped AFTER ``force_login`` with a signal-bypassing
-    queryset ``.update()``: login updates ``User`` which fires a
+    Goes through POST save-theme (rather than stamping the row) so the
+    ``theme_explicit`` flag is set exactly as in production. The POST
+    lands AFTER ``force_login``: login updates ``User`` which fires a
     post_save receiver re-saving a cached ``auth_profile`` instance —
     stamping first would be silently clobbered back to the default.
     """
     user = django_user_model.objects.create_user(username=username, password="x")
     client.force_login(user)
-    UserProfile.objects.get_or_create(user=user)
-    UserProfile.objects.filter(user=user).update(theme_preference=theme)
+    resp = client.post(
+        SAVE_THEME,
+        data=json.dumps({"theme": theme}),
+        content_type="application/json",
+    )
+    assert resp.status_code == 200, resp.content
     return user
 
 
@@ -114,6 +117,44 @@ class TestGetThemeRegistered:
         data = client.get(GET_THEME).json()
         # Assert
         assert data["theme"] == "dark"
+
+    def test_fresh_registered_profile_source_is_default_not_profile(
+        self, client, django_user_model
+    ):
+        # Arrange: auto-created row (never explicitly saved).
+        # A source of "profile" here would clobber a stored browser
+        # light choice back to dark on every load (card
+        # stats-dark-theme-forced-20261018).
+        user = django_user_model.objects.create_user(
+            username="bob2", password="x"
+        )
+        client.force_login(user)
+        # Act
+        data = client.get(GET_THEME).json()
+        # Assert
+        assert data["source"] == "default"
+
+    def test_code_theme_only_update_does_not_stamp_explicit(
+        self, client, django_user_model
+    ):
+        # Arrange: code-theme-only save must not mark the base theme
+        # as an explicit choice.
+        user = django_user_model.objects.create_user(
+            username="erin", password="x"
+        )
+        client.force_login(user)
+        resp = client.post(
+            SAVE_THEME,
+            data=json.dumps({"code_theme_dark": "dracula"}),
+            content_type="application/json",
+        )
+        assert resp.status_code == 200, resp.content
+        # Act
+        data = client.get(GET_THEME).json()
+        # Assert
+        assert data["source"] == "default"
+        user.refresh_from_db()
+        assert user.auth_profile.theme_explicit is False
 
 
 class TestSaveThemeAnonymous:
