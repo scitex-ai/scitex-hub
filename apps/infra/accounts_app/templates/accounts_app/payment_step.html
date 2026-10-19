@@ -101,6 +101,9 @@
                 <dd data-payment-disclosure="plan">{{ plan_label }}</dd>
                 <dt>{% trans "Price" %}</dt>
                 <dd data-payment-disclosure="price">{{ price_per_month }}{% trans " / month (USD)" %}</dd>
+                {% if academic_discount %}
+                <dd data-payment-disclosure="academic-discount" class="payment-step-academic-note">{% trans "Academic discount applied — 50% off Pro for your institution." %}</dd>
+                {% endif %}
                 <dt>{% trans "Due today" %}</dt>
                 <dd data-payment-disclosure="due-today">{{ due_today }}</dd>
                 <dt>{% trans "Trial ends" %}</dt>

@@ -178,6 +178,19 @@ def payment_step(request):
     label = row.get("label") or row.get("name") or ""
     _, trial_end = trial_window(user)
 
+    # Academic lane (operator CCT4555): the template says the grant's name
+    # when one is live — the price itself already comes from the academic
+    # row this resolver chose, so this flag is display-only, never a second
+    # decision about what is charged.
+    try:
+        from apps.infra.public_app.services.academic_discount import (
+            user_has_academic_discount,
+        )
+
+        academic_discount = user_has_academic_discount(user)
+    except Exception:
+        academic_discount = False
+
     context = payment_disclosures(
         plan_label=label,
         monthly_usd=float(row.get("amount") or 0),
@@ -187,6 +200,7 @@ def payment_step(request):
     context.update(
         {
             "pricing_id": row["id"],
+            "academic_discount": academic_discount,
             # The funnel's last step: a provider-confirmed account goes to its
             # first project rather than being left on this page.
             "first_product_url": first_product_url(),

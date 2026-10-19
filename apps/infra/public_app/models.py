@@ -13,6 +13,7 @@ from .billing_models import (  # noqa: F401
     BillingSetupSession,
     PaymentMethod,
     PlanSubscription,
+    UserDiscount,
 )
 
 # EmailVerification model definition moved to apps.infra.auth_app.models

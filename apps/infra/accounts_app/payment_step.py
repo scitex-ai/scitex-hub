@@ -133,9 +133,11 @@ def funnel_plan(user, requested_id: Optional[str] = None, price_ids=None) -> Opt
     and the price the provider is asked for cannot come apart:
 
     1. an explicitly requested id must be on the allowlist;
-    2. otherwise the plan already recorded on the account's onboarding authority;
-    3. otherwise the allowlist must contain exactly ONE plan;
-    4. otherwise ``None`` — the step says it does not know, and the POST refuses.
+    2. an eligible academic account still on the funnel default takes the
+       academic row (operator CCT4555 — grant-gated, never email-guessed);
+    3. otherwise the plan already recorded on the account's onboarding authority;
+    4. otherwise the allowlist must contain exactly ONE plan;
+    5. otherwise ``None`` — the step says it does not know, and the POST refuses.
     """
     from apps.infra.public_app.services.billing_provider import (
         resolve_signup_plan,
@@ -148,6 +150,13 @@ def funnel_plan(user, requested_id: Optional[str] = None, price_ids=None) -> Opt
     if requested_id:
         return resolve_signup_plan(requested_id, price_ids)
     if user is not None:
+        from apps.infra.public_app.services.academic_discount import (
+            academic_row_for,
+        )
+
+        academic = academic_row_for(user, allowlist)
+        if academic is not None:
+            return academic
         from apps.infra.auth_app.onboarding import state_for
 
         authority = state_for(user)

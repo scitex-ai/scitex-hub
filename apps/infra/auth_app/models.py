@@ -15,50 +15,13 @@ from apps.infra.auth_app.account_linking.models import (  # noqa: F401
     VerifiedEmail,
 )
 
-# Japanese Academic domains to recognize
-JAPANESE_ACADEMIC_DOMAINS = [
-    # Japanese Academic (.ac.jp) - All academic institutions
-    ".ac.jp",
-    ".u-tokyo.ac.jp",
-    ".kyoto-u.ac.jp",
-    ".osaka-u.ac.jp",
-    ".tohoku.ac.jp",
-    ".nagoya-u.ac.jp",
-    ".kyushu-u.ac.jp",
-    ".hokudai.ac.jp",
-    ".tsukuba.ac.jp",
-    ".hiroshima-u.ac.jp",
-    ".kobe-u.ac.jp",
-    ".waseda.jp",
-    ".keio.ac.jp",
-    # Government Research Institutions (.go.jp)
-    ".go.jp",  # Broader government research support
-    ".riken.jp",
-    ".aist.go.jp",
-    ".nict.go.jp",
-    ".jaxa.jp",
-    ".jst.go.jp",
-    ".nims.go.jp",
-    ".nies.go.jp",
-]
-
-
-def is_japanese_academic_email(email):
-    """Check if email belongs to Japanese academic institution"""
-    if not email:
-        return False
-    try:
-        domain = email.lower().split("@")[1]
-        # Check if domain matches exactly or ends with the academic domain
-        for academic_domain in JAPANESE_ACADEMIC_DOMAINS:
-            # Remove leading dot for exact matching
-            clean_domain = academic_domain.lstrip(".")
-            if domain == clean_domain or domain.endswith(academic_domain):
-                return True
-        return False
-    except (IndexError, AttributeError):
-        return False
-
+# Canonical home: apps.infra.accounts_app.academic (operator CCT4555).
+# Re-exported here so every existing ``from .models import ...`` keeps
+# working; do NOT define a second copy — one definition, one behaviour.
+from apps.infra.accounts_app.academic import (  # noqa: F401
+    JAPANESE_ACADEMIC_DOMAINS,
+    is_japanese_academic_email,
+)
 
 class UserProfile(models.Model):
     """Extended user profile for SciTeX users"""

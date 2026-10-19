@@ -115,12 +115,15 @@ def begin_signup(user, email: str = "", source: str = "email") -> None:
 def mark_verified(user, source: str = "email") -> OnboardingState:
     """The signup is COMPLETE: address proven, payment method still owed.
 
-    One transaction, two effects, and both are load-bearing:
+    One transaction, three effects, and all are load-bearing:
 
     * the ``PendingSignup`` marker is DELETED — it must not outlive the signup,
       or a later administrator deactivation of this account would find signup
       evidence where there is none (the PR #775 bypass);
-    * the authority row is CREATED at PAYMENT — the fact that survives.
+    * the authority row is CREATED at PAYMENT — the fact that survives;
+    * the academic discount is GRANTED when the proven address qualifies
+      (operator CCT4555) — evaluated here because the address is proven at
+      exactly this point, and never touching the plan choice above.
 
     Doing only the first is exactly the defect this fixes: verification left
     nothing behind, so "has this account finished signing up?" had no answer.
@@ -137,6 +140,19 @@ def mark_verified(user, source: str = "email") -> OnboardingState:
         if signup_plan and not row.pricing_id:
             row.pricing_id = signup_plan
             row.save(update_fields=["pricing_id", "updated_at"])
+        # Academic lane (operator CCT4555): the address is PROVEN at this
+        # exact point, so this is where the 1:1 discount grant is evaluated.
+        # Grant-only and idempotent — a replayed verify converges on one row,
+        # and the grant never touches the plan choice above (the funnel
+        # selector reads the grant when it resolves the price).
+        try:
+            from apps.infra.public_app.services.academic_discount import (
+                grant_academic_discount,
+            )
+
+            grant_academic_discount(user, getattr(user, "email", ""))
+        except Exception:
+            logger.exception("Academic grant failed for %s", user.pk)
         return row
 
 
@@ -157,6 +173,16 @@ def begin_social_signup(user, provider: str) -> OnboardingState:
     if not row.pricing_id:
         row.pricing_id = "subscription-free"
         row.save(update_fields=["pricing_id", "updated_at"])
+    # Academic lane (operator CCT4555): the provider already proved this
+    # address, so it is grant-eligible exactly like a verified OTP address.
+    try:
+        from apps.infra.public_app.services.academic_discount import (
+            grant_academic_discount,
+        )
+
+        grant_academic_discount(user, getattr(user, "email", ""))
+    except Exception:
+        logger.exception("Academic grant failed for %s", user.pk)
     return row
 
 

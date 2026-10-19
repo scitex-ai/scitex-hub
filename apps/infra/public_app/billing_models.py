@@ -183,3 +183,50 @@ class PlanSubscription(models.Model):
     @property
     def is_current(self):
         return self.status in self.CURRENT_STATUSES
+
+
+class UserDiscount(models.Model):
+    """One account's academic discount grant — the 1:1 user→discount mapping.
+
+    Created at verification when the PROVEN address passes the canonical
+    accounts checker (``mark_verified`` for email signups, ``begin_social_signup``
+    for provider-verified addresses). The funnel reads THIS row, never the raw
+    email, when choosing the academic price — eligibility is a durable fact,
+    not a per-request guess.
+
+    Grant-only: an address change away from academia does NOT auto-revoke
+    (the subscription it earned already exists at the provider, and silent
+    revocation would reprice a paying account). Revocation is an explicit
+    admin act recorded in ``status``.
+    """
+
+    class Status(models.TextChoices):
+        ACTIVE = "active", "Discount applies"
+        REVOKED = "revoked", "Revoked by an administrator"
+
+    #: The 1:1 mapping itself: one row per account, full stop.
+    user = models.OneToOneField(
+        User, on_delete=models.CASCADE, related_name="discount"
+    )
+    #: The public offer code this grant redeems (pricing.json ``coupons``).
+    code = models.CharField(max_length=32, default="ACADEMIC50")
+    status = models.CharField(
+        max_length=16, choices=Status.choices, default=Status.ACTIVE
+    )
+    #: The proven address that earned the grant (kept for audit, not re-read).
+    verified_email = models.EmailField(max_length=254)
+    #: Its domain, lowercased — the eligibility evidence in one glance.
+    basis_domain = models.CharField(max_length=253, blank=True, default="")
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = "User Discount"
+        verbose_name_plural = "User Discounts"
+
+    def __str__(self):
+        return f"{self.user.username} — {self.code} ({self.status})"
+
+    @property
+    def is_active(self):
+        return self.status == self.Status.ACTIVE
