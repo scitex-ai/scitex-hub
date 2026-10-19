@@ -12,4 +12,11 @@
    title="{{ slot_name }}">
     <span class="launcher-slot-add-box" aria-hidden="true"><i class="fas fa-plus"></i></span>
     <span class="launcher-slot-add-label">{{ slot_name|phrase_breaks }}</span>
+    {% if tile.creator_starters %}
+    <span class="launcher-slot-starters" aria-hidden="true">
+        {% for starter in tile.creator_starters %}
+        <i class="{{ starter.icon }}" title="{{ starter.label }}"></i>
+        {% endfor %}
+    </span>
+    {% endif %}
 </a>
