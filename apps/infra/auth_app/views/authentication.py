@@ -360,7 +360,7 @@ def _continue_app_name(next_value):
 def login_view(request):
     """User login view with authentication."""
     from .account_switching import add_authenticated_account
-    from .onboarding import resolve_post_login_url
+    from ..onboarding import resolve_post_login_url
 
     # The login gate carries its return in ?next= (e.g. /apps/stats/). The
     # signin form re-posts it as a hidden field, so read POST first (B2).
