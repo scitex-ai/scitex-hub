@@ -98,10 +98,11 @@ dependencies = [
     # 1.13.0 supplies storage.master_* (leaf owns MASTER writes; hub thin).
     "scitex-scholar>=1.13.0",
     # Live-paper mount (hub #1108): apps/workspace/live_paper_app/mount.py
-    # imports scitex_live_paper unguarded. 0.2.4 supplies the canonical SDK
-    # AppHeader (no custom h1) + empty-state guidance. Without this floor the
-    # fresh image fails the sibling-floor preflight and the rebuild is refused.
-    "scitex-live-paper>=0.2.4",
+    # imports scitex_live_paper unguarded. 0.2.6 neutralises the AppHeader
+    # bottom border (no accent separator under the global header, operator
+    # rule). Without this floor the fresh image fails the sibling-floor
+    # preflight and the rebuild is refused.
+    "scitex-live-paper>=0.2.6",
     # THE FOUR SIBLINGS HUB IMPORTS BUT NEVER DECLARED — measured 2026-09-03/04
     # inside the dev image built from `.[all]` (sha256:70be677c04bf): hub's
     # `all` extra pulls the umbrella BARE (`scitex>=2.29.3`, below), whose base
