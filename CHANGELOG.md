@@ -9,6 +9,21 @@ verbatim. See [ADR-0001](docs/adr/0001-rename-scitex-cloud-to-scitex-hub.md).
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.21.0a2] - 2026-10-20
+
+Patch release on the 0.21.0 alpha series carrying the CodeQL security
+dispositions (#1117, forward-ported to develop as #1118). Base
+pytest-matrix/quality suite remains red at this commit (base-red program,
+tracked per-family) — publishing proceeds per infra admin route.
+
+### Fixed
+- Stop echoing exception text to API callers: compile endpoints return
+  generic failure messages (server log keeps full trace).
+- Sanitize untrusted values in logs via `apps.security.safe_log_field`
+  (password-reset email, media-index search query).
+- Redact secrets before logging: per-user `SCITEX_API_TOKEN` in the dev-app
+  runner command log, trailing token segment of the password-reset URL log.
+
 ## [0.21.0a1] - 2026-10-15
 
 Pre-release cut from develop at #1076. Base pytest-matrix/quality suite is
