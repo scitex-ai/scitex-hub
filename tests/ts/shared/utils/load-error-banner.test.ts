@@ -109,4 +109,18 @@ describe("load-error-banner", () => {
     expect(wrapStyle).toContain("overflow-wrap:anywhere");
     expect(wrapStyle).toContain("word-break:break-word");
   });
+
+  it("sits above the bottom nav instead of covering it (dock clearance)", async () => {
+    await importFresh();
+    const script = document.createElement("script");
+    script.src = "http://x/static/vite/missing-abc123.js";
+    document.body.append(script);
+    script.dispatchEvent(new Event("error", { bubbles: false, cancelable: false }));
+    const el = banner();
+    expect(el).not.toBeNull();
+    // The site dock owns the bottom edge (CCT4814/4815): the banner must
+    // clear it via the shared token, never sit on the nav.
+    const posStyle = (el?.getAttribute("style") ?? "").replace(/\s+/g, "");
+    expect(posStyle).toContain("bottom:calc(var(--site-dock-scroll-clearance,0px)+16px)");
+  });
 });

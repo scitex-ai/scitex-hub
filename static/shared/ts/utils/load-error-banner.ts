@@ -32,7 +32,11 @@ function showBanner(detail: string): void {
     "position:fixed",
     "left:50%",
     "transform:translateX(-50%)",
-    "bottom:16px",
+    // Phone launcher (operator photos CCT4814/4815): the site dock owns the
+    // bottom edge, so a bottom:16px banner sits ON the bottom nav. Clear it
+    // with the shared dock token (live height + gap + safe-area); fallback
+    // keeps the old offset where the dock stylesheet never loaded.
+    "bottom:calc(var(--site-dock-scroll-clearance, 0px) + 16px)",
     "z-index:99999",
     // Mobile (operator 2026-10-19, CCT4763): the banner is bottom-fixed over
     // the form, so it must never intercept taps meant for inputs beneath it
