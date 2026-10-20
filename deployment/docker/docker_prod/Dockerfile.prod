@@ -536,8 +536,11 @@ RUN useradd -m -u 1000 scitex && \
 COPY --from=python-builder /usr/local/bin/uv /usr/local/bin/uv
 RUN uv pip install --system --no-cache daphne==4.1.2 psycopg2-binary
 
-# package.json first — npm install is cached unless deps change
-COPY --chown=scitex:scitex package.json ./
+# package.json + lockfile first — npm install is cached unless deps change.
+# The lockfile MUST be present: without it npm fresh-resolves `file:../`
+# deps (absent in the build context) and crashes with `edgesOut` null.
+# Explicit name (no glob) so a missing lock fails fast here, not cryptically.
+COPY --chown=scitex:scitex package.json package-lock.json ./
 RUN --mount=type=cache,target=/root/.npm \
     npm install && \
     touch node_modules/.install-timestamp
