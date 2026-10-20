@@ -68,14 +68,12 @@ ENTRY_POINTS = [
 ]
 
 
-def test_provide_jobs_returns_exactly_one_spec():
-    """hub declares ONE periodic job, no more and no fewer."""
-    # Arrange
-    expected_count = 1
+def test_provide_jobs_includes_exactly_one_preview_sync_spec():
+    """Hub declares one preview sync even when other periodic jobs coexist."""
     # Act
-    jobs = provide_jobs()
+    jobs = [job for job in provide_jobs() if job.name == JOB_NAME]
     # Assert
-    assert len(jobs) == expected_count
+    assert len(jobs) == 1
 
 
 def test_job_is_named_after_the_package():
@@ -134,13 +132,13 @@ def test_hard_timeout_exceeds_the_ticks_worst_case_budget():
 def test_command_ends_with_the_sync_verb_on_the_preview_clone():
     """The supervisor runs exactly the verb the CLI exposes, against the real clone."""
     # Arrange
-    expected_suffix = "dev-preview sync --clone /home/ywatanabe/proj/scitex-cloud"
+    expected_suffix = "dev-preview sync --clone /home/ywatanabe/proj/scitex-hub"
     # Act
     job = provide_jobs()[0]
     # Assert
     assert (job.command.endswith(expected_suffix), PREVIEW_CLONE) == (
         True,
-        "/home/ywatanabe/proj/scitex-cloud",
+        "/home/ywatanabe/proj/scitex-hub",
     )
 
 

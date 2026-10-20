@@ -1,9 +1,9 @@
 {% extends "auth_app/auth_base.html" %}
 
-{% load static %}
+{% load static i18n %}
 
-{% block title %}Delete Account - SciTeX{% endblock %}
-{% block meta_description %}Permanently delete your SciTeX account. This action cannot be undone.{% endblock %}
+{% block title %}{% trans "Delete Account" %} - SciTeX{% endblock %}
+{% block meta_description %}{% trans "Permanently delete your SciTeX account. This action cannot be undone." %}{% endblock %}
 {% block auth_extra_css %}
     <style>
         .danger-zone {
@@ -41,8 +41,8 @@
 {% block auth_content %}
     <div class="demos-container">
         <header class="minimal-hero">
-            <h1 class="minimal-hero-title" style="color: var(--status-error-text)">Delete Account</h1>
-            <p class="minimal-hero-subtitle">Permanently delete your SciTeX account</p>
+            <h1 class="minimal-hero-title" style="color: var(--status-error-text)">{% trans "Delete Account" %}</h1>
+            <p class="minimal-hero-subtitle">{% trans "Permanently delete your SciTeX account" %}</p>
         </header>
     </div>
     <div class="container auth-container" style="max-width: 700px">
@@ -50,7 +50,7 @@
             <div class="danger-icon">
                 <i class="fas fa-exclamation-triangle"></i>
             </div>
-            <h2 class="text-danger text-center mb-4">Warning: This action cannot be undone</h2>
+            <h2 class="text-danger text-center mb-4">{% trans "Warning: This action cannot be undone" %}</h2>
             {% if messages %}
                 {% for message in messages %}
                     <div class="alert-banner alert-banner-{% if message.tags == 'error' %}danger{% else %}success{% endif %}"
@@ -68,26 +68,26 @@
             {% endif %}
             <div class="warning-list">
                 <h5 class="text-danger">
-                    <i class="fas fa-exclamation-circle me-2"></i>What will be deleted:
+                    <i class="fas fa-exclamation-circle me-2"></i>{% trans "What will be deleted:" %}
                 </h5>
                 <ul>
                     <li>
-                        <strong>Your account:</strong> @{{ user.username }}
+                        <strong>{% trans "Your account:" %}</strong> @{{ user.username }}
                     </li>
                     <li>
-                        <strong>All your projects</strong> and associated data
+                        <strong>{% trans "All your projects" %}</strong> {% trans "and associated data" %}
                     </li>
                     <li>
-                        <strong>All your manuscripts</strong> and documents
+                        <strong>{% trans "All your manuscripts" %}</strong> {% trans "and documents" %}
                     </li>
                     <li>
-                        <strong>Your saved papers</strong> and library
+                        <strong>{% trans "Your saved papers" %}</strong> {% trans "and library" %}
                     </li>
                     <li>
-                        <strong>All collaboration data</strong>
+                        <strong>{% trans "All collaboration data" %}</strong>
                     </li>
                     <li>
-                        <strong>Your profile</strong> and settings
+                        <strong>{% trans "Your profile" %}</strong> {% trans "and settings" %}
                     </li>
                 </ul>
             </div>
@@ -97,19 +97,17 @@
                     <div class="warning-banner-content">
                         <i class="warning-banner-icon fas fa-exclamation-triangle"></i>
                         <div class="warning-banner-text">
-                            <div class="warning-banner-title">Important</div>
+                            <div class="warning-banner-title">{% trans "Important" %}</div>
                             <div class="warning-banner-description">
                                 <ul style="margin-left: 1rem; margin-bottom: 0">
                                     <li>
-                                        This action is <strong>permanent</strong> and cannot be
-                                        reversed
+                                        {% trans "This action is permanent and cannot be reversed" %}
                                     </li>
-                                    <li>You will be logged out immediately</li>
+                                    <li>{% trans "You will be logged out immediately" %}</li>
                                     <li>
-                                        Your username <code>{{ user.username }}</code> may become
-                                        available for others to use
+                                        {% blocktrans with username=user.username %}Your username <code>{{ username }}</code> may become available for others to use{% endblocktrans %}
                                     </li>
-                                    <li>Export any data you want to keep before deleting</li>
+                                    <li>{% trans "Export any data you want to keep before deleting" %}</li>
                                 </ul>
                             </div>
                         </div>
@@ -117,12 +115,12 @@
                 </div>
             </div>
             <div class="danger-zone">
-                <h4 class="text-danger mb-4">Confirm Account Deletion</h4>
+                <h4 class="text-danger mb-4">{% trans "Confirm Account Deletion" %}</h4>
                 <form method="post" id="delete-form">
                     {% csrf_token %}
                     <div class="form-group mb-3">
                         <label for="password" class="form-label">
-                            Enter your password to confirm
+                            {% trans "Enter your password to confirm" %}
                             <span class="text-danger">*</span>
                         </label>
                         <input type="password"
@@ -130,12 +128,11 @@
                                id="password"
                                name="password"
                                required
-                               placeholder="Your current password" />
+                               placeholder="{% trans 'Your current password' %}" />
                     </div>
                     <div class="form-group mb-4">
                         <label for="confirm_text" class="form-label">
-                            Type <code class="text-danger">delete {{ user.username }}</code> to
-                            confirm <span class="text-danger">*</span>
+                            {% blocktrans with username=user.username %}Type <code class="text-danger">delete {{ username }}</code> to confirm{% endblocktrans %} <span class="text-danger">*</span>
                         </label>
                         <input type="text"
                                class="form-control confirm-input"
@@ -144,14 +141,14 @@
                                required
                                placeholder="delete {{ user.username }}"
                                autocomplete="off" />
-                        <small class="form-text text-muted">This is case-sensitive and must match exactly.</small>
+                        <small class="form-text text-muted">{% trans "This is case-sensitive and must match exactly." %}</small>
                     </div>
                     <div class="d-grid gap-2">
                         <button type="submit" class="btn btn-danger btn-lg" id="delete-btn" disabled>
-                            <i class="fas fa-trash-alt me-2"></i>Permanently Delete My Account
+                            <i class="fas fa-trash-alt me-2"></i>{% trans "Permanently Delete My Account" %}
                         </button>
                         <a href="{% url 'public_app:index' %}" class="btn btn-outline-secondary">
-                            <i class="fas fa-arrow-left me-2"></i>Cancel and Go Back
+                            <i class="fas fa-arrow-left me-2"></i>{% trans "Cancel and Go Back" %}
                         </a>
                     </div>
                 </form>

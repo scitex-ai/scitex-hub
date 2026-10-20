@@ -43,7 +43,11 @@ import os
 from pathlib import Path
 from typing import Any, Dict, Optional
 
+import scitex_logging as slogging
+
 from ._local_state_fallback import local_state
+
+logger = slogging.getLogger(__name__)
 
 
 def _candidate_paths(explicit: Optional[str]) -> list[Path]:
@@ -79,6 +83,16 @@ def load_config(path: Optional[str] = None) -> Dict[str, Any]:
     try:
         import yaml  # noqa: WPS433 (local import — optional dep)
     except ImportError:
+        # PS-233: PyYAML is an optional `[all]` capability, so it is guarded
+        # and not declared. Returning {} keeps this module's documented
+        # contract (missing config is not an error) while ANNOUNCING the
+        # reason, so an operator on the base install can tell "no config file"
+        # apart from "PyYAML not installed" instead of silently losing their
+        # settings.
+        logger.warning(
+            "PyYAML not installed — config files are ignored. "
+            "Install it with: pip install 'scitex-hub[all]'"
+        )
         return {}
 
     for candidate in _candidate_paths(path):

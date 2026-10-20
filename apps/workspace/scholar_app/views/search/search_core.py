@@ -6,6 +6,7 @@
 from __future__ import annotations
 
 import os
+import re
 
 __FILE__ = "./apps/scholar_app/views/search/search_core.py"
 __DIR__ = os.path.dirname(__FILE__)
@@ -31,6 +32,8 @@ from .search_helpers import (
 from .storage import store_search_result
 
 logger = logging.getLogger(__name__)
+
+from .text_clean import clean_snippet as _clean_snippet
 
 # Import scitex.scholar if available
 try:
@@ -175,9 +178,8 @@ def simple_search_with_tab(
                     "citation_count": result.get("citation_count", 0),
                     "citation_source": result.get("citation_source", ""),
                     "is_open_access": result.get("is_open_access", False),
-                    "snippet": result.get("abstract", "No abstract available.")[:200]
-                    + "...",
-                    "full_abstract": result.get("abstract", ""),
+                    "snippet": _clean_snippet(result.get("abstract", "")),
+                    "full_abstract": _clean_snippet(result.get("abstract", ""), limit=2000),
                     "pdf_url": result.get("pdf_url", ""),
                     "external_url": result.get("external_url", ""),
                     "doi": result.get("doi", ""),

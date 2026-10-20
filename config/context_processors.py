@@ -315,8 +315,10 @@ def mounted_app_launcher(request):
     has no reason to be routed to the SciTeX app store).
     """
     path = request.path
+    from apps.workspace.apps_app.services.plugin_guards import plugin_mount_prefixes
+
     is_mounted_standalone_page = path.startswith(
-        ("/apps/cards/", "/apps/storage/")
+        plugin_mount_prefixes()
     ) or path.endswith(("/editor-v2/", "/viewer-v2/"))
     if not is_mounted_standalone_page:
         return {}

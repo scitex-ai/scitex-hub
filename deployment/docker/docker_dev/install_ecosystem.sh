@@ -90,6 +90,9 @@ try_editable_install "/scitex-ui" "scitex-ui"
 # Install scitex-app (required: core SDK for app paths, preferences, cloud integration)
 try_editable_install "/scitex-app" "scitex-app"
 
+# Install scitex-sdk (required: unified app+ui facade; leaf apps import scitex_sdk.*)
+try_editable_install "/scitex-sdk" "scitex-sdk"
+
 # Install scitex-container (required: terminal broker needs scitex_container.apptainer)
 try_editable_install "/scitex-container" "scitex-container"
 

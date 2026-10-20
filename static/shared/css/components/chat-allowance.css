@@ -1,0 +1,124 @@
+/* Chat free-message allowance + sanitized provider-error cards.
+ * Card: hub-chat-free-daily-message-allowance-20260917 (SSOT §6).
+ *
+ * Referenced from static/shared/ts/head-styles-shell.ts, which the workspace
+ * shell bundles — so the rules here actually reach a browser. (Learned the hard
+ * way on the landing hero: rules were written into landing-hero-demo.css, a file
+ * no page loads, and nothing rendered differently.) A test pins that linkage.
+ *
+ * Shared SDK tokens only; no new tokens are declared here.
+ */
+
+.chat-allowance {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem 0.75rem;
+  margin: 0 0 0.5rem;
+  padding: 0.4rem 0.6rem;
+  border: 1px solid var(--border-muted, var(--border-default, #30363d));
+  border-radius: 8px;
+  background: var(--bg-secondary, transparent);
+  color: var(--text-secondary, #8b949e);
+  font-size: 0.8rem;
+  line-height: 1.35;
+}
+
+.chat-allowance-model {
+  font-weight: 600;
+  color: var(--text-primary, #e6edf3);
+}
+
+.chat-allowance-count--done {
+  color: var(--text-primary, #e6edf3);
+  font-weight: 500;
+}
+
+.chat-allowance-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+/* >=24px tall so the two ways forward are real targets, not text. */
+.chat-allowance-action {
+  display: inline-flex;
+  align-items: center;
+  min-height: 28px;
+  padding: 0 0.6rem;
+  border: 1px solid var(--border-default, #30363d);
+  border-radius: 6px;
+  color: var(--text-primary, #e6edf3);
+  font-weight: 500;
+  text-decoration: none;
+}
+
+.chat-allowance-action:hover,
+.chat-allowance-action:focus-visible {
+  border-color: var(--stx-accent, #b8956a);
+}
+
+.chat-error-card {
+  margin: 0.5rem 0;
+  padding: 0.75rem 0.9rem;
+  border: 1px solid var(--border-default, #30363d);
+  border-left: 3px solid var(--stx-accent, #b8956a);
+  border-radius: 8px;
+  background: var(--bg-secondary, transparent);
+}
+
+.chat-error-card-title {
+  margin: 0 0 0.25rem;
+  color: var(--text-primary, #e6edf3);
+  font-weight: 600;
+}
+
+.chat-error-card-detail,
+.chat-error-card-retry {
+  margin: 0 0 0.5rem;
+  color: var(--text-secondary, #8b949e);
+  font-size: 0.85rem;
+}
+
+.chat-error-card-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.chat-error-card-action {
+  display: inline-flex;
+  align-items: center;
+  min-height: 28px;
+  padding: 0 0.7rem;
+  border: 1px solid var(--border-default, #30363d);
+  border-radius: 6px;
+  background: none;
+  color: var(--text-primary, #e6edf3);
+  font: inherit;
+  font-weight: 500;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.chat-error-card-action--primary {
+  border-color: transparent;
+  background: var(--stx-navy-900, #1a2a40);
+  color: #ffffff;
+}
+
+.chat-error-card-action--primary:hover,
+.chat-error-card-action--primary:focus-visible {
+  background: var(--stx-accent, #b8956a);
+  color: var(--stx-navy-900, #1a2a40);
+}
+
+.chat-error-card-technical {
+  margin-top: 0.5rem;
+  color: var(--text-secondary, #8b949e);
+  font-size: 0.75rem;
+}
+
+.chat-error-card-technical summary {
+  cursor: pointer;
+}

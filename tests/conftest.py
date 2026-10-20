@@ -14,12 +14,14 @@ Provides:
 """
 
 import os
+import subprocess
 import sys
 import sysconfig
 import time
 from pathlib import Path
 
 import pytest
+from dotenv import load_dotenv
 
 # Project root
 PROJECT_ROOT = Path(__file__).parent.parent
@@ -77,9 +79,6 @@ Path(_log_dir).mkdir(parents=True, exist_ok=True)
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "config.settings.settings_dev")
 os.environ["DJANGO_LOG_LEVEL"] = "ERROR"
 
-# Load environment variables
-from dotenv import load_dotenv
-
 ENV_FILE = PROJECT_ROOT / "SECRET" / ".env.dev"
 if ENV_FILE.exists():
     load_dotenv(ENV_FILE)
@@ -127,6 +126,24 @@ BASE_URL = os.getenv("SCITEX_BASE_URL", "http://127.0.0.1:8000")
 def base_url():
     """Base URL for the application."""
     return BASE_URL
+
+
+@pytest.fixture(scope="session")
+def compiled_catalogs():
+    """Compile repository catalogs before a test asserts translated rendering."""
+    script = PROJECT_ROOT / "scripts" / "i18n" / "compile_catalogs.py"
+    result = subprocess.run(
+        [sys.executable, str(script)],
+        cwd=PROJECT_ROOT,
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    assert result.returncode == 0, result.stdout + result.stderr
+    from django.utils.translation import trans_real
+
+    trans_real._translations.clear()
+    yield
 
 
 @pytest.fixture(scope="session")

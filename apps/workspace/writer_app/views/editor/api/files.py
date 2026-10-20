@@ -116,8 +116,31 @@ def pdf_view(request, project_id, pdf_filename=None):
             safe_log_field(project_id),
         )
 
-        checked_paths = writer_pdf_candidates(writer_service.writer_dir, pdf_filename)
-        pdf_path = find_writer_pdf(writer_service.writer_dir, pdf_filename)
+        try:
+            writer_dir = writer_service.writer_dir
+        except RuntimeError:
+            # The project's directory is not on disk yet — registered, but not
+            # initialized. For THIS route that means the same thing a missing
+            # file means: there is no PDF to serve, and the route's own answer
+            # for that is 404. Falling through to the handler below made it a
+            # 500 with the raw RuntimeError text, which is what the page's PDF
+            # fetch saw in the registered-project journey. Same class as the
+            # section endpoint, where a workspace that is not on disk yet is
+            # answered 200 with empty content instead of an error.
+            # NO user-provided value in this message. CodeQL flags the line as a
+            # log-injection sink for either form it has taken: the exception text
+            # (which carried the user-supplied slug) and the project id (which
+            # reaches the view from the URL). A constant message is the form the
+            # rule accepts, and nothing diagnostic is lost — the request URL, id
+            # included, is already in the access log for this same request.
+            logger.info("[PDFView] workspace not on disk for this project")
+            return JsonResponse(
+                {"success": False, "error": f"PDF not found: {pdf_filename}"},
+                status=404,
+            )
+
+        checked_paths = writer_pdf_candidates(writer_dir, pdf_filename)
+        pdf_path = find_writer_pdf(writer_dir, pdf_filename)
 
         if not pdf_path:
             logger.error("[PDFView] PDF not found: %s", safe_log_field(pdf_filename))

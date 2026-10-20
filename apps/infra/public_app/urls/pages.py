@@ -45,6 +45,15 @@ urlpatterns = [
     # Legal and contact pages
     path("contact/", views.contact, name="contact"),
     path("donate/", views.donate, name="donate"),
+    # Funding and sustainability (operator priority, beta entry surface).
+    # The page renders data/funding.json via funding.funding_plan(); the
+    # manifest is served verbatim at /.well-known/funding.json.
+    path("funding/", views.fundraising, name="funding"),
+    path(
+        ".well-known/funding.json",
+        views.funding_manifest,
+        name="funding_manifest",
+    ),
     path("privacy/", views.privacy_policy, name="privacy"),
     path("terms/", views.terms_of_use, name="terms"),
     path("cookies/", views.cookie_policy, name="cookies"),
@@ -99,6 +108,15 @@ urlpatterns = [
     path("api-keys/", views.scitex_api_keys, name="scitex_api_keys"),
     # Release Notes
     path("releases/", views.releases_view, name="releases"),
+    # Staff-only internal demo library (card hub-internal-demo-video-library-20260917).
+    # Registered here, not in config/urls.py, so it is resolved before the
+    # <str:username>/ catch-all below it — /internal/ must not be read as a username.
+    path("internal/demos/", views.internal_demos, name="internal_demos"),
+    # <path:name> so a render that keeps its own folder can be served from it; the
+    # view still resolves every request through demo_library.resolve_media, which
+    # allows at most one folder level and refuses anything that escapes.
+    path("internal/demos/media/<path:name>", views.internal_demo_media,
+         name="internal_demo_media"),
 ]
 
 # EOF

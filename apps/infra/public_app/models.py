@@ -8,7 +8,12 @@ from django.utils import timezone
 # Import here for backwards compatibility
 from apps.infra.auth_app.models import EmailVerification  # noqa
 
-from .billing_models import BillingEvent, PaymentMethod, PlanSubscription  # noqa: F401
+from .billing_models import (  # noqa: F401
+    BillingEvent,
+    BillingSetupSession,
+    PaymentMethod,
+    PlanSubscription,
+)
 
 # EmailVerification model definition moved to apps.infra.auth_app.models
 # Import statement above provides backwards compatibility

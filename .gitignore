@@ -119,6 +119,7 @@ data/ssh_keys/
 **/*.mat
 **/*.mp4
 !apps/public_app/static/public_app/videos/landing/*.mp4
+!apps/infra/public_app/static/public_app/clew/*.mp4
 **/*.npy
 **/*.pdf
 **/*.pkl
@@ -133,6 +134,8 @@ data/ssh_keys/
 **/*.tiff
 **/*.wav
 **/*.jpg
+!apps/infra/public_app/static/public_app/clew/*.jpg
+!apps/infra/public_app/static/public_app/images/landing-v2/appcreator-1200.png
 **/*.jpeg
 **/*.h5
 **/*.zip
@@ -817,6 +820,12 @@ secret_key.txt
 # ModuleNotFoundError for code that was present on disk.
 /media/
 uploads/
+
+# The staff-only demo library (apps/infra/public_app/views/internal_demos.py,
+# card hub-internal-demo-video-library-20260917). Runtime artifacts like /media/:
+# rendered videos, manifests, watch gates and promotion files that nobody should
+# commit. Deliberately outside /media/, because that tree is served publicly.
+/internal_demos/
 
 # Django static files in production
 staticfiles/

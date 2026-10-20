@@ -18,7 +18,11 @@ from config._env import (
     require_env_with_legacy_alias as _require_env_alias,
 )
 
-from ._optional_apps import optional_upstream_apps, with_plugin_apps
+from ._optional_apps import (
+    _with_host_plugin_apps,
+    optional_sdk_ui_template_dirs,
+    optional_upstream_apps,
+)
 
 
 # ---------------------------------------
@@ -93,8 +97,31 @@ SCITEX_ENV = branding.normalize_env(os.environ.get("SCITEX_HUB_ENV", "developmen
 # so its tab reads "Writer — SciTeX (standalone)" instead of "Writer — SciTeX".
 SCITEX_APP_MODE = branding.MODE_HUB
 
-# Storage leaf asks the hub which directories belong to the requester.
-SCITEX_STORAGE_VOLUMES_PROVIDER = "apps.workspace.storage_app.volumes.user_volumes"
+# A plugin leaf asks the hub which directories belong to the requester.
+SCITEX_STORAGE_VOLUMES_PROVIDER = "apps.workspace.apps_app.services.plugin_volumes.user_volumes"
+
+# Usernames admitted to restricted-audience plugin mounts (staff and
+# superusers always pass). Deployment DATA, not app logic. Defaults to the
+# fleet-operator allowlist the Agents mount historically admitted, so the
+# operator's account keeps working without Django staff; set
+# SCITEX_HUB_PLUGIN_OPERATORS explicitly to take over.
+SCITEX_HUB_PLUGIN_OPERATORS = [
+    value.strip()
+    for value in os.environ.get(
+        "SCITEX_HUB_PLUGIN_OPERATORS",
+        os.environ.get("SCITEX_AGENT_CONTAINER_LIFECYCLE_OPERATORS", ""),
+    ).split(",")
+    if value.strip()
+]
+
+# Project-scope apps (scitex-stats project-default mode, scitex-ui picker) ask the
+# hub where an AUTHORIZED project's files live and whether this request may write.
+# Request-aware: the class resolves the project through the same access-scoped lookup
+# the picker lists from, and answers per request, not per process. It is NOT the
+# picker itself — a provider entry carries display metadata, never a path.
+SCITEX_PROJECT_STORAGE = (
+    "apps.infra.project_app.services.project_scope.HubProjectStorage"
+)
 
 # ---------------------------------------
 # Paths
@@ -195,14 +222,11 @@ THIRD_PARTY_APPS.append("scitex_ui")
 # lives in _optional_apps.py — including the scitex-cards rename-window
 # shim and the reason it exists. Extracted 2026-08-16.
 THIRD_PARTY_APPS.extend(optional_upstream_apps())
+# Existing host apps keep their labels and ordering when plugins are discovered.
 LOCAL_APPS = discover_local_apps()
-# Plugin apps: `pip install <pkg>` with a `scitex.apps` entry point (scitex_app.plugins).
-# LOCAL_APPS ride along as extra label claims (not merged here): a plugin from
-# another package that reuses a local app's label (scitex-clew 0.21.0 claims
-# `clew_app`, same as apps.workspace.clew_app) must be skipped, or
-# django.setup() dies on the duplicate label. Order matters: locals must be
-# discovered BEFORE this call so the guard can see them.
-THIRD_PARTY_APPS = with_plugin_apps(THIRD_PARTY_APPS, extra_claims=LOCAL_APPS)
+THIRD_PARTY_APPS = _with_host_plugin_apps(
+    THIRD_PARTY_APPS, DJANGO_APPS + LOCAL_APPS
+)
 
 INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + LOCAL_APPS
 
@@ -223,7 +247,9 @@ elif _scitex_hub_env in ("prod",):
 SCITEX_UI_ELEMENT_INSPECTOR = _scitex_hub_env in ("development", "staging")
 
 # Host service for leaf apps' project pickers (scitex_ui.project_scope).
-SCITEX_PROJECT_PROVIDER = "apps.infra.project_app.services.project_scope.HubProjectProvider"
+SCITEX_PROJECT_PROVIDER = (
+    "apps.infra.project_app.services.project_scope.HubProjectProvider"
+)
 SCITEX_PROJECT_PROVIDER_URL = "api_project_scope"
 # Where an AUTHORIZED project's files live + per-request write check, for
 # project-scope leaf apps (figrecipe wrapper) via the SDK host capability.
@@ -272,7 +298,11 @@ ASGI_APPLICATION = "config.asgi.application"
 TEMPLATES = [
     {
         "BACKEND": "django.template.backends.django.DjangoTemplates",
-        "DIRS": [BASE_DIR / "templates"],
+        # SDK UI shell templates (card hub-sdk-ui-shell-bridge-20261007):
+        # scitex_sdk.ui must stay OUT of INSTALLED_APPS (duplicate
+        # scitex_ui label), so its templates resolve via the filesystem
+        # loader from the installed package dir. [] when not installed.
+        "DIRS": [BASE_DIR / "templates", *optional_sdk_ui_template_dirs()],
         "OPTIONS": {
             "context_processors": [
                 "django.template.context_processors.debug",
@@ -297,6 +327,14 @@ TEMPLATES = [
                 "django.template.loaders.app_directories.Loader",
                 "apps.workspace.apps_app.template_loader.UserAppTemplateLoader",
             ],
+            # SDK UI shell tag library (card hub-sdk-ui-shell-bridge-20261007):
+            # scitex_sdk.ui stays out of INSTALLED_APPS, so tag discovery
+            # never sees its templatetags package — register scitex_i18n
+            # (also provides {% scitex_js_catalog %}) by Python path.
+            # Lazy: only imported by templates that {% load %} it.
+            "libraries": {
+                "scitex_i18n": "scitex_sdk.ui.templatetags.scitex_i18n",
+            },
         },
     },
 ]
@@ -421,6 +459,10 @@ EMAIL_USE_TLS = (
 ).lower() == "true"
 EMAIL_HOST_USER = _getenv_alias("SCITEX_HUB_EMAIL_HOST_USER")
 EMAIL_HOST_PASSWORD = _getenv_alias("SCITEX_HUB_EMAIL_HOST_PASSWORD")
+# Fail fast, never hang the request: without this Django SMTP blocks
+# indefinitely on a stalled mail server (observed: signup POST never
+# returned). The signup view already handles send failure gracefully.
+EMAIL_TIMEOUT = int(_getenv_alias("SCITEX_HUB_EMAIL_TIMEOUT", "10") or "10")
 DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
 SERVER_EMAIL = EMAIL_HOST_USER
 
@@ -445,6 +487,53 @@ SCITEX_HUB_CAMPAIGN_MODEL = _getenv_alias(
     "SCITEX_HUB_CAMPAIGN_MODEL", "claude-haiku-4-5-20251001"
 )
 SCITEX_HUB_CAMPAIGN_DAILY_LIMIT = _getenv_alias("SCITEX_HUB_CAMPAIGN_DAILY_LIMIT", "10")
+
+# SciTeX-funded Chat. Enabled is the operator kill switch: when false, the
+# funded path cannot reserve quota or contact a provider. Provider/model/caps
+# intentionally have no useful defaults; enabling an incomplete configuration
+# fails closed in funded_chat.config rather than silently selecting a model.
+SCITEX_FUNDED_CHAT_ENABLED = (
+    _getenv_alias("SCITEX_FUNDED_CHAT_ENABLED", "false") or "false"
+).lower() in ("1", "true", "yes", "on")
+SCITEX_FUNDED_CHAT_PROVIDER = _getenv_alias("SCITEX_FUNDED_CHAT_PROVIDER", "")
+SCITEX_FUNDED_CHAT_MODEL = _getenv_alias("SCITEX_FUNDED_CHAT_MODEL", "")
+SCITEX_FUNDED_CHAT_API_KEY = _getenv_alias("SCITEX_FUNDED_CHAT_API_KEY", "")
+SCITEX_FUNDED_CHAT_GLOBAL_DAILY_CAP_USD = _getenv_alias(
+    "SCITEX_FUNDED_CHAT_GLOBAL_DAILY_CAP_USD", "0"
+)
+SCITEX_FUNDED_CHAT_PROVIDER_DAILY_CAP_USD = _getenv_alias(
+    "SCITEX_FUNDED_CHAT_PROVIDER_DAILY_CAP_USD", "0"
+)
+SCITEX_FUNDED_CHAT_MAX_REQUEST_COST_USD = _getenv_alias(
+    "SCITEX_FUNDED_CHAT_MAX_REQUEST_COST_USD", "0"
+)
+SCITEX_FUNDED_CHAT_REQUESTS_PER_MINUTE = int(
+    _getenv_alias("SCITEX_FUNDED_CHAT_REQUESTS_PER_MINUTE", "3") or "3"
+)
+SCITEX_FUNDED_CHAT_DAILY_LIMIT = int(
+    _getenv_alias("SCITEX_FUNDED_CHAT_DAILY_LIMIT", "10") or "10"
+)
+SCITEX_FUNDED_CHAT_MAX_TOKENS = int(
+    _getenv_alias(
+        "SCITEX_FUNDED_CHAT_MAX_TOKENS", "2048"
+    )  # pragma: allowlist secret -- output-token count, not a credential
+    or "2048"
+)
+SCITEX_FUNDED_CHAT_TIMEOUT_SECONDS = int(
+    _getenv_alias("SCITEX_FUNDED_CHAT_TIMEOUT_SECONDS", "30") or "30"
+)
+SCITEX_FUNDED_CHAT_RESERVATION_LEASE_SECONDS = int(
+    _getenv_alias("SCITEX_FUNDED_CHAT_RESERVATION_LEASE_SECONDS", "120") or "120"
+)
+SCITEX_FUNDED_CHAT_MAX_REQUEST_BYTES = int(
+    _getenv_alias("SCITEX_FUNDED_CHAT_MAX_REQUEST_BYTES", "65536") or "65536"
+)
+SCITEX_FUNDED_CHAT_MAX_MESSAGES = int(
+    _getenv_alias("SCITEX_FUNDED_CHAT_MAX_MESSAGES", "64") or "64"
+)
+SCITEX_FUNDED_CHAT_MAX_MESSAGE_CHARS = int(
+    _getenv_alias("SCITEX_FUNDED_CHAT_MAX_MESSAGE_CHARS", "32768") or "32768"
+)
 
 # ---------------------------------------
 # Sub-module imports (celery, logging, auth, integrations)

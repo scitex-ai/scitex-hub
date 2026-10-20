@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """SDK project scope in the hub: explicit project beats last visited; listing is access-scoped."""
 
+import contextlib
 import json
 
 import pytest
@@ -14,6 +15,11 @@ from apps.infra.project_app.services.project_scope import (
     project_for_scope_app,
     project_key,
     resolve_scoped_project,
+)
+from apps.infra.project_app.services.project_utils import (
+    get_current_project,
+    get_requested_project,
+    remember_current_project,
 )
 from apps.infra.project_app.templatetags.project_scope_tags import (
     hub_project_provider_meta,
@@ -75,7 +81,9 @@ class ProjectScopeTest(TestCase):
         # Act
         resolve_scoped_project(request)
         # Assert
-        assert User.objects.get(pk=self.me.pk).profile.last_active_repository == self.paper
+        assert (
+            User.objects.get(pk=self.me.pk).profile.last_active_repository == self.paper
+        )
 
     def test_last_visited_is_used_when_url_has_no_project(self):
         # Arrange
@@ -117,6 +125,36 @@ class ProjectScopeTest(TestCase):
         # Assert
         assert listed == expected
 
+    def test_hub_current_project_preserves_authorized_shared_last_visited(self):
+        # Arrange
+        profile = User.objects.get(pk=self.me.pk).profile
+        profile.last_active_repository = self.shared
+        profile.save(update_fields=["last_active_repository"])
+        request = self._request()
+        request.session = {}
+        # Act
+        project = get_current_project(request)
+        # Assert
+        assert project == self.shared
+
+    def test_explicit_shared_project_is_a_valid_hub_request_project(self):
+        # Arrange
+        request = self._request("?project=scope-other/shared")
+        # Act
+        project = get_requested_project(request)
+        # Assert
+        assert project == self.shared
+
+    def test_remembered_shared_project_session_key_includes_owner(self):
+        # Arrange
+        request = self._request()
+        request.session = {}
+        # Act
+        remember_current_project(request, self.shared)
+        # Assert
+        assert request.session["current_project_key"] == "scope-other/shared"
+        assert request.session["current_project_slug"] == "shared"
+
     def test_scope_api_lists_only_accessible_projects(self):
         # Arrange
         self.client.login(username="scope-me", password=PASSWORD)
@@ -140,16 +178,23 @@ class ProjectScopeTest(TestCase):
     def test_figrecipe_opens_the_url_project_over_last_visited(self):
         # Arrange
         self.client.login(username="scope-me", password=PASSWORD)
-        # Act
-        response = self.client.get("/apps/figrecipe/?project=scope-me/paper")
+        # Act (CUTOVER CCT-2784: the hub adapter page lives ONLY at
+        # old-direct now — /apps/figrecipe/ serves the leaf, which 404s
+        # JSON-loud on SDK authority absence instead of degrading to the
+        # hub shell. Same view, same assertions, only the prefix moved.)
+        with _figrecipe_old_direct_urls():
+            response = self.client.get(
+                "/apps/figrecipe/old-direct/?project=scope-me/paper"
+            )
         # Assert
         assert b'data-project-slug="paper"' in response.content
 
     def test_figrecipe_opens_last_visited_without_url_project(self):
         # Arrange
         self.client.login(username="scope-me", password=PASSWORD)
-        # Act
-        response = self.client.get("/apps/figrecipe/")
+        # Act (same cutover retarget as above.)
+        with _figrecipe_old_direct_urls():
+            response = self.client.get("/apps/figrecipe/old-direct/")
         # Assert
         assert b'data-project-slug="notes"' in response.content
 
@@ -157,8 +202,11 @@ class ProjectScopeTest(TestCase):
         # Arrange
         _require_sdk_host_service()
         self.client.login(username="scope-me", password=PASSWORD)
-        # Act
-        response = self.client.get("/apps/figrecipe/?project=scope-me/paper")
+        # Act (same cutover retarget as above.)
+        with _figrecipe_old_direct_urls():
+            response = self.client.get(
+                "/apps/figrecipe/old-direct/?project=scope-me/paper"
+            )
         # Assert
         assert (
             b'<meta name="stx-project-provider" content="/api/project/scope/">'
@@ -207,3 +255,42 @@ def _require_sdk_host_service():
     module = pytest.importorskip("scitex_ui.templatetags.scitex_project_picker")
     if not hasattr(module, "scitex_project_provider_meta"):
         pytest.skip("scitex-ui predates the project provider host service")
+
+
+@contextlib.contextmanager
+def _figrecipe_old_direct_urls():
+    """Serve the old-direct parity reference to the Django test client.
+
+    CUTOVER (CCT-2784) + OPERATOR ROUTE RULE (CCT 2763/2764): /apps/figrecipe/
+    serves the LEAF now; the pre-cutover hub-native adapter page
+    (``views.figure_editor``) lives ONLY at /apps/figrecipe/old-direct/ in
+    dev (dev-gated, never in production). The suite runs prod-shaped (Django
+    flips DEBUG False under test), so the gate is off in the ambient urlconf:
+    turn it on around ONE client drive — reload the REAL root urlconf with
+    the explicit flag, clear the cached resolver so the client sees the fresh
+    patterns, then restore (reload + clear) AFTER the override exits.
+    Restoring inside the flag window would re-mount old-direct and leak the
+    gate into the suite's ambient urlconf.
+
+    A context manager (not a pytest fixture) ON PURPOSE: this module is a
+    Django ``TestCase``, where fixture-as-argument injection does not apply —
+    ``with`` blocks around the client drive are framework-proof. Same
+    reload + clear_url_caches pattern as the ``figrecipe_old_direct`` /
+    ``scholar_old_direct`` fixtures and the security e2e's local fixture.
+    """
+    import importlib
+
+    import config.urls as root_urlconf
+    from django.test.utils import override_settings
+    from django.urls import clear_url_caches
+
+    gate = override_settings(FIGRECIPE_OLD_DIRECT_ENABLED=True)
+    gate.enable()
+    try:
+        importlib.reload(root_urlconf)
+        clear_url_caches()
+        yield
+    finally:
+        gate.disable()
+        importlib.reload(root_urlconf)
+        clear_url_caches()

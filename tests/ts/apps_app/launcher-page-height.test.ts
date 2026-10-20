@@ -15,14 +15,13 @@ import {
   type ViewportMemory,
 } from "@apps_app/_launcher/page-height";
 
-// Measured on dev at 390x844: grid top 109, dock top 695, dots 26.
+// Measured on dev at 390x844: grid top 109, dots 26.
 function input(over: Partial<PageHeightInput> = {}): PageHeightInput {
   return {
     gridTop: 109,
     scrollY: 0,
     viewportHeight: 844,
     viewportWidth: 390,
-    dockTop: 695,
     dotsRoom: 26,
     viewport: { width: 0, minHeight: 0 },
     ...over,
@@ -30,8 +29,8 @@ function input(over: Partial<PageHeightInput> = {}): PageHeightInput {
 }
 
 describe("pageHeightFor", () => {
-  it("fills the space between the grid and the dock at the top", () => {
-    expect(pageHeightFor(input())).toBe(695 - 109 - 26 - 8);
+  it("fills the viewport and lets the fixed dock overlay the page", () => {
+    expect(pageHeightFor(input())).toBe(844 - 109 - 26 - 8);
   });
 
   it("does not grow when the document is scrolled", () => {
@@ -47,7 +46,7 @@ describe("pageHeightFor", () => {
     const viewport: ViewportMemory = { width: 0, minHeight: 0 };
     const tall = pageHeightFor(input({ viewport }));
     const short = pageHeightFor(
-      input({ viewport, viewportHeight: 760, dockTop: 611 }),
+      input({ viewport, viewportHeight: 760 }),
     );
     expect(short).toBe(tall - 84);
   });
@@ -55,7 +54,7 @@ describe("pageHeightFor", () => {
   it("stays at the short height when the iOS toolbar collapses again", () => {
     const viewport: ViewportMemory = { width: 0, minHeight: 0 };
     const short = pageHeightFor(
-      input({ viewport, viewportHeight: 760, dockTop: 611 }),
+      input({ viewport, viewportHeight: 760 }),
     );
     const tallAgain = pageHeightFor(input({ viewport }));
     expect(tallAgain).toBe(short);
@@ -63,24 +62,23 @@ describe("pageHeightFor", () => {
 
   it("starts over when the width changes (rotation)", () => {
     const viewport: ViewportMemory = { width: 0, minHeight: 0 };
-    pageHeightFor(input({ viewport, viewportHeight: 760, dockTop: 611 }));
+    pageHeightFor(input({ viewport, viewportHeight: 760 }));
     const rotated = pageHeightFor(
       input({
         viewport,
         viewportWidth: 844,
         viewportHeight: 900,
-        dockTop: 751,
       }),
     );
-    expect(rotated).toBe(751 - 109 - 26 - 8);
+    expect(rotated).toBe(900 - 109 - 26 - 8);
   });
 
   it("never builds a page shorter than the minimum", () => {
-    expect(pageHeightFor(input({ dockTop: 150 }))).toBe(MIN_PAGE_HEIGHT);
+    expect(pageHeightFor(input({ gridTop: 700 }))).toBe(MIN_PAGE_HEIGHT);
   });
 
-  it("floors at the viewport bottom when no dock bounds the page", () => {
-    expect(pageHeightFor(input({ dockTop: null }))).toBe(844 - 109 - 26 - 8);
+  it("floors at the viewport bottom", () => {
+    expect(pageHeightFor(input())).toBe(844 - 109 - 26 - 8);
   });
 
   it("is stable across repeated scroll and resize cycles", () => {
@@ -93,13 +91,12 @@ describe("pageHeightFor", () => {
           input({
             viewport,
             viewportHeight: vh,
-            dockTop: vh - 149,
             scrollY: 300 * i,
             gridTop: 109 - 300 * i,
           }),
         ),
       );
     }
-    expect([...heights]).toEqual([760 - 149 - 109 - 26 - 8]);
+    expect([...heights]).toEqual([760 - 109 - 26 - 8]);
   });
 });

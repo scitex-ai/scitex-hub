@@ -1,6 +1,6 @@
 [project]
 name = "scitex-hub"
-version = "0.20.0a1"
+version = "0.21.0a1"
 description = "SciTeX Hub - Deployment and management CLI for SciTeX"
 readme = "README.md"
 license = "AGPL-3.0-only"
@@ -35,29 +35,20 @@ dependencies = [
     # `ImportError: No module named 'requests'`.
     # Card: hub-audit-cli-runs-only-when-its-deps-happen-to-be-installed-20260809
     "requests>=2.31",
-    # 0.2.10 is the first release where `scitex_app.appmaker.init_app`
-    # emits the nested-package layout + `[tool.hatch.build.targets.wheel]
-    # packages=["<name>"]` block in the generated pyproject (scitex-app
-    # PR #35, scitex-cloud PR #293 done-gate). Pre-0.2.10 the canonical
-    # CLI path `scitex-hub app init` shadowed our local _scaffold fix
-    # with the upstream flat-layout generator, breaking
-    # `pip_install_user_app` at install time. (0.2.9 was claimed by an
-    # orphan tag for an unrelated earlier release — jumping to 0.2.10.)
-    # >=0.11.0 (2026-09-03): `scitex_app.hosts_to_allow` becomes PUBLIC API —
-    # the interface-enumerating ALLOWED_HOSTS fix (scholar #137, copied into
-    # scitex-app by figrecipe #105 for 0.10.1, re-exported publicly in 0.11.0)
-    # so an app bound to 0.0.0.0 answers on its real addresses instead of 400.
-    # Also: appmaker.validate() no longer fails a build on advisory findings
-    # (a behaviour change). Verified by scitex-app against the PUBLISHED wheel
-    # in a clean venv (installed 0.11.0, public name True, alias same object).
-    # >=0.23.0 (2026-09-14): first published wheel carrying
-    # `scitex_app._app_scope._inject_scope_meta` (d8528de), which the hub bridge
-    # scope-meta injection (apps/infra/workspace_app/scope_meta.py, #801) calls.
-    # On 0.22.1 the guarded import falls back to "no marker" silently. Verified
-    # with uv against the published 0.23.0 wheel: import ok, function present.
-    # >=0.25.0 (2026-09-14): `scitex_app.i18n` (gettext settings + translations
-    # CLI, scitex-app #194) for the EN/JA leaf-app catalogs.
-    "scitex-app>=0.25.0",
+    # PS-220 requires shippable source to route human-facing output through
+    # scitex-logging (src/scitex_hub/_logging.py is hub's one factory for it),
+    # and an unguarded runtime import must resolve from
+    # `[project.dependencies]` — not from an extra a minimal install skips.
+    "scitex-logging>=0.1.0",
+    # App-contract surface (formerly `scitex-app`, archived 2026-10-09,
+    # read-only) is sourced from scitex-sdk (card
+    # hub-sdk-import-switch-20261015). Verified against the published
+    # scitex-sdk 0.3.2 wheel: `scitex_sdk.app.sdk` carries the cloud
+    # modules + `_client` (PlatformClient/get_client/reset_client);
+    # `scitex_sdk.app.appmaker` carries init_app/validate/_license/
+    # _publish/_validate (incl. all six validate_*); `scitex_sdk.app`
+    # also carries i18n, hosts_to_allow (_standalone) and _app_scope
+    # (_inject_scope_meta). No floor bump needed for the switch.
     "scitex-config>=0.3.6",
     # `scitex-session` is consumed via the umbrella as `scitex.session.INJECTED`
     # (settings_shared.py / settings_auth.py / config/routing.py).
@@ -69,11 +60,13 @@ dependencies = [
     "scitex-session>=0.1.6",
     # >=2.43.0: the root->workspace contract (PR #389). The hub hands leaves the
     # project root; older writers compose root/00_shared and fail to compile.
-    "scitex-writer>=2.43.1",
+    # >=2.43.6: PDF provenance follows the running source tree and the
+    # compile/re-vendor paths share one version-stamp template.
+    "scitex-writer>=2.43.6",
     # >=1.9.0 is a MOUNT requirement, not a feature preference. Below it the
     # leaf's client JS builds API urls from the SITE ROOT
     # (static/scholar/js/graph/citation-graph.js: fetch("/api/graph/health")),
-    # so mounted at /apps/scholar/v2/ every graph call goes to hub's root and
+    # so mounted under a subpath every graph call goes to hub's root and
     # misses. The page still renders — the shell looks correct and only the
     # graph is dead — and an import check cannot see it: 1.7.1 imports
     # `scitex_scholar._django.urls` perfectly well. 1.9.0 prefixes with
@@ -85,7 +78,9 @@ dependencies = [
     # bound to 0.0.0.0, DEBUG defaults False, no "*". /api/health no longer
     # returns db_available / db_path (hub has no reader — measured). Verified
     # by scholar from a throwaway venv against PyPI 1.10.0.
-    "scitex-scholar>=1.10.0",
+    # 1.12.0 supplies the optional graph capability report consumed by Hub.
+    # 1.13.0 supplies storage.master_* (leaf owns MASTER writes; hub thin).
+    "scitex-scholar>=1.13.0",
     # THE FOUR SIBLINGS HUB IMPORTS BUT NEVER DECLARED — measured 2026-09-03/04
     # inside the dev image built from `.[all]` (sha256:70be677c04bf): hub's
     # `all` extra pulls the umbrella BARE (`scitex>=2.29.3`, below), whose base
@@ -255,6 +250,23 @@ dependencies = [
     # install. Declaring the package we actually import keeps STT honest;
     # unifying TTS onto the same import is a separate change.
     "scitex-audio>=0.2.13",
+    # >=0.2.0 is a MOUNT requirement: the first release carrying
+    # `scitex_sdk.creator` (the App Creator wizard: STARTERS/app_module_name
+    # SSOT + login-gated `scitex_sdk.creator.urls`). Hub mounts that urlconf
+    # at /apps/new/ (config/urls.py) and imports the starter definitions
+    # from it (apps_app/services/app_create.py) instead of keeping its own
+    # copy. Measured 2026-09-27: 0.2.0 declares no `scitex.apps` entry point,
+    # so the generic plugin mount cannot discover it — the mount is explicit.
+    # >=0.3.0 also supplies the packaged @scitex/sdk frontend exports consumed
+    # by bridged apps. Pack the selected Python SDK before npm installation.
+    # >=0.3.2 carries the canonical project-scope and preflight/final
+    # write-grant contract qualified for the current leaf integration.
+    # >=0.3.5 is the first release carrying `scitex_sdk.app.jail`
+    # (validate_mount_policy + JailScopedView — verified absent from the
+    # published 0.3.4 wheel, present in 0.3.5/0.3.6), which Writer Slice 2
+    # builds on and test_sdk_jail_contract_present pins. A lower floor
+    # would resolve an SDK without the jail contract.
+    "scitex-sdk>=0.3.5",
     "gitpython>=3.1.51",
 ]
 
@@ -521,7 +533,17 @@ dev = [
     # renders a blank — or unusable — gallery. Checked before pinning: the
     # PUBLISHED 0.34.6 wheel was downloaded and inspected, and carries 56 .csv
     # + 1 .npz under figrecipe/_django/gallery_templates/.
-    "figrecipe>=0.34.6",
+    # >=0.34.8 adds recorder/style correctness warnings validated with this alpha.
+    # >=0.36 is the FigRecipe leaf-move floor (card hub-figrecipe-leaf-move-20261009):
+    # the leaf-owned SDK Django surface the hub adapter prefers —
+    # figrecipe._django.workspace.build_workspace_context plus
+    # templates/figrecipe/{workspace,workspace_partial}.html — ships in 0.36.
+    # Verified: installed 0.35.0 has NO figrecipe._django.workspace module
+    # (only standalone.html), while the published 0.36.0 wheel carries
+    # workspace.py + both templates. Below 0.36 the hub adapter silently falls
+    # back to hub-local keys, so the floor is raised rather than left at a
+    # version we know cannot serve the leaf surface.
+    "figrecipe>=0.36",
     "joblib",
     "flask",
     # PS-210: `[all]` ships these and the test suite imports them
@@ -583,7 +605,11 @@ dev = [
     # entry -- read it there rather than duplicating it here, so there is one
     # place to correct when the next token moves. RAISED 0.16.0 -> 0.20.3 on
     # 2026-09-14 in lockstep with [all] (--app-accent-agents). RAISED 0.20.3 ->
-    # 0.22.0 on 2026-09-15 in lockstep with [all] (canonical selector entry/slot).
+    # 0.21.0 the same day in lockstep with [all] (project picker, gettext tag).
+    # RAISED 0.21.0 -> 0.22.0 in lockstep with [all] (Command Registry + keymap
+    # API, Settings > Keyboard Shortcuts); scitex_ui.keymap does not exist below
+    # it. test_shell_pane_contract_floor.py sweeps every group, so the two
+    # copies cannot drift.
     "scitex-ui>=0.22.0",
 ]
 

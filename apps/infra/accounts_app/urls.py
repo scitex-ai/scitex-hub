@@ -14,6 +14,7 @@ from .views import (
     keyboard_shortcuts,
     mcp_settings,
     mcp_settings_api,
+    payment_step,
     privacy_settings,
     profile_edit,
     profile_view,
@@ -56,6 +57,9 @@ urlpatterns = [
     path("settings/repository-health/", repository_health, name="repository_health"),
     # Billing (Stripe-hosted card setup; card data never touches SciTeX)
     path("settings/billing/", billing_settings, name="billing"),
+    # The pre-payment step a verified signup lands on (card
+    # hub-signup-email-stripe-funnel-20260917): terms first, then the provider.
+    path("settings/payment/", payment_step, name="payment_step"),
     # API Endpoints
     path(
         "api/ssh-keys/generate/",

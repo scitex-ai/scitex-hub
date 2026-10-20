@@ -1,0 +1,155 @@
+/* Payment step — terms before the card, on the shared auth shell.
+ * Card: hub-signup-email-stripe-funnel-20260917.
+ * Linked directly from accounts_app/payment_step.html, so it cannot become a
+ * stylesheet nobody loads. Shared SDK tokens only (navy primary, muted gold).
+ */
+
+.payment-step {
+  max-width: 640px;
+  margin: 0 auto;
+  padding: var(--spacing-lg, 24px) var(--spacing-md, 16px);
+  text-align: left;
+}
+
+.payment-steps {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem 1.25rem;
+  margin: 0 0 var(--spacing-lg, 24px);
+  padding: 0;
+  list-style: none;
+  font-size: 0.85rem;
+  color: var(--text-secondary, #8b949e);
+}
+
+.payment-steps-item {
+  position: relative;
+  padding-left: 1.1rem;
+}
+
+.payment-steps-item::before {
+  content: "○";
+  position: absolute;
+  left: 0;
+}
+
+.payment-steps-item.is-done {
+  color: var(--text-primary, #e6edf3);
+}
+
+.payment-steps-item.is-done::before {
+  content: "✓";
+  color: var(--stx-accent, #b8956a);
+}
+
+.payment-steps-item.is-current {
+  color: var(--text-primary, #e6edf3);
+  font-weight: 600;
+}
+
+.payment-step-title {
+  margin: 0 0 var(--spacing-sm, 8px);
+  font-size: 1.5rem;
+  color: var(--text-primary, #e6edf3);
+}
+
+.payment-step-lead {
+  margin: 0 0 var(--spacing-md, 16px);
+  color: var(--text-secondary, #8b949e);
+}
+
+.payment-step-notice {
+  margin: 0 0 var(--spacing-md, 16px);
+  padding: 0.6rem 0.8rem;
+  border: 1px solid var(--stx-accent, #b8956a);
+  border-radius: 8px;
+  background: var(--stx-accent-tint, rgba(184, 149, 106, 0.12));
+  color: var(--text-primary, #e6edf3);
+  font-size: 0.9rem;
+}
+
+.payment-step-terms {
+  display: grid;
+  grid-template-columns: minmax(8rem, 12rem) 1fr;
+  gap: 0.4rem 1rem;
+  margin: 0 0 var(--spacing-md, 16px);
+  padding: var(--spacing-md, 16px);
+  border: 1px solid var(--border-default, #30363d);
+  border-radius: 10px;
+  background: var(--bg-page, #0d1117);
+}
+
+.payment-step-terms dt {
+  color: var(--text-secondary, #8b949e);
+  font-weight: 500;
+}
+
+.payment-step-terms dd {
+  margin: 0;
+  color: var(--text-primary, #e6edf3);
+}
+
+.payment-step-card-note {
+  margin: 0 0 var(--spacing-md, 16px);
+  color: var(--text-secondary, #8b949e);
+  font-size: 0.85rem;
+}
+
+.payment-step-form {
+  margin: 0 0 var(--spacing-sm, 8px);
+}
+
+/* The one primary action: brand navy, white label, >=44px tall. */
+.payment-step-continue {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 44px;
+  padding: 0 1.2rem;
+  border: 1px solid transparent;
+  border-radius: 10px;
+  background: var(--stx-navy-900, #1a2a40);
+  color: #ffffff;
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.payment-step-continue:hover,
+.payment-step-continue:focus-visible {
+  background: var(--stx-accent, #b8956a);
+  color: var(--stx-navy-900, #1a2a40);
+}
+
+.payment-step-continue[disabled] {
+  cursor: progress;
+  opacity: 0.7;
+}
+
+.payment-step-fineprint,
+.payment-step-secondary {
+  color: var(--text-secondary, #8b949e);
+  font-size: 0.85rem;
+}
+
+.payment-step-secondary {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  color: var(--text-link, #2f81f7);
+}
+
+@media (max-width: 480px) {
+  .payment-step-terms {
+    grid-template-columns: 1fr;
+    gap: 0.15rem;
+  }
+
+  .payment-step-terms dd {
+    margin-bottom: 0.6rem;
+  }
+
+  .payment-step-continue {
+    width: 100%;
+  }
+}

@@ -26,6 +26,7 @@ from pathlib import Path
 import click
 
 from scitex_hub._cli._click_compat import spec_group_kwargs
+from scitex_hub._cli._flags import confirm_or_abort, yes_flag
 
 from ._cards import CliCardFiler, NullCardFiler
 from ._state import append_log
@@ -116,6 +117,7 @@ def dev_preview() -> None:
     is_flag=True,
     help="Emit JSON (always on; accepted for uniformity).",
 )
+@yes_flag()
 def sync_cmd(
     clone: Path,
     remote: str,
@@ -125,6 +127,7 @@ def sync_cmd(
     dry_run: bool,
     no_cards: bool,
     as_json: bool,
+    yes: bool,
 ) -> None:
     """Run one sync tick: fetch, fast-forward, classify, act.
 
@@ -139,6 +142,15 @@ def sync_cmd(
     """
     del as_json  # output is JSON regardless; see module docstring
     resolved_state_dir = Path(state_dir).expanduser()
+
+    # §2 mutating-verb guard (same wiring as docker.py etc.): --dry-run
+    # plans via Config below, --yes skips the prompt, and a non-TTY caller
+    # (the supervisor job, CliRunner) never blocks on it.
+    confirm_or_abort(
+        f"Run one dev-preview sync tick on {clone}?",
+        yes=yes,
+        dry_run=dry_run,
+    )
 
     # The board adapter is best effort and never raises; its failures are
     # only visible if they land in the same JSONL log as every other step.

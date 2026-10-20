@@ -191,7 +191,7 @@ class ProjectInvitation(models.Model):
         if self.status != "pending":
             return False
 
-        from .core import ProjectMembership
+        from ..repository.project import ProjectMembership
 
         ProjectMembership.objects.create(
             project=self.project,

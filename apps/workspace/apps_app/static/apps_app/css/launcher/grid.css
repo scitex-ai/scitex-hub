@@ -19,18 +19,24 @@
 }
 
 /* ---------- Group bands (operator, 2026-09-14) ----------
-   Foundation / Work / System, each its own 4-column grid on a soft tinted
+   Foundation / Work / System, each its own 4-column grid on a frosted-glass
    rounded band, like iOS widget stacks. App icon colours are unchanged; the
-   tint is low-alpha so tile names keep their contrast. Three distinct hues,
-   with a light and a dark variant. */
+   band is translucent (alpha ~0.2) with backdrop blur so the page texture
+   shows through. Three distinct hues, with a light and a dark variant. */
 .launcher-group {
   --launcher-band: transparent;
+  /* Frosted-glass bands (operator: visible translucency, alpha ~0.2):
+     the blur + saturation make the transparency perceptible instead of a
+     flat faint wash, while the dotted page texture stays visible through. */
   /* Headroom for the group's name (below), added to the TOP padding at every
      breakpoint. pager.ts reads the band's padding back, so pages still stop
      above the dock. */
   --launcher-group-label-room: 16px;
   position: relative;
   display: grid;
+  /* Inset left/right (owner 2026-09-27): the bands spanned 100% width so
+     their edges showed on sibling pager pages (#1, #2). */
+  margin-inline: 16px;
   grid-template-columns: repeat(var(--launcher-cols, 4), minmax(0, 1fr));
   grid-auto-rows: min-content;
   align-content: start;
@@ -38,6 +44,9 @@
   padding: calc(12px + var(--launcher-group-label-room)) 8px 12px;
   border-radius: var(--launcher-panel-radius);
   background: var(--launcher-band);
+  backdrop-filter: blur(10px) saturate(1.25);
+  -webkit-backdrop-filter: blur(10px) saturate(1.25);
+  border: 1px solid rgba(255, 255, 255, 0.35);
 }
 
 /* The group's name, top-left, in the band's padding (operator 2026-09-14: the
@@ -69,45 +78,45 @@
   pointer-events: none;
 }
 
-/* Group bands alternate brand washes: navy, gold, slate. */
+/* Group bands alternate brand washes: navy, gold, slate (alpha ~0.2). */
 .launcher-group[data-group="foundation"] {
-  --launcher-band: rgba(26, 42, 64, 0.06); /* navy */
+  --launcher-band: rgba(26, 42, 64, 0.18); /* navy */
 }
 
 .launcher-group[data-group="work"] {
-  --launcher-band: rgba(184, 149, 106, 0.1); /* gold */
+  --launcher-band: rgba(184, 149, 106, 0.2); /* gold */
 }
 
 .launcher-group[data-group="publication"] {
-  --launcher-band: rgba(86, 96, 109, 0.08); /* slate */
+  --launcher-band: rgba(86, 96, 109, 0.18); /* slate */
 }
 
 .launcher-group[data-group="system"] {
-  --launcher-band: rgba(26, 42, 64, 0.06); /* navy */
+  --launcher-band: rgba(26, 42, 64, 0.18); /* navy */
 }
 
 .launcher-group[data-group="tools"] {
-  --launcher-band: rgba(86, 96, 109, 0.08); /* slate */
+  --launcher-band: rgba(86, 96, 109, 0.18); /* slate */
 }
 
 [data-theme="dark"] .launcher-group[data-group="foundation"] {
-  --launcher-band: rgba(152, 172, 198, 0.08);
+  --launcher-band: rgba(152, 172, 198, 0.2);
 }
 
 [data-theme="dark"] .launcher-group[data-group="work"] {
-  --launcher-band: rgba(212, 168, 122, 0.08);
+  --launcher-band: rgba(212, 168, 122, 0.2);
 }
 
 [data-theme="dark"] .launcher-group[data-group="publication"] {
-  --launcher-band: rgba(170, 179, 191, 0.07);
+  --launcher-band: rgba(170, 179, 191, 0.18);
 }
 
 [data-theme="dark"] .launcher-group[data-group="system"] {
-  --launcher-band: rgba(152, 172, 198, 0.08);
+  --launcher-band: rgba(152, 172, 198, 0.2);
 }
 
 [data-theme="dark"] .launcher-group[data-group="tools"] {
-  --launcher-band: rgba(170, 179, 191, 0.07);
+  --launcher-band: rgba(170, 179, 191, 0.18);
 }
 
 .launcher-tile {
@@ -398,8 +407,12 @@
 .launcher-slot.launcher-slot--add {
   --launcher-icon-size: 64px;
   display: flex;
-  justify-content: center;
-  align-items: flex-start;
+  flex-direction: column;
+  justify-content: flex-start;
+  align-items: center;
+  gap: 9px;
+  min-width: 0;
+  min-height: 44px;
   padding: 10px 4px 8px;
   border-radius: 14px;
   pointer-events: auto;
@@ -431,9 +444,32 @@
   color: currentColor;
 }
 
+.launcher-slot-add-label {
+  min-width: 0;
+  max-width: 100%;
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  color: var(--workspace-text-secondary);
+  font-size: 12.5px;
+  line-height: 1.25;
+  text-align: center;
+}
+
+.launcher-slot-add-label:lang(ja) {
+  word-break: keep-all;
+  overflow-wrap: normal;
+}
+
 .launcher-slot--add:hover .launcher-slot-add-box,
 .launcher-slot--add:focus-visible .launcher-slot-add-box {
   opacity: 0.8;
+}
+
+.launcher-slot--add:hover .launcher-slot-add-label,
+.launcher-slot--add:focus-visible .launcher-slot-add-label {
+  color: var(--workspace-text-primary);
 }
 
 .launcher-slot--add:active .launcher-slot-add-box {
@@ -450,6 +486,10 @@
     --launcher-icon-size: 68px;
     padding: 6px 4px 4px;
   }
+
+  .launcher-slot-add-label {
+    font-size: 13px;
+  }
 }
 
 @media (max-width: 640px) {
@@ -457,4 +497,15 @@
     --launcher-icon-size: 60px;
     padding-inline: 2px;
   }
+
+  .launcher-slot-add-label {
+    font-size: 11.5px;
+  }
+}
+
+/* Density (2026-09-25): the version also ships in the tile's title tooltip,
+   so the always-visible line is redundant noise for newcomers. Hide it;
+   hover/focus still reveals the version via the native tooltip. */
+.launcher-tile .launcher-tile-version {
+  display: none;
 }

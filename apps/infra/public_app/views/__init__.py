@@ -46,11 +46,17 @@ from .legal import (
     tokushoho_en,
 )
 
+# Staff-only internal demo library (card hub-internal-demo-video-library-20260917):
+# the index is staff-gated inside the view, and the media route serves the same
+# directory so internal recordings never need a public static URL.
+from .internal_demos import internal_demo_media, internal_demos
+
 # Information pages
 from .pages import (
     about,
     contributors,
     demos,
+    funding_manifest,
     fundraising,
     keyboard_shortcuts,
     open_source,
@@ -94,8 +100,11 @@ __all__ = [
     "demos",
     "open_source",
     "video_player",
+    "internal_demos",
+    "internal_demo_media",
     "publications",
     "fundraising",
+    "funding_manifest",
     "pricing",
     "services",
     "security",

@@ -388,6 +388,7 @@ export class AIPanelChatMode {
         headers: {
           "Content-Type": "application/json",
           "X-CSRFToken": getCsrfToken(),
+          "Idempotency-Key": crypto.randomUUID(),
         },
         body: JSON.stringify({
           prompt,
