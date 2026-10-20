@@ -122,6 +122,14 @@ class ModuleConfig:
     is_active: bool = False
     is_dev: bool = False  # True for private (non-published) apps
     status: str = ""  # Module status: stable, wip, beta, deprecated
+    # Operator-marked experimental: shows the flask badge titled
+    # "Experimental" INSTEAD of the dev-only badge. Set from the manifest
+    # "experimental" key or MANIFEST_OVERRIDES; the leaf's own
+    # visibility/status stay untouched.
+    experimental: bool = False
+    # Operator-ordered badge silence for a specific tile (e.g. Storage):
+    # no badge of any kind renders. Hub-side override only.
+    hide_badges: bool = False
 
     # LLM integration
     ai_hint: str = ""  # Short description for data-ai-hint (shown to LLM)
@@ -200,6 +208,8 @@ _BUILTIN_MANIFEST_PATHS: list[str] = [
     "workspace/writer_app/manifest.json",
     "workspace/scholar_app/manifest.json",
     "workspace/figrecipe_app/manifest.json",
+    "workspace/journal_app/manifest.json",
+    "workspace/live_paper_app/manifest.json",
     "workspace/clew_app/manifest.json",
     # NOTE: infra/public_app/manifest.json is intentionally NOT listed here.
     # It declares name="tools", which collided with workspace/tools_app
@@ -274,6 +284,31 @@ def _resolve_version(data: dict) -> str:
         return ""
 
 
+def _resolve_leaf_manifest(data: dict) -> dict:
+    """Read the INSTALLED leaf package's own ``_django/manifest.json``.
+
+    Leaf-icon rule (SDK PR #63 rule 6, operator rule): a leaf's icon+label
+    live in the leaf manifest; hub must not hand-carry copies that drift
+    (figrecipe read "FigRecipe" in hub vs "Figrecipe" in the leaf). The hub
+    manifest keeps its own icon/label keys as FALLBACK for leaves that do
+    not ship a manifest yet — but whenever the leaf manifest exists, the
+    leaf wins. Never raises: a missing dist or manifest degrades to ``{}``.
+    """
+    pkg = (data.get("pip_package", "") or "").replace("-", "_")
+    if not pkg:
+        return {}
+    try:
+        from importlib.resources import files as _files
+
+        text = (_files(pkg) / "_django" / "manifest.json").read_text(
+            encoding="utf-8"
+        )
+        leaf = json.loads(text)
+        return leaf if isinstance(leaf, dict) else {}
+    except Exception:
+        return {}
+
+
 def _resolve_availability(data: dict) -> str:
     """Validate the manifest's ``availability`` declaration.
 
@@ -308,11 +343,16 @@ def _manifest_to_module_config(data: dict) -> ModuleConfig:
     overrides = _MANIFEST_OVERRIDES.get(name, {})
     effective_data = {**data, **overrides}
 
+    leaf = _resolve_leaf_manifest(data)
+    # Leaf-icon rule: the leaf manifest's icon+label win when present; the
+    # hub manifest's own keys are fallback for leaves without one yet.
+    label = (leaf.get("label") or data["label"]).strip() or data["label"]
+    icon = (leaf.get("icon") or data.get("icon", "")).strip()
     return ModuleConfig(
         name=name,
-        label=data["label"],
+        label=label,
         app_name=data["app_name"],
-        icon_fa=data.get("icon", ""),
+        icon_fa=icon,
         icon_badge=data.get("icon_badge", ""),
         icon_svg_tab=overrides.get("icon_svg_tab", ""),
         icon_svg_nav=overrides.get("icon_svg_nav", ""),
@@ -330,6 +370,8 @@ def _manifest_to_module_config(data: dict) -> ModuleConfig:
         default_enabled=data.get("default_enabled", True),
         show_in_launcher=data.get("show_in_launcher", True),
         visibility=data.get("visibility", "public"),
+        experimental=bool(effective_data.get("experimental", False)),
+        hide_badges=bool(effective_data.get("hide_badges", False)),
         ai_hint=data.get("ai_hint", ""),
         accent_color=data.get("accent_color", ""),
         docs_slug=data.get("docs_slug", ""),

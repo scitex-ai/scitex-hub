@@ -354,6 +354,22 @@ def optional_upstream_apps() -> list[str]:
     if _installed("scitex_writer"):
         entries.append("scitex_writer._django.apps.WriterEditorConfig")
 
+    # scitex-stats' Django app. Same contract as writer: the leaf's AppConfig
+    # imports the SDK base through the package attribute path
+    # (``app.embed.ScitexAppConfig``), so the static certifier proves it.
+    # Mounted at /apps/stats/ by the generic plugin mount (scitex.apps
+    # entry point); the explicit path here keeps templates resolving.
+    if _installed("scitex_stats._django"):
+        entries.append("scitex_stats._django.apps.StatsCalculatorConfig")
+
+    # scitex-agentic-journal's Django app (first release 0.1.0a0). Plain
+    # AppConfig (no SDK base); explicit path keeps templates resolving.
+    # Mounted at /apps/agentic-journal/ by the gated wrapper (journal_app).
+    if _installed("scitex_agentic_journal._django.apps"):
+        entries.append(
+            "scitex_agentic_journal._django.apps.SciTeXAgenticJournalConfig"
+        )
+
     if _installed("scitex_storage._django"):
         # INSTALLED_APPS continuity only: URL mounting + tiles come from the
         # generic plugin mount (scitex.apps entry point). The explicit path
@@ -390,6 +406,13 @@ def optional_upstream_apps() -> list[str]:
     # leaf install and must fail at startup rather than be papered over here.
     if _installed("scitex_scholar._django"):
         entries.append("scitex_scholar._django.apps.ScholarEditorConfig")
+
+    # scitex-live-paper's Django app (0.2.0). Same template-resolution
+    # requirement as scholar: the mounted viewer extends leaf templates,
+    # so the leaf AppConfig must be installed. Label `scitex_live_paper`
+    # (LivePaperConfig) collides with nothing in this tree.
+    if _installed("scitex_live_paper._django"):
+        entries.append("scitex_live_paper._django.apps.LivePaperConfig")
 
     # CANONICAL name. `scitex_todo` is a deprecated alias of this package
     # (renamed 2026-07-16) that warns it "ships for one transition window
@@ -439,15 +462,30 @@ def optional_upstream_apps() -> list[str]:
     # change — template resolution only.
     if _installed("scitex_sdk.app"):
         entries.append("scitex_sdk.app")
-    # SDK UI shell deliberately NOT registered (mutual exclusion): the
-    # installed scitex_sdk.ui claims label `scitex_ui` (ScitexUiConfig in
-    # scitex_sdk/ui/apps.py), identical to the REQUIRED retired scitex-ui
-    # entry (config/settings/settings_shared.py:213-214,
-    # `THIRD_PARTY_APPS.append("scitex_ui")`, default label `scitex_ui`).
-    # Registering both makes django.setup() raise ImproperlyConfigured
-    # (duplicate app label) with zero tests running. Re-add scitex_sdk.ui
-    # only after the retired scitex-ui requirement is removed, or after
-    # the SDK relabels its UI config away from `scitex_ui`.
+    # SDK UI shell app: REGISTERED (CSS 404 fix). The old exclusion below
+    # assumed the pre-relabel SDK whose UI config claimed label `scitex_ui`
+    # (colliding with the retired scitex-ui entry). The SDK has since
+    # relabeled its UI config to `scitex_sdk_ui` (namespaced, no models, so
+    # migration-free) and its own apps.py directs hosts to install it.
+    # Registration is what makes collectstatic (and runserver's app-static
+    # serving) pick up its static/, so standalone_shell.html CSS resolves
+    # on SDK-shell leaf pages. The label is verified — not the version
+    # number — so a pre-relabel SDK can never collide: anything else keeps
+    # the old exclusion path.
+    if _installed("scitex_sdk.ui"):
+        try:
+            from scitex_sdk.ui.apps import ScitexUiConfig as _sdk_ui_config
+
+            _sdk_ui_label = getattr(_sdk_ui_config, "label", "")
+        except ImportError:
+            _sdk_ui_label = ""
+        if _sdk_ui_label == "scitex_sdk_ui":
+            entries.append("scitex_sdk.ui.apps.ScitexUiConfig")
+    # Pre-relabel SDKs (UI config claiming `scitex_ui`, identical to the
+    # REQUIRED retired scitex-ui entry) still cannot register: django.setup()
+    # would raise ImproperlyConfigured (duplicate app label). That case falls
+    # through here with no entry — templates keep resolving via
+    # optional_sdk_ui_template_dirs(), static stays uncollected.
 
     return entries
 
@@ -457,12 +495,14 @@ def optional_sdk_ui_template_dirs() -> list:
 
     Card hub-sdk-ui-shell-bridge-20261007 slice 2: the bridge adapter
     extends ``scitex_sdk/app/app_shell.html``, which itself extends
-    ``scitex_sdk/ui/standalone_shell.html``. The UI app must stay OUT of
-    ``INSTALLED_APPS`` (duplicate ``scitex_ui`` label — see above), so the
-    app-directories loader can never resolve its templates. The filesystem
-    loader can: this returns the installed ``scitex_sdk.ui`` package's
-    ``templates/`` dir for ``TEMPLATES[0]["DIRS"]``. No app registration,
-    no label claim, no views/URLs — template-file resolution only.
+    ``scitex_sdk/ui/standalone_shell.html``. The UI app registers in
+    INSTALLED_APPS only when its config label is the namespaced
+    ``scitex_sdk_ui``; pre-relabel SDKs stay out (duplicate ``scitex_ui``
+    label), so the app-directories loader can never be relied on for its
+    templates. The filesystem loader can: this returns the installed
+    ``scitex_sdk.ui`` package's ``templates/`` dir for
+    ``TEMPLATES[0]["DIRS"]``. No app registration, no label claim,
+    no views/URLs — template-file resolution only.
     Returns [] when the package (or its templates dir) is absent.
     """
     mod = _installed("scitex_sdk.ui")
@@ -529,6 +569,7 @@ def _with_host_plugin_apps(
         MetadataUnavailable,
         app_config_identity,
         app_installation_entries,
+        runtime_certified_identity,
     )
 
     configurations = {}
@@ -563,6 +604,32 @@ def _with_host_plugin_apps(
     for plugin in discovered:
         try:
             config = app_config_identity(plugin.app_config)
+        except MetadataUnavailable as error:
+            # Runtime fallback (option (a)): the source-only reader refuses
+            # lazy symbol imports ("not a literal module forwarder") even
+            # when the leaf names a genuine AppConfig. Import the claimed
+            # path and verify the live class (subclass + package identity)
+            # instead of skipping a healthy plugin.
+            try:
+                config = runtime_certified_identity(plugin.app_config)
+            except MetadataUnavailable as fallback_error:
+                logger.warning(
+                    "scitex.apps entry point %r has unavailable AppConfig metadata "
+                    "(%s); app skipped.",
+                    plugin.name,
+                    str(fallback_error),
+                )
+                continue
+            logger.warning(
+                "scitex.apps entry point %r STATIC certification unavailable "
+                "(%s); RUNTIME fallback CERTIFIED %s (genuine AppConfig "
+                "subclass, package %s present).",
+                plugin.name,
+                str(error),
+                config.label,
+                config.name,
+            )
+        try:
             declared = app_installation_entries(plugin.app_module)
             if declared:
                 try:

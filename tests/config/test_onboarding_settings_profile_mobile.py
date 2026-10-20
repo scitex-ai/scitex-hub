@@ -135,11 +135,21 @@ def _profile_page(html):
     return _region(html, r'<div class="profile-header">', "</main>")
 
 
-def _compact_summary(html):
-    match = re.search(
-        r'<details class="settings-nav-compact"[^>]*>\s*<summary[^>]*>(.*?)</summary>', html, re.S
-    )
-    return _visible_text(match.group(1)) if match else ""
+def _cascade_selected(html):
+    """Selected option text per cascade select: {"section": ..., "group": ..., "page": ...}."""
+    found = {}
+    for match in re.finditer(
+        r'<select[^>]*id="settings-cascade-(section|group|page)"[^>]*>(.*?)</select>', html, re.S
+    ):
+        options = re.findall(r"<option[^>]*>(.*?)</option>", match.group(2), re.S)
+        selected = re.findall(
+            r"<option[^>]*selected[^>]*>(.*?)</option>", match.group(2), re.S
+        )
+        found[match.group(1)] = {
+            "labels": [_visible_text(o) for o in options],
+            "selected": _visible_text(selected[0]) if selected else "",
+        }
+    return found
 
 
 def _title_for(path, **context):
@@ -206,23 +216,46 @@ def test_new_project_css_stacks_to_one_full_width_column_on_phones():
 # D7 -- settings content first on a phone
 # ---------------------------------------------------------------------------
 @pytest.mark.django_db
-def test_settings_compact_nav_names_the_current_page_under_english(signed_in_client):
+def test_settings_cascade_selects_section_group_and_page_under_english(signed_in_client):
     # Arrange
     path = reverse("accounts_app:ssh_keys")
     # Act
-    summary = _compact_summary(_get(signed_in_client, path, "en"))
-    # Assert
-    assert summary == "Settings › SSH keys", summary
+    html = _get(signed_in_client, path, "en")
+    cascade = _cascade_selected(html)
+    # Assert -- three labeled selects; the selected options name the location.
+    assert set(cascade) == {"section", "group", "page"}, cascade
+    assert re.search(r'<label[^>]*for="settings-cascade-section"[^>]*>\s*Section', html)
+    assert re.search(r'<label[^>]*for="settings-cascade-group"[^>]*>\s*Group', html)
+    assert re.search(r'<label[^>]*for="settings-cascade-page"[^>]*>\s*Page', html)
+    assert cascade["group"]["selected"] == "Authentication", cascade
+    assert cascade["page"]["selected"] == "SSH keys", cascade
+    assert "Authentication" in cascade["group"]["labels"], cascade
+    assert "SSH keys" in cascade["page"]["labels"], cascade
 
 
 @pytest.mark.django_db
-def test_settings_compact_nav_names_the_current_page_under_japanese(signed_in_client):
+def test_settings_cascade_selects_section_group_and_page_under_japanese(signed_in_client):
     # Arrange
     path = reverse("accounts_app:ssh_keys")
     # Act
-    summary = _compact_summary(_get(signed_in_client, path, "ja"))
+    html = _get(signed_in_client, path, "ja")
+    cascade = _cascade_selected(html)
     # Assert
-    assert summary == "設定 › SSH キー", summary
+    assert set(cascade) == {"section", "group", "page"}, cascade
+    assert cascade["group"]["selected"] == "認証", cascade
+    assert cascade["page"]["selected"] == "SSH キー", cascade
+
+
+@pytest.mark.django_db
+def test_settings_cascade_has_no_accordion_duplication(signed_in_client):
+    # Arrange
+    path = reverse("accounts_app:ssh_keys")
+    # Act
+    html = _get(signed_in_client, path, "en")
+    # Assert -- the phone disclosure is gone and the sidebar tree renders once.
+    assert "settings-nav-compact" not in html
+    assert "<details" not in _region(html, r'<aside class="settings-nav">', "</aside>")
+    assert len(re.findall(r'class="settings-nav-section"', html)) == 6, html.count("settings-nav-section")
 
 
 def test_settings_css_hides_the_full_nav_list_on_phones():
@@ -234,6 +267,18 @@ def test_settings_css_hides_the_full_nav_list_on_phones():
     assert phone and re.search(
         r"\.settings-nav-full\s*\{[^}]*display:\s*none", phone.group(1)
     ), "the 13-item list still renders above the content on phones"
+
+
+def test_settings_css_shows_the_cascade_and_drops_the_disclosure_on_phones():
+    # Arrange
+    css = SETTINGS_CSS.read_text(encoding="utf-8")
+    # Act
+    phone = re.search(r"@media \(max-width: 768px\) \{(.*?)\n\}", css, re.S)
+    # Assert
+    assert phone and re.search(
+        r"\.settings-nav-cascade\s*\{[^}]*display:\s*flex", phone.group(1)
+    ), "the cascading selects do not show on phones"
+    assert "settings-nav-compact" not in css, "the old phone disclosure is still styled"
 
 
 # ---------------------------------------------------------------------------

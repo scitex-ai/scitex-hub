@@ -245,6 +245,57 @@ _PAGES_BY_SLUG = {p["slug"]: p for p in DOCS_PAGES}
 
 DEFAULT_DOC_SLUG = "overview"
 
+# ---------------------------------------------------------------------------
+# Section taxonomy — single source of truth for desktop grouping and the
+# mobile two-dropdown cascade (level 1 = section, level 2 = page).
+# ---------------------------------------------------------------------------
+DOCS_SECTIONS = [
+    ("getting-started", _("Getting Started")),
+    ("howto", _("How-To Guides")),
+    ("ai", _("AI Features")),
+    ("reference", _("Developer Reference")),
+    ("admin", _("Administration")),
+    ("legal", _("Legal")),
+    ("packages", _("Python Packages")),
+    ("apps", _("Workspace Apps")),
+]
+
+_PAGE_SECTIONS = {
+    "overview": "getting-started",
+    "howto-projects": "howto",
+    "howto-scholar": "howto",
+    "howto-writer": "howto",
+    "howto-figrecipe": "howto",
+    "howto-chat": "howto",
+    "howto-cards-agents": "howto",
+    "mcp-tools-local": "howto",
+    "mcp-tools-https": "howto",
+    "ssh-access": "howto",
+    "console": "howto",
+    "chat": "ai",
+    "agent": "ai",
+    "agent-tooling": "ai",
+    "auto-response": "ai",
+    "app-development": "reference",
+    "api-getting-started": "reference",
+    "api-scholar": "reference",
+    "api-plot": "reference",
+    "api-stats": "reference",
+    "api-writer": "reference",
+    "api-project": "reference",
+    "api-mcp": "reference",
+    "api-resources": "reference",
+    "design-rules": "reference",
+    "shared-ts-components": "reference",
+    "shared-ts-utilities": "reference",
+    "shared-css-system": "reference",
+    "self-hosting": "admin",
+    "agpl-v3": "legal",
+}
+
+for _page in DOCS_PAGES:
+    _page.setdefault("section", _PAGE_SECTIONS.get(_page["slug"], "reference"))
+
 try:
     register_sphinx_packages(DOCS_PAGES, _PAGES_BY_SLUG)
 except Exception:
@@ -275,6 +326,7 @@ def register_module_docs():
             "icon": icon,
             "template": template_path,
             "badges": ["app"],
+            "section": "apps",
         }
         DOCS_PAGES.append(page)
         _PAGES_BY_SLUG[mod.docs_slug] = page
@@ -283,12 +335,39 @@ def register_module_docs():
 # ---------------------------------------------------------------------------
 # Context builder (called by workspace registry)
 # ---------------------------------------------------------------------------
+def get_docs_sections(pages=None) -> list:
+    """Group docs pages into ordered sections (level 1 of mobile cascade).
+
+    Reuses the ``section`` key on each DOCS_PAGES entry; unknown sections
+    fall back to the mapping/default so every page is always reachable.
+    Empty sections are omitted to keep both dropdowns free of dead ends.
+    """
+    pages = DOCS_PAGES if pages is None else pages
+    grouped: dict[str, list] = {}
+    for page in pages:
+        key = page.get("section") or _PAGE_SECTIONS.get(page["slug"], "reference")
+        grouped.setdefault(key, []).append(page)
+    sections = []
+    for key, label in DOCS_SECTIONS:
+        if grouped.get(key):
+            sections.append({"key": key, "label": label, "pages": grouped.pop(key)})
+    # Any leftover (unregistered section keys) appended in encounter order.
+    for key, section_pages in grouped.items():
+        sections.append({"key": key, "label": key, "pages": section_pages})
+    return sections
+
+
 def build_docs_context(request, current_project=None):
     """Build context for the docs workspace partial."""
+    active_page = _PAGES_BY_SLUG.get(DEFAULT_DOC_SLUG, {})
     return {
         "current_project": current_project,
         "docs_pages": DOCS_PAGES,
         "active_doc": DEFAULT_DOC_SLUG,
+        "docs_sections": get_docs_sections(),
+        "active_section": active_page.get(
+            "section", _PAGE_SECTIONS.get(DEFAULT_DOC_SLUG, "getting-started")
+        ),
     }
 
 

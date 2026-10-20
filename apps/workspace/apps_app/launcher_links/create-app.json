@@ -3,8 +3,8 @@
   "$schema_version": "1.0.0",
   "name": "create-app",
   "label": "App Creator",
-  "icon": "fas fa-plus",
+  "icon_from_sdk": "creator",
   "category": "utility",
-  "url": "/apps/new/",
+  "url": "/apps/sdk/",
   "description": "Build your own app with the AI agent."
 }

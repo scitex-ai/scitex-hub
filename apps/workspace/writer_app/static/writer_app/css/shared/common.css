@@ -1,6 +1,12 @@
 /* Writer App Common Styles */
 @import "./variables.css";
 
+/* Unconditional hide utility (STX-UI111): lives here — this file carries
+   no breakpoint queries, so the override can never fork a responsive rule. */
+.hidden {
+  display: none !important;
+}
+
 .writer-app-container {
   display: flex;
   flex-direction: column;

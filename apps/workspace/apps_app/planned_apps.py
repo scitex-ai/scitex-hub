@@ -100,10 +100,17 @@ PLANNED_BY_ID = {app.id: app for app in PLANNED_APPS}
 
 
 def canonical_app_id(name: str) -> str:
-    """Store slugs vary ("scitex_live_paper_app"); compare them as "live-paper"."""
+    """Store slugs vary ("scitex_live_paper_app"); compare them as "live-paper".
+
+    The journal leaf registers under several near-names (manifest name
+    "agentic-journal", app_name "journal_app", tile "journal"); all reduce
+    to the planned id "agentic-journal" so the placeholder retires.
+    """
     slug = name.strip().lower().replace("_", "-").removeprefix("scitex-")
     for suffix in ("-app", "-hub"):
         slug = slug.removesuffix(suffix)
+    if slug in {"journal", "agentic-journal"}:
+        return "agentic-journal"
     return slug
 
 

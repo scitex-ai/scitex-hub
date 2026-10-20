@@ -51,6 +51,27 @@ def _sdk_creator_patterns():
     return [_wrap_login(p) for p in creator_urls.urlpatterns]
 
 
+def _live_paper_patterns():
+    """URL patterns for the Live Paper viewer leaf, login-gated.
+
+    Thin-hub mount (scholar pattern): the leaf owns views through
+    ``scitex_live_paper.mount(resolver=...)`` (per-request BundleContext);
+    the hub owns auth (whole tree login-wrapped) and bundle resolution
+    (apps.workspace.live_paper_app.mount.hub_resolver). [] when the
+    package is absent, so the hub boots without it.
+    """
+    try:
+        from apps.workspace.live_paper_app import mount as live_paper_mount
+    except ImportError:
+        return []
+    from apps.workspace.apps_app.services.plugin_apps import _wrap_login
+
+    return (
+        [_wrap_login(p) for p in live_paper_mount.urlpatterns],
+        live_paper_mount.app_namespace,
+    )
+
+
 def _scholar_old_direct_patterns():
     """Dev-only old-direct reference for Scholar (CCT 2763/2764 + CCT 2806).
 
@@ -113,6 +134,42 @@ def _figrecipe_old_direct_patterns():
         path(
             "apps/figrecipe/old-direct/",
             include((legacy_patterns, "figrecipe_app")),
+        ),
+    ]
+
+
+def _writer_old_direct_patterns():
+    """Dev-only old-direct reference for Writer (CCT 2763/2764 + CCT 2806).
+
+    The pre-cutover hub-native routes at apps/writer/old-direct/, for
+    parity comparison while v1 parity is open. [] in production by rule —
+    the gate lives in writer_app/urls/legacy.py so mount and tests read
+    one definition. No registry/manifest entry exists for old-direct, so
+    no launcher tile or link can render it. Scholar #1074 / FigRecipe #1075
+    template.
+
+    ORDER MATTERS (writer, like figrecipe): this list is spliced BEFORE the
+    default mount below. The leaf urlconf carries a ``<path:endpoint>``
+    catch-all, so a default-first order would swallow every old-direct URL
+    into the leaf dispatcher (scholar's leaf has no catch-all, which is why
+    scholar can list the default first).
+    """
+    from apps.workspace.writer_app.urls.legacy import (
+        old_direct_enabled,
+        urlpatterns as legacy_patterns,
+    )
+
+    if not old_direct_enabled():
+        return []
+    # No explicit instance namespace ON PURPOSE: it defaults to the
+    # app_name ("writer_app"), byte-identical to the pre-cutover user-path
+    # mount — so the hub views' reverse("writer_app:...") calls keep
+    # resolving, now to old-direct URLs. That is exactly what a parity
+    # reference should be: the old tree, same names, different prefix.
+    return [
+        path(
+            "apps/writer/old-direct/",
+            include((legacy_patterns, "writer_app")),
         ),
     ]
 
@@ -209,12 +266,13 @@ urlpatterns = [
     path("apps/", include(("apps.workspace.tools_app.urls", "tools_app"))),
     # --- App Creator wizard (scitex-sdk) ---
     # The SDK owns the wizard (STARTERS SSOT + `scitex_sdk.creator.urls`);
-    # the hub only mounts it. Canonical home is /apps/new/ (like /new/ for
-    # projects); the old root-level /create-app/ is dropped entirely.
+    # the hub only mounts it. Canonical home is /apps/sdk/ (moved from
+    # /apps/new/; the old path is a permanent redirect in
+    # urls_legacy_redirects.py, following the PR #1023 pattern).
     # The hub's own /apps/create/* project flow above is the
     # fallback workspace backend.
     path(
-        "apps/new/",
+        "apps/sdk/",
         include((_sdk_creator_patterns(), "scitex_sdk_creator")),
     ),
     # --- Admin ---
@@ -254,13 +312,25 @@ urlpatterns = [
     # namespaces and Django only propagates them to reverse() through a
     # namespace-transparent outer mount (see scholar_app/urls/__init__.py).
     path("apps/scholar/", include("apps.workspace.scholar_app.urls")),
+    # Live Paper viewer (scitex-live-paper leaf 0.2.0): same gated wrapper
+    # shape as scholar — per-request BundleContext via mount(resolver=...).
+    # Single namespace registration (`live_paper`, from the leaf's mount
+    # tuple); the patterns go through the shared login wrapper so the
+    # whole tree is gated.
+    path("apps/live-paper/", include(_live_paper_patterns())),
+    # Journal (agentic-journal leaf, first release 0.1.0a0): same gated
+    # wrapper shape as scholar — leaf views carry no auth of their own.
+    # Canonical home is /apps/agentic-journal/ (leaf slug contract); the
+    # old /apps/journal/ is a permanent redirect in
+    # urls_legacy_redirects.py.
+    path("apps/agentic-journal/", include("apps.workspace.journal_app.urls")),
     # OPERATOR ROUTE RULE (CCT 2763/2764) + RED START (CCT 2806), ALL apps,
     # same pattern: hub-side app routes move to apps/<app>/old-direct as the
     # parity reference, and old-direct NEVER ships in production — dev-gated,
     # no launcher tiles/links, no user path, deleted outright once parity
-    # closes. Scholar was the first instance; figrecipe follows the identical
-    # pattern as of its cutover below (writer / console follow as each
-    # migrates; same mount shape, same gate, same no-tiles rule — no
+    # closes. Scholar was the first instance; figrecipe and writer follow the identical
+    # pattern as of their cutovers below (console follows as it migrates;
+    # same mount shape, same gate, same no-tiles rule — no
     # registry/manifest entry exists for
     # old-direct by construction, so no tile can render it; no /v2/ alias).
     *_scholar_old_direct_patterns(),
@@ -283,7 +353,25 @@ urlpatterns = [
     # it), so the leaf urlconf is never double-mounted.
     *_figrecipe_old_direct_patterns(),
     path("apps/figrecipe/", include("apps.workspace.figrecipe_app.urls")),
-    path("apps/writer/", include(("apps.workspace.writer_app.urls", "writer_app"))),
+    # Writer cutover (Scholar #1074 / FigRecipe #1075 template) + RED START
+    # (CCT 2806, binding): /apps/writer/ serves the LEAF ONLY (SITE-3
+    # wrapper in writer_app/urls/writer_django.py — the working_dir
+    # injection stays on the default path, see that module for why). The
+    # plain hub-side routes went dark first (404) and the plain route is
+    # relit ONLY by the working leaf plugin. The pre-cutover hub-native
+    # routes (feature pages + v2 SITE-3 paths) are NOT on the user path
+    # anymore: they live ONLY at /apps/writer/old-direct/ in dev.
+    # Old-direct is spliced FIRST on purpose (see
+    # _writer_old_direct_patterns: the leaf's <path:endpoint> catch-all
+    # would otherwise swallow it). Plain include (no app_name tuple) ON
+    # PURPOSE: the leaf carries its own namespace and Django only
+    # propagates it to reverse() through a namespace-transparent outer
+    # mount (see writer_app/urls/__init__.py). No alias mount is added
+    # (CCT 2795 lesson). The generic plugin mount keeps skipping this route
+    # via _route_taken (the bespoke default still takes it), so the leaf
+    # urlconf is never double-mounted.
+    *_writer_old_direct_patterns(),
+    path("apps/writer/", include("apps.workspace.writer_app.urls")),
     # NOTE: the raw ``path("writer/", include("scitex_writer._django.urls"))``
     # mount (card hub-mount-writer-django-app-20260707) was REMOVED as a P0
     # security fix (card sec-working-dir-passthrough-family, SITE 3). It

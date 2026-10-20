@@ -188,11 +188,16 @@ def test_gated_root_index_wraps_the_leaf_view():
     raw = _leaf_views.editor_page
     # Act
     mounted = resolve(ROOT).func
-    # Assert
+    # Assert — two hub layers: mount-marker injection outside,
+    # login_required innermost (the only decorator _gated applies beneath).
     assert mounted is not raw, (
         "the cutover root mounts the leaf RAW."
     )
-    assert getattr(mounted, "__wrapped__", None) is raw, (
+    inner = getattr(mounted, "__wrapped__", None)
+    assert inner is not None and inner is not raw, (
+        "the cutover root lost the login_required layer."
+    )
+    assert getattr(inner, "__wrapped__", None) is raw, (
         "the cutover root does not wrap the leaf editor with login_required."
     )
 
@@ -202,11 +207,16 @@ def test_gated_nested_api_wraps_the_leaf_view():
     raw = _leaf_views.api_dispatch
     # Act
     mounted = resolve(ROOT + "figrecipe/api/switch").func
-    # Assert
+    # Assert — two hub layers: mount-marker injection outside,
+    # login_required innermost (the only decorator _gated applies beneath).
     assert mounted is not raw, (
         "the cutover nested API mounts the leaf RAW."
     )
-    assert getattr(mounted, "__wrapped__", None) is raw, (
+    inner = getattr(mounted, "__wrapped__", None)
+    assert inner is not None and inner is not raw, (
+        "the cutover nested API lost the login_required layer."
+    )
+    assert getattr(inner, "__wrapped__", None) is raw, (
         "the cutover nested API does not wrap the leaf dispatcher with login_required."
     )
 

@@ -3,7 +3,7 @@
 """Hub-side fallback for the SDK UI JavaScript catalog (fix-forward #1065).
 
 WHY THIS EXISTS. The SDK App Creator wizard (``scitex_sdk.creator``,
-mounted at /apps/new/) renders through ``scitex_sdk/app/app_shell.html``,
+mounted at /apps/sdk/) renders through ``scitex_sdk/app/app_shell.html``,
 which extends ``scitex_sdk/ui/standalone_shell.html``. That shell embeds
 ``{% scitex_js_catalog "scitex_sdk.ui" %}``, whose ``js_catalog()`` calls
 Django's ``JavaScriptCatalog.get_paths()`` — which only accepts

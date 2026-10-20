@@ -44,6 +44,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     htop \
     vim \
     nano \
+    # Fast file finder (Storage page scan needs fd or fdfind on PATH)
+    fd-find \
     screen \
     # Database (rarely change)
     libpq-dev \

@@ -1,0 +1,59 @@
+name: scitex-sdk-ui-lint
+
+# SDK drift pack gate (STX-UI108/109/110/111, warning-tier SSOT rules):
+# leaf-local headers, hub manifest label/icon drift, launcher hardcoded
+# icons, unconditional !important vs @media. Fails the run on any gated
+# violation in the fixed trees. UI-110 hub-native tiles (chat/settings)
+# carry the explicit `"hub_native": true` escape hatch per SDK ruling;
+# create-app resolves its glyph from the SDK creator manifest at render
+# time. Older UI-101..107 rows are grandfathered (counted, informational).
+#
+# SCOPE (regression gate, widened as lanes comply): the pack measured
+# writer + launcher rows as hub-side work, so the gate lints exactly the
+# fixed trees. Whole-tree UI108 cannot pass yet — dozens of document
+# pages (legal/landing/docs) carry legitimate semantic <header> elements,
+# and scholar/docs/pricing carry !importants their lanes still own.
+# Widen the TARGET list as each lane clears its rows.
+#
+# TEMPORARY PIN: the 108..111 rules live in SDK PR #70 (unmerged), so the
+# gate installs the SDK from that branch ref. The moment #70 is released,
+# replace the ref with `scitex-sdk>=<release>` carrying scitex_sdk.ui._linter.
+
+on:
+  push:
+    branches: [develop, main]
+    paths:
+      - "apps/**"
+      - "static/**"
+      - "templates/**"
+      - ".github/workflows/scitex-sdk-ui-lint.yml"
+  pull_request:
+    paths:
+      - "apps/**"
+      - "static/**"
+      - "templates/**"
+
+jobs:
+  ui-lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install scitex-sdk (drift-pack rules source)
+        run: pip install "git+https://github.com/scitex-ai/scitex-sdk.git@feat/sdk-ui-drift-pack-108-111"
+      - name: Lint fixed trees (UI108/109/110/111 enforced)
+        run: |
+          scitex-sdk ui lint --json apps/workspace/writer_app > ui-violations.jsonl || true
+          scitex-sdk ui lint --json apps/workspace/apps_app/launcher_links >> ui-violations.jsonl || true
+          scitex-sdk ui lint --json apps/workspace/scholar_app/static/scholar_app/css/common/ >> ui-violations.jsonl || true
+          echo "--- UI108/109/110/111 violations (gate):"
+          grep -E '"rule": "STX-UI(108|109|110|111)"' ui-violations.jsonl || true
+          echo "--- older-rule count (grandfathered, informational):"
+          grep -vcE '"rule": "STX-UI(108|109|110|111)"' ui-violations.jsonl || true
+          if grep -qE '"rule": "STX-UI(108|109|110|111)"' ui-violations.jsonl; then
+            echo "FAIL: STX-UI108/109/110/111 violations present (see above)"
+            exit 1
+          fi
+          echo "OK: no STX-UI108/109/110/111 violations."

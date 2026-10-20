@@ -77,12 +77,6 @@ def section_view(request, project_id, section_name):
             try:
                 doc_type = request.GET.get("doc_type", category)
 
-                file_path = _section_target(writer_service, name, doc_type)
-                if file_path is None:
-                    return JsonResponse(
-                        {"success": False, "error": "Invalid section path"}, status=400
-                    )
-
                 logger.info(
                     "[SectionView GET] Reading section=%s category=%s name=%s doc_type=%s",
                     safe_log_field(section_name),
@@ -98,6 +92,11 @@ def section_view(request, project_id, section_name):
                     "shared": "shared",
                 }
                 try:
+                    file_path = _section_target(writer_service, name, doc_type)
+                    if file_path is None:
+                        return JsonResponse(
+                            {"success": False, "error": "Invalid section path"}, status=400
+                        )
                     section_dir = writer_service.writer_dir / doc_dir_map.get(
                         doc_type, "01_manuscript/contents"
                     )
@@ -228,7 +227,21 @@ def section_view(request, project_id, section_name):
                         status=400,
                     )
 
-                if _section_target(writer_service, name, doc_type) is None:
+                try:
+                    target_ready = _section_target(writer_service, name, doc_type)
+                except RuntimeError as exc:
+                    if not _workspace_is_not_ready(exc):
+                        raise
+                    logger.info(f"[SectionView POST] workspace not on disk: {exc}")
+                    return JsonResponse(
+                        {
+                            "success": False,
+                            "error": "workspace not initialized for this project",
+                            "workspace_ready": False,
+                        },
+                        status=409,
+                    )
+                if target_ready is None:
                     return JsonResponse(
                         {"success": False, "error": "Invalid section path"}, status=400
                     )

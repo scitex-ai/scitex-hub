@@ -1,0 +1,28 @@
+{
+  "$schema": "scitex-app-manifest",
+  "$schema_version": "2.0.0",
+  "name": "live-paper",
+  "label": "Live Paper",
+  "app_name": "live_paper_app",
+  "scope": "project",
+  "url": "/apps/live-paper/",
+  "icon": "fas fa-file-alt",
+  "description": "Read-only live paper viewer: PDF with claim anchors, claims panel, provenance.",
+  "pip_package": "scitex-live-paper",
+  "license": "AGPL-3.0",
+  "accent_color": "live-paper",
+  "body_class": "live-paper-page",
+  "ai_hint": "Render accepted manuscript bundles as live papers.",
+  "allowed_extensions": [".pdf", ".tex", ".json", ".yaml"],
+  "hidden_patterns": ["__pycache__", "node_modules", ".git", ".venv", "build"],
+  "renders_ui": false,
+  "renders_ui_reason": "Leaf renders the entire surface (viewer + overlay); hub contributes no workspace partial.",
+  "dependencies": {
+    "python": [],
+    "system": [],
+    "node": [],
+    "r": [],
+    "other": []
+  },
+  "container": null
+}

@@ -114,6 +114,14 @@ class UserProfile(models.Model):
         default="dark",
         help_text="Site theme preference (light/dark)",
     )
+    theme_explicit = models.BooleanField(
+        default=False,
+        help_text="True only after the user explicitly saved a theme via "
+        "the save-theme endpoint. Distinguishes a real choice from the "
+        "auto-created row default so get-theme never serves an unchosen "
+        "default as source 'profile' (it would clobber an explicit "
+        "localStorage choice on every load).",
+    )
     code_theme_light = models.CharField(
         max_length=50,
         default="atom-one-light",

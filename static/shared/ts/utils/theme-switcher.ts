@@ -204,7 +204,18 @@ function updateToggleButton(): void {
   const toggleBtn = document.getElementById("theme-toggle");
   if (!toggleBtn) return;
 
-  const theme = getThemePreference();
+  // The label describes the RENDERED theme, not the stored preference: the
+  // two can disagree (embed-pinned theme, profile applied over stale
+  // storage, races between writers), and every such divergence showed the
+  // inverted label (dark page saying "Switch to dark mode", measured
+  // 2026-10-15). data-theme on the root is the single rendered truth — set
+  // by the head inline script, applyTheme(), and embeds alike. Storage is
+  // only the fallback for the instant before anything applied.
+  const rendered = document.documentElement.getAttribute("data-theme");
+  const theme =
+    rendered === THEME_LIGHT || rendered === THEME_DARK
+      ? rendered
+      : getThemePreference();
 
   // The button's content is the single half-circle icon rendered by
   // global_header.html (operator TODO: "replace the moon/sun icons with a

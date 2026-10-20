@@ -4,6 +4,7 @@
   "name": "chat",
   "label": "Chat",
   "icon": "fas fa-comment",
+  "hub_native": true,
   "category": "writing",
   "url": "/chat/",
   "description": "Chat with the SciTeX AI assistant."

@@ -230,16 +230,20 @@ class HomePagesTest(TestCase):
         groups = self._groups()
         # Act
         names = [c.get("name") for c in groups[2]["cells"] if not c.get("is_planned")]
-        # Assert
-        assert names == ["public_projects"]
+        # Assert — live-paper and agentic-journal ship real tiles alongside
+        # the public-projects entry.
+        assert names == ["public_projects", "live-paper", "agentic-journal"]
 
     def test_publication_group_holds_the_publication_placeholders(self):
         # Arrange
         groups = self._groups()
         # Act
         planned = [c.get("name") for c in groups[2]["cells"] if c.get("is_planned")]
-        # Assert
-        assert planned == ["live-paper", "agentic-journal"]
+        # Assert — live-paper and agentic-journal ship real tiles, so they
+        # must not linger as coming-soon placeholders (whatever else is
+        # still planned is that test's business, not this mount's).
+        assert "live-paper" not in planned
+        assert "agentic-journal" not in planned
 
 
     def test_system_group_holds_settings_docs_and_app_store(self):

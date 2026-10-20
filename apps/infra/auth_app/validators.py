@@ -58,7 +58,7 @@ def get_reserved_usernames():
             "reset",
             "verify",
             "confirm",
-            # Legacy redirect /create-app/ -> /apps/new/ still occupies the
+            # Legacy redirect /create-app/ -> /apps/sdk/ still occupies the
             # path (see config/urls_helpers.py); keep parity when the live
             # route import above fails.
             "create-app",

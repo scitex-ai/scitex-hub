@@ -48,15 +48,18 @@ def api_submit_for_review(request, module_name):
 
     pinned_commit = _fetch_head_commit(request.user.username, app_module.project.slug)
 
-    version = getattr(app_module, "latest_version", "0.1.0") or "0.1.0"
-
-    # Update pinned commit
+    # Update pinned commit + version: the certification record the
+    # Verified badge is bound to (publisher, version-hash). A different
+    # version shows no badge in production until re-certified. latest_version
+    # is a detail-view annotation, not a model field — read the version
+    # history (the PR's own latest_released_version), never getattr.
     app_module.pinned_commit = pinned_commit
-    app_module.save(update_fields=["pinned_commit"])
+    app_module.pinned_version = app_module.latest_released_version() or "0.1.0"
+    app_module.save(update_fields=["pinned_commit", "pinned_version"])
 
     pr_url = _submit_app_pr(
         app_module=app_module,
-        version=version,
+        version=app_module.pinned_version,
     )
 
     submission = ModuleSubmission.objects.create(

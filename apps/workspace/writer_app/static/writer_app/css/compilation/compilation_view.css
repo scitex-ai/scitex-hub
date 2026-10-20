@@ -1,7 +1,4 @@
-/* Utility Classes */
-.hidden {
-  display: none !important;
-}
+/* .hidden lives in shared/common.css (STX-UI111). */
 
 .compilation-container {
   max-width: 1400px;

@@ -144,6 +144,64 @@ jobs:
           uv pip install --python .venv/bin/python -e ".[all,dev]" \
             || uv pip install --python .venv/bin/python -e ".[dev]" \
             || uv pip install --python .venv/bin/python -e .
+      - name: Setup Node.js (for Vite build below)
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: Upgrade npm (bundled npm 10 crashes on this tree)
+        # npm 10 aborts fresh installs with "Cannot read properties of null
+        # (reading 'edgesOut')" (measured on develop screenshots job too);
+        # npm 11 resolves the same tree cleanly. Scoped to the job user.
+        run: |
+          npm install -g --prefix "$HOME/.npm-global" npm@11
+          echo "$HOME/.npm-global/bin" >> "$GITHUB_PATH"
+      - name: Clone sibling workspace apps for Vite bridges and npm file deps
+        # install_apps.sh cannot run here (it requires jq, absent from the
+        # buildpack-deps job container; screenshots.yml only gets away with
+        # it on hosted runners). Shallow clones give vite.config.ts bridge
+        # discovery and npm's file deps (../scitex-ui, ../figrecipe/...)
+        # exactly the ../sibling layout both expect. Public https - these
+        # repos allow anonymous ls-remote (verified 2026-10-16).
+        run: |
+          set -euo pipefail
+          # Self-hosted runners reuse the workspace parent across runs, so a
+          # sibling may already exist (stale or foreign). Resync deterministi-
+          # cally: fast-forward a live repo, otherwise replace it outright.
+          sync_sibling() {
+            if [ -d "$2/.git" ]; then
+              git -C "$2" fetch --depth 1 origin develop
+              git -C "$2" reset --hard origin/develop
+            else
+              rm -rf "$2"
+              git clone --depth 1 --branch develop "https://github.com/scitex-ai/$1.git" "$2"
+            fi
+          }
+          sync_sibling scitex-ui ../scitex-ui
+          sync_sibling figrecipe ../figrecipe
+          # scitex-sdk source (NOT covered by the sibling set) - the figrecipe
+          # bridge imports @scitex/sdk/* and hub's node_modules carries no
+          # @scitex/sdk, so without this the build aborts with "Rollup failed
+          # to resolve import" exactly as the live dev checkout did pre-#1076.
+          # Intentionally CI-local, not .scitex-apps.json - that file also
+          # drives production boots, where the SDK must stay a pinned pip
+          # dependency, not a develop-tip checkout.
+          sync_sibling scitex-sdk ../scitex-sdk
+          test -f ../scitex-sdk/src/scitex_sdk/package.json
+      - name: Build Vite bundle and stage for DEBUG serving
+        # Without a built manifest (gitignored, pytest forces DEBUG=False so
+        # every page takes the manifest path), all vite_script tags emit
+        # "[vite] missing entry" and content-asserting page tests fail
+        # (measured 2026-10-15: base-red family F1).
+        run: |
+          set -euo pipefail
+          npm install
+          npm run build
+          # Same staging as screenshots.yml: DEBUG serving reads FINDERS
+          # (STATICFILES_DIRS + app dirs), never STATIC_ROOT where the build
+          # lands — copy under static/vite so /static/vite/* URLs resolve.
+          rm -rf static/vite
+          cp -r staticfiles/vite static/vite
+          echo "vite assets staged: $(find static/vite -type f | wc -l) files"
       - name: Run tests
         # Django settings hard-fail (ValueError, per "no silent fallback")
         # if SCITEX_HUB_DJANGO_SECRET_KEY is unset. CI doesn't need a real
@@ -153,6 +211,12 @@ jobs:
           SCITEX_HUB_DJANGO_SECRET_KEY: ci-test-secret-do-not-use-in-prod  # pragma: allowlist secret
           # settings_dev.py: require_env("SCITEX_HUB_GITEA_SSH_PORT_DEV")
           SCITEX_HUB_GITEA_SSH_PORT_DEV: "2222"
+          # No Gitea server runs in CI: the token stays deliberately empty
+          # so Gitea-backed paths take their fast "not configured" branch
+          # (a dummy value would only turn instant skips into connection
+          # timeouts). Declared explicitly so the absence is a decision,
+          # not an omission (writer #1077 fixture-gap close-out).
+          SCITEX_HUB_GITEA_TOKEN_DEV: ""
           # Point Django at the postgres service declared above. settings_dev
           # reads the _DEV-suffixed variants, not the bare names.
           SCITEX_HUB_DB_NAME_DEV: scitex_test

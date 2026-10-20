@@ -279,18 +279,9 @@
   }
 }
 
-/* ===============================================
-   TWO-COLUMN SPLIT LAYOUT FOR ALL TABS
-   Each tab has: left-panel | resizer | right-panel
-   =============================================== */
-
-/* All tabs with resizers use row layout */
-#tab-search,
-#tab-bibtex,
-#tab-graph {
-  flex-direction: row !important;
-  overflow: hidden;
-}
+/* Tab-split resizer layout lives in 07b-tab-split-layout.css (STX-UI111):
+   unconditional `!important` overrides must stay out of @media-carrying
+   files so they can never fork a responsive rule. */
 
 /* Shared resizer style for in-tab splits */
 .scholar-tab-resizer {

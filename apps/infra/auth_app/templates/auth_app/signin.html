@@ -9,6 +9,24 @@
     <div class="container auth-container">
         <div class="auth-form">
             <h2 class="mb-4">{% trans "Sign In" %}</h2>
+            {% if next_url %}
+                <div class="alert-banner alert-banner-info"
+                     style="margin-bottom: var(--spacing-md)"
+                     role="status">
+                    <div class="warning-banner-container">
+                        <div class="warning-banner-content">
+                            <i class="warning-banner-icon fas fa-info-circle"></i>
+                            <div class="warning-banner-text">
+                                {% if continue_app %}
+                                <div class="warning-banner-description">{% blocktrans with app=continue_app %}You're signing in to continue to {{ app }} — you'll return there after signing in.{% endblocktrans %}</div>
+                                {% else %}
+                                <div class="warning-banner-description">{% trans "After signing in you'll return to the page you requested." %}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            {% endif %}
             {% if messages %}
                 {% for message in messages %}
                     <div class="alert-banner alert-banner-{% if message.tags == 'error' %}danger{% elif message.tags == 'success' %}success{% elif message.tags == 'warning' %}warning{% else %}info{% endif %}"
@@ -29,6 +47,9 @@
                   action="{% url 'auth_app:login' %}"
                   autocomplete="on">
                 {% csrf_token %}
+                {% if next_url %}
+                <input type="hidden" name="next" value="{{ next_url }}" />
+                {% endif %}
                 <div class="form-group mb-3">
                     <label for="username" class="form-label">
                         {% trans "Username or Email" %} <span class="text-danger">*</span>

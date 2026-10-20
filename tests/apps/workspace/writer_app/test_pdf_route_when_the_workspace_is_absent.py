@@ -24,8 +24,15 @@ from apps.infra.project_app.models import Project
 from apps.infra.project_app.services.project_filesystem import (
     get_project_filesystem_manager,
 )
+from tests.apps.workspace.writer_app._old_direct_gate import (
+    writer_old_direct_urls,
+)
 
 PASSWORD = "TestPass123!"  # pragma: allowlist secret
+
+# CUTOVER: the hub pdf route lives ONLY at old-direct in dev now (same view,
+# same assertions — only the prefix moved; the gate reloads the real root
+# urlconf around each drive because the suite runs prod-shaped).
 
 
 class PdfRouteWhenWorkspaceIsAbsentTest(TestCase):
@@ -55,7 +62,8 @@ class PdfRouteWhenWorkspaceIsAbsentTest(TestCase):
         # Arrange
         client = self._client()
         # Act
-        response = client.get(f"/apps/writer/api/project/{self.unborn.pk}/pdf/?doc_type=manuscript")
+        with writer_old_direct_urls():
+            response = client.get(f"/apps/writer/old-direct/api/project/{self.unborn.pk}/pdf/?doc_type=manuscript")
         # Assert
         assert response.status_code < 500, response.content
         assert response.status_code == 404, response.content
@@ -64,9 +72,10 @@ class PdfRouteWhenWorkspaceIsAbsentTest(TestCase):
         # Arrange: the preview form the editor also requests.
         client = self._client()
         # Act
-        response = client.get(
-            f"/apps/writer/api/project/{self.unborn.pk}/pdf/preview-abstract-light.pdf"
-        )
+        with writer_old_direct_urls():
+            response = client.get(
+                f"/apps/writer/old-direct/api/project/{self.unborn.pk}/pdf/preview-abstract-light.pdf"
+            )
         # Assert
         assert response.status_code < 500, response.content
         assert response.status_code == 404, response.content
@@ -75,7 +84,8 @@ class PdfRouteWhenWorkspaceIsAbsentTest(TestCase):
         # Arrange: the ordinary path, which the fix must not have changed.
         client = self._client()
         # Act
-        response = client.get(f"/apps/writer/api/project/{self.ready.pk}/pdf/?doc_type=manuscript")
+        with writer_old_direct_urls():
+            response = client.get(f"/apps/writer/old-direct/api/project/{self.ready.pk}/pdf/?doc_type=manuscript")
         # Assert
         assert response.status_code == 404, response.content
 
@@ -83,14 +93,16 @@ class PdfRouteWhenWorkspaceIsAbsentTest(TestCase):
         # Arrange
         client = self._client()
         # Act
-        response = client.get("/apps/writer/api/project/999999999/pdf/?doc_type=manuscript")
+        with writer_old_direct_urls():
+            response = client.get("/apps/writer/old-direct/api/project/999999999/pdf/?doc_type=manuscript")
         # Assert
         assert response.status_code == 404, response.content
 
     def test_an_anonymous_caller_is_still_refused(self):
         # Arrange: the fix is confined to the workspace branch.
         # Act
-        response = Client().get(f"/apps/writer/api/project/{self.unborn.pk}/pdf/?doc_type=manuscript")
+        with writer_old_direct_urls():
+            response = Client().get(f"/apps/writer/old-direct/api/project/{self.unborn.pk}/pdf/?doc_type=manuscript")
         # Assert
         assert response.status_code == 401, response.content
 

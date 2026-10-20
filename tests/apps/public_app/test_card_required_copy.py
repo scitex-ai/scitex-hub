@@ -147,6 +147,10 @@ def test_signup_page_drops_the_unbacked_japanese_academic_benefits(client):
 
 @pytest.mark.django_db
 def test_english_signup_translates_the_academic_email_hint(client):
+    # Operator restore SCOPE 2026-10-19 (PR #1104): the STATIC
+    # "Academic email examples:" line is removed from the signup page; the
+    # live hint ("Academic email recognized — ...", revealed by
+    # POST /auth/api/check-email/) carries the English copy instead.
     # Arrange
     japanese_source = "学術機関の例"
     # Act
@@ -154,8 +158,9 @@ def test_english_signup_translates_the_academic_email_hint(client):
     # Assert
     assert (japanese_source in visible, "Academic email examples:" in visible) == (
         False,
-        True,
+        False,
     )
+    assert "Academic email recognized" in visible
 
 
 @pytest.mark.django_db

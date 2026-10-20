@@ -12,12 +12,12 @@ Collaborative editing session {% endcomment %}
 {% endblock %}
 {% block writer_content %}
     <div class="collaboration-container">
-        <header class="collaboration-header">
+        <div class="collaboration-header">
             <h2>Collaborative Session</h2>
             <div class="active-users">
                 {% for user in active_users %}<span class="user-badge">{{ user.username }}</span>{% endfor %}
             </div>
-        </header>
+        </div>
         <div class="collaboration-main">
             <div class="editor-panel">
                 <textarea id="collaborative-editor" class="collaborative-editor"></textarea>

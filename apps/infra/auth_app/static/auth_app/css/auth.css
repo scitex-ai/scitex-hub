@@ -314,23 +314,56 @@
 }
 
 /* ---------------------------------------------------------------------------
- * Signup CTA on dark theme (card hub-signup-cta-washed-out-olive-dark-20261007).
+ * Auth CTA brand colors (card hub-auth-cta-brand-navy-gold-20261019,
+ * operator CCT4553).
  *
- * The shared dark rule for .btn-success is a muted olive (#2d5a3d, hover
- * #3d6a4d) that reads as disabled on the near-black page. The signup CTA
- * carries btn-success, so without its own rule it inherits that olive.
- * This scoped override gives the funnel CTA a vibrant green on dark only.
- * Signin is untouched: it uses .btn-primary (tan), a different selector.
+ * The signup/signin actions use the SDK brand contract — navy in light,
+ * gold in dark — consumed as tokens, never hardcoded hexes, so a palette
+ * retune propagates. This REPLACES the #1059 vibrant-green dark override
+ * (#2ea043/#3fb950): the operator rejected green in both themes (sage
+ * #5a9a7e in light via .btn-success, vibrant green in dark). The signup
+ * button itself no longer carries btn-success (2026-10-19 precedence fix):
+ * its color comes ONLY from .auth-primary-cta, so no Bootstrap or shell
+ * .btn-success redeclaration can ever win the cascade again.
+ * Signin keeps .btn-primary (selector separation from the signup CTA is
+ * unchanged); only its dark hover is re-scoped below.
  * ------------------------------------------------------------------------- */
+[data-theme="light"] .btn.auth-primary-cta {
+  background-color: var(--color-primary, #1a2a40);
+  border-color: var(--color-primary, #1a2a40);
+  color: var(--color-on-primary, #ffffff);
+}
+
+[data-theme="light"] .btn.auth-primary-cta:hover,
+[data-theme="light"] .btn.auth-primary-cta:focus {
+  background-color: var(--color-primary-hover, #243752);
+  border-color: var(--color-primary-hover, #243752);
+  color: var(--color-on-primary, #ffffff);
+}
+
 [data-theme="dark"] .btn.auth-primary-cta {
-  background-color: #2ea043;
-  border-color: #2ea043;
-  color: #fff;
+  background-color: var(--color-primary, #d4a87a);
+  border-color: var(--color-primary, #d4a87a);
+  color: var(--color-on-primary, #1a2a40);
 }
 
 [data-theme="dark"] .btn.auth-primary-cta:hover,
 [data-theme="dark"] .btn.auth-primary-cta:focus {
-  background-color: #3fb950;
-  border-color: #3fb950;
-  color: #fff;
+  background-color: var(--color-primary-active, #c49868);
+  border-color: var(--color-primary-active, #c49868);
+  color: var(--color-on-primary, #1a2a40);
+}
+
+/* ---------------------------------------------------------------------------
+ * Signin hover on dark (same card): the shared dark .btn-primary:hover
+ * LIGHTENS gold toward a wash (#e0bb93), which reads as disabled on the
+ * auth form. Scoped to .auth-form so no other surface changes: the hover
+ * DEEPENS to the brand active gold instead, mirroring light's deepening
+ * navy. Light hover already deepens via the shared rule; no override.
+ * ------------------------------------------------------------------------- */
+[data-theme="dark"] .auth-form .btn-primary:hover,
+[data-theme="dark"] .auth-form .btn-primary:focus {
+  background-color: var(--color-primary-active, #c49868);
+  border-color: var(--color-primary-active, #c49868);
+  color: var(--color-on-primary, #1a2a40);
 }

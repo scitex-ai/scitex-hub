@@ -253,10 +253,25 @@ def writer_api_base(request):
     keeps getting an empty context key here (falls through to the
     template's own ``default:'/'``, unused since no other page reads
     ``api_base``).
+
+    CUTOVER: /apps/writer/ (+ viewer/) now serves the LEAF editor/viewer
+    (same templates, same ``{{ api_base|default:'/' }}`` read). The leaf
+    dispatches its API at its own root (``<path:endpoint>``; HANDLERS keys
+    already carry their own "api/" prefix), so the leaf pages need
+    ``api_base == "/apps/writer/"`` — without this branch the cutover
+    default relapses scitex-hub#146 Part B (fetches to ``/`` root, 404).
+    Old-direct v2 paths keep working through the suffix branch above
+    (``/apps/writer/old-direct/editor-v2/`` derives
+    ``/apps/writer/old-direct/v2/`` — the old-direct API mouth).
     """
     path = request.path
     if path.endswith("/editor-v2/") or path.endswith("/viewer-v2/"):
         return {"api_base": path.rsplit("/", 2)[0] + "/v2/"}
+    if path in ("/apps/writer/", "/apps/writer/viewer/"):
+        # The leaf default mount (cutover): the editor/viewer shell at the
+        # leaf root, whose API lives at the same root ("/" would point the
+        # SPA at hub's site root, where no writer handlers exist).
+        return {"api_base": "/apps/writer/"}
     if path.endswith("/live/"):
         # "v2/" (not "api/"): HANDLERS keys already carry their own "api/"
         # prefix (e.g. "api/claims") — see

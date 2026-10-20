@@ -12,10 +12,10 @@ Compilation history and status view {% endcomment %}
 {% endblock %}
 {% block writer_content %}
     <div class="compilation-container">
-        <header class="compilation-header">
+        <div class="compilation-header">
             <h2>Compilation History</h2>
             <button class="btn-primary" id="btn-new-compilation">New Compilation</button>
-        </header>
+        </div>
         <div class="compilation-list">
             {% if compilations %}
                 {% for compilation in compilations %}
