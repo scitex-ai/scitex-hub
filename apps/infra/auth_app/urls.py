@@ -51,6 +51,11 @@ urlpatterns = [
         api_views.check_username_availability,
         name="api_check_username",
     ),
+    path(
+        "api/check-email/",
+        api_views.check_email_academic,
+        name="api_check_email",
+    ),
     # API endpoint for remote credential verification (orochi)
     path(
         "api/login/",

@@ -125,8 +125,12 @@ class TestFundingRoutes:
 @requires_django
 @pytest.mark.django_db
 class TestFundingEntrySurface:
-    def test_signup_page_links_funding(self, client):
+    def test_signup_page_does_not_link_funding(self, client):
+        # Operator restore SCOPE 2026-10-19 (PR #1104): the signup page is
+        # decluttered — the Fund-open-science line is removed. The funding
+        # destination itself keeps working (test_funding_page_returns_200,
+        # test_funding_page_links_manifest above).
         from django.urls import reverse
 
         content = client.get(reverse("auth_app:signup")).content.decode()
-        assert "/funding/" in content
+        assert "/funding/" not in content
