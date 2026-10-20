@@ -1,0 +1,20 @@
+/* Scholar tab-split layout: unconditional resizer rules (STX-UI111).
+
+The two-column split (left-panel | resizer | right-panel) must hold at
+every viewport, so these `!important` overrides cannot move inside a
+breakpoint query. They live HERE — this file carries no breakpoint
+queries, so they can never fork a responsive rule.
+*/
+
+/* ===============================================
+   TWO-COLUMN SPLIT LAYOUT FOR ALL TABS
+   Each tab has: left-panel | resizer | right-panel
+   =============================================== */
+
+/* All tabs with resizers use row layout */
+#tab-search,
+#tab-bibtex,
+#tab-graph {
+  flex-direction: row !important;
+  overflow: hidden;
+}

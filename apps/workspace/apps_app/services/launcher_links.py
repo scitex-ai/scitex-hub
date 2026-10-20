@@ -14,7 +14,10 @@ catalogue (seed_apps creates an AppsModule row for each one), the docs index and
 ``extract_module_from_path``. That last one decides which module is ACTIVE for
 a URL, so registering "settings" at /accounts/settings/ would change which
 sidebar context every account page renders in. A link tile needs none of that.
-It gets a small manifest of its own (label, icon, category, url) under
+It gets a small manifest of its own (label, category, url, plus EITHER
+``icon`` with ``hub_native: true`` for hub-native tiles that have no leaf
+manifest, OR ``icon_from_sdk`` naming an SDK manifest to resolve the glyph
+from at render time — STX-UI110 forbids hardcoded leaf icons) under
 ``apps_app/launcher_links/``, and ``launcher._build_tiles`` appends it to the
 grid. Nothing else reads it.
 
@@ -35,8 +38,11 @@ logger = logging.getLogger(__name__)
 
 _LINKS_DIR = Path(__file__).resolve().parent.parent / "launcher_links"
 
-#: Every key a link manifest must carry, non-empty.
-_REQUIRED = ("name", "label", "icon", "category", "url")
+#: Every key a link manifest must carry, non-empty — except ``icon``, which
+#: is EITHER a hub-native glyph (with ``hub_native: true``) or resolved
+#: from the SDK manifest named by ``icon_from_sdk`` (STX-UI110: no
+#: hardcoded leaf icons in hub launcher JSON).
+_REQUIRED = ("name", "label", "category", "url")
 
 
 @dataclass(frozen=True)
@@ -51,15 +57,53 @@ class LauncherLink:
     description: str = ""
 
 
+def _resolve_sdk_icon(ref: str) -> str:
+    """Read the icon from an SDK-shipped manifest (``scitex_sdk/<ref>/``).
+
+    create-app is NOT hub-native: its glyph lives in the SDK creator
+    manifest (operator leaf-owns-icons rule). Never raises: a missing
+    manifest degrades to "" and the tile falls back to the puzzle piece.
+    """
+    try:
+        from importlib.resources import files as _files
+
+        data = json.loads(
+            (_files("scitex_sdk") / ref / "manifest.json").read_text(
+                encoding="utf-8"
+            )
+        )
+        icon = str(data.get("icon", "") or "").strip()
+        if not icon:
+            raise ValueError(f"SDK manifest {ref} carries no icon")
+        return icon
+    except Exception:
+        logger.exception("[launcher] could not resolve SDK icon %r", ref)
+        return ""
+
+
 def _load(path: Path) -> LauncherLink:
     data = json.loads(path.read_text(encoding="utf-8"))
     missing = [key for key in _REQUIRED if not data.get(key)]
     if missing:
         raise ValueError(f"launcher link {path.name} is missing {missing}")
+    if data.get("icon_from_sdk"):
+        icon = _resolve_sdk_icon(data["icon_from_sdk"])
+    elif data.get("icon"):
+        if not data.get("hub_native"):
+            raise ValueError(
+                f"launcher link {path.name} hardcodes icon without "
+                '"hub_native": true — declare hub-native or resolve '
+                "from the leaf/SDK manifest (STX-UI110)"
+            )
+        icon = data["icon"]
+    else:
+        raise ValueError(
+            f"launcher link {path.name} needs icon or icon_from_sdk"
+        )
     return LauncherLink(
         name=data["name"],
         label=data["label"],
-        icon=data["icon"],
+        icon=icon,
         category=data["category"],
         url=data["url"],
         description=data.get("description", ""),
