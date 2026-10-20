@@ -81,7 +81,7 @@ def get_reserved_paths():
         reserved.update(["__reload__", "__debug__"])
 
     # 5. Legacy occupied paths (no live route, still served).
-    # Legacy redirect /create-app/ -> /apps/new/ still occupies the path;
+    # Legacy redirect /create-app/ -> /apps/sdk/ still occupies the path;
     # a username must not collide with it (or with profile-route
     # classification in tests/apps/workspace_app/
     # test_public_routes_are_not_usernames.py).

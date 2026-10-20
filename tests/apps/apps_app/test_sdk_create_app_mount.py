@@ -27,13 +27,13 @@ class SdkCreatorMountTest(TestCase):
         anchor = html[html.rindex("<a", 0, start) : html.index(">", start)]
 
         # Assert
-        assert 'href="/apps/new/"' in anchor
+        assert 'href="/apps/sdk/"' in anchor
 
     def test_wizard_requires_login(self):
         # Arrange (signed out)
 
         # Act
-        response = self.client.get("/apps/new/")
+        response = self.client.get("/apps/sdk/")
 
         # Assert
         assert response.status_code == 302
@@ -43,7 +43,7 @@ class SdkCreatorMountTest(TestCase):
         self.client.force_login(self.user)
 
         # Act
-        response = self.client.get("/apps/new/")
+        response = self.client.get("/apps/sdk/")
 
         # Assert
         assert response.status_code == 200
@@ -53,7 +53,7 @@ class SdkCreatorMountTest(TestCase):
         self.client.force_login(self.user)
 
         # Act
-        html = self.client.get("/apps/new/").content.decode("utf-8")
+        html = self.client.get("/apps/sdk/").content.decode("utf-8")
 
         # Assert
         assert 'value="data_entry"' in html
@@ -63,7 +63,7 @@ class SdkCreatorMountTest(TestCase):
         self.client.force_login(self.user)
 
         # Act
-        response = self.client.get("/apps/new/healthz")
+        response = self.client.get("/apps/sdk/healthz")
 
         # Assert
         assert response.json() == {"ok": True, "app": "scitex-sdk-creator"}
@@ -99,6 +99,26 @@ class SdkCreatorMountTest(TestCase):
 
         # Assert
         assert reserved
+
+    def test_old_new_path_redirects_to_sdk_home(self):
+        # Arrange (signed out; redirects answer before auth)
+
+        # Act
+        response = self.client.get("/apps/new/")
+
+        # Assert
+        assert response.status_code == 301
+        assert response["Location"] == "/apps/sdk/"
+
+    def test_root_create_app_redirects_to_sdk_home(self):
+        # Arrange (signed out; redirects answer before auth)
+
+        # Act
+        response = self.client.get("/create-app/")
+
+        # Assert
+        assert response.status_code == 301
+        assert response["Location"] == "/apps/sdk/"
 
 
 # EOF
