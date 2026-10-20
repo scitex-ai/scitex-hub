@@ -2,7 +2,7 @@
   "$schema": "scitex-app-manifest",
   "$schema_version": "2.0.0",
   "name": "figrecipe",
-  "label": "FigRecipe",
+  "label": "Figrecipe",
   "app_name": "figrecipe_app",
   "scope": "project",
   "icon": "fas fa-palette",

@@ -284,6 +284,31 @@ def _resolve_version(data: dict) -> str:
         return ""
 
 
+def _resolve_leaf_manifest(data: dict) -> dict:
+    """Read the INSTALLED leaf package's own ``_django/manifest.json``.
+
+    Leaf-icon rule (SDK PR #63 rule 6, operator rule): a leaf's icon+label
+    live in the leaf manifest; hub must not hand-carry copies that drift
+    (figrecipe read "FigRecipe" in hub vs "Figrecipe" in the leaf). The hub
+    manifest keeps its own icon/label keys as FALLBACK for leaves that do
+    not ship a manifest yet — but whenever the leaf manifest exists, the
+    leaf wins. Never raises: a missing dist or manifest degrades to ``{}``.
+    """
+    pkg = (data.get("pip_package", "") or "").replace("-", "_")
+    if not pkg:
+        return {}
+    try:
+        from importlib.resources import files as _files
+
+        text = (_files(pkg) / "_django" / "manifest.json").read_text(
+            encoding="utf-8"
+        )
+        leaf = json.loads(text)
+        return leaf if isinstance(leaf, dict) else {}
+    except Exception:
+        return {}
+
+
 def _resolve_availability(data: dict) -> str:
     """Validate the manifest's ``availability`` declaration.
 
@@ -318,11 +343,16 @@ def _manifest_to_module_config(data: dict) -> ModuleConfig:
     overrides = _MANIFEST_OVERRIDES.get(name, {})
     effective_data = {**data, **overrides}
 
+    leaf = _resolve_leaf_manifest(data)
+    # Leaf-icon rule: the leaf manifest's icon+label win when present; the
+    # hub manifest's own keys are fallback for leaves without one yet.
+    label = (leaf.get("label") or data["label"]).strip() or data["label"]
+    icon = (leaf.get("icon") or data.get("icon", "")).strip()
     return ModuleConfig(
         name=name,
-        label=data["label"],
+        label=label,
         app_name=data["app_name"],
-        icon_fa=data.get("icon", ""),
+        icon_fa=icon,
         icon_badge=data.get("icon_badge", ""),
         icon_svg_tab=overrides.get("icon_svg_tab", ""),
         icon_svg_nav=overrides.get("icon_svg_nav", ""),
