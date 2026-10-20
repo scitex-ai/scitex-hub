@@ -132,9 +132,6 @@ LOGOUT_REDIRECT_URL = "/"
 # Metadata
 # ---------------------------------------
 SCITEX_HUB_VERSION = _get_version()
-SCITEX_HUB_VISITOR_POOL_SIZE = int(
-    _getenv_alias("SCITEX_HUB_VISITOR_POOL_SIZE", "4") or "4"
-)
 UMAMI_WEBSITE_ID = _getenv_alias("SCITEX_HUB_UMAMI_WEBSITE_ID", "")
 UMAMI_SCRIPT_URL = _getenv_alias(
     "SCITEX_HUB_UMAMI_SCRIPT_URL", "https://cloud.umami.is/script.js"
@@ -143,26 +140,15 @@ UMAMI_SCRIPT_URL = _getenv_alias(
 # ---------------------------------------
 # Unix identity the WEB process serves as
 # ---------------------------------------
-# A visitor-slot reset runs in the visitor Celery worker, which is ROOT on
-# production, while the process that must afterwards WRITE into the recycled
-# tree is the web process (daphne, uid 1000 / user `scitex`). The reset has to
-# hand the tree back to that identity as its last act -- see
-# apps/infra/project_app/services/visitor_pool/home_state.enforce_app_ownership.
-#
 # Declared HERE, once, because this identity is a property of the DEPLOYMENT,
-# not of the service that happens to run the chown. It began life as a
-# `getattr(settings, "APP_UNIX_OWNER", "scitex")` hidden inside home_state.py:
-# a user name that exists on production and nowhere else, reached through a
-# default nothing declared and nothing could override. CI's py3.11 leg made the
-# cost visible -- `chown: invalid user: 'scitex:scitex'` on a GitHub runner that
-# has no such account, so every slot reset failed there.
+# not of whichever service happens to use it. CI runners may not have the
+# production account, so every caller must treat an unresolvable value as an
+# explicit deployment error.
 #
 # Accepted forms: a user NAME (`scitex`), a numeric uid (`1000`), or an explicit
 # `<user>:<group>` pair of either (`scitex:scitex`, `1000:1000`). A name is
-# resolved through pwd/grp at reset time and an unresolvable value fails LOUDLY,
-# quarantining the slot. There is deliberately NO fallback to "whoever happens
-# to be running": on production that is root, which is exactly the bug this
-# whole mechanism exists to prevent.
+# resolved through pwd/grp and an unresolvable value fails loudly. There is no
+# fallback to "whoever happens to be running" because that may be root.
 APP_UNIX_OWNER = _getenv_alias("SCITEX_HUB_APP_UNIX_OWNER", "scitex") or "scitex"
 
 # ---------------------------------------
@@ -209,10 +195,15 @@ THIRD_PARTY_APPS.append("scitex_ui")
 # lives in _optional_apps.py — including the scitex-cards rename-window
 # shim and the reason it exists. Extracted 2026-08-16.
 THIRD_PARTY_APPS.extend(optional_upstream_apps())
-# Plugin apps: `pip install <pkg>` with a `scitex.apps` entry point (scitex_app.plugins).
-THIRD_PARTY_APPS = with_plugin_apps(THIRD_PARTY_APPS)
-
 LOCAL_APPS = discover_local_apps()
+# Plugin apps: `pip install <pkg>` with a `scitex.apps` entry point (scitex_app.plugins).
+# LOCAL_APPS ride along as extra label claims (not merged here): a plugin from
+# another package that reuses a local app's label (scitex-clew 0.21.0 claims
+# `clew_app`, same as apps.workspace.clew_app) must be skipped, or
+# django.setup() dies on the duplicate label. Order matters: locals must be
+# discovered BEFORE this call so the guard can see them.
+THIRD_PARTY_APPS = with_plugin_apps(THIRD_PARTY_APPS, extra_claims=LOCAL_APPS)
+
 INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + LOCAL_APPS
 
 # Mirrors config.context_processors.scitex_env's alias normalization.
@@ -234,6 +225,11 @@ SCITEX_UI_ELEMENT_INSPECTOR = _scitex_hub_env in ("development", "staging")
 # Host service for leaf apps' project pickers (scitex_ui.project_scope).
 SCITEX_PROJECT_PROVIDER = "apps.infra.project_app.services.project_scope.HubProjectProvider"
 SCITEX_PROJECT_PROVIDER_URL = "api_project_scope"
+# Where an AUTHORIZED project's files live + per-request write check, for
+# project-scope leaf apps (figrecipe wrapper) via the SDK host capability.
+SCITEX_PROJECT_STORAGE = (
+    "apps.infra.project_app.services.project_scope.HubProjectStorage"
+)
 
 # ── Internal-app release channel ────────────────────────────────────────
 # Whether "internal"-visibility apps (Cards, Storage, todo, …) are released
@@ -262,7 +258,6 @@ ONSITE_AUTH_SECRET = os.environ.get("SCITEX_HUB_ONSITE_SECRET", "")
 # module; imported under the same name so env modules can extend it.
 from .settings_middleware import MIDDLEWARE  # noqa: E402, F401
 
-
 AUTHENTICATION_BACKENDS = [
     "django.contrib.auth.backends.ModelBackend",
     "allauth.account.auth_backends.AuthenticationBackend",
@@ -286,7 +281,6 @@ TEMPLATES = [
                 "django.contrib.messages.context_processors.messages",
                 "apps.infra.project_app.context_processors.version_context",
                 "apps.infra.project_app.context_processors.project_context",
-                "apps.infra.project_app.context_processors.visitor_expiration_context",
                 "config.context_processors.cache_buster",
                 "config.context_processors.debug_mode",
                 "config.context_processors.scitex_version",
@@ -462,6 +456,6 @@ from .settings_integrations import *  # noqa: E402, F401, F403
 from .settings_logging import *  # noqa: E402, F401, F403
 
 # SIMPLE_JWT requires SECRET_KEY defined above
-SIMPLE_JWT = get_simple_jwt_settings(SECRET_KEY)  # noqa: F821
+SIMPLE_JWT = get_simple_jwt_settings(SECRET_KEY)  # noqa: F405
 
 # EOF

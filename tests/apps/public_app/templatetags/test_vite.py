@@ -86,10 +86,6 @@ class TestEntryToTsPath:
         full = PROJECT_ROOT / path
         assert full.exists(), f"project_app/clone_button → {path} — file not found"
 
-    def test_public_app_visitor_status(self):
-        path = resolve_path("public_app/visitor-status")
-        full = PROJECT_ROOT / path
-        assert full.exists(), f"public_app/visitor-status → {path} — file not found"
 
     def test_shared_convention_path(self):
         path = resolve_path("shared/utils/console-interceptor")

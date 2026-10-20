@@ -4,7 +4,6 @@
  */
 
 import { API_URLS } from "../utils/api-urls";
-import { initVisitorCountdown } from "./visitor-countdown";
 
 // Storage key for header collapse state
 const HEADER_COLLAPSE_STORAGE_KEY = "scitex-header-collapsed";
@@ -67,7 +66,6 @@ export function initializeHeaderMenu(): void {
     e.stopPropagation(); // Prevent header collapse handlers from firing
     setState(!menu.classList.contains("open"));
   });
-
 
   // Close menu when clicking a link
   menu.querySelectorAll("a.mobile-menu-item").forEach((link) => {
@@ -199,41 +197,6 @@ function initializeHeader(): void {
     });
   }
 
-  // Visitor menu dropdown (visitors)
-  const visitorMenuToggle = document.getElementById("visitor-menu-toggle");
-  const visitorMenuDropdown = document.getElementById(
-    "visitor-menu-dropdown",
-  ) as HTMLElement;
-
-  if (visitorMenuToggle && visitorMenuDropdown) {
-    // Skip click/outside-click handlers if inline fallback already attached
-    // (inline <script> in global_header.html sets data-inline-handler="true")
-    if (!visitorMenuToggle.hasAttribute("data-inline-handler")) {
-      visitorMenuToggle.addEventListener("click", function (e) {
-        e.stopPropagation();
-        const isVisible = visitorMenuDropdown.style.display !== "none";
-        visitorMenuDropdown.style.display = isVisible ? "none" : "block";
-      });
-
-      // Close dropdown when clicking outside
-      document.addEventListener("click", function (e) {
-        if (
-          !visitorMenuToggle.contains(e.target as Node) &&
-          !visitorMenuDropdown.contains(e.target as Node)
-        ) {
-          visitorMenuDropdown.style.display = "none";
-        }
-      });
-    }
-
-    // Close dropdown when pressing Escape (always add — inline fallback doesn't handle Escape)
-    document.addEventListener("keydown", function (e) {
-      if (e.key === "Escape") {
-        visitorMenuDropdown.style.display = "none";
-      }
-    });
-  }
-
   // Page refresh button handler
   const pageRefreshBtn = document.getElementById("page-refresh-btn");
   if (pageRefreshBtn) {
@@ -253,15 +216,6 @@ function initializeHeader(): void {
       window.location.href = url.toString();
     });
   }
-
-  // Visitor Mode Countdown Timer — DISPLAY ONLY.
-  // Lives in ./visitor-countdown so it can be unit-tested, and so the rule it
-  // enforces is stated where a reader will find it: the deadline is refreshed
-  // from every heartbeat response, and a client-side zero never navigates.
-  // The old inline version captured `expires_at` once from a render-time data
-  // attribute — the 120s PROBATION stamp, not the session lease — and hard
-  // navigated to /visitor-expired/ on its own arithmetic.
-  initVisitorCountdown();
 
   // Server Health Status Live Indicator
   const serverStatusIndicator = document.getElementById(

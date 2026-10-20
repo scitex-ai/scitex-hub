@@ -12,10 +12,12 @@ from django.contrib.auth.models import User
 from django.test import RequestFactory
 from django.urls import resolve
 
+from apps.infra.project_app.models import Project
 from apps.infra.workspace_app.registry import get_all_modules
 from apps.workspace.apps_app.models import (
     AppsModule,
     ModuleInstallation,
+    ModuleVersion,
     PlannedAppInterest,
 )
 from apps.workspace.apps_app.planned_apps import PLANNED_BY_ID
@@ -137,12 +139,67 @@ def test_project_module_id_migration_preserves_installations():
 
 
 @pytest.mark.django_db(transaction=True)
-def test_project_module_id_migration_refuses_identity_collisions():
+def test_project_module_id_migration_merges_precreated_canonical_identity():
     migration = importlib.import_module(
         "apps.workspace.apps_app.migrations.0022_canonical_project_module_names"
     )
-    AppsModule.objects.create(module_name="home")
-    AppsModule.objects.create(module_name="my_projects")
+    overlap = User.objects.create_user(username="project-module-overlap")
+    old_only = User.objects.create_user(username="project-module-old-only")
+    canonical_only = User.objects.create_user(username="project-module-new-only")
+    source_project = Project.objects.create(
+        owner=old_only,
+        name="Legacy project app",
+        slug="legacy-project-app",
+    )
+    old = AppsModule.objects.create(
+        module_name="home",
+        label="My Projects",
+        project=source_project,
+    )
+    canonical = AppsModule.objects.create(
+        module_name="my_projects", label="My Projects"
+    )
+    historical = ModuleInstallation.objects.create(
+        user=overlap,
+        module=old,
+        tab_order=17,
+        config={"pinned": True},
+    )
+    ModuleInstallation.objects.create(
+        user=overlap,
+        module=canonical,
+        tab_order=1000,
+        config={},
+    )
+    old_only_install = ModuleInstallation.objects.create(
+        user=old_only,
+        module=old,
+        tab_order=23,
+        config={"launcher_dock": ["home", "chat"]},
+    )
+    canonical_only_install = ModuleInstallation.objects.create(
+        user=canonical_only,
+        module=canonical,
+        tab_order=31,
+        config={"pinned": True},
+    )
+    ModuleVersion.objects.create(module=old, version="0.1.0")
+    ModuleVersion.objects.create(module=canonical, version="0.1.0")
 
-    with pytest.raises(RuntimeError, match="home.*my_projects"):
-        migration.rename_project_modules(importlib.import_module("django.apps").apps, None)
+    migration.rename_project_modules(importlib.import_module("django.apps").apps, None)
+
+    historical.refresh_from_db()
+    old_only_install.refresh_from_db()
+    canonical_only_install.refresh_from_db()
+    canonical.refresh_from_db()
+    source_project.refresh_from_db()
+    assert historical.module_id == canonical.id
+    assert historical.tab_order == 17
+    assert historical.config == {"pinned": True}
+    assert old_only_install.module_id == canonical.id
+    assert old_only_install.config["launcher_dock"] == ["my_projects", "chat"]
+    assert canonical_only_install.module_id == canonical.id
+    assert ModuleInstallation.objects.filter(user=overlap, module=canonical).count() == 1
+    assert ModuleVersion.objects.filter(module=canonical, version="0.1.0").count() == 1
+    assert source_project.marketplace_module.id == canonical.id
+    assert not AppsModule.objects.filter(module_name="home").exists()

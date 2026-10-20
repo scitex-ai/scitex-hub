@@ -39,7 +39,6 @@ def build_hub_context(request, current_project=None, include_file_browser=False)
     # appears in no template) and contradicting the manifest, so it read like a
     # second place to change and was not one. Removing it leaves one.
     context = {
-        "is_visitor": False,
         "module_name": "Hub",
         "current_project": current_project,
     }
@@ -56,19 +55,6 @@ def build_hub_context(request, current_project=None, include_file_browser=False)
         "username": request.user.username,
     }
 
-    # Mark as demo/visitor if visitor-* or readonly-visitor
-    from apps.infra.project_app.services.visitor_pool import VisitorPool
-
-    if request.user.username.startswith("visitor-"):
-        context["is_demo"] = True
-        context["is_visitor"] = True
-        context["visitor_username"] = request.user.username
-
-    if request.user.username == VisitorPool.READONLY_VISITOR_USERNAME:
-        context["is_demo"] = True
-        context["is_visitor"] = True
-        context["is_readonly"] = True
-        context["visitor_username"] = request.user.username
 
     # Get user's projects for overview (reusing project_app models)
     user_projects = Project.objects.filter(owner=request.user).order_by("-updated_at")[
@@ -136,15 +122,10 @@ def index_view(request):
     - Right panel: Details/properties placeholder
 
     For authenticated users: loads their project + shows projects list
-    For visitor users: provides demo workspace
-    If visitor pool is exhausted: redirect to visitor-pool-full page
+    Signed-out users are sent to signup.
     """
-    # Check if user is not authenticated (visitor pool retired 2026-09-10 —
-    # anonymous browsers are no longer auto-allocated into visitor-00N).
-    # Signup-first contract: they must sign in (or create an account from the
-    # login page) before entering the workspace.
     if not request.user.is_authenticated:
-        return redirect("auth_app:signin")
+        return redirect("auth_app:signup")
 
     # Handle ?view=profile&username=X — render profile inside Hub
     view_mode = request.GET.get("view", "")

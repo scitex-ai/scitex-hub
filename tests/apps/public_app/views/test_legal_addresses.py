@@ -349,11 +349,8 @@ def test_page_carrying_the_address_returns_http_200(url_name, client):
 def test_page_renders_the_registered_company_address(url_name, client):
     """The real address must reach the rendered page, not just the template."""
     # Arrange
-    expected = (
-        "Shizuoka City Co-Creation Space"
-        if url_name == "public_app:cookies"
-        else settings.COMPANY_ADDRESS
-    )
+    expected = settings.COMPANY_ADDRESS
+    client.cookies["django_language"] = "ja"
 
     # Act
     content = client.get(reverse(url_name)).content.decode("utf-8")

@@ -1,8 +1,10 @@
-"""Entrypoint role gate for visitor-pool boot reconciliation.
+"""Entrypoint retirement gate: no visitor-pool boot reconciliation.
 
-The visitor reconcile quarantines every slot before dispatching the safe re-clean.
-It therefore belongs to web boot only: running it while restarting the worker that
-must consume those tasks creates a circular dependency and leaves the pool down.
+C1 retired the visitor pool (visitor-pool boot lifecycle removed): entrypoints
+must not create, quarantine, reconcile, or repair legacy visitor slots, and the
+celery_worker_vis service no longer exists. This file pins the retired state —
+any reappearance of pool mutations in boot is a regression — while keeping the
+role-library unit checks (unknown commands fail closed).
 """
 
 from pathlib import Path
@@ -26,7 +28,6 @@ COMPOSE_CASES = (
     ("deployment/docker/docker_dev/docker-compose.yml", "celery_beat", False),
     ("deployment/docker/docker_prod/docker-compose.yml", "django", True),
     ("deployment/docker/docker_prod/docker-compose.yml", "celery_worker", False),
-    ("deployment/docker/docker_prod/docker-compose.yml", "celery_worker_vis", False),
     ("deployment/docker/docker_prod/docker-compose.yml", "celery_beat", False),
 )
 
@@ -89,11 +90,22 @@ def _visitor_role_violations(script: str) -> list[str]:
     return []
 
 
+def _live_lines(script: str) -> list[str]:
+    """Non-comment lines: retirement notices may name the old commands."""
+    return [
+        line
+        for line in script.splitlines()
+        if line.strip() and not line.lstrip().startswith("#")
+    ]
+
+
 @pytest.mark.parametrize("entrypoint", ENTRYPOINTS, ids=lambda path: path.parent.name)
-def test_every_dev_and_prod_entrypoint_guards_pool_mutation_by_web_role(entrypoint):
+def test_no_entrypoint_contains_visitor_pool_mutations(entrypoint):
     script = entrypoint.read_text(encoding="utf-8")
     assert "service_role.src" in script
-    assert _visitor_role_violations(script) == []
+    live = "\n".join(_live_lines(script))
+    assert "create_visitor_pool" not in live
+    assert "reconcile_visitor_slots" not in live
 
 
 def test_source_checker_rejects_the_old_unconditional_dev_block():

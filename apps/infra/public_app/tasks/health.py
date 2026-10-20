@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""Site health monitoring and visitor cleanup tasks."""
+"""Site health monitoring tasks."""
 
 from __future__ import annotations
 
@@ -27,44 +27,6 @@ HEALTH_CHECK_LAST_NOTIFICATION_KEY = "health_check_last_notification"
 # Flood Detection Cache Keys
 FLOOD_DETECTION_PREFIX = "flood_detection:"
 FLOOD_ALERT_LAST_SENT_KEY = "flood_alert_last_sent"
-
-
-@shared_task(
-    bind=True,
-    name="apps.infra.public_app.tasks.cleanup_expired_visitor_allocations",
-    ignore_result=True,
-    soft_time_limit=30,
-    time_limit=60,
-)
-def cleanup_expired_visitor_allocations(self):
-    """
-    Clean up expired visitor slot allocations.
-
-    Runs periodically (every 5 minutes) to free up visitor slots whose
-    sessions have expired.
-
-    Returns:
-        int: Number of slots freed
-    """
-    try:
-        from apps.infra.project_app.services.visitor_pool import VisitorPool
-
-        freed_count = VisitorPool.cleanup_expired_allocations()
-
-        if freed_count > 0:
-            logger.info(
-                f"[VisitorPool] Cleaned up {freed_count} expired visitor allocations"
-            )
-        else:
-            logger.debug("[VisitorPool] No expired allocations to clean up")
-
-        return freed_count
-
-    except Exception as e:
-        logger.error(
-            f"[VisitorPool] Failed to clean up expired allocations: {e}", exc_info=True
-        )
-        raise
 
 
 def _get_health_config() -> tuple[str, str, str | None, str]:

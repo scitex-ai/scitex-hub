@@ -17,7 +17,6 @@ let gpuAvailable: boolean | null = null;
 
 export interface MetricsResult {
   success: boolean;
-  sessionExpired?: boolean;
   error?: string;
 }
 
@@ -27,18 +26,6 @@ export interface MetricsResult {
 export async function updateMetrics(): Promise<MetricsResult> {
   try {
     const response = await fetch("/api/server-status/");
-
-    // Check for session expiration (redirects to visitor-expired)
-    if (response.status === 401 || response.status === 403) {
-      console.log("[metrics-updater] Session expired (401/403)");
-      return { success: false, sessionExpired: true };
-    }
-
-    // Check for redirect to visitor-expired page
-    if (response.redirected && response.url.includes("visitor-expired")) {
-      console.log("[metrics-updater] Redirected to visitor-expired");
-      return { success: false, sessionExpired: true };
-    }
 
     if (!response.ok) {
       console.warn(`[metrics-updater] API returned ${response.status}`);
@@ -125,19 +112,6 @@ export async function updateMetrics(): Promise<MetricsResult> {
         const totalNetRate =
           Math.max(0, netSentRate) + Math.max(0, netRecvRate);
         netIoEl.textContent = totalNetRate.toFixed(2) + " MB/s";
-      }
-    }
-
-    // Update Visitor Pool
-    const visitorPoolEl = document.getElementById("visitorPoolCurrentValue");
-    if (visitorPoolEl) {
-      if (
-        data.visitor_pool_allocated !== null &&
-        data.visitor_pool_total !== null
-      ) {
-        visitorPoolEl.textContent = `${data.visitor_pool_allocated}/${data.visitor_pool_total}`;
-      } else {
-        visitorPoolEl.textContent = "N/A";
       }
     }
 

@@ -105,13 +105,6 @@ class TestLivenessKey:
         # Assert
         assert key == "scitex:liveness:celery"
 
-    def test_liveness_key_for_vis_queue(self):
-        # Arrange
-        queue_name = "vis_queue"
-        # Act
-        key = liveness_key(queue_name)
-        # Assert
-        assert key == "scitex:liveness:vis_queue"
 
     def test_liveness_key_rejects_empty_name(self):
         # Arrange
@@ -147,17 +140,17 @@ class TestWriteLivenessStamp:
         # Arrange
         client = FakeRedisClient()
         # Act
-        write_liveness_stamp(client, "vis_queue", 1752700000.0)
+        write_liveness_stamp(client, "search_queue", 1752700000.0)
         # Assert
-        assert client.writes["scitex:liveness:vis_queue"] == 1752700000.0
+        assert client.writes["scitex:liveness:search_queue"] == 1752700000.0
 
     def test_returns_the_written_key(self):
         # Arrange
         client = FakeRedisClient()
         # Act
-        key = write_liveness_stamp(client, "vis_queue", 1752700000.0)
+        key = write_liveness_stamp(client, "search_queue", 1752700000.0)
         # Assert
-        assert key == "scitex:liveness:vis_queue"
+        assert key == "scitex:liveness:search_queue"
 
     def test_propagates_broker_errors(self):
         # Arrange — redis down IS unhealthy; the beacon must fail loud,
@@ -217,13 +210,6 @@ class TestBeatScheduleWiring:
         # Assert
         assert routed_queue == "celery"
 
-    def test_beat_schedules_beacon_onto_vis_queue(self):
-        # Arrange
-        entry = settings.CELERY_BEAT_SCHEDULE["queue-liveness-beacon-vis-queue"]
-        # Act
-        routed_queue = entry["options"]["queue"]
-        # Assert
-        assert routed_queue == "vis_queue"
 
     def test_beat_beacon_arg_names_the_routed_default_queue(self):
         # Arrange — the stamp must vouch for the queue that carried it.
@@ -233,13 +219,6 @@ class TestBeatScheduleWiring:
         # Assert
         assert list(beacon_args) == [entry["options"]["queue"]]
 
-    def test_beat_beacon_arg_names_the_routed_vis_queue(self):
-        # Arrange
-        entry = settings.CELERY_BEAT_SCHEDULE["queue-liveness-beacon-vis-queue"]
-        # Act
-        beacon_args = entry["args"]
-        # Assert
-        assert list(beacon_args) == [entry["options"]["queue"]]
 
     def test_beat_beacon_fires_every_120_seconds(self):
         # Arrange
@@ -323,9 +302,9 @@ class TestHealthcheckScriptBehavior:
         # Arrange
         fake_get = "return None"
         # Act
-        result = _run_healthcheck(tmp_path, fake_get, ["vis_queue", "600"])
+        result = _run_healthcheck(tmp_path, fake_get, ["search_queue", "600"])
         # Assert
-        assert "vis_queue" in result.stderr
+        assert "search_queue" in result.stderr
 
     def test_stale_stamp_is_unhealthy(self, tmp_path):
         # Arrange — stamp far older than the 600s budget.

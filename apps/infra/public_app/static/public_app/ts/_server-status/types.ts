@@ -17,7 +17,6 @@ export interface ServerMetrics {
   disk_write_mb_total: number;
   net_sent_mb_total: number;
   net_recv_mb_total: number;
-  visitor_pool_allocated: number | null;
-  visitor_pool_total: number | null;
   active_users_count: number | null;
+  total_users_count: number | null;
 }

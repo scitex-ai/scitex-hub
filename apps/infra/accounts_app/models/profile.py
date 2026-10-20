@@ -11,6 +11,8 @@ import uuid
 from django.contrib.auth.models import User
 from django.db import models
 
+from apps.infra.accounts_app.keymap_preferences import empty_preferences
+
 # Japanese Academic domains to recognize
 JAPANESE_ACADEMIC_DOMAINS = [
     # Japanese Academic (.ac.jp) - All academic institutions
@@ -257,6 +259,15 @@ class UserProfile(models.Model):
         default=dict,
         blank=True,
         help_text="Auto-response config: {y_n, y_y_n, waiting, suggestion}",
+    )
+
+    # Stable command-ID overrides consumed by the shared scitex-ui keymap.
+    # The versioned document supports global and app/page-mode scopes, explicit
+    # unbinding, per-command reset, and conflict-safe updates.
+    keymap_preferences = models.JSONField(
+        default=empty_preferences,
+        blank=True,
+        help_text="Versioned per-user global and app-mode keyboard shortcut overrides",
     )
 
     created_at = models.DateTimeField(auto_now_add=True)
