@@ -21,6 +21,7 @@ from pathlib import Path
 
 from django.db.models import Count, Q, Sum
 
+from apps.security import safe_log_field
 from apps.workspace.writer_app.models.media.index import (
     ProjectFigure,
     ProjectFigureLatexReference,
@@ -177,7 +178,11 @@ class ProjectMediaIndex:
             .order_by("-last_modified")
         )
         figures = list(qs.values(*_FIGURE_FIELDS))
-        logger.debug(f"[MediaIndex] Search '{query}' found {len(figures)} figures")
+        logger.debug(
+            "[MediaIndex] Search '%s' found %d figures",
+            safe_log_field(query),
+            len(figures),
+        )
         return figures
 
     def set_figure_thumbnail(self, file_path: str, thumbnail_path: str):
