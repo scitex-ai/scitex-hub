@@ -19,6 +19,7 @@ from typing import Optional
 from django.db.models import Q
 
 from apps.infra.project_app.models import Project
+from apps.infra.project_app.services.filesystem.paths import get_project_root_path
 
 PROJECT_QUERY_PARAM = "project"
 
@@ -133,21 +134,26 @@ class HubProjectProvider:
 class HubProjectStorage:
     """Where an authorized project's files live, and whether THIS request may write.
 
-    The capability project-scope apps read from ``SCITEX_PROJECT_STORAGE``:
-    the app imports the dotted path, instantiates the class with no arguments,
-    then asks per request. Deliberately separate from the picker provider —
-    a picker entry carries display metadata, never a path.
+    The capability a project-scope app reads from ``SCITEX_PROJECT_STORAGE`` (see
+    scitex-stats PR 113): the app imports the dotted path, instantiates the class with
+    no arguments, then asks per request. Deliberately separate from
+    :class:`HubProjectProvider` — that one is a picker, and its ``ProjectEntry.detail``
+    is the owner's username, display metadata that must never be read as a path.
 
     Two rules, both fail-closed:
 
-    * **authorization first.** The project resolves through
-      ``find_accessible_project`` — the same access-scoped lookup the picker
-      lists from — so an unreachable project id has no path at all.
+    * **authorization first.** The project is resolved through
+      ``find_accessible_project(request.user, project_id)`` — the same access-scoped
+      lookup the picker lists from — so a project id this request cannot reach has no
+      path at all, rather than falling back to a directory that happens to share its
+      name.
     * **the owner's root, never the collaborator's.** The path is
-      ``get_project_root_path(project.owner, project)``.
+      ``get_project_root_path(project.owner, project)``: a collaborator handed their
+      own base path would silently open a same-named directory that belongs to them.
 
-    Nothing here creates directories. A ``None`` root passes through as "this
-    project has no workspace yet" instead of being turned into one.
+    Nothing here creates directories. ``get_project_root_path`` returns ``None`` for a
+    project whose root is absent, and that ``None`` is passed through as "this project
+    has no workspace yet" instead of being turned into one.
     """
 
     def project_path(self, project_id: str, request) -> Optional[str]:
@@ -155,10 +161,6 @@ class HubProjectStorage:
         project = self._authorized_project(project_id, request)
         if project is None:
             return None
-        from apps.infra.project_app.services.filesystem.paths import (
-            get_project_root_path,
-        )
-
         root = get_project_root_path(project.owner, project)
         return str(root) if root is not None else None
 
@@ -171,7 +173,18 @@ class HubProjectStorage:
 
     @staticmethod
     def _authorized_project(project_id: Optional[str], request):
-        """The project this request may act on, or ``None``."""
+        """The project this request may act on, or ``None``.
+
+        Authorization only: a missing identity, or a missing/blank project id, is a
+        REFUSAL here rather than an exception — those are caller mistakes a request
+        handler must survive, and the answer is the same as "not yours".
+
+        Backend faults are NOT swallowed. A database error while resolving access, or a
+        filesystem error while resolving the root, propagates: Django turns it into a
+        500, which is the honest outcome for an infrastructure failure. Reporting one as
+        "no project" would present a broken host as an unauthorized caller and send
+        whoever is debugging it after the wrong bug.
+        """
         user = getattr(request, "user", None)
         if user is None or not getattr(user, "is_authenticated", False):
             return None

@@ -1,0 +1,144 @@
+{% extends "global_base.html" %}
+{% comment %}
+The internal demo index: a persistent progress list, latest first. Deliberately plain —
+the only controls are two filters, because the page exists to answer "what do we have,
+in what state, and why was that one rejected". Status is shown, never changed here.
+{% endcomment %}
+{% block content %}
+<div class="internal-demos">
+  <header>
+    <h1>Internal demo library</h1>
+    <p class="muted">
+      Every render the pipeline has registered, newest first. Status is owned by the
+      catalog: a render arrives as Draft, and only a person moves it to Approved or
+      Rejected. Rejected takes stay listed as history.
+    </p>
+    <p class="muted">
+      {{ total }} entr{{ total|pluralize:"y,ies" }}
+      — draft {{ counts.draft|default:0 }},
+      approved {{ counts.approved|default:0 }},
+      rejected {{ counts.rejected|default:0 }}
+    </p>
+  </header>
+
+  <form method="get" class="filters">
+    <label for="filter-flow">Flow</label>
+    <select id="filter-flow" name="flow">
+      <option value="">All flows</option>
+      {% for flow in flows %}
+        <option value="{{ flow }}" {% if flow == selected_flow %}selected{% endif %}>{{ flow }}</option>
+      {% endfor %}
+    </select>
+
+    <label for="filter-status">Status</label>
+    <select id="filter-status" name="status">
+      <option value="">All statuses</option>
+      {% for status in statuses %}
+        <option value="{{ status }}" {% if status == selected_status %}selected{% endif %}>{{ status }}</option>
+      {% endfor %}
+    </select>
+
+    <button type="submit">Filter</button>
+    {% if selected_flow or selected_status %}<a href="?">Clear</a>{% endif %}
+  </form>
+
+  {% if not cards %}
+    <p class="muted">
+      Nothing here yet. A render appears as soon as the pipeline registers it as Draft.
+    </p>
+  {% endif %}
+
+  <ol class="entries">
+    {% for card in cards %}
+    <li class="entry" id="entry-{{ card.id }}" data-status="{{ card.status }}" data-flow="{{ card.flow }}">
+      <div class="entry-head">
+        <span class="status status-{{ card.status }}">{{ card.status|capfirst }}</span>
+        <strong class="flow">{{ card.flow }}</strong>
+        <span class="date">{{ card.date }}</span>
+        <span class="languages">
+          {% for language in card.languages %}{{ language|upper }}{% if not forloop.last %}/{% endif %}{% endfor %}
+        </span>
+      </div>
+
+      {% if card.title %}
+        <div class="title">
+          {% for language, text in card.title.items %}{{ text }}{% if not forloop.last %} · {% endif %}{% endfor %}
+        </div>
+      {% endif %}
+
+      <div class="provenance">
+        commit <code>{{ card.dev_commit_short }}</code>{% if card.dev_branch %} on {{ card.dev_branch }}{% endif %}
+        {% if card.viewports %} · {{ card.viewports|join:", " }}{% endif %}
+      </div>
+
+      {% if card.rejection.reason %}
+        <div class="rejection">Rejected by {{ card.rejection.by }}: {{ card.rejection.reason }}</div>
+      {% endif %}
+      {% if card.watch.by %}
+        <div class="watch">Watched by {{ card.watch.by }}</div>
+      {% endif %}
+
+      {% if card.defects %}
+        <div class="defects">
+          <span class="label">Known defects</span>
+          <ul>
+            {% for defect in card.defects %}<li>{{ defect }}</li>{% endfor %}
+          </ul>
+        </div>
+      {% else %}
+        <div class="defects none"><span class="label">Known defects</span> none recorded</div>
+      {% endif %}
+
+      {% if card.files %}
+        <div class="media">
+          {% for file in card.files %}
+            <figure class="media-item">
+              <video controls playsinline preload="metadata"{% if file.poster_url %} poster="{{ file.poster_url }}"{% endif %}>
+                <source src="{{ file.play_url }}" type="video/mp4">
+                {% if file.captions_url %}<track kind="captions" src="{{ file.captions_url }}" srclang="{{ file.language }}" label="{{ file.language|upper }}" default>{% endif %}
+                Your browser does not support embedded video. <a href="{{ file.play_url }}">Play the video</a>.
+              </video>
+              <figcaption class="media-actions">
+                <span class="role">{{ file.language|upper }} video</span>
+                <a href="{{ file.play_url }}">Play</a>
+                <a href="{{ file.download_url }}">Download video</a>
+                {% if file.captions_download_url %}<a href="{{ file.captions_download_url }}">Download captions</a>{% endif %}
+              </figcaption>
+            </figure>
+          {% endfor %}
+        </div>
+      {% else %}
+        <div class="media missing">media not found on disk — see the defects above</div>
+      {% endif %}
+    </li>
+    {% endfor %}
+  </ol>
+</div>
+
+<style>
+  .internal-demos { max-width: 76rem; }
+  .internal-demos .muted { color: #666; }
+  .internal-demos .filters { display: flex; gap: .5rem; align-items: center; margin: 1rem 0; flex-wrap: wrap; }
+  .internal-demos .entries { list-style: none; padding: 0; display: grid; gap: .75rem; }
+  .internal-demos .entry { border: 1px solid #ddd; border-radius: 6px; padding: .75rem 1rem; }
+  .internal-demos .entry-head { display: flex; gap: .75rem; align-items: baseline; flex-wrap: wrap; }
+  .internal-demos .status { font-size: .8rem; padding: .1rem .5rem; border-radius: 999px; border: 1px solid currentColor; }
+  .internal-demos .status-draft { color: #8a6d00; }
+  .internal-demos .status-approved { color: #146c2e; }
+  .internal-demos .status-rejected { color: #a11; }
+  .internal-demos .provenance, .internal-demos .defects, .internal-demos .media { margin-top: .6rem; font-size: .9rem; }
+  .internal-demos .defects .label { font-weight: 600; margin-right: .35rem; }
+  .internal-demos .defects ul { margin: .2rem 0 0 1rem; }
+  .internal-demos .media { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 26rem), 1fr)); gap: .75rem; }
+  .internal-demos .media-item { margin: 0; min-width: 0; }
+  .internal-demos .media-item video { width: 100%; aspect-ratio: 16 / 9; display: block; background: #0f172a; border: 1px solid #ccd2d9; border-radius: 6px; }
+  .internal-demos .media-item figcaption { display: flex; align-items: center; gap: .65rem; flex-wrap: wrap; margin-top: .35rem; }
+  .internal-demos .media-actions a { min-height: 44px; padding: .55rem .7rem; display: inline-flex; align-items: center; border: 1px solid #c7ced6; border-radius: 5px; text-decoration: none; }
+  .internal-demos .media-item .role { color: #666; margin-right: auto; }
+  .internal-demos .rejection { color: #a11; font-size: .9rem; margin-top: .3rem; }
+  @media (max-width: 480px) {
+    .internal-demos .entries { grid-template-columns: 1fr; }
+    .internal-demos .media { grid-template-columns: 1fr; }
+  }
+</style>
+{% endblock %}

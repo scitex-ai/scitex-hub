@@ -74,6 +74,19 @@
                 <div id="details-full-log" class="details-compilation-log">Compilation log will be shown here</div>
             </div>
         </div>
+        <!-- Import / Export — ONE top-level entry. The vendor names are
+             sub-headings inside it, not permanent top-level entries in the
+             details pane (product compass L418/L419/L420/L656, and L420's "do
+             not permanently occupy the right details pane with vendor names").
+             The nested cards keep their own data-section values, so anything
+             targeting [data-section="overleaf"|"prism"] still resolves. -->
+        <div class="details-iec" data-section="import-export">
+            <div class="details-iec__header">
+                <h6 class="details-iec__title">
+                    <i class="fas fa-right-left"></i> Import / Export
+                </h6>
+            </div>
+            <div class="details-iec__body">
         <!-- Overleaf -->
         <div class="mig-card collapsed"
              data-section="overleaf"
@@ -159,6 +172,8 @@
                    class="mig-card__btn">
                     <i class="fas fa-external-link-alt"></i> Prism Migration Docs
                 </a>
+            </div>
+        </div>
             </div>
         </div>
         <!-- Project Info Section -->

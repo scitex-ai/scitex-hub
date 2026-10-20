@@ -110,9 +110,9 @@
                                               border: 2px solid var(--border-default);
                                               border-radius: 8px" />
                             </div>
-                            <button type="submit" class="btn btn-primary btn-lg w-100" id="verify-btn">Verify Email</button>
+                            <button type="submit" class="btn btn-primary btn-lg w-100 auth-primary-cta" id="verify-btn">Verify Email</button>
                         </form>
-                        <button type="button" class="btn btn-outline-secondary mt-3" id="resend-btn">Resend Code</button>
+                        <button type="button" class="btn btn-outline-secondary mt-3 auth-secondary-cta" id="resend-btn">Resend Code</button>
                     </div>
                 </div>
             </div>
@@ -132,7 +132,11 @@
       localStorage.getItem("pending-verification-email");
 
     if (!email) {
-      window.location.href = "/signup/";
+      // The real signup route is /auth/signup/; this used to send the visitor to
+      // "/signup/", which is not a route at all (measured: 404). Someone who
+      // reopened this page without a pending email — a bookmark, a back button —
+      // landed on a dead page. Named so a future rename cannot break it again.
+      window.location.href = "{% url 'auth_app:signup' %}";
       return;
     }
 
@@ -249,7 +253,7 @@
               umami.track('email_verified');
             }
             setTimeout(
-              () => (window.location.href = data.redirect_url || "/dashboard/"),
+              () => (window.location.href = data.redirect_url || "{% url 'root' %}"),
               2000,
             );
           } else {

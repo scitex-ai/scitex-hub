@@ -155,9 +155,25 @@ def verify_email_api(request):
             # administrator deactivation of this account would find a pending
             # marker and could be undone by the very path this fixes.
             # (For an email CHANGE there is no marker and this is a no-op.)
-            from apps.infra.auth_app.models import PendingSignup
+            #
+            # PR #934 review, blocker 1: the marker used to be deleted and
+            # NOTHING written in its place, so a verified account that still owed
+            # a payment method was indistinguishable from a finished one and no
+            # gate could tell them apart. ``mark_verified`` does both halves in
+            # one transaction — deletes the pre-verification marker and creates
+            # the durable onboarding authority at PAYMENT.
+            #
+            # NOT for an email change: that is an ACTIVE account re-proving a new
+            # address, and enrolling it in the signup funnel would gate an
+            # established account behind a payment step it already passed.
+            if not is_email_change:
+                from apps.infra.auth_app.onboarding import mark_verified
 
-            PendingSignup.objects.filter(user=verification.user).delete()
+                mark_verified(verification.user, source="email")
+            else:
+                from apps.infra.auth_app.models import PendingSignup
+
+                PendingSignup.objects.filter(user=verification.user).delete()
 
             # Check if this is an email change verification
             pending_change = request.session.get("pending_email_change")

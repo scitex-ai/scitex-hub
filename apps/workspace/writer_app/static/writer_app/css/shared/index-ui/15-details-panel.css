@@ -331,3 +331,36 @@
   border-color: var(--workspace-border-default, #3a3a3a);
   margin: 8px 0;
 }
+
+/* Import / Export — ONE top-level group; the vendor names are sub-cards inside
+ * it (product compass L418/L419/L420/L656). Previously Overleaf and Prism were
+ * top-level entries, so two vendor names occupied the right details pane
+ * permanently, which L420 rules out. Mirrors the leaf re-port's `.details-iec`
+ * (scitex-writer PR #385) so the live surface and the re-port read alike. */
+.details-iec {
+  margin-bottom: 8px;
+}
+
+.details-iec__header {
+  padding: 6px 10px;
+  border-bottom: 1px solid var(--workspace-border-default, #3a3a3a);
+}
+
+.details-iec__title {
+  margin: 0;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+/* The sub-cards read as members of the group rather than as peers of the
+ * panel's other sections: indented, with a rule between them. */
+.details-iec__body {
+  margin-left: 6px;
+  padding-left: 8px;
+  border-left: 2px solid var(--workspace-border-default, #3a3a3a);
+}
+
+.details-iec__body > .mig-card + .mig-card {
+  border-top: 1px solid var(--workspace-border-default, #3a3a3a);
+}

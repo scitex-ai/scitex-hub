@@ -86,8 +86,15 @@
                                 <span>I can take actions: stats, plots, literature, and your current work.</span>
                             </div>
                         </div>
+                        {% comment %}
+                        The funded-message allowance, before the send — this panel
+                        is the shell's own composer, so without it a user could
+                        send a SciTeX-funded message without ever being shown
+                        what is left (card hub-chat-free-daily-message-allowance-20260917).
+                        {% endcomment %}
+                        {% include "chat/partials/chat_allowance.html" with allowance=chat_allowance %}
                         <div class="stx-shell-ai-input-area" style="position:relative">
-                            <span id="stx-shell-ai-model-badge" class="stx-shell-ai-model-badge"></span>
+                            <span id="stx-shell-ai-model-badge" class="stx-shell-ai-model-badge">{{ chat_allowance.model|default:'' }}</span>
                             <div id="stx-shell-ai-image-previews" class="stx-shell-ai-image-previews"></div>
                             <div class="stx-shell-ai-input-wrap">
                                 <textarea id="stx-shell-ai-input"

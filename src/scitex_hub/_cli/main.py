@@ -19,6 +19,7 @@ from .app import app  # noqa: F401
 from .completion import completion_group as completion
 from .context import context as context_group
 from .deploy import deploy
+from .dev import dev
 from .docker import docker
 from .gitea import gitea
 from .mcp import mcp
@@ -166,6 +167,7 @@ main.add_command(mcp)
 # every 2 min on compute-03 (see scitex_hub._jobs). Service, like docker/mcp:
 # it operates infrastructure, not project data.
 main.add_command(dev_preview)
+main.add_command(dev)
 main.add_command(context_group, "context")
 
 main.add_command(status)

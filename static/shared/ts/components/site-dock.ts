@@ -33,6 +33,11 @@ import {
 import { initChatPanel } from "./_site-dock/chat-panel";
 import { enforceDockBoundary } from "./_site-dock/dock-boundary";
 import {
+  FOCUS_AVOID_CLASS,
+  FOCUS_SHIFT_VAR,
+  focusAvoidanceShift,
+} from "./_site-dock/focus-avoid";
+import {
   gripTap,
   isDrag,
   isMinimized,
@@ -126,8 +131,42 @@ class SiteDock {
       new ResizeObserver(() => syncDockHeight(this.dock)).observe(this.dock);
     }
     this.initDrag();
+    this.initFocusAvoidance();
     this.initHistory();
     initChatPanel(this.dock);
+  }
+
+  /* ── Keyboard focus visibility ──────────────────────────── */
+
+  private avoidFocusedControl(target: EventTarget | null): void {
+    this.dock.classList.remove(FOCUS_AVOID_CLASS);
+    this.dock.style.removeProperty(FOCUS_SHIFT_VAR);
+    if (
+      !(target instanceof HTMLElement) ||
+      this.dock.contains(target) ||
+      this.dock.classList.contains("site-dock--floating") ||
+      isMinimized(this.dock)
+    ) {
+      return;
+    }
+    const shift = focusAvoidanceShift(
+      this.dock.getBoundingClientRect(),
+      target.getBoundingClientRect(),
+    );
+    if (shift <= 0) return;
+    this.dock.style.setProperty(FOCUS_SHIFT_VAR, `-${shift}px`);
+    this.dock.classList.add(FOCUS_AVOID_CLASS);
+  }
+
+  private initFocusAvoidance(): void {
+    document.addEventListener("focusin", (event) =>
+      this.avoidFocusedControl(event.target),
+    );
+    document.addEventListener("focusout", () => {
+      requestAnimationFrame(() =>
+        this.avoidFocusedControl(document.activeElement),
+      );
+    });
   }
 
   /* ── Position ───────────────────────────────────────────── */

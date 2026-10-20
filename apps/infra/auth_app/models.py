@@ -239,6 +239,71 @@ class PendingSignup(models.Model):
         return f"{self.email} (pending since {self.created_at:%Y-%m-%d})"
 
 
+class OnboardingState(models.Model):
+    """The durable, TYPED authority for "what must this account do next?".
+
+    WHY THIS TABLE EXISTS (PR #934 review, blocker 1). ``PendingSignup`` is the
+    PRE-verification marker, and successful verification DELETED it — which left
+    a verified account with no record that it still owed a payment method. The
+    consequence was the whole defect: the account was activated and logged in,
+    the funnel's own marker was gone, and nothing downstream could tell a
+    half-finished signup from a finished one. Every product route was therefore
+    reachable by a user who had never entered a card, and "activate after
+    payment" was a sentence in a template rather than a rule in the system.
+
+    The authority is one row per account, written at the single moment the
+    question first has an answer (email OTP verified, or provider-verified
+    social signup) and advanced at the single moment it changes (a
+    provider-confirmed subscription). It is deliberately NOT inferred from
+    ``PaymentMethod`` presence: a saved card is not by itself an activated
+    trial, and inferring would put a second, weaker source of truth next to
+    this one — the failure mode ``pending_signup`` already documents.
+
+    INVARIANTS:
+      * created ONLY by a completed signup (email verify / social signup);
+      * ``step`` moves PAYMENT -> PRODUCT exactly once, and only from
+        provider-confirmed state (:mod:`apps.infra.accounts_app.funnel`);
+      * an account with NO row is not in the funnel and is never gated, so
+        existing users and staff are outside this authority entirely.
+    """
+
+    class Step(models.TextChoices):
+        #: Verified, no provider-confirmed subscription yet — the product is closed.
+        PAYMENT = "payment", "Payment method required"
+        #: Provider-confirmed trial/subscription exists — the product is open.
+        PRODUCT = "product", "Ready for the product"
+
+    user = models.OneToOneField(
+        User, on_delete=models.CASCADE, related_name="onboarding_state"
+    )
+    step = models.CharField(max_length=16, choices=Step.choices, default=Step.PAYMENT)
+    #: Which door the account came through: ``email``, ``google``, ``orcid``.
+    #: Kept so a divergence between the email and social funnels is visible in
+    #: the row itself instead of only in the two code paths.
+    source = models.CharField(max_length=32, blank=True, default="")
+    #: The allowlisted pricing.json row id this account is being placed on —
+    #: carried here so the POST, the provider session and the webhook all read
+    #: ONE selection instead of re-deciding it from a query parameter.
+    pricing_id = models.CharField(max_length=64, blank=True, default="")
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    #: Set when the provider confirmed the subscription. Null while the account
+    #: still owes a payment method; never set from a browser-visible redirect.
+    activated_at = models.DateTimeField(null=True, blank=True)
+
+    class Meta:
+        verbose_name = "Onboarding State"
+        verbose_name_plural = "Onboarding States"
+        ordering = ["-created_at"]
+
+    def __str__(self):
+        return f"{self.user.username} — {self.step}"
+
+    @property
+    def is_awaiting_payment(self) -> bool:
+        return self.step == self.Step.PAYMENT
+
+
 class EmailVerification(models.Model):
     """Email verification for user registration"""
 

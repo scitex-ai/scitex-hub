@@ -25,11 +25,20 @@ so it gets its own ``home`` swatch (the hub accent).
 
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 
 HOME_URL = "/apps/"
 HOME_ICON = "fas fa-house"
 HOME_CATEGORY = "home"
+
+#: Mirrors launcher_dock.HOME_BUTTON. Imported lazily there to dodge a cycle, so the
+#: value is repeated here and a test pins the two together: a silent drift would make
+#: the Home button unhighlightable.
+HOME_BUTTON = "launcher"
+
+#: Every app leaf route lives under here. Used by :func:`active_dock_key` to decide
+#: that a route inside an app belongs to the global Apps destination.
+APPS_PREFIX = "/apps/"
 
 #: Dock captions sit under a narrow icon, so the long app names get a short
 #: form there (operator, 2026-09-14: Home / Projects / Chat / Apps).
@@ -66,11 +75,57 @@ class DockItem:
 
 
 def _is_active(key: str, url: str, path: str) -> bool:
-    from apps.workspace.apps_app.services.launcher_dock import HOME_BUTTON
+    """Kept for callers that ask about ONE item; the dock itself uses
+    :func:`active_dock_key`, because "exactly one destination is current" is a
+    property of the SET, not of an item in isolation."""
+    return key == active_dock_key([(key, url)], path)
 
-    if key == HOME_BUTTON:
-        return path in ("/", HOME_URL)
-    return bool(url) and url != HOME_URL and path.startswith(url)
+
+#: The dock button that represents "you are inside an app". Operator ruling
+#: 2026-09-17: an app leaf route (/apps/<name>/) belongs to the global Apps
+#: destination, because the user reached it from there and no other dock button
+#: owns it. Kept as an explicit product rule rather than inferred, so the mapping
+#: is one line to change and impossible to "discover" by accident.
+APP_DESTINATION_KEY = "store"
+
+
+def active_dock_key(pairs, path: str) -> str | None:
+    """THE one dock destination a path belongs to, or None.
+
+    Operator ruling (2026-09-17): exactly one global dock item is active after any
+    route transition, app leaf routes map to Apps, and a leaf app's LOCAL tabs
+    (Cards' Board/DM, and the like) stay local - they are navigation inside the app,
+    never a second global destination.
+
+    Precedence, most specific first:
+
+    1. a dock item whose URL is a prefix of the path (longest URL wins, so
+       /apps/my-projects/ beats a broader /apps/);
+    2. the Home button, for "/" and for the grid URL itself;
+    3. otherwise, for an app leaf route under /apps/ (but not /apps/ itself), the
+       Apps destination - see :data:`APP_DESTINATION_KEY`.
+
+    A hub route that no dock item owns (a settings page, say) intentionally returns
+    None rather than being forced onto Home: the dock has no destination for it, and
+    inventing one would highlight a button the user is not on. That case is pinned by
+    a test so the day a rule arrives it changes in one place.
+    """
+    by_key = {key: url for key, url in pairs}
+    candidates = [
+        (len(url), key)
+        for key, url in pairs
+        if url and url != HOME_URL and path.startswith(url)
+    ]
+    if candidates:
+        return max(candidates)[1]
+
+    if path in ("/", HOME_URL):
+        return HOME_BUTTON if HOME_BUTTON in by_key else None
+
+    if path.startswith(APPS_PREFIX) and path.rstrip("/") != APPS_PREFIX.rstrip("/"):
+        return APP_DESTINATION_KEY if APP_DESTINATION_KEY in by_key else None
+
+    return None
 
 
 def _dock_item(name: str, path: str) -> DockItem | None:
@@ -114,17 +169,31 @@ def _dock_item(name: str, path: str) -> DockItem | None:
         label=label,
         icon=icon,
         url=url,
-        active=_is_active(name, url, path),
+        # Decided across the whole set in dock_items(): an item cannot know whether
+        # another, more specific one also matches this path.
+        active=False,
         category=category or "other",
     )
 
 
 def dock_items(path: str, user=None) -> list[DockItem]:
-    """The dock's app buttons, in the user's order, for a request path."""
+    """The dock's app buttons, in the user's order, with EXACTLY ONE active.
+
+    Operator ruling (2026-09-17): after any route transition exactly one global dock
+    item is the current destination. The choice is made here, over the assembled set,
+    because "most specific match wins" is not a property any single item can decide -
+    /apps/my-projects/ must beat the broader app-leaf rule that would otherwise put the
+    user "inside Apps" while they are looking at their own projects.
+    """
     from apps.workspace.apps_app.services.launcher_dock import get_dock_apps
 
-    items = (_dock_item(name, path) for name in get_dock_apps(user))
-    return [item for item in items if item is not None]
+    items = [
+        item
+        for item in (_dock_item(name, path) for name in get_dock_apps(user))
+        if item is not None
+    ]
+    active = active_dock_key([(item.key, item.url) for item in items], path)
+    return [replace(item, active=(item.key == active)) for item in items]
 
 
 def should_render_dock(request) -> bool:

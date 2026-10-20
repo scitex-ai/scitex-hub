@@ -49,7 +49,7 @@ describe("site dock minimize", () => {
     expect(readMinimized()).toBe(false);
   });
 
-  it("publishes the dock's real height for the page padding", () => {
+  it("publishes the dock's real height for scroll alignment", () => {
     setMinimized(makeDock(44), true);
     expect(
       document.documentElement.style.getPropertyValue(LIVE_HEIGHT_VAR),

@@ -286,3 +286,22 @@
 /* =========================
    END OF AUTH.CSS
    ========================= */
+
+/* ---------------------------------------------------------------------------
+ * The funnel's primary and secondary actions (card
+ * hub-signup-email-stripe-funnel-20260917).
+ *
+ * Measured on the running Hub before this rule:
+ *   "Create Account" (step 1)  939x42 at 1440   197x33 at 390
+ *   "Verify Email"   (step 2)  444x50 at 1440   211x37 at 390
+ *   "Resend Code"    (step 2)  130x44 at 1440    97x35 at 390
+ * The platform's touch floor is 44px (SSOT section 4) and the smallest screens had
+ * the smallest versions of the controls that carry the funnel.
+ * ------------------------------------------------------------------------- */
+.btn.auth-primary-cta,
+.btn.auth-secondary-cta {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 44px;
+}
