@@ -490,6 +490,19 @@ RUN curl -fsSL https://deb.nodesource.com/setup_20.x | bash - && \
 # yq (from tool-builder)
 COPY --from=tool-builder /usr/local/bin/yq /usr/local/bin/yq
 
+# fclones (duplicate-file detection for the storage Duplicates tab).
+# NOT in Debian/Ubuntu apt repos, so it cannot join the runtime apt line --
+# install the pinned upstream .deb release instead. scitex-storage
+# `find-duplicates` shells out to `fclones group`; without the binary it
+# raises MissingSystemDependencyError at runtime. Pinned: bump deliberately
+# (checked 2026-10-20: 0.35.0 is upstream latest).
+ARG FCLONES_VERSION=0.35.0
+RUN curl -L -o /tmp/fclones.deb \
+        "https://github.com/pkolaczk/fclones/releases/download/v${FCLONES_VERSION}/fclones_${FCLONES_VERSION}-1_amd64.deb" \
+    && dpkg -i /tmp/fclones.deb \
+    && rm /tmp/fclones.deb \
+    && fclones --version
+
 # --------------------------------------------
 # ImageMagick PDF policy (allow read/write for LaTeX → PDF → PNG pipeline)
 # --------------------------------------------
@@ -747,6 +760,9 @@ RUN pdflatex --version && \
     # The Japanese traineddata specifically — tesseract installs and runs
     # fine without it, then returns confident nonsense for a Japanese scan.
     tesseract --list-langs 2>&1 | grep -qx jpn && \
+    # Storage/Duplicates tab. fclones lives outside apt (pinned upstream .deb
+    # above), so this checks the binary scitex-storage actually shells out to.
+    fclones --version && \
     # Tools/transcribe-audio. whisper-cli lives outside PATH, so this
     # checks the env var the application actually resolves.
     "$WHISPER_CLI" --help > /dev/null 2>&1 && \
