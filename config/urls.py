@@ -51,6 +51,27 @@ def _sdk_creator_patterns():
     return [_wrap_login(p) for p in creator_urls.urlpatterns]
 
 
+def _live_paper_patterns():
+    """URL patterns for the Live Paper viewer leaf, login-gated.
+
+    Thin-hub mount (scholar pattern): the leaf owns views through
+    ``scitex_live_paper.mount(resolver=...)`` (per-request BundleContext);
+    the hub owns auth (whole tree login-wrapped) and bundle resolution
+    (apps.workspace.live_paper_app.mount.hub_resolver). [] when the
+    package is absent, so the hub boots without it.
+    """
+    try:
+        from apps.workspace.live_paper_app import mount as live_paper_mount
+    except ImportError:
+        return []
+    from apps.workspace.apps_app.services.plugin_apps import _wrap_login
+
+    return (
+        [_wrap_login(p) for p in live_paper_mount.urlpatterns],
+        live_paper_mount.app_namespace,
+    )
+
+
 def _scholar_old_direct_patterns():
     """Dev-only old-direct reference for Scholar (CCT 2763/2764 + CCT 2806).
 
@@ -290,6 +311,12 @@ urlpatterns = [
     # namespaces and Django only propagates them to reverse() through a
     # namespace-transparent outer mount (see scholar_app/urls/__init__.py).
     path("apps/scholar/", include("apps.workspace.scholar_app.urls")),
+    # Live Paper viewer (scitex-live-paper leaf 0.2.0): same gated wrapper
+    # shape as scholar — per-request BundleContext via mount(resolver=...).
+    # Single namespace registration (`live_paper`, from the leaf's mount
+    # tuple); the patterns go through the shared login wrapper so the
+    # whole tree is gated.
+    path("apps/live-paper/", include(_live_paper_patterns())),
     # Journal (agentic-journal leaf, first release 0.1.0a0): same gated
     # wrapper shape as scholar — leaf views carry no auth of their own.
     path("apps/journal/", include("apps.workspace.journal_app.urls")),

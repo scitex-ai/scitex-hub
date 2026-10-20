@@ -407,6 +407,13 @@ def optional_upstream_apps() -> list[str]:
     if _installed("scitex_scholar._django"):
         entries.append("scitex_scholar._django.apps.ScholarEditorConfig")
 
+    # scitex-live-paper's Django app (0.2.0). Same template-resolution
+    # requirement as scholar: the mounted viewer extends leaf templates,
+    # so the leaf AppConfig must be installed. Label `scitex_live_paper`
+    # (LivePaperConfig) collides with nothing in this tree.
+    if _installed("scitex_live_paper._django"):
+        entries.append("scitex_live_paper._django.apps.LivePaperConfig")
+
     # CANONICAL name. `scitex_todo` is a deprecated alias of this package
     # (renamed 2026-07-16) that warns it "ships for one transition window
     # only" — importing the alias would make the whole board mount depend on a
