@@ -38,10 +38,16 @@ urlpatterns = [
         "apps/apps/",
         RedirectView.as_view(url="/apps/store/", permanent=True, query_string=True),
     ),
-    # SDK App Creator wizard moved /create-app/ → /apps/new/ (PR #1023)
+    # SDK App Creator wizard moved /create-app/ → /apps/sdk/ (PR #1023 moved
+    # it /create-app/ → /apps/new/; sdk-app-gui-parity moves it on to /apps/sdk/).
+    # Both old paths redirect straight to the canonical home (no chains).
     path(
         "create-app/",
-        RedirectView.as_view(url="/apps/new/", permanent=True, query_string=True),
+        RedirectView.as_view(url="/apps/sdk/", permanent=True, query_string=True),
+    ),
+    path(
+        "apps/new/",
+        RedirectView.as_view(url="/apps/sdk/", permanent=True, query_string=True),
     ),
 ]
 
