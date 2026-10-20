@@ -309,9 +309,13 @@ def _reject_out_of_jail_paths(request, endpoint=None):
         # vetoes legitimate in-project reads. Resolved here from the
         # server-side project (same resolver the wrapper uses) rather than
         # read back from ?working_dir, so no request-derived value reaches
-        # path construction. BASE_DIR fallback preserves the old check where
-        # no project resolves.
-        server_dir = resolve_user_working_dir(request)
+        # path construction. Requests without a session (bare test clients)
+        # cannot resolve a project; they keep the BASE_DIR check. BASE_DIR
+        # fallback preserves the old check where no project resolves.
+        try:
+            server_dir = resolve_user_working_dir(request)
+        except Exception:
+            server_dir = None
         base = server_dir if server_dir is not None else settings.BASE_DIR
         candidate = (Path(base) / remainder).resolve()
         if not validate_path_in_user_jail(request.user, candidate):
