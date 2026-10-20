@@ -85,6 +85,7 @@ class ElementInspector {
       // Ctrl+Alt+I: Start rectangle selection mode
       if (e.ctrlKey && e.altKey && !e.shiftKey && key === "i") {
         e.preventDefault();
+        e.stopPropagation();
         this.startSelectionMode();
         return;
       }
@@ -93,6 +94,7 @@ class ElementInspector {
       if (e.ctrlKey && !e.altKey && !e.shiftKey && key === "i") {
         if (this.isActive) {
           e.preventDefault();
+          e.stopPropagation();
           console.log("[ElementInspector] Ctrl+I pressed - loading next batch");
           this.elementScanner.loadNextBatch();
           return;
@@ -102,6 +104,7 @@ class ElementInspector {
       // Alt+I: Toggle inspector (no Ctrl, no Shift)
       if (e.altKey && !e.shiftKey && !e.ctrlKey && key === "i") {
         e.preventDefault();
+        e.stopPropagation();
         this.toggle();
         return;
       }
@@ -182,11 +185,27 @@ class ElementInspector {
   }
 }
 
-// Initialize global instance
-const elementInspector = new ElementInspector();
+// Initialize the global instance exactly once per document. A second
+// evaluation of this module in the same document (double script include)
+// — or a foreign copy of the inspector bundle loading alongside this one —
+// must not construct a second inspector: each instance registers its own
+// document keydown listener, so two instances double-invoke Alt+I and
+// create duplicate #element-inspector-overlay elements (card
+// hub-element-inspector-double-invocation-20261019). The per-evaluation
+// `instanceof` check alone cannot catch a foreign copy (distinct class
+// identity), hence the shared window-level loaded flag.
+const INSPECTOR_LOADED_FLAG = "__scitexElementInspectorLoaded";
 
-// Export to window for manual control
-(window as any).elementInspector = elementInspector;
+if (
+  !(window as any)[INSPECTOR_LOADED_FLAG] &&
+  !(window as any).elementInspector
+) {
+  const elementInspector = new ElementInspector();
+
+  // Export to window for manual control
+  (window as any).elementInspector = elementInspector;
+  (window as any)[INSPECTOR_LOADED_FLAG] = true;
+}
 
 // Auto-refresh on window resize (with debounce)
 let resizeTimeout: number;

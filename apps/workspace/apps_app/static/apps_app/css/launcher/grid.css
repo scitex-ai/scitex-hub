@@ -462,6 +462,28 @@
   overflow-wrap: normal;
 }
 
+/* Starter preview: what the Creator builds (operator screenshot fix).
+   Four muted mini icons in one row under the label; tooltips carry the
+   starter names. Decorative — purpose, not navigation. */
+.launcher-slot-starters {
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  align-items: center;
+  gap: 7px;
+  margin-top: 1px;
+  opacity: 0.55;
+}
+
+.launcher-slot-starters i {
+  font-size: 13px;
+  color: var(--workspace-text-secondary, #6b7280);
+}
+
+.launcher-slot--add:hover .launcher-slot-starters {
+  opacity: 0.85;
+}
+
 .launcher-slot--add:hover .launcher-slot-add-box,
 .launcher-slot--add:focus-visible .launcher-slot-add-box {
   opacity: 0.8;

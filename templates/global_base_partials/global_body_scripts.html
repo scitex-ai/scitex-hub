@@ -1,5 +1,9 @@
 {% load static vite %}
 
+<!-- Load-error fallback banner FIRST: it must be registered before any
+     other bundle can fail, so a failed script/stylesheet renders an error
+     state instead of a blank region (UX standard, operator 2026-10-16). -->
+{% vite_script 'shared/utils/load-error-banner' %}
 <!-- Global: Prevent Enter key from submitting forms & route Enter to action buttons -->
 <link rel="stylesheet" href="{% static 'shared/css/utils/form-enter-handler.css' %}" />
 {% vite_script 'shared/utils/form-enter-handler' %}
@@ -30,10 +34,12 @@
 {% vite_script 'shared/code-blocks' %}
 {% vite_script 'shared/utils/django-messages' %}
 {% vite_script 'shared/components/confirm-modal' %}
-<!-- Development Tools (only in DEBUG mode) -->
-{% if DEBUG %}
-    {% vite_script 'shared/utils/element-inspector' %}
-{% endif %}
+<!-- Development Tools: the Alt+I element inspector is served by
+     ElementInspectorMiddleware (the single hub emission path) — do NOT add
+     a second copy here. A duplicate evaluation constructs a second inspector
+     with its own keydown listener, which double-invokes Alt+I and creates
+     duplicate overlays (card hub-element-inspector-double-invocation-20261019).
+     The middleware already skips pages whose shell provides its own copy. -->
 <!-- Click-to-expand for collapsed panels (global) -->
 {% vite_script 'shared/collapsible-panel-click-expand' %}
 <!-- Global Header Scripts (Vite) -->
