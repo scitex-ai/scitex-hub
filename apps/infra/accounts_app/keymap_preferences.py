@@ -14,8 +14,6 @@ from typing import Any
 
 _VERSION = 1
 _IDENTIFIER_RE = re.compile(r"^[A-Za-z0-9][A-Za-z0-9_.:-]*$")
-_PLUS_SPACING_RE = re.compile(r"\s*\+\s*")
-_WHITESPACE_RE = re.compile(r"\s+")
 
 
 class KeymapConflictError(ValueError):
@@ -39,8 +37,21 @@ def _identifier(value: str, label: str) -> str:
 
 
 def _sequence(value: str) -> str:
-    candidate = _WHITESPACE_RE.sub(" ", str(value).strip())
-    candidate = _PLUS_SPACING_RE.sub("+", candidate)
+    # Regex-free on purpose: the normalizer runs on user-supplied shortcut
+    # text, so no regular expression may touch it (ReDoS class eliminated,
+    # not merely bounded). Collapse whitespace runs, then drop spaces
+    # adjacent to "+" separators ("Ctrl + Shift" -> "Ctrl+Shift").
+    collapsed = " ".join(str(value).split())
+    chars = [
+        ch
+        for i, ch in enumerate(collapsed)
+        if ch != " "
+        or (
+            collapsed[i - 1 : i] != "+"
+            and collapsed[i + 1 : i + 2] != "+"
+        )
+    ]
+    candidate = "".join(chars)
     if not candidate or len(candidate) > 128:
         raise InvalidKeymapPreference("Shortcut sequence must contain 1-128 characters")
     return candidate

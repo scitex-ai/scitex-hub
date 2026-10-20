@@ -77,6 +77,7 @@ from figrecipe._django.views import editor_page as _raw_editor_page
 
 from apps.infra.project_app.services.working_dir_resolver import (
     WorkingDirScopedView,
+    resolve_user_working_dir,
 )
 
 logger = logging.getLogger(__name__)
@@ -305,11 +306,13 @@ def _reject_out_of_jail_paths(request, endpoint=None):
         remainder = endpoint[len(_FILE_CONTENT_PREFIX):]
         # The leaf resolves the remainder against the authorized project
         # root (not BASE_DIR), so the guard must check the same base or it
-        # vetoes legitimate in-project reads. WorkingDirScopedView already
-        # overwrote ?working_dir from the server-side project above, so its
-        # value is authority, not input. BASE_DIR fallback preserves the old
-        # check where the override is absent.
-        base = request.GET.get("working_dir") or settings.BASE_DIR
+        # vetoes legitimate in-project reads. Resolved here from the
+        # server-side project (same resolver the wrapper uses) rather than
+        # read back from ?working_dir, so no request-derived value reaches
+        # path construction. BASE_DIR fallback preserves the old check where
+        # no project resolves.
+        server_dir = resolve_user_working_dir(request)
+        base = server_dir if server_dir is not None else settings.BASE_DIR
         candidate = (Path(base) / remainder).resolve()
         if not validate_path_in_user_jail(request.user, candidate):
             return _forbid("api/file-content", remainder, username)
