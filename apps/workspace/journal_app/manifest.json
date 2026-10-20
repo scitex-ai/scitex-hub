@@ -5,7 +5,7 @@
   "label": "Agentic Journal",
   "app_name": "journal_app",
   "scope": "user",
-  "url": "/apps/journal/",
+  "url": "/apps/agentic-journal/",
   "icon": "fas fa-book-open",
   "description": "Agentic Journal: submit manuscripts, agent-assisted review and reproduction, editorial decisions.",
   "pip_package": "scitex-agentic-journal",

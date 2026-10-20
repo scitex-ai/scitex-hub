@@ -292,7 +292,10 @@ urlpatterns = [
     path("apps/scholar/", include("apps.workspace.scholar_app.urls")),
     # Journal (agentic-journal leaf, first release 0.1.0a0): same gated
     # wrapper shape as scholar — leaf views carry no auth of their own.
-    path("apps/journal/", include("apps.workspace.journal_app.urls")),
+    # Canonical home is /apps/agentic-journal/ (leaf slug contract); the
+    # old /apps/journal/ is a permanent redirect in
+    # urls_legacy_redirects.py.
+    path("apps/agentic-journal/", include("apps.workspace.journal_app.urls")),
     # OPERATOR ROUTE RULE (CCT 2763/2764) + RED START (CCT 2806), ALL apps,
     # same pattern: hub-side app routes move to apps/<app>/old-direct as the
     # parity reference, and old-direct NEVER ships in production — dev-gated,
