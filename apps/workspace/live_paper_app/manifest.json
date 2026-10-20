@@ -14,5 +14,15 @@
   "body_class": "live-paper-page",
   "ai_hint": "Render accepted manuscript bundles as live papers.",
   "allowed_extensions": [".pdf", ".tex", ".json", ".yaml"],
-  "hidden_patterns": ["__pycache__", "node_modules", ".git", ".venv", "build"]
+  "hidden_patterns": ["__pycache__", "node_modules", ".git", ".venv", "build"],
+  "renders_ui": false,
+  "renders_ui_reason": "Leaf renders the entire surface (viewer + overlay); hub contributes no workspace partial.",
+  "dependencies": {
+    "python": [],
+    "system": [],
+    "node": [],
+    "r": [],
+    "other": []
+  },
+  "container": null
 }
