@@ -12,6 +12,11 @@
  *
  * Self-contained on purpose: no imports, no framework, no dependency on
  * any other bundle. It only needs its own entry to resolve.
+ *
+ * Mobile guarantees (operator 2026-10-19): the banner is bottom-fixed, so
+ * the box itself is pointer-events:none (Reload/Dismiss stay auto) and the
+ * detail text wraps anywhere — a long unbroken resource token must wrap,
+ * never overflow unclipped, and taps must always reach inputs beneath it.
  */
 
 const BANNER_ID = "stx-load-error-banner";
@@ -29,8 +34,20 @@ function showBanner(detail: string): void {
     "transform:translateX(-50%)",
     "bottom:16px",
     "z-index:99999",
+    // Mobile (operator 2026-10-19, CCT4763): the banner is bottom-fixed over
+    // the form, so it must never intercept taps meant for inputs beneath it
+    // (e.g. the signup password field with the keyboard open). None on the
+    // box, auto on the two buttons: visible and actionable, never blocking.
+    "pointer-events:none",
     "max-width:min(92vw,560px)",
-    "background:#1f2937",
+    // Same report: the detail is a raw URL tail (font css2 query, hashed
+    // chunk) with no spaces, so without wrapping it overflows unclipped.
+    "overflow-wrap:anywhere",
+    "word-break:break-word",
+    // Longhand, not the background/border shorthands: jsdom's CSS parser
+    // aborts the whole cssText block on shorthand+longhand mixes, which
+    // makes the banner untestable in CI. Identical rendering in browsers.
+    "background-color:#1f2937",
     "color:#f9fafb",
     "border:1px solid #b8956a",
     "border-radius:10px",
@@ -47,13 +64,14 @@ function showBanner(detail: string): void {
   reload.textContent = "Reload";
   reload.style.cssText = [
     "margin-left:10px",
-    "background:#b8956a",
+    "background-color:#b8956a",
     "color:#111",
     "border:0",
     "border-radius:6px",
     "padding:4px 12px",
     "font-weight:600",
     "cursor:pointer",
+    "pointer-events:auto",
   ].join(";");
   reload.addEventListener("click", () => window.location.reload());
   const dismiss = document.createElement("button");
@@ -62,12 +80,13 @@ function showBanner(detail: string): void {
   dismiss.setAttribute("aria-label", "Dismiss load error notice");
   dismiss.style.cssText = [
     "margin-left:6px",
-    "background:transparent",
+    "background-color:transparent",
     "color:#f9fafb",
     "border:1px solid #6b7280",
     "border-radius:6px",
     "padding:4px 10px",
     "cursor:pointer",
+    "pointer-events:auto",
   ].join(";");
   dismiss.addEventListener("click", () => banner.remove());
   banner.append(text, reload, dismiss);
