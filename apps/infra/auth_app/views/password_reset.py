@@ -12,6 +12,8 @@ from django.shortcuts import redirect, render
 from django.utils.encoding import force_str
 from django.utils.http import urlsafe_base64_decode
 
+from apps.security import safe_log_field
+
 #: ONE response for EVERY password-reset outcome: address known, unknown, or a
 #: send that failed. The code used two DIFFERENT success messages, so a caller
 #: could read from the page whether an address was registered — and the send
@@ -159,9 +161,17 @@ The SciTeX Team
             """
 
             try:
-                logger.info(f"Attempting to send password reset email to {email}")
+                logger.info(
+                    "Attempting to send password reset email to %s",
+                    safe_log_field(email),
+                )
                 logger.info(f"From: {settings.DEFAULT_FROM_EMAIL}")
-                logger.info(f"Reset URL: {reset_url}")
+                # Never log the reset token in clear text: keep the URL shape
+                # for debugging, redact the trailing token segment.
+                logger.info(
+                    "Reset URL: %s",
+                    reset_url.rsplit("/", 1)[0] + "/<redacted>",
+                )
 
                 send_mail(
                     subject,
@@ -171,7 +181,10 @@ The SciTeX Team
                     fail_silently=False,
                     html_message=html_message,
                 )
-                logger.info(f"Password reset email sent successfully to {email}")
+                logger.info(
+                    "Password reset email sent successfully to %s",
+                    safe_log_field(email),
+                )
                 _reset_feedback(request, email, registered=True, sent=True)
             except Exception as e:
                 logger.error(
@@ -184,7 +197,10 @@ The SciTeX Team
                 _reset_feedback(request, email, registered=True, sent=False)
 
         except User.DoesNotExist:
-            logger.info(f"Password reset requested for non-existent email: {email}")
+            logger.info(
+                "Password reset requested for non-existent email: %s",
+                safe_log_field(email),
+            )
             # For security, don't reveal if email exists (DEBUG shows the real
             # outcome; production stays generic).
             _reset_feedback(request, email, registered=False, sent=False)
