@@ -64,7 +64,7 @@ def _gated(patterns):
 if _LEAF_IMPORT_ERROR is not None:
     logger.error(
         "scitex-agentic-journal's Django app could not be imported, so "
-        "/apps/journal/ is NOT mounted. Cause: %r.",
+        "/apps/agentic-journal/ is NOT mounted. Cause: %r.",
         _LEAF_IMPORT_ERROR,
     )
     urlpatterns = []

@@ -364,7 +364,7 @@ def optional_upstream_apps() -> list[str]:
 
     # scitex-agentic-journal's Django app (first release 0.1.0a0). Plain
     # AppConfig (no SDK base); explicit path keeps templates resolving.
-    # Mounted at /apps/journal/ by the gated wrapper (journal_app).
+    # Mounted at /apps/agentic-journal/ by the gated wrapper (journal_app).
     if _installed("scitex_agentic_journal._django.apps"):
         entries.append(
             "scitex_agentic_journal._django.apps.SciTeXAgenticJournalConfig"
