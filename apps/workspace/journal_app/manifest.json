@@ -15,6 +15,8 @@
   "accent_color": "journal",
   "body_class": "journal-page",
   "builtin": true,
+  "renders_ui": false,
+  "renders_ui_reason": "Leaf renders the full surface via SDK app_shell; hub contributes no workspace partial.",
   "dependencies": {
     "python": [],
     "system": [],
