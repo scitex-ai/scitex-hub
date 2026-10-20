@@ -152,7 +152,10 @@ def _make_tenant(username: str, sentinel: str, slug: str) -> tuple[User, Path]:
         email=f"{username}@example.com",
         password="Password123!",  # pragma: allowlist secret
     )
-    project_dir = _data_root() / username / "proj" / "p1"
+    # Directory named by slug: the SDK storage provider derives the project
+    # root as data/users/{username}/proj/{slug}/, so the fixture dir must
+    # match or resolution correctly reports "no workspace yet".
+    project_dir = _data_root() / username / "proj" / slug
     project_dir.mkdir(parents=True, exist_ok=True)
     (project_dir / "AGENTS.md").write_text(sentinel + "\n", encoding="utf-8")
     project = Project.objects.create(
@@ -448,14 +451,19 @@ def test_file_content_segment_absolute_remainder_is_403(client):
     assert response.status_code == 403
 
 
-def test_file_content_segment_cross_tenant_read_is_403(client, victim_project_dir):
-    # Arrange — the package's own jail is a startswith(BASE_DIR) that
-    # CONTAINS every tenant, so only the wrapper stops this one.
+def test_file_content_segment_cross_tenant_read_is_unreachable(
+    client, victim_project_dir
+):
+    # Arrange — project-relative leaf contract: a BASE_DIR-style victim path
+    # resolves INSIDE the caller's own project root, where it names nothing.
+    # Cross-tenant reads are impossible by construction (not merely
+    # forbidden); the victim sentinel must stay absent either way.
     url = MOUNT + "api/file-content/" + _segment(victim_project_dir) + "/AGENTS.md"
     # Act
     response = client.get(url)
     # Assert
-    assert response.status_code == 403
+    assert response.status_code == 404
+    assert VICTIM_SENTINEL not in response.content.decode("utf-8", "replace")
 
 
 def test_file_content_segment_cross_tenant_read_leaks_no_content(
@@ -467,17 +475,6 @@ def test_file_content_segment_cross_tenant_read_leaks_no_content(
     response = client.get(url)
     # Assert — status codes can be right while the body still leaks
     assert VICTIM_SENTINEL not in response.content.decode("utf-8", "replace")
-
-
-def test_bare_filename_remainder_is_403_because_it_resolves_outside_the_jail(client):
-    # Arrange — MEASUREMENT TRAP: the remainder is relative to BASE_DIR, so
-    # a bare name is /app/AGENTS.md, correctly outside every tenant jail.
-    # Pinned so a future reader does not file this 403 as an over-block.
-    url = MOUNT + "api/file-content/AGENTS.md"
-    # Act
-    response = client.get(url)
-    # Assert
-    assert response.status_code == 403
 
 
 def test_gallery_thumbnail_segment_traversal_is_403(client):
@@ -503,9 +500,9 @@ def test_gallery_thumbnail_segment_absolute_name_is_403(client):
 # from "endpoint is dead", and "deny everything" would pass.
 # ===========================================================================
 def test_own_file_content_by_segment_is_served(client, caller_project_dir):
-    # Arrange — the CORRECT in-jail form: BASE_DIR-relative, under the
-    # caller's own data/users/<user>/proj/<project>/ root.
-    url = MOUNT + "api/file-content/" + _segment(caller_project_dir) + "/AGENTS.md"
+    # Arrange — the CORRECT in-jail form: project-relative. The leaf resolves
+    # the remainder against the authorized project root (not BASE_DIR).
+    url = MOUNT + "api/file-content/AGENTS.md"
     # Act
     response = client.get(url)
     # Assert
@@ -516,7 +513,7 @@ def test_own_file_content_by_segment_returns_the_real_content(
     client, caller_project_dir
 ):
     # Arrange — a 200 with an empty body would not prove the read happened
-    url = MOUNT + "api/file-content/" + _segment(caller_project_dir) + "/AGENTS.md"
+    url = MOUNT + "api/file-content/AGENTS.md"
     # Act
     response = client.get(url)
     # Assert

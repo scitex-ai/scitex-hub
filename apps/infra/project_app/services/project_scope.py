@@ -128,3 +128,53 @@ class HubProjectProvider:
         project = find_accessible_project(request.user, project_id)
         if project is not None:
             remember_last_visited(request.user, project)
+
+
+class HubProjectStorage:
+    """Where an authorized project's files live, and whether THIS request may write.
+
+    The capability project-scope apps read from ``SCITEX_PROJECT_STORAGE``:
+    the app imports the dotted path, instantiates the class with no arguments,
+    then asks per request. Deliberately separate from the picker provider —
+    a picker entry carries display metadata, never a path.
+
+    Two rules, both fail-closed:
+
+    * **authorization first.** The project resolves through
+      ``find_accessible_project`` — the same access-scoped lookup the picker
+      lists from — so an unreachable project id has no path at all.
+    * **the owner's root, never the collaborator's.** The path is
+      ``get_project_root_path(project.owner, project)``.
+
+    Nothing here creates directories. A ``None`` root passes through as "this
+    project has no workspace yet" instead of being turned into one.
+    """
+
+    def project_path(self, project_id: str, request) -> Optional[str]:
+        """The project's storage root, or ``None`` when this request has none."""
+        project = self._authorized_project(project_id, request)
+        if project is None:
+            return None
+        from apps.infra.project_app.services.filesystem.paths import (
+            get_project_root_path,
+        )
+
+        root = get_project_root_path(project.owner, project)
+        return str(root) if root is not None else None
+
+    def can_write(self, project_id: str, request) -> bool:
+        """Reading is not writing: the project's own rule decides."""
+        project = self._authorized_project(project_id, request)
+        if project is None:
+            return False
+        return bool(project.can_edit(request.user))
+
+    @staticmethod
+    def _authorized_project(project_id: Optional[str], request):
+        """The project this request may act on, or ``None``."""
+        user = getattr(request, "user", None)
+        if user is None or not getattr(user, "is_authenticated", False):
+            return None
+        if not project_id:
+            return None
+        return find_accessible_project(user, project_id)

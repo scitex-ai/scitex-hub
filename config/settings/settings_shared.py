@@ -225,6 +225,11 @@ SCITEX_UI_ELEMENT_INSPECTOR = _scitex_hub_env in ("development", "staging")
 # Host service for leaf apps' project pickers (scitex_ui.project_scope).
 SCITEX_PROJECT_PROVIDER = "apps.infra.project_app.services.project_scope.HubProjectProvider"
 SCITEX_PROJECT_PROVIDER_URL = "api_project_scope"
+# Where an AUTHORIZED project's files live + per-request write check, for
+# project-scope leaf apps (figrecipe wrapper) via the SDK host capability.
+SCITEX_PROJECT_STORAGE = (
+    "apps.infra.project_app.services.project_scope.HubProjectStorage"
+)
 
 # ── Internal-app release channel ────────────────────────────────────────
 # Whether "internal"-visibility apps (Cards, Storage, todo, …) are released

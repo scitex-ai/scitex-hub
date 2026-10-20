@@ -413,6 +413,31 @@ def optional_upstream_apps() -> list[str]:
         os.environ[cards_lane_globs_env()] = ""
         publish_cards_store_target()
 
+    # SDK app shell: registers the app-contract app so its template
+    # (scitex_sdk/app/app_shell.html) resolves through Django's
+    # AppDirectoriesFinder for leaf pages that extend it. Label is
+    # `scitex_app` (ScitexAppConfig in scitex_sdk/app/apps.py). No views,
+    # no URLs, no behavior change — template resolution only.
+    if _installed("scitex_sdk.app"):
+        entries.append("scitex_sdk.app")
+
+    # SDK UI shell app: registered only when the installed SDK's UI config
+    # carries the namespaced `scitex_sdk_ui` label (migration-free, no
+    # models). Registration lets AppDirectoriesFinder resolve
+    # scitex_sdk/ui/standalone_shell.html (extended by app_shell.html) and
+    # lets static collection pick up the SDK static/. Pre-relabel SDKs
+    # (label `scitex_ui`) stay out: registering one would collide with the
+    # retired scitex-ui entry and break django.setup().
+    if _installed("scitex_sdk.ui"):
+        try:
+            from scitex_sdk.ui.apps import ScitexUiConfig as _sdk_ui_config
+
+            _sdk_ui_label = getattr(_sdk_ui_config, "label", "")
+        except ImportError:
+            _sdk_ui_label = ""
+        if _sdk_ui_label == "scitex_sdk_ui":
+            entries.append("scitex_sdk.ui.apps.ScitexUiConfig")
+
     return entries
 
 
