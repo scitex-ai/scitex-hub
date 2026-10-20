@@ -8,7 +8,6 @@ import {
   EMBED_NAVIGATION_MESSAGE,
   EMBED_THEME_MESSAGE,
   effectiveTheme,
-  embedUrl,
   maximizedRect,
   panelRect,
   parentNavigationUrl,
@@ -92,21 +91,9 @@ export function initChatPanel(
   darkQuery?.addEventListener?.("change", syncTheme);
 
   const resetFrame = () => frame.removeAttribute("src");
-  const setOpen = (open: boolean) => {
-    if (open && !frame.getAttribute("src")) {
-      frame.src = embedUrl(
-        window.location.pathname,
-        document.title,
-        pageTheme(),
-      );
-    } catch {
-      nested = true;
-    }
-    if (!frame.getAttribute("src") || nested) frame.src = canonicalEmbedUrl();
-  };
 
   const setOpen = (open: boolean) => {
-    resetNestedFrame();
+    resetFrame();
     panel.hidden = !open;
     toggle.setAttribute("aria-expanded", String(open));
     toggle.classList.toggle("is-active", open);
