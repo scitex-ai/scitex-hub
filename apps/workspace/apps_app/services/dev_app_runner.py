@@ -16,6 +16,7 @@ from __future__ import annotations
 import json
 import logging
 import os
+import re
 import subprocess
 import time
 from pathlib import Path
@@ -150,7 +151,12 @@ def run_dev_context(
                 inner_cmd, project_dir, env_vars=app_env, container_path=container
             )
 
-        logger.debug("[DevAppRunner] cmd: %s", " ".join(cmd))
+        # Never log the per-user API token in clear text
+        # (py/clear-text-logging-sensitive-data): redact before emitting.
+        redacted_cmd = re.sub(
+            r"SCITEX_API_TOKEN=\S+", "SCITEX_API_TOKEN=<redacted>", " ".join(cmd)
+        )
+        logger.debug("[DevAppRunner] cmd: %s", redacted_cmd)
 
         start = time.time()
         proc = subprocess.run(

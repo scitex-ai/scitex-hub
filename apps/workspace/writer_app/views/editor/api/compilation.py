@@ -262,7 +262,8 @@ def compile_api(request, project_id):
         )
     except Exception as e:
         logger.error(f"Error compiling: {e}", exc_info=True)
-        return JsonResponse({"success": False, "error": str(e)}, status=500)
+        # Never echo exception text to the caller (py/stack-trace-exposure).
+        return JsonResponse({"success": False, "error": "Compilation failed."}, status=500)
 
 
 @login_required
@@ -291,7 +292,10 @@ def compilation_status_api(request):
 
     except Exception as e:
         logger.error(f"Error getting status: {e}", exc_info=True)
-        return JsonResponse({"success": False, "error": str(e)}, status=500)
+        # Never echo exception text to the caller (py/stack-trace-exposure).
+        return JsonResponse(
+            {"success": False, "error": "Failed to get compilation status."}, status=500
+        )
 
 
 @api_login_optional
@@ -383,7 +387,9 @@ def compile_full_view(request, project_id):
         )
     except Exception as e:
         logger.error(f"[CompileFullAPI] Error: {e}", exc_info=True)
-        return JsonResponse({"success": False, "error": str(e)}, status=500)
+        # Never echo exception text to the caller (py/stack-trace-exposure):
+        # messages can carry paths and backend internals.
+        return JsonResponse({"success": False, "error": "Compilation failed."}, status=500)
 
 
 @api_login_optional
