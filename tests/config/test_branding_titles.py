@@ -59,7 +59,7 @@ def test_app_names_are_capitalized(app_name):
 def test_every_app_the_operator_named_has_a_title():
     # Arrange
     expected = {
-        "Agents",
+        "Agent Container",
         "Cards",
         "Writer",
         "Scholar",
@@ -123,7 +123,7 @@ def test_every_app_prefix_is_a_path_that_actually_exists():
     [
         ("/writer/", "Writer"),
         ("/apps/cards/", "Cards"),
-        ("/apps/agents/", "Agents"),
+        ("/apps/agent-container/", "Agent Container"),
         ("/apps/llm/", "LLM"),
         ("/apps/comms/", "Comms"),
         ("/status/", "Status"),

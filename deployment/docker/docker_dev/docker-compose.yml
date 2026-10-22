@@ -92,7 +92,7 @@ services:
 
       # SAC scratch root. The Agents GUI scaffolds/launches in-process, and
       # SAC refuses when /scratch is neither a mount nor a directory
-      # (ScratchRootError → 502 on POST /apps/agents/create/). A named
+      # (ScratchRootError → 502 on POST /apps/agent-container/create/). A named
       # volume gives the container a persistent /scratch without touching
       # the host layout.
       - sac_scratch:/scratch

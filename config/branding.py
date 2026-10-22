@@ -260,7 +260,7 @@ APP_NAMES = {
     "/apps/figrecipe/": "FigRecipe",
     "/apps/console/": "Console",
     "/apps/cards/": "Cards",
-    "/apps/agents/": "Agents",
+    "/apps/agent-container/": "Agent Container",
     "/apps/llm/": "LLM",
     "/apps/comms/": "Comms",
     "/apps/storage/": "Storage",

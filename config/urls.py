@@ -405,6 +405,15 @@ urlpatterns = [
             url="/apps/cards/%(rest)s", permanent=True, query_string=True
         ),
     ),
+    # Same pattern for the Agents rebrand (operator 2026-10-22): the
+    # dashboard lived at /apps/agents/ before the rename to
+    # /apps/agent-container/. Permanent-redirect the whole subtree.
+    re_path(
+        r"^apps/agents/(?P<rest>.*)$",
+        RedirectView.as_view(
+            url="/apps/agent-container/%(rest)s", permanent=True, query_string=True
+        ),
+    ),
     path(
         "apps/workspace/", include(("apps.infra.workspace_app.urls", "workspace_app"))
     ),
