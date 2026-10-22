@@ -392,11 +392,9 @@ def health(request):
 
     GET /api/scholar/citation-graph/health/
 
-    Returns:
-        JSON with service health status
-
-    Example:
-        curl "https://scitex.ai/api/scholar/citation-graph/health/"
+    Initial page load reports configuration without constructing a backend.
+    ``?probe=1`` retains Scholar's explicit, sanitized live-probe contract.
+    Hub keeps its existing method, permission, and rate-limit boundary.
     """
     from scitex_scholar._django.views import graph_health
 

@@ -85,6 +85,7 @@ from figrecipe._django.views import editor_page as _raw_editor_page
 
 from apps.infra.project_app.services.working_dir_resolver import (
     WorkingDirScopedView,
+    resolve_user_working_dir,
 )
 
 logger = logging.getLogger(__name__)
@@ -311,11 +312,20 @@ def _reject_out_of_jail_paths(request, endpoint=None):
     # -- CHANNEL 3: URL ``<path:endpoint>`` segment path sinks ------------
     if endpoint and endpoint.startswith(_FILE_CONTENT_PREFIX):
         remainder = endpoint[len(_FILE_CONTENT_PREFIX):]
-        # handle_api_file_content resolves against _find_default_working_dir()
-        # == process cwd == settings.BASE_DIR (/app) on the server. Its own
-        # jail is startswith(cwd) which CONTAINS every tenant; re-check
-        # against the caller's OWN data root instead.
-        candidate = (Path(settings.BASE_DIR) / remainder).resolve()
+        # The leaf resolves the remainder against the authorized project
+        # root (not BASE_DIR), so the guard must check the same base or it
+        # vetoes legitimate in-project reads. Resolved here from the
+        # server-side project (same resolver the wrapper uses) rather than
+        # read back from ?working_dir, so no request-derived value reaches
+        # path construction. Requests without a session (bare test clients)
+        # cannot resolve a project; they keep the BASE_DIR check. BASE_DIR
+        # fallback preserves the old check where no project resolves.
+        try:
+            server_dir = resolve_user_working_dir(request)
+        except Exception:
+            server_dir = None
+        base = server_dir if server_dir is not None else settings.BASE_DIR
+        candidate = (Path(base) / remainder).resolve()
         if not validate_path_in_user_jail(request.user, candidate):
             return _forbid("api/file-content", remainder, username)
     elif endpoint and endpoint.startswith(_THUMBNAIL_PREFIX):

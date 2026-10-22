@@ -71,6 +71,7 @@ def server_health_status_api(request):
         check_container_runtime_status(status_data)
         check_user_data_permissions(status_data)
         status_data["credential_health"] = run_credential_preflight()
+        # it counts slots, it never reconciles them.
 
         # Vite dev server check (DEBUG only)
         from django.conf import settings
@@ -210,8 +211,7 @@ def _build_services_dict(status_data: dict) -> dict:
         "user_data_permissions": user_data_perms.get("health_class", "unknown"),
         "credential_health": status_data.get("credential_health", {}).get(
             "overall", "unknown"
-        ),
-    }
+        ),    }
 
 
 def _check_vite_dev_server(status_data: dict) -> None:
