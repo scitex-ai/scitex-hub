@@ -10,7 +10,7 @@ itself. This file pins that contract:
 - the sibling checkout, dev mounts, listener token, and env templates
   (unchanged infrastructure — runs everywhere);
 - thin-hub: no wrapper files, no bespoke mount, no per-app gate names;
-- the live mount: /apps/agents/ resolves to the leaf namespace and
+- the live mount: /apps/agent-container/ resolves to the leaf namespace and
   anonymous requests are turned away at the login boundary (leaf
   installed; otherwise skipped with a reason).
 
@@ -174,7 +174,7 @@ def test_root_urlconf_resolves_agents_to_the_leaf_index_when_installed() -> None
     from django.urls import resolve
 
     # Act
-    match = resolve("/apps/agents/")
+    match = resolve("/apps/agent-container/")
 
     # Assert — the generic mount serves the LEAF's own urlconf (its
     # namespace), never a hub delegate.
@@ -190,12 +190,12 @@ def test_anonymous_request_never_reaches_the_agents_mount() -> None:
     from django.urls import resolve
 
     try:
-        resolve("/apps/agents/")
+        resolve("/apps/agent-container/")
     except Exception:
         pytest.skip("agents mount is not in this environment's URLconf")
 
     # Act
-    resp = Client().get("/apps/agents/", follow=False)
+    resp = Client().get("/apps/agent-container/", follow=False)
 
     # Assert
     assert resp.status_code == 302

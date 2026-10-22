@@ -35,7 +35,7 @@ import urllib.request
 DEFAULT_PATHS = (
     "/",
     "/apps/cards/",
-    "/apps/agents/",
+    "/apps/agent-container/",
     "/apps/storage/",
     "/apps/tools/",
     "/apps/docs/",

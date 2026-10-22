@@ -11,7 +11,7 @@ Measured BEFORE this change, signed in at 390px, per route:
     /apps/my-projects/      active=1  ['my_projects']
     /apps/store/            active=1  ['store']
     /chat/                  active=1  ['chat']
-    /apps/agents/           active=0  []        <- app leaves highlighted nothing
+    /apps/agent-container/           active=0  []        <- app leaves highlighted nothing
     /apps/cards/            active=0  []
     /apps/cards/board/      active=0  []
     /accounts/settings/     active=0  []
@@ -57,7 +57,7 @@ DOCK = [
         ("/chat/", "chat"),
         ("/apps/store/", APP_DESTINATION_KEY),
         # APP LEAF ROUTES -> the global Apps destination (the operator's rule)
-        ("/apps/agents/", APP_DESTINATION_KEY),
+        ("/apps/agent-container/", APP_DESTINATION_KEY),
         ("/apps/cards/", APP_DESTINATION_KEY),
         ("/apps/writer/", APP_DESTINATION_KEY),
         ("/apps/storage/", APP_DESTINATION_KEY),
@@ -76,7 +76,7 @@ def test_each_route_maps_to_the_one_destination(path, expected):
 def test_an_app_leaf_never_maps_to_home():
     """The bug this fixes: app leaves highlighted NOTHING at all, so the dock showed
     no current destination while the user was inside an app."""
-    for path in ("/apps/agents/", "/apps/cards/", "/apps/cards/board/", "/apps/writer/"):
+    for path in ("/apps/agent-container/", "/apps/cards/", "/apps/cards/board/", "/apps/writer/"):
         assert active_dock_key(DOCK, path) not in (None, HOME_BUTTON)
 
 
@@ -90,7 +90,7 @@ def test_exactly_one_key_matches_any_route():
     """The whole ruling in one assertion: 0 or 2 active items is the defect."""
     routes = [
         "/", "/apps/", "/chat/", "/apps/store/", "/apps/my-projects/",
-        "/apps/agents/", "/apps/cards/board/", "/apps/writer/",
+        "/apps/agent-container/", "/apps/cards/board/", "/apps/writer/",
     ]
     for path in routes:
         keys = [key for key, url in DOCK if active_dock_key(DOCK, path) == key]
@@ -126,7 +126,7 @@ def test_a_dock_without_the_apps_button_degrades_to_no_highlight():
     """No Apps button in the dock means no app-leaf destination - not a wrong one."""
     dock = [(HOME_BUTTON, "/apps/"), ("chat", "/chat/")]
 
-    assert active_dock_key(dock, "/apps/agents/") is None
+    assert active_dock_key(dock, "/apps/agent-container/") is None
 
 
 # ---------------------------------------------------------------------------

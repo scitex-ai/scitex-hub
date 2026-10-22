@@ -77,7 +77,7 @@ STAFF_POLICY = {
 OPEN_POLICY = {"login_required": True}
 
 STAFF_TABLE = [("/apps/cards/", "Cards", STAFF_POLICY)]
-OPEN_TABLE = [("/apps/agents/", "Agents", OPEN_POLICY)]
+OPEN_TABLE = [("/apps/agent-container/", "Agents", OPEN_POLICY)]
 
 #: Audience-only restriction (no tenancy): pins WHO may open a mount
 #: without depending on the project lookup behind tenant stores.
@@ -217,7 +217,7 @@ def test_anonymous_request_redirects_to_login_without_reaching_downstream():
 
 def test_open_mount_admits_any_signed_in_user():
     # Arrange
-    request = _request(_user(), path="/apps/agents/")
+    request = _request(_user(), path="/apps/agent-container/")
 
     # Act
     response, seen = _run(request, table=OPEN_TABLE)
@@ -546,7 +546,7 @@ def test_post_to_an_allowlisted_route_re_arms_csrf(tmp_path):
 def test_open_mount_without_an_allowlist_keeps_raw_mount_behaviour():
     # Arrange — unrestricted plugins with no writable_routes keep no method
     # gate: their behaviour is unchanged from a raw mount.
-    request = _request(_user(), path="/apps/agents/worker/action", method="post")
+    request = _request(_user(), path="/apps/agent-container/worker/action", method="post")
 
     # Act
     response, seen = _run(request, table=OPEN_TABLE)

@@ -95,7 +95,7 @@ def test_launcher_routes_uninstalled_agents_to_store_then_installed_agents_to_ap
     )
     assert (after["is_installed"], after["launch_url"]) == (
         True,
-        "/apps/agents/",
+        "/apps/agent-container/",
     )
 
 
@@ -106,7 +106,7 @@ def test_plain_user_route_reaches_upstream_identity_scope(client, monkeypatch):
     client.force_login(user)
     monkeypatch.setattr(upstream.RemoteFleet, "from_environment", lambda: _Fleet())
 
-    response = client.get("/apps/agents/api/fleet")
+    response = client.get("/apps/agent-container/api/fleet")
 
     assert response.status_code == 200
     payload = response.json()
@@ -122,7 +122,7 @@ def test_staff_route_still_reaches_upstream(client, monkeypatch):
     client.force_login(staff)
     monkeypatch.setattr(upstream.RemoteFleet, "from_environment", lambda: _Fleet())
 
-    response = client.get("/apps/agents/api/fleet")
+    response = client.get("/apps/agent-container/api/fleet")
 
     assert response.status_code == 200
     assert response.json()["identity"] == "agents-staff"
