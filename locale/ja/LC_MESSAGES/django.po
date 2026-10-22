@@ -9184,3 +9184,42 @@ msgstr "%(app)sに進むためにサインインしています — サインイ
 #: apps/infra/auth_app/templates/auth_app/signin.html
 msgid "After signing in you'll return to the page you requested."
 msgstr "サインイン後にリクエストしたページに戻ります。"
+
+msgid "SciTeX Cloud Academic"
+msgstr "SciTeX Cloud Academic（学術）"
+
+msgid "SciTeX Cloud Standard"
+msgstr "SciTeX Cloud Standard（一般）"
+
+msgid "SciTeX Self-Hosted — Commercial License"
+msgstr "SciTeX セルフホスト — 商用ライセンス"
+
+#: apps/infra/public_app/templates/public_app/landing.html
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_hero.html
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_modules.html
+msgid "1 of 4: Hub"
+msgstr "4枚中1枚目：Hub"
+
+#: apps/infra/public_app/templates/public_app/landing.html
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_hero.html
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_modules.html
+msgid "2 of 4: Scholar"
+msgstr "4枚中2枚目：Scholar"
+
+#: apps/infra/public_app/templates/public_app/landing.html
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_hero.html
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_modules.html
+msgid "3 of 4: FigRecipe"
+msgstr "4枚中3枚目：FigRecipe"
+
+#: apps/infra/public_app/templates/public_app/landing.html
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_hero.html
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_modules.html
+msgid "4 of 4: Writer"
+msgstr "4枚中4枚目：Writer"
+
+#: apps/infra/public_app/templates/public_app/landing.html
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_hero.html
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_modules.html
+msgid "Unedited interface captures from tracked product-guide screenshots; resize and compression only."
+msgstr "管理対象の製品ガイド画像を使用した未編集の画面です。サイズ変更と圧縮のみを行っています。"
