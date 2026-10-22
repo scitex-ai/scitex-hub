@@ -5,14 +5,10 @@
 Theme resolution contract:
 
 - The BASE default is DARK for every first visit, on every viewport.
-- Only a REGISTERED user's EXPLICITLY saved profile preference is
-  served as a preference (``source: "profile"``); everything else is
-  served as a default (``source: "default"``) so the client can let an
-  explicit prior localStorage choice win over it. A profile row is
-  auto-created at registration with the dark default, so row existence
-  alone must NOT count as a saved preference (UserProfile.theme_explicit
-  gates it) — otherwise every login would clobber a stored light choice
-  back to dark.
+- Only a REGISTERED user's saved profile preference is served as a
+  preference (``source: "profile"``); everything else is served as a
+  default (``source: "default"``) so the client can let an explicit
+  prior localStorage choice win over it.
 """
 from __future__ import annotations
 
@@ -118,11 +114,7 @@ def api_get_theme_preference(request):
         "source": "profile" | "default"
     }
 
-    ``source: "profile"`` only for an authenticated user whose profile
-    row carries an EXPLICITLY saved choice (theme_explicit). A row that
-    merely exists (auto-created at registration with the dark default)
-    is served as ``source: "default"`` so the client lets a stored
-    browser choice win.
+    ``source: "profile"`` only for an authenticated user's saved row.
     """
     if not request.user.is_authenticated:
         return JsonResponse(dict(_DEFAULT_THEME_RESPONSE))
