@@ -95,21 +95,6 @@ def payment_step(request):
         # the "any existing user can enter the signup payment flow" defect.
         return redirect("accounts_app:billing")
 
-    if not card_registration_is_open():
-        # No card can be taken yet (provider not configured). Still render THIS
-        # step rather than borrowing the generic billing page: the funnel stays one
-        # coherent step, and the surface carries its own marker so both a reader and
-        # a test can tell which step they are on.
-        disclosures = payment_disclosures(
-            plan_label="",
-            monthly_usd=0.0,
-            trial_end=None,
-            state=NOT_OPEN,
-        )
-        return render(request, "accounts_app/payment_step.html", disclosures.as_context())
-
-    # Which plan a new signup is put on must be DETERMINED and CHARGEABLE, not
-    # whichever catalog row comes first and not whatever ``?plan=`` names.
     #
     # Free first: a $0 plan recorded on the authority owes no card and no
     # provider round-trip (it can never be on the chargeable allowlist, by
@@ -126,6 +111,21 @@ def payment_step(request):
         mark_activated(user, pricing_id=free_row["id"])
         return redirect(first_product_url())
 
+    if not card_registration_is_open():
+        # No card can be taken yet (provider not configured). Still render THIS
+        # step rather than borrowing the generic billing page: the funnel stays one
+        # coherent step, and the surface carries its own marker so both a reader and
+        # a test can tell which step they are on.
+        disclosures = payment_disclosures(
+            plan_label="",
+            monthly_usd=0.0,
+            trial_end=None,
+            state=NOT_OPEN,
+        )
+        return render(request, "accounts_app/payment_step.html", disclosures.as_context())
+
+    # Which plan a new signup is put on must be DETERMINED and CHARGEABLE, not
+    # whichever catalog row comes first and not whatever ``?plan=`` names.
     row = funnel_plan(user, requested_id=request.GET.get("plan"))
 
     # The way the last attempt ended, read from the provider's return markers.
