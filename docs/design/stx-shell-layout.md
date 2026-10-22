@@ -173,3 +173,33 @@ Two classes sharing a common base at `static/shared/ts/components/resizer/`:
 - PDF iframe must be hidden during resizer drag (visibility hack) or it swallows mouse events
 - Double-rAF needed to suppress CSS transitions during initial layout restore from localStorage
 - `position: relative` required on `.selector-nav-item` for `::after` pseudo-element positioning
+
+## Site Dock Overlay Contract
+
+Measured 2026-10-22 (SDK + FigRecipe reports): the fixed bottom
+site-dock (`nav.site-dock`, ~153px tall) floats over leaf-app content.
+Rules, evidenced by `tests/templates/test_site_dock_overlay_contract.py`
++ `tests/templates/test_leaf_dock_scroll_clearance.py`:
+
+1. **No layout reservation** — leaf pages take no bottom padding for the
+   dock (`leaf-host-chrome.css` keeps only `env(safe-area-inset-bottom)`).
+   Source: `static/shared/css/layouts/leaf-host-chrome.css`,
+   `static/shared/css/components/site-dock.css`.
+2. **Scroll-end travel instead** — the scroll container gets
+   `scroll-padding-bottom: var(--site-dock-scroll-clearance) + 24px` plus
+   a scroll-only `::after` spacer, so the last line scrolls clear without
+   changing resting document height. Scoped to pages rendering the dock
+   (`body:has(> nav.site-dock)`), covering `#main-content` (SDK wizard),
+   `main`, `[role="main"]`, `.workspace-three-col`.
+3. **Focus avoidance is the dock's own job** — `site-dock.ts`
+   `avoidFocusedControl` lifts the dock (`--site-dock-focus-shift`) when
+   keyboard focus lands under it; inputs never need per-page hacks.
+4. **Minimize is the user escape hatch** — grip tap collapses the dock to
+   a 94x44 pill (`site-dock--minimized`, persisted per device); Enter on
+   the grip restores. Verified live 2026-10-22 on /apps/sdk/ and
+   /apps/figrecipe/.
+5. **Highlight rule** — app leaf routes map to the global Apps
+   destination (`active_dock_key`, operator 2026-09-17), EXCEPT tool
+   surfaces in `LEAF_NO_HIGHLIGHT_PREFIXES` (currently `/apps/sdk/`),
+   which highlight nothing rather than a wrong destination.
+   Source: `apps/infra/workspace_app/site_dock.py`.
