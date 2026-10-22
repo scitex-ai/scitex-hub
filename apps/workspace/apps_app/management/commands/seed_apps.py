@@ -42,7 +42,7 @@ _DESCRIPTIONS = {
     "public_projects": "Discover public repositories, researchers, and organizations across the SciTeX community.",
     "docs": "Documentation hub — Python packages, MCP tools, API reference, and self-hosting guide.",
     "scitex-cards": "Task and collaboration management.",
-    "agents": "Agent lifecycle management.",
+    "agent-container": "Agent lifecycle management.",
     "stats": "Statistical analysis.",
     "storage": "Browse your storage across the machines you can reach.",
     "files": "Your whole SciTeX workspace: Downloads, Recordings and every project folder.",

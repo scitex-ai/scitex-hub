@@ -5,7 +5,7 @@
 Card hub-card-required-copy-leftovers-20260914. The pins walk the launcher's
 curated order, so they use the grid's own visibility check: an ``internal``
 app (Storage today) is not pinned for a non-staff user on a deployment that
-has not released internal apps. Cards and Agents are shown to everyone
+has not released internal apps. Cards and Agent Container are shown to everyone
 (operator 2026-09-14 15:48Z; non-staff get an own-scope page), so they stay.
 """
 
@@ -48,12 +48,12 @@ def test_staff_default_pins_keep_internal_apps():
     assert pinned & INTERNAL_MODULES != set()
 
 
-@pytest.mark.skipif("agents" not in REGISTERED, reason="Agents plugin not installed")
+@pytest.mark.skipif("agent-container" not in REGISTERED, reason="Agent Container plugin not installed")
 @override_settings(SCITEX_HUB_INTERNAL_APPS_RELEASED=False)
-def test_non_staff_default_pins_keep_agents():
+def test_non_staff_default_pins_keep_agent_container():
     # Arrange
-    user = User(username="pins-agents", is_staff=False)
+    user = User(username="pins-agent-container", is_staff=False)
     # Act
     pinned = default_pinned_module_names(user)
     # Assert
-    assert "agents" in pinned
+    assert "agent-container" in pinned

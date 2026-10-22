@@ -75,7 +75,14 @@ _DEV_DEFAULT_TAB_ORDER = 95
 # (label "Cards", icon "fas fa-list-check") rendered a DUPLICATE Work tile
 # next to the plugin one (prod DB). Tombstoned here and deleted by migration
 # 0023; the /apps/todo/ -> /apps/cards/ URL redirect is unaffected.
-_RETIRED_MODULE_IDS = frozenset({"home", "discovery", "slides", "todo"})
+#
+# "agents" (2026-10-23): the pre-slug-rename identity of the Agent Container
+# tile. The leaf is mounted and tiled as "agent-container" (label
+# "Agent Container", foundation); a stale public "agents" catalog row
+# rendered the duplicate tile next to the plugin one (prod DB). Tombstoned
+# here and deleted by migration 0025; the /apps/agents/ ->
+# /apps/agent-container/ URL redirect is unaffected.
+_RETIRED_MODULE_IDS = frozenset({"home", "discovery", "slides", "todo", "agents"})
 
 # Rendered as an empty "+" slot, not an app (operator, 2026-09-14): always the
 # last cell of Work, never reorderable, never dockable.

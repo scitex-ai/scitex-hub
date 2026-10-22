@@ -26,9 +26,10 @@ from django.test import RequestFactory, override_settings
 from apps.infra.workspace_app.registry import get_all_modules
 from apps.workspace.apps_app.views.launcher import launcher_context
 
-# Tile names come from the LEAF manifests (plugin slug): cards is
-# "scitex-cards", not the retired hub wrapper name "todo".
-PREINSTALLED = {"scitex-cards", "agents"}
+# Tile names come from the LEAF manifests (plugin slugs): cards is
+# "scitex-cards", not the retired hub wrapper name "todo"; the agent tile is
+# "agent-container", not the retired hub wrapper name "agents".
+PREINSTALLED = {"scitex-cards", "agent-container"}
 
 pytestmark = pytest.mark.skipif(
     not PREINSTALLED <= {mod.name for mod in get_all_modules()},
@@ -75,7 +76,7 @@ def test_a_plain_users_first_row_is_the_infrastructure_row():
     # Act
     first_row = _tile_names(username, is_staff=False)[:4]
     # Assert
-    assert first_row == ["my_projects", "public_projects", "agents", "scitex-cards"]
+    assert first_row == ["my_projects", "public_projects", "agent-container", "scitex-cards"]
 
 
 # EOF
