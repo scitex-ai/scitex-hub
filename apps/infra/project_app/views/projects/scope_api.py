@@ -1,42 +1,25 @@
 """The SDK project picker's HTTP provider: ``/api/project/scope/``.
 
-GET  -> {"projects": [{id: "owner/slug", name, detail}], "current": last visited id|null}
-POST {"id": "owner/slug"} -> stores it as the last visited project (403 if not accessible)
+Serves the SDK ``scoped_project_listing_view`` contract through the hub's
+``HubProjectProvider`` (which offers the optional tagged-scope
+capability): GET advertises ``allow_user_scope`` + ``current_scope``,
+POST accepts the legacy ``{"id"}`` shape and the explicit
+``{"scope", "id"}`` pair (403 when not accessible).
 """
 
 from __future__ import annotations
 
-import json
-
 from django.contrib.auth.decorators import login_required
-from django.http import JsonResponse
 from django.views.decorators.http import require_http_methods
 
-from apps.infra.project_app.services.project_scope import (
-    HubProjectProvider,
-    find_accessible_project,
-    project_key,
-    remember_last_visited,
-)
+from apps.infra.project_app.services.project_scope import HubProjectProvider
 
 
 @login_required
 @require_http_methods(["GET", "POST"])
 def api_project_scope(request):
-    provider = HubProjectProvider()
-    if request.method == "GET":
-        return JsonResponse(
-            {
-                "projects": [e.as_option() for e in provider.list_projects(request)],
-                "current": provider.last_visited(request),
-            }
-        )
-    try:
-        wanted = json.loads(request.body or b"{}").get("id")
-    except (ValueError, AttributeError):
-        wanted = None
-    project = find_accessible_project(request.user, wanted)
-    if project is None:
-        return JsonResponse({"error": "project not accessible"}, status=403)
-    remember_last_visited(request.user, project)
-    return JsonResponse({"current": project_key(project)})
+    from scitex_sdk.ui.project_scope import scoped_project_listing_view
+
+    return scoped_project_listing_view(lambda _request: HubProjectProvider())(
+        request
+    )

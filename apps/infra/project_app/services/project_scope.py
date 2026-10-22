@@ -106,7 +106,17 @@ def project_for_scope_app(request) -> Optional[Project]:
 
 
 class HubProjectProvider:
-    """The SDK ``ProjectProvider`` over the hub's database."""
+    """The SDK ``ProjectProvider`` over the hub's database.
+
+    Also offers the SDK's optional ``ScopedProjectProvider`` capability
+    (``current_scope`` / ``remember_scope`` over an explicit
+    ``{"scope", "id"}`` pair), so project-scope leaves can advertise and
+    persist an explicit All ("user", null id) selection. The committed
+    selection lives on ``UserProfile.last_active_repository``: a project
+    row means ``{"scope": "project", id}``, null means explicit-All.
+    Stale (inaccessible) stored projects surface as unselected, never as
+    a silent fallback.
+    """
 
     def project_id(self, project: Project) -> str:
         return project_key(project)
@@ -129,6 +139,42 @@ class HubProjectProvider:
         project = find_accessible_project(request.user, project_id)
         if project is not None:
             remember_last_visited(request.user, project)
+
+    def current_scope(self, request):
+        """The committed tagged selection, or None when unselected."""
+        from scitex_sdk.ui.project_scope import ProjectSelection
+
+        project = last_visited_project(request.user)
+        if project is None:
+            stored = getattr(
+                getattr(request.user, "profile", None),
+                "last_active_repository_id",
+                None,
+            )
+            if stored is not None:
+                return None  # stale projection: refuse, never fall back
+            return ProjectSelection(scope="user", id=None)
+        return ProjectSelection(scope="project", id=project_key(project))
+
+    def remember_scope(self, request, selection) -> None:
+        """Atomically commit one authorized tagged selection."""
+        profile = getattr(request.user, "profile", None)
+        if profile is None:
+            return
+        if selection.scope == "user":
+            if profile.last_active_repository_id is not None:
+                profile.last_active_repository = None
+                profile.save(update_fields=["last_active_repository"])
+            return
+        project = find_accessible_project(request.user, selection.id)
+        if project is None:
+            # The SDK view pre-checks accessibility and returns 403 itself;
+            # this is defence-in-depth so a direct provider call can never
+            # commit an unreachable project. ValueError (not Http404):
+            # the view only catches ValueError from _tagged_selection and
+            # any other exception would surface as a 500, correctly loud.
+            raise ValueError("project not accessible")
+        remember_last_visited(request.user, project)
 
 
 class HubProjectStorage:
