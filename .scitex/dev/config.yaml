@@ -231,11 +231,9 @@ audit:
         to the scitex-dev lane.
     - rule: PS-234
       reason: >-
-        .scitex/hub/runtime/ held only .gitkeep + README (tracked) plus
-        untracked local logs. 2026-10-22: .gitkeep removed from the
-        index, .gitignore with `*` added. Remaining tracked README
-        documents the dir by design; already-removed .gitkeep needs a
-        grandfathering fix on the auditor side. Deferred to scitex-dev.
+        FIXED 2026-10-22: runtime/ fully untracked from the index (0
+        tracked entries); bare '*' .gitignore on disk untracked. Entry
+        kept until the auditor confirms zero findings, then removable.
     - rule: defer
       reason: >-
         NOT a rule — the auditor's own notice line
