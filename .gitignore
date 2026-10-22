@@ -15,16 +15,15 @@ references.bib
 !.scitex/dev/cli-audit-dict.yaml
 
 # scitex-hub's own project-scope runtime state (runtime-state-db-layout
-# convention, scitex-dev skill general/01_ecosystem/13_*.md): only the
-# runtime/ seed files are tracked -- everything else regenerates per-host
-# (Django/Celery logs; see config/settings/settings_logging.py LOG_DIR
-# and incident hub-prod-outage-celery-log-permission).
+# convention, scitex-dev skill general/01_ecosystem/13_*.md): NOTHING under
+# runtime/ is tracked — the auditor (PS-234) counts tracked entries, and the
+# directory + its ignore policy regenerate per-host (Django/Celery logs; see
+# config/settings/settings_logging.py LOG_DIR and incident
+# hub-prod-outage-celery-log-permission). The README that documented the dir
+# lives in docs/ instead; the on-disk .gitignore with bare '*' is created by
+# setup/dev tooling, never committed.
 !.scitex/hub/
 .scitex/hub/*
-!.scitex/hub/runtime/
-.scitex/hub/runtime/*
-!.scitex/hub/runtime/.gitkeep
-!.scitex/hub/runtime/README.md
 
 ### Source: /home/ywatanabe/.git-templates/.gitignore-templates/Custom/Claude.gitignore ###
 .claude

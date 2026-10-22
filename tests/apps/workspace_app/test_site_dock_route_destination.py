@@ -97,6 +97,13 @@ def test_exactly_one_key_matches_any_route():
         assert len(keys) == 1, f"{path} -> {keys}"
 
 
+def test_sdk_leaf_tool_page_highlights_nothing_not_app_store():
+    """SDK report 2026-10-22 (m_0582ca98b3d2): /apps/sdk/ is the App Creator
+    wizard, not the App Store. The store button must light only on its own
+    route; a tool page highlights nothing rather than a wrong destination."""
+    assert active_dock_key(DOCK, "/apps/sdk/") is None
+
+
 def test_a_hub_route_no_dock_item_owns_stays_unhighlighted():
     """PINNED, not asserted as correct: /accounts/settings/ belongs to no dock button.
 

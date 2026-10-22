@@ -86,7 +86,16 @@ def _is_active(key: str, url: str, path: str) -> bool:
 #: destination, because the user reached it from there and no other dock button
 #: owns it. Kept as an explicit product rule rather than inferred, so the mapping
 #: is one line to change and impossible to "discover" by accident.
+#:
+#: SDK exception (2026-10-22, scitex-sdk report m_0582ca98b3d2): /apps/sdk/ is
+#: the App Creator wizard, a leaf-owned tool page — NOT the App Store. The
+#: App Store ("store" key, /apps/store/) must light only on its own route;
+#: the SDK page highlights nothing rather than a destination the user is not
+#: on (same pinned-None principle as unowned hub routes below).
 APP_DESTINATION_KEY = "store"
+#: Leaf routes that render their own tool surface and must NOT inherit the
+#: global Apps highlight, even though they live under /apps/.
+LEAF_NO_HIGHLIGHT_PREFIXES = ("/apps/sdk/",)
 
 
 def active_dock_key(pairs, path: str) -> str | None:
@@ -123,6 +132,9 @@ def active_dock_key(pairs, path: str) -> str | None:
         return HOME_BUTTON if HOME_BUTTON in by_key else None
 
     if path.startswith(APPS_PREFIX) and path.rstrip("/") != APPS_PREFIX.rstrip("/"):
+        for prefix in LEAF_NO_HIGHLIGHT_PREFIXES:
+            if path.startswith(prefix):
+                return None
         return APP_DESTINATION_KEY if APP_DESTINATION_KEY in by_key else None
 
     return None

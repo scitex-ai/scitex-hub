@@ -134,3 +134,38 @@ body:has(> .global-header) {
     max-height: calc(100vh - 65px);
   }
 }
+
+/* ---- Standalone leaf scroll-end clearance under the site dock ------------
+ * SDK report 2026-10-22 (hub-owned shell chrome): on /apps/sdk/ the fixed
+ * bottom dock covered the wizard's Section-3 helper text at full scroll —
+ * the scroll container ended 40px after the last card while the dock paints
+ * ~153px tall. The overlay contract (no reserved layout space — see
+ * test_site_dock_overlay_contract.py) forbids page padding, so the clearance
+ * lives on the scroll container's scroll-padding: keyboard focus and
+ * scrollIntoView stop one dock-height early, and users can always scroll the
+ * last line clear. Scoped to pages that actually render the dock. */
+body:has(> nav.site-dock) .workspace-three-col,
+body:has(> nav.site-dock) main,
+body:has(> nav.site-dock) #main-content,
+body:has(> nav.site-dock) [role="main"] {
+  scroll-padding-bottom: calc(
+    var(--site-dock-scroll-clearance, 170px) + 24px
+  );
+}
+
+/* The overlay never takes layout space, so a page whose content ends right
+ * where the dock paints can never scroll its last line clear — the dock is
+ * translucent by design, but text sitting UNDER glass still reads as covered
+ * (SDK report 2026-10-22: Section-3 helper at full scroll). The spacer is a
+ * scrollable `::after` on the leaf scroll container, not page padding: the
+ * document keeps its height at rest, and the extra travel appears only when
+ * the user scrolls to the end. Scoped to docked leaf pages. */
+body:has(> nav.site-dock) .workspace-three-col::after,
+body:has(> nav.site-dock) main::after,
+body:has(> nav.site-dock) #main-content::after,
+body:has(> nav.site-dock) [role="main"]::after {
+  content: "";
+  display: block;
+  height: calc(var(--site-dock-scroll-clearance, 170px) + 24px);
+  flex: none;
+}

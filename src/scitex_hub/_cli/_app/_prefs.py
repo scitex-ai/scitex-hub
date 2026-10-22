@@ -46,11 +46,7 @@ def prefs_get(app_name, json_output) -> None:
         console.warning(f"[yellow]No preferences saved for {app_name}[/yellow]")
         return
 
-    # PS-220 serializer carve-out: the sole argument is a `json.dumps(...)`
-    # call, i.e. an already-rendered machine-readable payload bound for
-    # stdout. A log level prefix would corrupt it, so the rule spares this
-    # transport structurally and it stays a bare `print`.
-    print(_json.dumps(prefs, indent=2))
+    emit_json(prefs or {})
 
 
 @app_prefs.command("set")
@@ -130,8 +126,7 @@ def prefs_list(json_output) -> None:
         console.warning("[yellow]No preferences saved[/yellow]")
         return
 
-    # PS-220 serializer carve-out — see the `prefs get` call site above.
-    print(_json.dumps(all_prefs, indent=2))
+    emit_json(all_prefs or {})
 
 
 # EOF

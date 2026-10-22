@@ -220,6 +220,22 @@ audit:
         edit, never in a workflow-only PR. The second flagged file
         (rtd-sphinx-build) is held with it pending the BLOCKER-2 check
         on whether hub vendors its Sphinx output back into the tree.
+    - rule: PS-102
+      reason: >-
+        top-level logs/ is UNTRACKED and gitignored (.gitignore:876):
+        8,630 local dev log files, 0 tracked (verified
+        `git ls-files | grep -c ^logs/` = 0). The auditor fires on the
+        directory's presence, not its contents; deleting local logs
+        does not fix the rule (it recurs on next dev run). Needs an
+        auditor-side presence-vs-tracked fix in scitex-dev; deferred
+        to the scitex-dev lane.
+    - rule: PS-234
+      reason: >-
+        .scitex/hub/runtime/ held only .gitkeep + README (tracked) plus
+        untracked local logs. 2026-10-22: .gitkeep removed from the
+        index, .gitignore with `*` added. Remaining tracked README
+        documents the dir by design; already-removed .gitkeep needs a
+        grandfathering fix on the auditor side. Deferred to scitex-dev.
     - rule: defer
       reason: >-
         NOT a rule — the auditor's own notice line
