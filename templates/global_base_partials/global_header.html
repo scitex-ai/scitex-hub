@@ -31,9 +31,16 @@
             {# always renders (/landing/) — tapping the logo must never bounce #}
             {# back to the same page and read as a dead touch target. #}
             <a href="{{ header_logo_href|default:'/' }}" class="header-logo" title="Home">
+                {# Theme-aware brand mark (operator 2026-10-26): env favicon #}
+                {# in light mode, gold CTA disc in dark mode. CSS keys off #}
+                {# html[data-theme]; both preloaded so the toggle is instant. #}
                 <img src="{% static SCITEX_FAVICON %}"
                      alt="SciTeX{% if SCITEX_ENV_MARKER %} ({{ SCITEX_ENV_MARKER }}){% endif %}"
-                     class="header-logo-icon" />
+                     class="header-logo-icon header-logo-icon--light" />
+                <img src="{% static SCITEX_FAVICON_DARK %}"
+                     alt=""
+                     aria-hidden="true"
+                     class="header-logo-icon header-logo-icon--dark" />
             </a>
             <span class="header-build-meta">
                 <span class="header-hub-version" title="SciTeX Hub version"><span class="header-hub-product">SciTeX™ Cloud </span>v{{ SCITEX_HUB_VERSION }}</span>

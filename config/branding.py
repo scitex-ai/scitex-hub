@@ -217,6 +217,16 @@ FAVICON_BY_ENV = {
     ENV_DEVELOPMENT: f"{_ICON_DIR}/scitex-icon-white-bg-navy.svg",
 }
 
+# Header logo, theme-aware (operator 2026-10-26): the LIGHT variant is the
+# same env favicon; the DARK variant is the gold-CTA disc (black snake on
+# --stx-gold) for every environment — brand-consistent in dark mode.
+# Templates render both and CSS keys off html[data-theme].
+FAVICON_DARK_BY_ENV = {
+    ENV_PRODUCTION: f"{_ICON_DIR}/scitex-icon-black-bg-gold.svg",
+    ENV_STAGING: f"{_ICON_DIR}/scitex-icon-black-bg-gold.svg",
+    ENV_DEVELOPMENT: f"{_ICON_DIR}/scitex-icon-black-bg-gold.svg",
+}
+
 
 def favicon_for_env(env):
     """Return the static-relative favicon path for ``env``.
@@ -224,6 +234,11 @@ def favicon_for_env(env):
     Raises ``ValueError`` on an unknown environment (see ``normalize_env``).
     """
     return FAVICON_BY_ENV[normalize_env(env)]
+
+
+def favicon_dark_for_env(env):
+    """Return the dark-mode header-logo path for ``env`` (gold CTA disc)."""
+    return FAVICON_DARK_BY_ENV[normalize_env(env)]
 
 
 # ---------------------------------------------------------------------------

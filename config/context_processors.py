@@ -372,6 +372,10 @@ def scitex_env(request):
         "IS_STAGING": env == branding.ENV_STAGING,
         "IS_PRODUCTION": env == branding.ENV_PRODUCTION,
         "SCITEX_FAVICON": branding.favicon_for_env(env),
+        # Dark-mode header logo (operator 2026-10-26): gold CTA disc; light
+        # mode reuses SCITEX_FAVICON. Templates render both; CSS keys off
+        # html[data-theme].
+        "SCITEX_FAVICON_DARK": branding.favicon_dark_for_env(env),
         # "dev" / "staging" / "standalone", or None in hub production. Same
         # marker the tab title uses, so chrome and tab never disagree.
         "SCITEX_ENV_MARKER": branding.title_marker(env, settings.SCITEX_APP_MODE),
