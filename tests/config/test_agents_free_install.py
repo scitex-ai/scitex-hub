@@ -82,18 +82,25 @@ def test_cards_dependency_hold_blocks_install_and_toggle(client):
 
 @pytest.mark.django_db
 @requires_agents_django
-def test_launcher_routes_uninstalled_agents_to_store_then_installed_agents_to_app(client):
+def test_launcher_routes_builtin_agent_container_straight_to_the_app(client):
+    # Arrange — the agent tile is a builtin foundation tile (leaf manifest
+    # `builtin: true`): it links straight at /apps/agent-container/ for
+    # everyone, with no store detour. Installing it explicitly still records
+    # the row (the install endpoint is idempotent, not gated on builtin).
     user = User.objects.create_user("agents-launcher")
     client.force_login(user)
     ensure_builtin_modules()
 
+    # Act
     before = next(t for t in client.get("/").context["tiles"] if t["name"] == "agent-container")
     client.post("/apps/store/api/agent-container/install/")
     after = next(t for t in client.get("/").context["tiles"] if t["name"] == "agent-container")
 
+    # Assert — a builtin tile reads installed from the row itself, so it is
+    # reachable (and already "installed") before any explicit install call.
     assert (before["is_installed"], before["launch_url"]) == (
-        False,
-        "/apps/store/agent-container/",
+        True,
+        "/apps/agent-container/",
     )
     assert (after["is_installed"], after["launch_url"]) == (
         True,
