@@ -44,7 +44,7 @@ def _login_required_policy(config) -> bool:
     Opt-IN per leaf (``mount_policy.login_required``): plugins that handle
     anonymous traffic themselves (figrecipe, stats) keep byte-identical
     behaviour; leaves whose views assume an authenticated ``request.user``
-    (agents, cards, storage) get the boundary without a hub-side wrapper.
+    (agent-container, cards, storage) get the boundary without a hub-side wrapper.
     """
     manifest = getattr(config, "manifest", None) or {}
     policy = manifest.get("mount_policy", {})

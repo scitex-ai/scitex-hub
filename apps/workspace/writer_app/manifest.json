@@ -2,7 +2,7 @@
   "$schema": "scitex-app-manifest",
   "$schema_version": "2.0.0",
   "name": "writer",
-  "label": "SciTeX Writer",
+  "label": "Writer",
   "app_name": "writer_app",
   "scope": "project",
   "icon": "fas fa-file-alt",

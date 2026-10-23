@@ -327,7 +327,7 @@ _CONTINUE_APP_NAMES = {
     "figrecipe": "FigRecipe",
     "cards": "Cards",
     "storage": "Storage",
-    "agents": "Agents",
+    "agent-container": "Agent Container",
     "clew": "Clew",
     "console": "Console",
     "docs": "Docs",

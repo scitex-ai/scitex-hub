@@ -47,7 +47,7 @@ _REPO_ROOT = Path(__file__).resolve().parents[3]
 EXPECTED_TILE_ORDER = [
     # FOUNDATION (operator groups, 2026-09-14 16:3xZ)
     "My Projects",
-    "Agents",
+    "Agent Container",
     "Cards",
     "Storage",
     # WORK (Stats keeps its slot until its app lands)
@@ -75,6 +75,18 @@ EXPECTED_TILE_ORDER = [
 ]
 
 
+#: Tile labels that live in LEAF manifests (other repos), not in this tree.
+#: SSoT per leaf (operator short-tile decision, 2026-10-23); mirrored here
+#: because this test must stay deterministic in every environment (CI
+#: runners have no sibling checkouts and no leaf packages guaranteed
+#: installed). Update a pin in the same change that relabels the leaf.
+_PLUGIN_LABEL_PINS = {
+    "agent-container": "Agent Container",  # scitex-agent-container manifest
+    "scitex-cards": "Cards",  # scitex-cards manifest
+    "storage": "Storage",  # scitex-storage manifest
+}
+
+
 def _manifest_labels():
     labels = {}
     manifests = tracked_source_files(
@@ -91,6 +103,9 @@ def _manifest_labels():
     from apps.workspace.apps_app.planned_apps import PLANNED_APPS
 
     labels.update({app.id: app.name_en for app in PLANNED_APPS})
+    # Plugin tiles: the leaf manifest is the SSoT (read live by the
+    # launcher); the pin above is this test's deterministic copy of it.
+    labels.update(_PLUGIN_LABEL_PINS)
     return labels
 
 
