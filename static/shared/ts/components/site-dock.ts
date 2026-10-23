@@ -236,7 +236,7 @@ class SiteDock {
     this.restorePosition();
   }
 
-  private toggleMinimized(on: boolean): void {
+  private toggleMinimized(on: boolean, at?: { x: number; y: number }): void {
     const before = this.dock.getBoundingClientRect();
     const gripBefore = this.grabber?.getBoundingClientRect();
     const wasFloating = this.dock.classList.contains("site-dock--floating");
@@ -249,17 +249,17 @@ class SiteDock {
       return;
     }
 
-    // Keep the GRABBER pixel-stable, not the box centre: the grip sits
-    // off-centre, so centring the box walks it sideways on every
-    // minimize/restore (operator 2026-09-26).
+    // Anchor at the CLICK point when known (operator 2026-10-26): the click
+    // lands under the cursor after the toggle, so repeated taps never walk
+    // the dock. Falls back to the grabber centre (never the box centre —
+    // the grip sits off-centre, so centring the box walks it sideways,
+    // operator 2026-09-26).
     const boxAfter = this.dock.getBoundingClientRect();
     const gripAfter = this.grabber?.getBoundingClientRect();
-    const anchorX = gripBefore
-      ? gripBefore.left + gripBefore.width / 2
-      : before.left + before.width / 2;
-    const anchorY = gripBefore
-      ? gripBefore.top + gripBefore.height / 2
-      : before.top + before.height / 2;
+    const anchorX = at?.x
+      ?? (gripBefore ? gripBefore.left + gripBefore.width / 2 : before.left + before.width / 2);
+    const anchorY = at?.y
+      ?? (gripBefore ? gripBefore.top + gripBefore.height / 2 : before.top + before.height / 2);
     const gripOffsetX = gripAfter ? gripAfter.left - boxAfter.left : boxAfter.width / 2;
     const gripOffsetY = gripAfter ? gripAfter.top - boxAfter.top : boxAfter.height / 2;
     this.settle(anchorX - gripOffsetX, anchorY - gripOffsetY);
@@ -325,7 +325,12 @@ class SiteDock {
         }
         // A cancelled press (e.g. the browser took the gesture) is not a tap.
         if (e.type === "pointercancel") return;
-        this.toggleMinimized(gripTap(isMinimized(this.dock)) === "minimize");
+        // Pass the release point: the toggle anchors there, so the grabber
+        // lands under the cursor instead of walking by its centre.
+        this.toggleMinimized(gripTap(isMinimized(this.dock)) === "minimize", {
+          x: e.clientX,
+          y: e.clientY,
+        });
       };
 
       grabber.addEventListener("pointermove", onMove);
