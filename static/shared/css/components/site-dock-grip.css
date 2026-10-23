@@ -105,13 +105,11 @@
 }
 
 .site-dock--minimized .site-dock-grabber {
-  /* Operator 2026-10-26: launcher matches the icon-group width (44px). */
-  width: 44px;
-  min-width: 44px;
-  height: 44px;
-  min-height: 44px;
+  width: 84px;
+  height: 100%;
+  min-height: 0;
   margin: 0;
-  border-radius: 12px;
+  border-radius: calc(var(--site-dock-pill-height) / 2);
   opacity: 1;
 }
 

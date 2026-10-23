@@ -28,11 +28,10 @@
     var(--site-dock-icon) + var(--site-dock-label-line) + 9px
   );
   --site-dock-pad: 6px;
-  /* Width: the Home grid's panels (operator 2026-09-14, after the iOS home
-     screen, whose dock shares the icon grid's side margins). launcher.css
-     pads a phone grid by 10px a side and caps a desktop grid at 632px; on
-     Home, launcher/pager.ts also measures the grid and sets these two on the
-     dock itself, which lines the edges up exactly at every width. */
+  /* Width: hug the icon groups (operator 2026-10-26) — the 632px cap is
+     kept as a max for the Home grid alignment (pager.ts measures and sets
+     it inline on Home), but elsewhere the dock is only as wide as its
+     Back/launcher/icons/Forward groups plus padding. */
   --site-dock-width: min(calc(100vw - 20px), 632px);
   --site-dock-gap: 10px;
   --site-dock-height: calc(
@@ -113,10 +112,13 @@ body:has(> .site-dock:not(.site-dock--floating):not(.site-dock--minimized))
   gap: 2px;
   box-sizing: border-box;
   /* A fixed height at every width: a wider dock spaces its icons out, it never
-     grows taller. */
-  width: var(--site-dock-width);
+     grows taller. Width hugs the icon groups (Back/launcher/apps/Forward);
+     the 632px variable stays as the cap, and pager.ts sets it inline on
+     Home to match the grid. */
+  width: max-content;
+  max-width: var(--site-dock-width);
+  min-width: 0;
   height: var(--site-dock-height);
-  max-width: calc(100vw - 16px);
   padding: var(--site-dock-pad);
   border-radius: 22px;
   background: var(--site-dock-bg-idle);
