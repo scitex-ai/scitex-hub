@@ -105,11 +105,13 @@
 }
 
 .site-dock--minimized .site-dock-grabber {
-  width: 84px;
-  height: 100%;
-  min-height: 0;
+  /* Operator 2026-10-26: launcher matches the icon-group width (44px). */
+  width: 44px;
+  min-width: 44px;
+  height: 44px;
+  min-height: 44px;
   margin: 0;
-  border-radius: calc(var(--site-dock-pill-height) / 2);
+  border-radius: 12px;
   opacity: 1;
 }
 
@@ -122,12 +124,15 @@
   display: block;
 }
 
-/* The block glyph is canonical in both expanded and minimized states. The
-   whole middle cell between Back and Forward is the drag/tap target. */
+/* The block glyph is canonical in both expanded and minimized states.
+   Operator 2026-10-26: the launcher keeps icon-group width (44px, same as
+   Back/Forward/items) — the full-width middle cell squeezed the app icons.
+   The whole grabber stays the drag/tap target, just no longer stretched. */
 @media (min-width: 0px) {
   .site-dock-grabber {
-    justify-self: stretch;
-    width: 100%;
+    justify-self: center;
+    width: 44px;
+    min-width: 44px;
     height: 48px;
     margin: 0;
     opacity: 1;
