@@ -66,9 +66,18 @@ body.workspace-page {
   height: 36px;
 }
 
-/* Same dark-mode lift as the hub header logo (03-logo.css). */
-[data-theme="dark"] .stx-leaf-site-header-logo img {
-  filter: brightness(1.37);
+/* Same per-theme asset switch as the hub header logo (03-logo.css). */
+.stx-leaf-logo-img--dark {
+  display: none;
+}
+[data-theme="dark"] .stx-leaf-logo-img--light {
+  display: none;
+}
+[data-theme="dark"] .stx-leaf-logo-img--dark {
+  display: block;
+}
+.stx-leaf-logo-img {
+  filter: none;
 }
 
 .stx-leaf-site-header-title {

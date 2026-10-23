@@ -251,3 +251,45 @@ def test_static_favicon_resolves_to_the_environment_icon_url():
 
     # Assert
     assert "scitex-icon-navy-bg-white.svg" in html
+
+
+# ---------------------------------------------------------------------------
+# Dark-mode header logo (operator 2026-10-26): gold CTA disc, all envs
+# ---------------------------------------------------------------------------
+@pytest.mark.parametrize("env", branding.KNOWN_ENVS)
+def test_dark_header_logo_is_gold_disc_for_every_env(env):
+    """Dark mode shows the gold CTA disc regardless of environment."""
+    # Arrange / Act
+    path = branding.favicon_dark_for_env(env)
+
+    # Assert
+    assert path.endswith("scitex-icon-black-bg-gold.svg")
+
+
+@pytest.mark.parametrize("env", branding.KNOWN_ENVS)
+def test_dark_header_logo_asset_exists_on_disk(env):
+    """A renamed/removed dark logo would 404 the header in dark mode."""
+    # Arrange
+    path = settings.BASE_DIR / "static" / branding.favicon_dark_for_env(env)
+
+    # Act / Assert
+    assert path.is_file(), f"missing dark header logo for {env}: {path}"
+
+
+def test_dark_header_logo_is_gold_with_black_snake():
+    """Gold disc (#b8956a) + eye-friendly black snake (#1a1a1a)."""
+    # Arrange
+    svg = (settings.BASE_DIR / "static" / branding.favicon_dark_for_env("production")).read_text()
+
+    # Act / Assert
+    assert "#b8956a" in svg and "#1a1a1a" in svg
+
+
+def test_dark_header_logo_raises_on_unknown():
+    """Unknown env must fail loudly, never fall back silently."""
+    # Arrange
+    unknown_env = "not-an-env"
+
+    # Act / Assert
+    with pytest.raises(ValueError):
+        branding.favicon_dark_for_env(unknown_env)
