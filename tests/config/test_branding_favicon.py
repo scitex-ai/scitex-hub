@@ -263,7 +263,7 @@ def test_dark_header_logo_is_gold_disc_for_every_env(env):
     path = branding.favicon_dark_for_env(env)
 
     # Assert
-    assert path.endswith("scitex-icon-black-bg-gold.svg")
+    assert path.endswith("scitex-icon-white-bg-gold.svg")
 
 
 @pytest.mark.parametrize("env", branding.KNOWN_ENVS)
@@ -276,13 +276,13 @@ def test_dark_header_logo_asset_exists_on_disk(env):
     assert path.is_file(), f"missing dark header logo for {env}: {path}"
 
 
-def test_dark_header_logo_is_gold_with_black_snake():
-    """Gold disc (#b8956a) + eye-friendly black snake (#1a1a1a)."""
+def test_dark_header_logo_is_gold_with_white_snake():
+    """Gold disc (#b8956a) + white snake (#ffffff)."""
     # Arrange
     svg = (settings.BASE_DIR / "static" / branding.favicon_dark_for_env("production")).read_text()
 
     # Act / Assert
-    assert "#b8956a" in svg and "#1a1a1a" in svg
+    assert "#b8956a" in svg and "#ffffff" in svg
 
 
 def test_dark_header_logo_raises_on_unknown():
