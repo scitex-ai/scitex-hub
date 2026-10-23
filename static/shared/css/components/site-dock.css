@@ -113,10 +113,11 @@ body:has(> .site-dock:not(.site-dock--floating):not(.site-dock--minimized))
   gap: 2px;
   box-sizing: border-box;
   /* A fixed height at every width: a wider dock spaces its icons out, it never
-     grows taller. */
+     grows taller. Width matches the launcher grid panels (operator
+     design 2026-09-14; pager.ts measures and sets it inline on Home to
+     line the edges up exactly at every width). */
   width: var(--site-dock-width);
   height: var(--site-dock-height);
-  max-width: calc(100vw - 16px);
   padding: var(--site-dock-pad);
   border-radius: 22px;
   background: var(--site-dock-bg-idle);
