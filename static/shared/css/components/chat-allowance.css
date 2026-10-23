@@ -7,7 +7,34 @@
  * no page loads, and nothing rendered differently.) A test pins that linkage.
  *
  * Shared SDK tokens only; no new tokens are declared here.
+ *
+ * Project scope chip (beta golden path step 6): server-rendered when the
+ * chat is deep-linked with ?project=. Sits in the input area (never the
+ * largest content space — no content margins), same role as the Writer
+ * project dropdown.
  */
+.chat-scope-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  margin: 0 0 0.5rem;
+  padding: 0.3rem 0.6rem;
+  border: 1px solid var(--border-muted, var(--border-default, #30363d));
+  border-radius: 999px;
+  background: var(--bg-secondary, transparent);
+  color: var(--text-secondary, #8b949e);
+  font-size: 0.8rem;
+  line-height: 1.35;
+}
+
+.chat-scope-chip .fa-folder-open {
+  color: var(--stx-accent, #b8956a);
+}
+
+.chat-scope-chip span {
+  color: var(--text-primary, #e6edf3);
+  font-weight: 500;
+}
 
 .chat-allowance {
   display: flex;
