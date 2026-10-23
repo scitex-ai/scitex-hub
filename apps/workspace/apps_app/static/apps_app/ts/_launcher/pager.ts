@@ -168,8 +168,13 @@ export class LauncherPager {
     // stacked above it (banner, section head, web fonts). At DOMContentLoaded
     // none of that has settled, so re-measure once layout has happened, and
     // keep watching. apply() only rebuilds when the capacity really changed.
+    // Web fonts shift the grid after load (operator 2026-10-26: dock/panel
+    // width drift) — re-measure when they settle too.
     requestAnimationFrame(() => this.apply());
     window.addEventListener("load", () => this.apply());
+    if (typeof document !== "undefined" && "fonts" in document) {
+      document.fonts.ready.then(() => this.apply()).catch(() => undefined);
+    }
 
     if ("ResizeObserver" in window) {
       // Observe the CONTAINER, never the grid itself: apply() sets the grid's
