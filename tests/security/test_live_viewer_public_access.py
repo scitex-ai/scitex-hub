@@ -227,6 +227,28 @@ class LiveViewerWorkingDirOverrideTest(TestCase):
         assert seen["working_dir"] == "/srv/live-paper-demo"
 
 
+class TestLiveViewerRouting:
+    """URL routing: /<owner>/<slug>/live/ must reach the live viewer.
+
+    Regression: the flat ``project_app/urls.py`` (which carried these
+    routes) was superseded by the ``project_app/urls/`` package in a
+    refactor, and the package never re-added them — ``live/`` fell
+    through to the directory catch-all (302 to the project page).
+    """
+
+    def test_live_path_resolves_to_project_live_viewer(self):
+        from django.urls import resolve
+
+        match = resolve("/some-owner/some-slug/live/")
+        assert match.func is live_viewer.project_live_viewer
+
+    def test_live_api_path_resolves_to_project_live_viewer_api(self):
+        from django.urls import resolve
+
+        match = resolve("/some-owner/some-slug/live/v2/api/claims")
+        assert match.func is live_viewer.project_live_viewer_api
+
+
 if __name__ == "__main__":
     import os
 

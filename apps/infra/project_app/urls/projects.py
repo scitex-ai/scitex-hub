@@ -17,6 +17,8 @@ from ..views.projects import (
     project_edit,
     project_delete,
     project_create_from_template,
+    project_live_viewer,
+    project_live_viewer_api,
 )
 from ..views.settings_views import (
     project_settings,
@@ -33,6 +35,18 @@ from ..views.integration_views import (
 
 # Note: slug and username are passed via kwargs from parent URL pattern
 urlpatterns = [
+    # Public read-only live-paper viewer (scitex-hub#146 Part B). Anonymous;
+    # default-deny via @project_access_required. This include is mounted
+    # before urls.repository, so "live/" cannot be swallowed by the
+    # directory catch-all (lost in the urls.py -> urls/ split; restored here).
+    path("live/", project_live_viewer, name="live_viewer"),
+    # "v2/" (not "api/") on purpose: HANDLERS keys already carry their own
+    # "api/" prefix (e.g. "api/claims").
+    path(
+        "live/v2/<path:endpoint>",
+        project_live_viewer_api,
+        name="live_viewer_api",
+    ),
     # Project edit/delete
     path("edit/", project_edit, name="edit"),
     path("delete/", project_delete, name="delete"),
