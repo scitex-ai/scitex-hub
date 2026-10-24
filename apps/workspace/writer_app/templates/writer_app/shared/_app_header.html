@@ -1,20 +1,21 @@
-{% load static scitex_project_picker %}
-{# Canonical SDK AppHeader primitive (STX-UI108): no leaf-local header tag. #}
-<link rel="stylesheet" href="{% static 'scitex_sdk/ui/css/app/app-header.css' %}" />
-<link rel="stylesheet" href="{% static 'scitex_sdk/ui/css/app/project-selector.css' %}" />
-<div data-stx-app-header data-app-title="SciTeX Writer"></div>
-<div id="writer-picker-holder" hidden>{% scitex_project_picker scope="project" current=current_project %}</div>
-<script type="module" src="{% static 'scitex_sdk/ui/js/app/app-header.js' %}"></script>
-<script type="module">
-    // Relocate the server-rendered project picker into the canonical slot.
-    // app-header.js auto-mounts on import (deferred, document order), so the
-    // header exists by the time this module runs.
-    const header = window.stxAppHeader?.get();
-    const holder = document.getElementById("writer-picker-holder");
-    if (header?.projectSlot && holder) {
-        header.projectSlot.replaceChildren(...holder.childNodes);
-        holder.remove();
-    } else if (holder) {
-        holder.hidden = false;
-    }
-</script>
+{% load static %}{# Converged onto the writer leaf header shape (10-19 audit plan).
+  The leaf (scitex-writer's writer/_app_header.html) is the SSoT for the
+  header contract: identity = leaf label + LEAF version (never the hub's),
+  picker = the leaf picker partial in the project-selector slot, actions
+  empty (writer's Compile / Save / Log live in the editor toolbar — a second
+  set here would be a second source of truth).
+
+  So this fork renders the LEAF picker partial instead of its own inline
+  tag, and places it with the LEAF header-picker.js instead of inline JS.
+  The SDK AppHeader primitive still owns the row (data-stx-app-header
+  mount), so every app keeps the same header.
+#}
+<link rel="stylesheet" href="{% static 'scitex_sdk/ui/css/app/app-header.css' %}">
+<div class="writer-app-header">
+  <div data-stx-app-header
+       data-app-title="{{ writer_label|default:'SciTeX Writer' }}"
+       {% if writer_version %}data-app-version="{{ writer_version }}"{% endif %}></div>
+  <script type="module" src="{% static 'scitex_sdk/ui/js/app/app-header.js' %}"></script>
+  {% include "writer/_project_picker.html" %}
+  <script type="module" src="{% static 'writer/js/header-picker.js' %}"></script>
+</div>
