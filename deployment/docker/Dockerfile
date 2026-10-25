@@ -161,6 +161,18 @@ RUN YQ_VERSION=v4.44.3 && \
 # Install inotify-tools (lightweight file watcher for template hot reload)
 RUN apt-get update && apt-get install -y --no-install-recommends inotify-tools && rm -rf /var/lib/apt/lists/*
 
+# Install fclones (duplicate-file detection for the storage Duplicates tab).
+# NOT in Debian/Ubuntu apt repos -- install the pinned upstream .deb release.
+# scitex-storage `find-duplicates` shells out to `fclones group`; without the
+# binary it raises MissingSystemDependencyError at runtime. Pinned: bump
+# deliberately (checked 2026-10-20: 0.35.0 is upstream latest).
+RUN FCLONES_VERSION=0.35.0 && \
+    curl -L -o /tmp/fclones.deb \
+        "https://github.com/pkolaczk/fclones/releases/download/v${FCLONES_VERSION}/fclones_${FCLONES_VERSION}-1_amd64.deb" \
+    && dpkg -i /tmp/fclones.deb \
+    && rm /tmp/fclones.deb \
+    && fclones --version
+
 # ============================================
 # Apptainer/Singularity Installation
 # ============================================
@@ -262,6 +274,7 @@ RUN pdflatex --version && \
     convert --version && \
     mmdc --version && \
     yq --version && \
+    fclones --version && \
     which srun && \
     echo -e "✅ All scitex.writer dependencies verified (SLURM client installed, config at runtime)"
 

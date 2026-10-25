@@ -763,7 +763,12 @@ node_modules/
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
-package-lock.json
+# NOTE: package-lock.json is deliberately TRACKED (not ignored) even though the
+# Node.js template above suggests ignoring it: hub Docker images run
+# `npm install` from a clean build context (no node_modules, no sibling
+# checkouts). A missing lockfile makes npm fresh-resolve `file:../` deps and
+# crash with `edgesOut` null, blocking ALL image builds. Keep the lockfile
+# in sync (`npm install --package-lock-only`) whenever package.json changes.
 media/users/
 coverage/
 
