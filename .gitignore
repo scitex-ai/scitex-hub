@@ -763,7 +763,13 @@ node_modules/
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
-package-lock.json
+# NOTE: package-lock.json is TRACKED (un-ignored 2026-10-25, card
+# hub-signup-chunk-toast-20261023): the prod image's bare `npm install`
+# crashes under the image npm 10.8.2 (edgesOut, same as
+# infra-hub-npm-edgesout-20261020). `npm ci` from this lockfile makes
+# prod installs deterministic and skips the broken resolver path.
+# Regenerate with the repo-pinned npm (node 26 toolchain) after any
+# package.json change: `npm install --package-lock-only`.
 media/users/
 coverage/
 

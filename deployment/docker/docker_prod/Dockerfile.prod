@@ -525,10 +525,13 @@ RUN useradd -m -u 1000 scitex && \
 COPY --from=python-builder /usr/local/bin/uv /usr/local/bin/uv
 RUN uv pip install --system --no-cache daphne==4.1.2 psycopg2-binary
 
-# package.json first — npm install is cached unless deps change
-COPY --chown=scitex:scitex package.json ./
+# package.json + lockfile first — npm ci is cached unless deps change.
+# `npm ci` (not bare `npm install`): the image npm 10.8.2 resolver crashes
+# (edgesOut, infra-hub-npm-edgesout-20261020); the committed lockfile makes
+# the install deterministic and skips resolution entirely.
+COPY --chown=scitex:scitex package.json package-lock.json ./
 RUN --mount=type=cache,target=/root/.npm \
-    npm install && \
+    npm ci && \
     touch node_modules/.install-timestamp
 
 # Application source (changes every deploy; immutable policy snapshot follows)
