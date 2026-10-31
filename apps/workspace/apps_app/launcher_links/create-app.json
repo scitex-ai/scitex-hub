@@ -2,7 +2,7 @@
   "$schema": "scitex-launcher-link",
   "$schema_version": "1.0.0",
   "name": "create-app",
-  "label": "App Creator",
+  "label": "SDK",
   "icon_from_sdk": "creator",
   "category": "utility",
   "url": "/apps/sdk/",

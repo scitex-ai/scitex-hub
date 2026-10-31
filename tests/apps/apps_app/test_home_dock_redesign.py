@@ -492,7 +492,7 @@ class SettingsAndChatTilesTest(TestCase):
         # Act
         response = self.client.get(url)
         # Assert — the popover drops Pin / Details for Chat and Settings (the
-        # App Creator "+" slot is not a tile, so it has no popover at all)
+        # SDK "+" slot is not a tile, so it has no popover at all)
         assert response.content.count(b'data-link-only="1"') == 2
 
     def test_dragged_link_tile_position_persists(self):

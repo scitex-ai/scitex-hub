@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""App Creator slot previews the SDK starter set (operator screenshot fix)."""
+"""SDK slot previews the SDK starter set (operator screenshot fix)."""
 
 import pytest
 

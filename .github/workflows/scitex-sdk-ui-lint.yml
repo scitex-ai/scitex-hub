@@ -42,7 +42,7 @@ jobs:
         with:
           python-version: "3.12"
       - name: Install scitex-sdk (drift-pack rules source)
-        run: pip install "git+https://github.com/scitex-ai/scitex-sdk.git@feat/sdk-ui-drift-pack-108-111"
+        run: pip install "git+https://github.com/scitex-ai/scitex-sdk.git@main"
       - name: Lint fixed trees (UI108/109/110/111 enforced)
         run: |
           scitex-sdk ui lint --json apps/workspace/writer_app > ui-violations.jsonl || true
