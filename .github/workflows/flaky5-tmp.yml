@@ -1,0 +1,69 @@
+name: flaky5-tmp-isolation
+
+# TEMPORARY isolation probe (card sdk-tile-label-sdk-20261031): run ONLY the
+# 5 waiver-diff nodes, serially, on whichever ref this file is dispatched from.
+# Delete with the tmp/ branches when the probe is done. NOT for develop.
+
+on:
+  workflow_dispatch:
+
+jobs:
+  flaky5:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_DB: scitex_test
+          POSTGRES_USER: scitex
+          POSTGRES_PASSWORD: scitex_test_pass  # pragma: allowlist secret
+        ports:
+          - 5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check out Writer's compile gate
+        uses: actions/checkout@v4
+        with:
+          repository: scitex-ai/scitex-writer
+          ref: develop
+          path: .ci/scitex-writer
+          sparse-checkout: |
+            scripts/python
+          sparse-checkout-cone-mode: true
+      - uses: astral-sh/setup-uv@v7
+        with:
+          cache-dependency-glob: pyproject.toml
+      - name: Install dependencies (py3.12)
+        run: |
+          set -euo pipefail
+          uv venv --seed --python 3.12 .venv
+          uv pip install --python .venv/bin/python -e ".[all,dev]" \
+            || uv pip install --python .venv/bin/python -e ".[dev]" \
+            || uv pip install --python .venv/bin/python -e .
+      - name: Run the 5 waiver-diff nodes in isolation
+        env:
+          SCITEX_WRITER_SOURCE: ${{ github.workspace }}/.ci/scitex-writer
+          SCITEX_HUB_DJANGO_SECRET_KEY: ci-test-secret-do-not-use-in-prod  # pragma: allowlist secret
+          SCITEX_HUB_GITEA_SSH_PORT_DEV: "2222"
+          SCITEX_HUB_GITEA_TOKEN_DEV: ""
+          SCITEX_HUB_DB_NAME_DEV: scitex_test
+          SCITEX_HUB_DB_USER_DEV: scitex
+          SCITEX_HUB_DB_PASSWORD_DEV: scitex_test_pass  # pragma: allowlist secret
+          SCITEX_HUB_DB_HOST_DEV: localhost
+          SCITEX_HUB_DB_PORT_DEV: ${{ job.services.postgres.ports['5432'] }}
+          SCITEX_HUB_TEST_MODE: "1"
+        run: |
+          set -euo pipefail
+          export PATH="$PWD/.venv/bin:$PATH"
+          .venv/bin/python -m pytest \
+            "tests/apps/infra/workspace_api/test_path_containment.py::WorkspaceApiContainmentTest::test_anonymous_read_of_own_public_file_returns_its_content" \
+            "tests/apps/infra/workspace_api/test_path_containment.py::WorkspaceApiContainmentTest::test_sibling_prefix_escape_write_returns_400" \
+            "tests/apps/workspace/writer_app/test_section_load_for_a_new_project.py::SectionLoadForANewProjectTest::test_an_unwritten_section_is_not_a_server_error" \
+            "tests/security/test_repository_vcs_metadata.py::TestRepositoryVcsRoutes::test_blob_tree_raw_and_archive_shapes_hide_git" \
+            "tests/security/test_repository_vcs_metadata.py::TestRepositoryVcsRoutes::test_workspace_reader_hides_git_for_public_anonymous_and_private_owner" \
+            -v
