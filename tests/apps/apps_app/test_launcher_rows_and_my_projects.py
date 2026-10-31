@@ -57,7 +57,7 @@ EXPECTED_TILE_ORDER = [
     "Writer",
     "Chat",
     "Clew",
-    "App Creator",
+    "SDK",
     # PUBLISH
     "Public Projects",
     # SYSTEM

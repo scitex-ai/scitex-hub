@@ -98,7 +98,7 @@ def test_exactly_one_key_matches_any_route():
 
 
 def test_sdk_leaf_tool_page_highlights_nothing_not_app_store():
-    """SDK report 2026-10-22 (m_0582ca98b3d2): /apps/sdk/ is the App Creator
+    """SDK report 2026-10-22 (m_0582ca98b3d2): /apps/sdk/ is the SDK
     wizard, not the App Store. The store button must light only on its own
     route; a tool page highlights nothing rather than a wrong destination."""
     assert active_dock_key(DOCK, "/apps/sdk/") is None
