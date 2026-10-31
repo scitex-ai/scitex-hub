@@ -1,4 +1,4 @@
-# SciTeX™ Cloud Private Beta: Login-to-Wow Journey
+# SciTeX® Cloud Private Beta: Login-to-Wow Journey
 
 Status: product SSOT for the Private Beta release  
 Owner: scitex-hub product lead  

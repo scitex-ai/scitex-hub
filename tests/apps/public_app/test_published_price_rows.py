@@ -484,10 +484,10 @@ def test_table_notes_come_from_the_ssot() -> None:
     assert "tier-speed" in hot_key and "tier-sub" in hot_key
     cols = comp["columns"]
     assert [c["label"] for c in cols] == [
-        "SciTeX™ Cloud Free",
-        "SciTeX™ Cloud Pro",
-        "SciTeX™ Self-Hosted (AGPL)",
-        "SciTeX™ Self-Hosted (Enterprise)",
+        "SciTeX® Cloud Free",
+        "SciTeX® Cloud Pro",
+        "SciTeX® Self-Hosted (AGPL)",
+        "SciTeX® Self-Hosted (Enterprise)",
     ]
     assert [c["recommended"] for c in cols] == [False, True, False, False]
     assert all(c["cta_label"] and c["cta_url"] for c in cols)
