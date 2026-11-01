@@ -45,6 +45,8 @@ HTTP modes and API URLs.
 Use these optional Compose variables to select qualified standalone source
 checkouts while preserving work in the usual sibling repositories:
 
+- `SCITEX_AGENT_CONTAINER_SOURCE_DIR` (existing SAC source override)
+- `SCITEX_CARDS_SOURCE_DIR`
 - `SCITEX_DEV_SOURCE_DIR`
 - `SCITEX_LIVE_PAPER_SOURCE_DIR`
 - `CROSSREF_LOCAL_SOURCE_DIR`
