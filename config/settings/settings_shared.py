@@ -252,9 +252,10 @@ SCITEX_UI_ELEMENT_INSPECTOR = _scitex_hub_env in ("development", "staging")
 
 # Host service for leaf apps' project pickers (scitex_ui.project_scope).
 SCITEX_PROJECT_PROVIDER = (
-    "apps.infra.project_app.services.project_scope.HubProjectProvider"
+    "apps.infra.project_app.services.project_scope.AppAwareHubProjectProvider"
 )
 SCITEX_PROJECT_PROVIDER_URL = "api_project_scope"
+from .settings_scope import SCITEX_APP_SCOPE_CAPABILITIES
 
 # ── Internal-app release channel ────────────────────────────────────────
 # Whether "internal"-visibility apps (Cards, Storage, todo, …) are released
