@@ -23,12 +23,57 @@ def scope_policy(request):
         # The context-free endpoint is the existing global profile selector.
         # It does not grant access to an app or authorize resource operations.
         return {"user": True, "project": True}
-    policy = getattr(settings, "SCITEX_APP_SCOPE_CAPABILITIES", {}).get(app)
-    if policy is None:
-        return {"user": False, "project": False, "reason": "Scope support is not configured for this app."}
-    if not isinstance(policy, dict) or any(type(policy.get(k)) is not bool for k in ("user", "project")):
-        raise ImproperlyConfigured("App scope capabilities require explicit user/project booleans")
-    return policy
+    from django.apps import apps
+    from scitex_sdk.app.embed import ScitexAppConfig
+    from scitex_sdk.app.plugins import mount_route
+    from django.urls import Resolver404, resolve
+
+    try:
+        callback = resolve(f"/apps/{app}/").func
+        callback_module = callback.__module__
+    except (Resolver404, AttributeError):
+        callback = None
+        callback_module = ""
+
+    def owns_mount(config):
+        route = mount_route(config).strip("/")
+        return route == f"apps/{app}" or (
+            callback_module and (callback_module == config.name or
+                                 callback_module.startswith(config.name + "."))
+        )
+
+    declarations = [config.scope_capabilities for config in apps.get_app_configs()
+                    if isinstance(config, ScitexAppConfig) and owns_mount(config)]
+    if len(declarations) > 1:
+        raise ImproperlyConfigured("Duplicate app scope capability declarations")
+    declared = declarations[0] if declarations else None
+    if not declarations and callback is not None:
+        from scitex_sdk.app._app_scope import normalize_scope_capabilities
+
+        declared = normalize_scope_capabilities(
+            getattr(callback, "scitex_scope_capabilities", None)
+        )
+    if declared is None:
+        return {"user": False, "project": False,
+                "reason": "Scope support is not declared by this app."}
+    restriction = getattr(settings, "SCITEX_APP_SCOPE_CAPABILITIES", {}).get(app)
+    configs = [config for config in apps.get_app_configs()
+               if isinstance(config, ScitexAppConfig) and owns_mount(config)]
+    reasons = configs[0].manifest.get("scope_capability_reasons", {}) if configs else {}
+    declared = dict(declared)
+    for key in ("user", "project"):
+        if not declared[key] and isinstance(reasons.get(key), str) and reasons[key]:
+            declared[key + "_reason"] = reasons[key]
+    if restriction is None:
+        return declared
+    if not isinstance(restriction, dict) or any(
+        type(restriction.get(k)) is not bool for k in ("user", "project")
+    ):
+        raise ImproperlyConfigured("App scope restrictions require explicit user/project booleans")
+    return {**declared, **{
+        key: declared[key] and restriction[key] for key in ("user", "project")
+    }}
+
 
 
 class ScopeCapabilityProjectProvider:
@@ -56,11 +101,11 @@ class ScopeCapabilityProjectProvider:
 
     def user_scope_disabled_reason(self, request):
         policy = scope_policy(request)
-        return None if policy["user"] else policy.get("reason", "This app works with one project at a time.")
+        return None if policy["user"] else policy.get("user_reason", policy.get("reason", "This app works with one project at a time."))
 
     def _project_reason(self, request):
         policy = scope_policy(request)
-        return None if policy["project"] else policy.get("reason", "This app does not operate on individual projects.")
+        return None if policy["project"] else policy.get("project_reason", policy.get("reason", "This app does not operate on individual projects."))
 
     def list_projects(self, request):
         reason = self._project_reason(request)

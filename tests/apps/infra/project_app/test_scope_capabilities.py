@@ -1,5 +1,8 @@
 """Real SDK dispatch honors host capability flags without changing refused state."""
 import json
+from pathlib import Path
+
+from scitex_sdk.app.embed import ScitexAppConfig
 
 import pytest
 from django.test import RequestFactory, override_settings
@@ -9,6 +12,18 @@ from scitex_sdk.ui.project_scope import (
 from apps.infra.project_app.scope_capabilities import (
     ScopeCapabilityProjectProvider, request_scope_app,
 )
+
+
+class ScopeFixtureConfig(ScitexAppConfig):
+    name = "scitex_sdk.creator"
+    label = "scope_capability_fixture"
+    path = str(Path(__file__).resolve().parents[3] / "fixtures" / "scope_capabilities")
+
+
+@pytest.fixture(autouse=True)
+def installed_scope_fixture():
+    with override_settings(INSTALLED_APPS=[f"{__name__}.ScopeFixtureConfig"]):
+        yield
 
 
 class FilesystemScopedProvider(LocalProjectProvider):
@@ -105,8 +120,8 @@ def test_unavailable_stored_scope_is_unselected_without_rewriting(tmp_path):
     before = raw.state.read_bytes()
     view = scoped_project_listing_view(ScopeCapabilityProjectProvider(raw))
     # Act
-    with override_settings(SCITEX_APP_SCOPE_CAPABILITIES={"writer": {"user": False, "project": True}}):
-        result = json.loads(view(RequestFactory().get("/api/project/scope/?app=writer")).content)
+    with override_settings(SCITEX_APP_SCOPE_CAPABILITIES={"fixture": {"user": False, "project": True}}):
+        result = json.loads(view(RequestFactory().get("/api/project/scope/?app=fixture")).content)
     # Assert
     assert result["current"] is None and "current_scope" not in result and raw.state.read_bytes() == before
 
@@ -120,3 +135,30 @@ def test_unknown_app_fails_closed_without_hiding_choices(tmp_path):
         result = json.loads(view(RequestFactory().get("/api/project/scope/?app=unknown")).content)
     # Assert
     assert result["projects"][0]["disabled"] and result["user_scope_disabled_reason"]
+
+
+class DeniedFixtureConfig(ScopeFixtureConfig):
+    path = str(Path(__file__).resolve().parents[3] / "fixtures" / "scope_capabilities_denied")
+
+
+def test_deployment_override_cannot_enable_leaf_unsupported_operations(tmp_path):
+    # Arrange
+    (tmp_path / "paper").mkdir()
+    view = scoped_project_listing_view(ScopeCapabilityProjectProvider(FilesystemScopedProvider(tmp_path)))
+    # Act
+    with override_settings(INSTALLED_APPS=[f"{__name__}.DeniedFixtureConfig"],
+                           SCITEX_APP_SCOPE_CAPABILITIES={"fixture-denied": {"user": True, "project": True}}):
+        result = json.loads(view(RequestFactory().get("/api/project/scope/?app=fixture-denied")).content)
+    # Assert
+    assert result["projects"][0]["disabled"] and result["user_scope_disabled_reason"]
+
+
+def test_leaf_manifest_controls_support_without_host_registry(tmp_path):
+    # Arrange
+    (tmp_path / "paper").mkdir()
+    view = scoped_project_listing_view(ScopeCapabilityProjectProvider(FilesystemScopedProvider(tmp_path)))
+    # Act
+    with override_settings(SCITEX_APP_SCOPE_CAPABILITIES={}):
+        result = json.loads(view(RequestFactory().get("/api/project/scope/?app=fixture")).content)
+    # Assert
+    assert not result["projects"][0].get("disabled") and "user_scope_disabled_reason" not in result

@@ -199,3 +199,9 @@ def api_run(request, slug):
 
 
 # EOF
+
+
+# This controller owns private project workspaces, independently of the SDK wizard.
+# The generic host resolver reads the actual resolved callback's declaration.
+create_page.scitex_scope_capabilities = {"user": False, "project": True}
+workspace_page.scitex_scope_capabilities = {"user": False, "project": True}
