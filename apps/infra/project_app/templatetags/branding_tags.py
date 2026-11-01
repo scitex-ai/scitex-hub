@@ -55,7 +55,9 @@ def _detail_from_context(context, path=""):
     # project in their context is only the last one the user opened, and
     # naming it in the tab mislabelled them ("dotfiles — SciTeX (dev)" on
     # Settings; site audit 2026-09-14). See branding.NON_PROJECT_PREFIXES.
-    if not branding.is_project_scoped(path):
+    if not branding.is_project_scoped(path) or path.startswith(
+        branding.APP_TITLE_ONLY_PREFIXES
+    ):
         return None
 
     for key in ("current_project", "project"):
