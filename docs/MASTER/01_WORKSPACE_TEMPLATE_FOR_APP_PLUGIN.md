@@ -452,3 +452,14 @@ host secret via `SCITEX_HUB_CARDS_DM_SECRET_FILE`; only Django receives that
 mount and the corresponding `_FILE` setting. The default `/dev/null` supplies no
 writer. After configuring the file, recreate Django to apply the mount; no
 worker/scheduler recreation or database GRANT is required.
+
+
+### Persistent user homes
+
+A leaf needing user-level state can resolve the trusted Django setting
+`SCITEX_USER_HOME_PROVIDER` with `import_string` and call it with the authenticated
+request. The Hub provider `plugin_volumes.user_home` returns the canonical,
+persistent user data root, independent of the selected project. It returns no
+home for anonymous requests and rejects path traversal and user-home symlink
+aliases. Leaves append their own state directory, such as `.scitex/scholar/library`,
+and must fail closed when a configured provider cannot resolve the user.

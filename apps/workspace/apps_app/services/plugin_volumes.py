@@ -14,8 +14,48 @@ and serves any leaf the deployment wires to this provider setting.
 from __future__ import annotations
 
 import os
+from pathlib import Path
 
 from django.utils.translation import gettext_lazy as _
+
+
+def _user_home_name(value):
+    from django.core.exceptions import PermissionDenied
+
+    if not isinstance(value, str) or not value or value in {".", ".."} or any(
+        char in value for char in ("/", "\\", "\0")
+    ):
+        raise PermissionDenied("Invalid user home identity")
+    return value
+
+
+def _checked_user_home(base: Path, home: Path, username: str) -> Path:
+    from django.core.exceptions import PermissionDenied
+
+    username = _user_home_name(username)
+    try:
+        resolved = home.resolve()
+        expected = base.resolve() / username
+    except (OSError, RuntimeError, ValueError):
+        raise PermissionDenied("User home cannot be resolved safely") from None
+    if resolved != expected:
+        raise PermissionDenied("User home must remain in its own workspace")
+    return resolved
+
+
+def user_home(request) -> Path | None:
+    """Trusted persistent user home for leaf plugins; no browser path input."""
+    from django.conf import settings
+
+    user = getattr(request, "user", None)
+    if user is None or not user.is_authenticated:
+        return None
+    username = _user_home_name(getattr(user, "username", None))
+    from apps.infra.project_app.services.filesystem.permissions import get_user_data_root
+
+    return _checked_user_home(
+        Path(settings.BASE_DIR) / "data" / "users", get_user_data_root(user), username
+    )
 
 
 def user_volumes(request) -> list[dict]:
