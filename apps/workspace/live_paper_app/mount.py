@@ -30,8 +30,10 @@ def hub_resolver(request, **url_kwargs) -> BundleContext:
     viewer and its API calls. Both paths remain inside the caller's jail.
     """
     from scitex_live_paper import BundleAccessDenied
+    from scitex_sdk.ui.project_scope import ProjectSelection
 
     raw = (request.GET.get("working_dir") or "").strip()
+    view_selection = None
     if not raw:
         from scitex_sdk.host import AccessError, project_access
 
@@ -48,6 +50,7 @@ def hub_resolver(request, **url_kwargs) -> BundleContext:
                 raise BundleAccessDenied("paper access is denied") from exc
             raise BundleResolverError(str(exc)) from exc
         raw = str(access.root)
+        view_selection = ProjectSelection("project", access.id)
     candidate = Path(raw)
     if not candidate.is_absolute():
         raise BundleNotFound(f"paper path is not absolute: {raw!r}")
@@ -59,6 +62,9 @@ def hub_resolver(request, **url_kwargs) -> BundleContext:
         raise BundleNotFound(f"paper bundle directory not found: {raw!r}")
     if not _inside_user_jail(request, resolved):
         raise BundleAccessDenied("paper is outside your workspace")
+    # Presentation follows this authorized resource, not a different tab's
+    # globally remembered project. Keep it even when the bundle is absent.
+    request.live_paper_view_selection = view_selection or ProjectSelection("user", None)
 
     def _load():
         from scitex_live_paper.bundle import load

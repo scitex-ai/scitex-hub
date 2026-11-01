@@ -104,7 +104,7 @@ dependencies = [
     # bottom border (no accent separator under the global header, operator
     # rule). Without this floor the fresh image fails the sibling-floor
     # preflight and the rebuild is refused.
-    "scitex-live-paper>=0.2.16",
+    "scitex-live-paper>=0.2.20",
     # THE FOUR SIBLINGS HUB IMPORTS BUT NEVER DECLARED — measured 2026-09-03/04
     # inside the dev image built from `.[all]` (sha256:70be677c04bf): hub's
     # `all` extra pulls the umbrella BARE (`scitex>=2.29.3`, below), whose base

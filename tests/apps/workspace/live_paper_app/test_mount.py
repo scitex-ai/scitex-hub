@@ -173,4 +173,9 @@ def test_explicit_project_resource_read_preserves_committed_selection(tmp_path):
         SCITEX_PROJECT_STORAGE=FilesystemStorage(),
     ):
         context = hub_resolver(request)
-    assert (context.source.load().root, preference.read_bytes()) == (selected, before)
+    assert (
+        context.source.load().root,
+        request.live_paper_view_selection.scope,
+        request.live_paper_view_selection.id,
+        preference.read_bytes(),
+    ) == (selected, "project", "selected", before)
