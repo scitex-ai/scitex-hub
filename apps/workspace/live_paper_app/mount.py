@@ -60,8 +60,29 @@ def hub_resolver(request, **url_kwargs) -> BundleContext:
         # cannot cross the user's jail through an otherwise safe directory.
         if not _inside_user_jail(request, resolved):
             raise BundleAccessDenied("paper is outside your workspace")
-        if any(member.is_symlink() for member in resolved.rglob("*")):
-            raise BundleAccessDenied("paper bundle must not contain symbolic links")
+        # A project may also contain unrelated source/runtime links. Check
+        # only members the renderer reads, not the entire project tree.
+        for name in (
+            "manuscript.pdf",
+            "manuscript.tex",
+            "claims.json",
+            "dag.mmd",
+            "provenance.yaml",
+            "state.yaml",
+            "figz",
+        ):
+            member = resolved / name
+            if (member.exists() or member.is_symlink()) and not _inside_user_jail(
+                request, member
+            ):
+                raise BundleAccessDenied(
+                    "paper bundle member is outside your workspace"
+                )
+        figures = resolved / "figz"
+        if figures.is_dir() and any(
+            member.is_symlink() for member in figures.rglob("*")
+        ):
+            raise BundleAccessDenied("paper figures must not contain symbolic links")
         return load(resolved)
 
     from django.urls import reverse
