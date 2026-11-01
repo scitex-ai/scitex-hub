@@ -21,6 +21,7 @@ logger = logging.getLogger(__name__)
 
 FRAME_STYLESHEET = "shared/css/layouts/site-content-frame.css"
 LEAF_CHROME_STYLESHEET = "shared/css/layouts/leaf-host-chrome.css"
+PLATFORM_BACKDROP_STYLESHEET = "shared/css/layouts/platform-backdrop.css"
 LEAF_DEFAULT_FAVICON = "scitex_ui/img/scitex-favicon.svg"
 # Font Awesome ships from CDN on hub pages (global_head_styles.html); the
 # standalone shell brings none, and the header's hamburger/menu icons need it.
@@ -146,11 +147,12 @@ def inject_frame_stylesheet(request, response) -> None:
     if head_end == -1:
         return
 
-    from django.templatetags.static import static
+    from scitex_sdk.ui.templatetags.scitex_static import versioned_static
 
     link = (
-        f'<link rel="stylesheet" href="{static(FRAME_STYLESHEET)}" />'
-        f'<link rel="stylesheet" href="{static(LEAF_CHROME_STYLESHEET)}" />'
+        f'<link rel="stylesheet" href="{versioned_static(FRAME_STYLESHEET)}" />'
+        f'<link rel="stylesheet" href="{versioned_static(LEAF_CHROME_STYLESHEET)}" />'
+        f'<link rel="stylesheet" href="{versioned_static(PLATFORM_BACKDROP_STYLESHEET)}" />'
     )
     if "font-awesome" not in body and "fontawesome" not in body:
         link += (

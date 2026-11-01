@@ -28,7 +28,37 @@
 # version pin would invalidate SLURM/Apptainer builds too (~10 min wasted).
 # As separate stages, they build in parallel and cache independently.
 #
-# Multi-stage builds: each FROM starts a fresh cache chain. The final runtime
+# Multi-stage builds: each # Storage's non-apt duplicate engine. Official upstream musl artifact, pinned
+# by version and SHA; do not feed fclones to the apt dependency federation.
+# Storage's non-apt duplicate engine. Official upstream musl artifact, pinned
+# by version and SHA; do not feed fclones to the apt dependency federation.
+FROM alpine:3.22 AS storage-tools-builder
+RUN apk add --no-cache ca-certificates curl \
+    && test "$(uname -m)" = x86_64 \
+    && curl --fail --location --retry 3 \
+      https://github.com/pkolaczk/fclones/releases/download/v0.35.0/fclones-0.35.0-linux-musl-x86_64.tar.gz \
+      -o /tmp/fclones.tar.gz \
+    && echo "9eae0466e5b78871cf25822e503ee9efbfa28dc36cc167060c4a4920306389ac  /tmp/fclones.tar.gz" | sha256sum -c - \
+    && tar -xzf /tmp/fclones.tar.gz -C /tmp \
+    && mkdir /out \
+    && cp /tmp/target/x86_64-unknown-linux-musl/release/fclones /out/fclones \
+    && chmod 755 /out/fclones \
+    && /out/fclones --version
+
+FROM alpine:3.22 AS storage-tools-builder
+RUN apk add --no-cache ca-certificates curl \
+    && test "$(uname -m)" = x86_64 \
+    && curl --fail --location --retry 3 \
+      https://github.com/pkolaczk/fclones/releases/download/v0.35.0/fclones-0.35.0-linux-musl-x86_64.tar.gz \
+      -o /tmp/fclones.tar.gz \
+    && echo "9eae0466e5b78871cf25822e503ee9efbfa28dc36cc167060c4a4920306389ac  /tmp/fclones.tar.gz" | sha256sum -c - \
+    && tar -xzf /tmp/fclones.tar.gz -C /tmp \
+    && mkdir /out \
+    && cp /tmp/target/x86_64-unknown-linux-musl/release/fclones /out/fclones \
+    && chmod 755 /out/fclones \
+    && /out/fclones --version
+
+FROM starts a fresh cache chain. The final runtime
 # stage cherry-picks artifacts from each builder via COPY --from=.
 
 # ============================================
@@ -332,6 +362,8 @@ RUN --mount=type=cache,target=/root/.cache/ms-playwright \
 # Cherry-picks from all builder stages. Only runtime deps, no compilers.
 
 FROM python:3.11-slim-bookworm AS runtime
+COPY --from=storage-tools-builder /out/fclones /usr/local/bin/fclones
+COPY --from=storage-tools-builder /out/fclones /usr/local/bin/fclones
 
 LABEL maintainer="ywatanabe@scitex.ai"
 LABEL description="SciTeX Hub - NAS"
@@ -366,6 +398,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     parallel \
     # Fast file finder (Storage page scan needs fd or fdfind on PATH)
     fd-find \
+    rsync \
+    rsync \
     # --- Container management ---
     docker.io \
     uidmap \

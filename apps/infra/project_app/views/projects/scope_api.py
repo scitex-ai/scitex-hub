@@ -12,7 +12,7 @@ from __future__ import annotations
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.http import require_http_methods
 
-from apps.infra.project_app.services.project_scope import HubProjectProvider
+from apps.infra.project_app.services.project_scope import AppAwareHubProjectProvider
 
 
 @login_required
@@ -20,6 +20,6 @@ from apps.infra.project_app.services.project_scope import HubProjectProvider
 def api_project_scope(request):
     from scitex_sdk.ui.project_scope import scoped_project_listing_view
 
-    return scoped_project_listing_view(lambda _request: HubProjectProvider())(
+    return scoped_project_listing_view(lambda _request: AppAwareHubProjectProvider())(
         request
     )
