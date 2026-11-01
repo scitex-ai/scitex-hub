@@ -11,7 +11,7 @@ from apps.workspace.live_paper_app.mount import hub_resolver
 
 def _request(path):
     request = RequestFactory().get("/apps/live-paper/", {"working_dir": str(path)})
-    request.user = SimpleNamespace(username="bundle-reader")
+    request.user = SimpleNamespace(username="bundle-reader", is_authenticated=False)
     return request
 
 
@@ -29,10 +29,16 @@ def test_directory_bundle_loads_through_real_leaf_parser(tmp_path):
     with override_settings(BASE_DIR=tmp_path):
         context = hub_resolver(_request(bundle))
         loaded = context.source.load()
-    assert (loaded.root, loaded.manuscript_path.name, loaded.claims) == (
+    assert (
+        loaded.root,
+        loaded.manuscript_path.name,
+        loaded.claims,
+        context.api_base,
+    ) == (
         bundle,
         "manuscript.tex",
         [],
+        "/apps/live-paper/api/",
     )
 
 
@@ -55,3 +61,18 @@ def test_nested_bundle_symlink_cannot_read_another_users_claims(tmp_path):
     (bundle / "claims.json").symlink_to(foreign / "claims.json")
     with override_settings(BASE_DIR=tmp_path), pytest.raises(BundleAccessDenied):
         hub_resolver(_request(bundle)).source.load()
+
+
+@pytest.mark.parametrize("embedded", [False, True])
+def test_full_app_keeps_header_and_explicit_iframe_can_hide_it(tmp_path, embedded):
+    from scitex_live_paper._django.views import viewer_page
+
+    bundle = _bundle(tmp_path / "data/users/bundle-reader/proj/demo/paper")
+    request = _request(bundle)
+    if embedded:
+        request.GET = request.GET.copy()
+        request.GET["embed"] = "1"
+    with override_settings(BASE_DIR=tmp_path, DEBUG=True, VITE_USE_BUILD=False):
+        request.live_paper_context = hub_resolver(request)
+        response = viewer_page(request)
+    assert (b'data-embed-mode="1"' in response.content) == embedded
