@@ -1,0 +1,76 @@
+/**
+ * Host-owned page ground shared by native Hub pages and mounted SDK shells.
+ * Brand colors come from the same Hub theme tokens. App surfaces stay opaque
+ * above this noninteractive layer; standalone SDK hosts do not import it.
+ */
+
+html {
+  scrollbar-gutter: stable;
+}
+
+/* The SDK shell has no global-base body rule. Scope the containing block and
+   stacking to its explicit direct-child root instead of styling all bodies. */
+body:has(> .workspace-three-col) {
+  position: relative;
+}
+
+body > .workspace-three-col {
+  position: relative;
+  z-index: 1;
+}
+
+body::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  pointer-events: none;
+  z-index: 0;
+  opacity: 0.2;
+  background-image:
+    radial-gradient(circle at 20% 30%, var(--_scitex-04) 2px, transparent 2px),
+    radial-gradient(circle at 60% 70%, var(--_scitex-05) 3px, transparent 3px),
+    radial-gradient(
+      circle at 80% 20%,
+      var(--_scitex-03) 1.5px,
+      transparent 1.5px
+    ),
+    radial-gradient(
+      circle at 40% 80%,
+      var(--_scitex-04) 2.5px,
+      transparent 2.5px
+    ),
+    radial-gradient(circle at 10% 60%, var(--_scitex-05) 2px, transparent 2px);
+  background-size:
+    100px 100px,
+    150px 150px,
+    80px 80px,
+    120px 120px,
+    90px 90px;
+  background-position:
+    0 0,
+    40px 60px,
+    130px 270px,
+    70px 100px,
+    150px 30px;
+}
+
+[data-theme="dark"] body::before {
+  opacity: 0.15;
+  background-image:
+    radial-gradient(circle at 20% 30%, var(--_scitex-05) 2px, transparent 2px),
+    radial-gradient(circle at 60% 70%, var(--_scitex-06) 3px, transparent 3px),
+    radial-gradient(
+      circle at 80% 20%,
+      var(--_scitex-04) 1.5px,
+      transparent 1.5px
+    ),
+    radial-gradient(
+      circle at 40% 80%,
+      var(--_scitex-05) 2.5px,
+      transparent 2.5px
+    ),
+    radial-gradient(circle at 10% 60%, var(--_scitex-06) 2px, transparent 2px);
+}

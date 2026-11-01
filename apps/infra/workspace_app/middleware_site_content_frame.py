@@ -146,11 +146,11 @@ def inject_frame_stylesheet(request, response) -> None:
     if head_end == -1:
         return
 
-    from django.templatetags.static import static
+    from scitex_sdk.ui.templatetags.scitex_static import versioned_static
 
     link = (
-        f'<link rel="stylesheet" href="{static(FRAME_STYLESHEET)}" />'
-        f'<link rel="stylesheet" href="{static(LEAF_CHROME_STYLESHEET)}" />'
+        f'<link rel="stylesheet" href="{versioned_static(FRAME_STYLESHEET)}" />'
+        f'<link rel="stylesheet" href="{versioned_static(LEAF_CHROME_STYLESHEET)}" />'
     )
     if "font-awesome" not in body and "fontawesome" not in body:
         link += (
