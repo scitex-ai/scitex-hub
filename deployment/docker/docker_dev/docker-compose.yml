@@ -44,6 +44,8 @@ services:
       - ../../../../scitex-writer:/scitex-writer:cached
       - ../../../../scitex-storage:/scitex-storage:cached
       - ${SCITEX_CARDS_SOURCE_DIR:-../../../../scitex-cards}:/scitex-cards:cached
+      # Optional DM writer is mounted only into Django; no credential in shared env_file.
+      - ${SCITEX_HUB_CARDS_DM_SECRET_FILE:-/dev/null}:/run/secrets/scitex-cards-dm-store:ro
       - ../../../../scitex-agentic-journal:/scitex-agentic-journal:cached
       - ${SCITEX_LIVE_PAPER_SOURCE_DIR:-../../../../scitex-live-paper}:/scitex-live-paper:cached
       - ${CROSSREF_LOCAL_SOURCE_DIR:-../../../../crossref-local}:/crossref-local:cached
@@ -153,6 +155,7 @@ services:
       - .env
 
     environment:
+      - SCITEX_HUB_CARDS_DM_STORE_FILE=/run/secrets/scitex-cards-dm-store
       - SCITEX_HUB_DJANGO_SETTINGS_MODULE=config.settings.settings_dev
       - DEBUG=True
       - DJANGO_DEBUG=True
