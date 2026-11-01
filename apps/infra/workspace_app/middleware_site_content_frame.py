@@ -89,10 +89,12 @@ def _leaf_header(request, body: str) -> str:
             **header_logo(request),
         }
         header = render_to_string("global_base_partials/global_header.html", context)
+        header += render_to_string("global_base_partials/leaf_theme_script.html", context)
     except Exception:
         logger.exception("[site-content-frame] leaf header failed for %s", request.path)
         return ""
-    # The standalone shell never loads the hub JS bundles, so the
+    # The standalone shell loads only the shared appearance controller, not
+    # the full hub JS bundles, so the
     # command-palette search (shared/components/search.ts) has no wiring
     # here. A live button would be a lie: disable the triggers honestly and
     # say so in the markup. The hamburger keeps working — its fail-safe
