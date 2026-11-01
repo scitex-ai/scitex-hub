@@ -8,11 +8,12 @@ filters out dangerous ones, and returns structured ToolInfo objects.
 
 from __future__ import annotations
 
-import logging
 from dataclasses import dataclass, field
 from typing import Any, Callable, Optional
 
-logger = logging.getLogger(__name__)
+import scitex_logging as slogging
+
+logger = slogging.getLogger(__name__)
 
 # ---------------------------------------------------------------------------
 # Exclusion rules -- these tools must NEVER be exposed via REST
@@ -91,6 +92,25 @@ def _is_public(name: str) -> bool:
     return False
 
 
+def _tool_executor(server: Any, tool_name: str, tool: Any) -> Callable:
+    """Execute provider-backed tools through FastMCP's public call boundary."""
+    direct = getattr(tool, "fn", None)
+    if callable(direct):
+        return direct
+
+    async def invoke(**arguments: Any) -> Any:
+        result = await server.call_tool(tool_name, arguments)
+        structured = getattr(result, "structured_content", None)
+        if structured is not None:
+            return structured
+        content = getattr(result, "content", None)
+        if content is not None:
+            return [item.model_dump(mode="json") for item in content]
+        return result
+
+    return invoke
+
+
 def discover_tools() -> dict[str, ToolInfo]:
     """Introspect the FastMCP server and return eligible tools.
 
@@ -135,7 +155,7 @@ def discover_tools() -> dict[str, ToolInfo]:
             description=getattr(tool_obj, "description", "") or "",
             parameters=getattr(tool_obj, "parameters", {}) or {},
             output_schema=getattr(tool_obj, "output_schema", None),
-            fn=tool_obj.fn,
+            fn=_tool_executor(mcp_server, tool_name, tool_obj),
             namespace=namespace,
             url_path=url_path,
             is_public=_is_public(tool_name),
