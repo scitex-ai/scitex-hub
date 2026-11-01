@@ -162,3 +162,18 @@ def test_leaf_manifest_controls_support_without_host_registry(tmp_path):
         result = json.loads(view(RequestFactory().get("/api/project/scope/?app=fixture")).content)
     # Assert
     assert not result["projects"][0].get("disabled") and "user_scope_disabled_reason" not in result
+
+
+def test_actual_callback_owner_resolves_host_mounted_alias(tmp_path):
+    # Arrange
+    from django.urls import path
+    from scitex_sdk.creator.views import index
+    global urlpatterns
+    urlpatterns = [path("apps/sdk/", index)]
+    (tmp_path / "paper").mkdir()
+    view = scoped_project_listing_view(ScopeCapabilityProjectProvider(FilesystemScopedProvider(tmp_path)))
+    # Act
+    with override_settings(ROOT_URLCONF=__name__, SCITEX_APP_SCOPE_CAPABILITIES={}):
+        result = json.loads(view(RequestFactory().get("/api/project/scope/?app=sdk")).content)
+    # Assert
+    assert not result["projects"][0].get("disabled") and "user_scope_disabled_reason" not in result
