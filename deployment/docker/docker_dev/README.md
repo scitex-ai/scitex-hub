@@ -61,3 +61,10 @@ nodes. Sample `/path/to/...` declarations are refused before allocation with a
 permanent unavailable status. A Docker-local file does not prove that a SLURM
 node can use the image; qualify isolation and compute-node mounts before setting
 these paths. No host-shell fallback is enabled.
+
+The final dependency resolution includes all requested editable peer extras in
+one solver call. This matters when corpus clients and documentation tools share
+a dependency: OpenAlex's awscli needs an older docutils than the newest Sphinx.
+The resolver chooses a mutually compatible Sphinx/plugin cohort before the final
+consistency check. Successful individual installations do not establish that the
+whole running environment is consistent.
