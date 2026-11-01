@@ -8,15 +8,16 @@ html {
   scrollbar-gutter: stable;
 }
 
-/* The SDK shell has no global-base body rule. Scope the containing block and
-   stacking to its explicit direct-child root instead of styling all bodies. */
-body:has(> .workspace-three-col) {
-  position: relative;
+/* Contain the negative backdrop above the page canvas, below ordinary app
+   painting. Do not create a frame stacking context: leaf modals must still
+   compare their z-index with the shared header and dock. */
+body {
+  isolation: isolate;
 }
 
-body > .workspace-three-col {
+/* SDK shells lack the native body containing block. */
+body:has(> .workspace-three-col) {
   position: relative;
-  z-index: 1;
 }
 
 body::before {
@@ -27,7 +28,7 @@ body::before {
   right: 0;
   bottom: 0;
   pointer-events: none;
-  z-index: 0;
+  z-index: -1;
   opacity: 0.2;
   background-image:
     radial-gradient(circle at 20% 30%, var(--_scitex-04) 2px, transparent 2px),
