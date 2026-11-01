@@ -281,6 +281,8 @@ APP_NAMES = {
     "/apps/storage/": "Storage",
     "/apps/stats/": "Stats",
     "/apps/sdk/": "SDK",
+    "/apps/live-paper/": "Live Paper",
+    "/apps/agentic-journal/": "Agentic Journal",
     "/apps/files/": "Files",
     "/apps/clew/": "Clew",
     "/apps/public-projects/": "Public Projects",
