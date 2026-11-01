@@ -32,6 +32,12 @@ html,body{{margin:0;min-height:600px}}body{{position:relative;background:#ddd}}
 #modal{{position:fixed;top:10px;right:10px;width:80px;height:80px;z-index:20000}}
 {css}</style></head><body><div id="header"></div><div id="dock"></div>
 <div id="frame" class="{frame_class}"><div id="modal"></div></div></body></html>''')
+                    # set_content completes DOM parsing before Chromium has necessarily
+                    # submitted the first compositor frame on a fresh page.
+                    page.evaluate(
+                        "() => new Promise(resolve => requestAnimationFrame("
+                        "() => requestAnimationFrame(resolve)))"
+                    )
                     box = page.locator("#frame").bounding_box()
                     visible = Image.open(io.BytesIO(page.screenshot())).convert("RGB")
                     hidden_style = page.add_style_tag(
