@@ -559,3 +559,25 @@ def test_agent_container_index_names_only_the_app():
 
     # Assert
     assert title == "Agent Container — SciTeX® (dev)"
+
+
+@pytest.mark.parametrize("app", ["Storage", "Stats", "FigRecipe", "SDK"])
+@override_settings(SCITEX_ENV="production", SCITEX_APP_MODE=branding.MODE_HUB)
+def test_app_tab_name_is_not_hidden_by_ambient_project(app):
+    from types import SimpleNamespace
+
+    context = {
+        "request": FakeRequest(f"/apps/{app.lower()}/"),
+        "current_project": SimpleNamespace(name="Handwritten Digits", slug="mnist"),
+    }
+    assert branding_tags.page_title(context) == f"{app} — SciTeX®"
+
+
+@pytest.mark.parametrize("app", ["Storage", "Stats", "FigRecipe", "SDK"])
+@override_settings(SCITEX_ENV="production", SCITEX_APP_MODE=branding.MODE_HUB)
+def test_explicit_app_page_detail_still_wins(app):
+    context = {
+        "request": FakeRequest(f"/apps/{app.lower()}/"),
+        "page_title_detail": "Specific document",
+    }
+    assert branding_tags.page_title(context) == f"Specific document · {app} — SciTeX®"

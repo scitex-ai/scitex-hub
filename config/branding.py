@@ -280,6 +280,7 @@ APP_NAMES = {
     "/apps/comms/": "Comms",
     "/apps/storage/": "Storage",
     "/apps/stats/": "Stats",
+    "/apps/sdk/": "SDK",
     "/apps/files/": "Files",
     "/apps/clew/": "Clew",
     "/apps/public-projects/": "Public Projects",
@@ -288,6 +289,12 @@ APP_NAMES = {
     "/apps/tools/": "Tools",
     "/apps/my-projects/": "My Projects",
 }
+
+# These app tabs identify the tool, not the ambient project selection.
+# This title-only policy does not change project scoping or permissions.
+APP_TITLE_ONLY_PREFIXES = (
+    "/apps/storage/", "/apps/stats/", "/apps/figrecipe/", "/apps/sdk/",
+)
 
 # Hub sections that are not products, but still need a stable tab label.
 SECTION_NAMES = {
