@@ -55,17 +55,17 @@ def test_theme_gradients_have_one_host_owned_source():
     )
 
 
-def test_platform_ground_does_not_add_global_body_rules_or_intercept_input():
+def test_platform_ground_is_isolated_behind_content_without_frame_stacking():
     # Arrange
     css = (LAYOUTS / "platform-backdrop.css").read_text()
     # Act
-    root_rules = re.findall(r"(?:^|})\s*body\s*\{", css)
+    root_rules = re.findall(r"(?m)^body\s*\{([^}]+)\}", css)
     # Assert
     assert (
-        not root_rules
+        root_rules == ["\n  isolation: isolate;\n"]
         and "pointer-events: none;" in css
-        and "body > .workspace-three-col" in css
-        and "z-index: 1;" in css
+        and "z-index: -1;" in css
+        and "body > .workspace-three-col" not in css
     )
 
 
