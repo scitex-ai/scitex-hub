@@ -16,6 +16,25 @@ export interface RectLike {
 export const FOCUS_AVOID_CLASS = "site-dock--avoiding-focus";
 export const FOCUS_SHIFT_VAR = "--site-dock-focus-shift";
 
+/** A tab switch may leave focus on body; its page-sized box is not a control. */
+export function isFocusAvoidanceTarget(
+  target: EventTarget | null,
+): target is HTMLElement {
+  if (
+    !(target instanceof HTMLElement) ||
+    target === document.body ||
+    target === document.documentElement ||
+    target.matches('[role="tabpanel"], [role="region"]')
+  ) return false;
+  return target.matches(
+    'a[href], button, input:not([type="hidden"]), select, textarea, summary, ' +
+    '[role="button"], [role="link"], [role="checkbox"], [role="radio"], ' +
+    '[role="switch"], [role="combobox"], [role="textbox"], [role="slider"], ' +
+    '[role="spinbutton"], [role="menuitem"], [tabindex]:not([tabindex="-1"]), ' +
+    '[contenteditable]:not([contenteditable="false"])',
+  );
+}
+
 export function focusAvoidanceShift(
   dock: RectLike,
   target: RectLike,

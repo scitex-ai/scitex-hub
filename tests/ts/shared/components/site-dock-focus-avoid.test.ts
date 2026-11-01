@@ -4,13 +4,50 @@
 
 import { describe, expect, it } from "vitest";
 
-import { focusAvoidanceShift } from "@/components/_site-dock/focus-avoid";
+import {
+  focusAvoidanceShift,
+  isFocusAvoidanceTarget,
+} from "@/components/_site-dock/focus-avoid";
 import { SiteDock } from "@/components/site-dock";
 
 const rect = (left: number, top: number, width: number, height: number) =>
   ({ left, top, right: left + width, bottom: top + height }) as DOMRect;
 
 describe("site dock focus avoidance", () => {
+  it("ignores body and focusable panels while preserving real controls", () => {
+    const panel = document.createElement("div");
+    panel.tabIndex = 0;
+    panel.setAttribute("role", "tabpanel");
+    expect(isFocusAvoidanceTarget(document.body)).toBe(false);
+    expect(isFocusAvoidanceTarget(document.documentElement)).toBe(false);
+    expect(isFocusAvoidanceTarget(panel)).toBe(false);
+    for (const tag of ["button", "input", "textarea", "select", "summary"]) {
+      expect(isFocusAvoidanceTarget(document.createElement(tag))).toBe(true);
+    }
+    const customButton = document.createElement("div");
+    customButton.setAttribute("role", "button");
+    expect(isFocusAvoidanceTarget(customButton)).toBe(true);
+    const keyboardControl = document.createElement("span");
+    keyboardControl.tabIndex = 0;
+    expect(isFocusAvoidanceTarget(keyboardControl)).toBe(true);
+  });
+
+  it("clears a previous focus shift when a hidden tab button yields focus to body", () => {
+    document.body.innerHTML = '<nav data-site-dock><button data-dock-grabber></button></nav>';
+    const dock = document.querySelector<HTMLElement>("[data-site-dock]")!;
+    dock.getBoundingClientRect = () => rect(10, 681, 370, 153);
+    const originalBodyRect = document.body.getBoundingClientRect;
+    document.body.getBoundingClientRect = () => rect(0, 0, 1000, 2000);
+    new SiteDock(dock).init();
+    dock.classList.add("site-dock--avoiding-focus");
+    dock.style.setProperty("--site-dock-focus-shift", "-621px");
+
+    document.body.dispatchEvent(new FocusEvent("focusin", { bubbles: true }));
+    document.body.getBoundingClientRect = originalBodyRect;
+
+    expect(dock.classList.contains("site-dock--avoiding-focus")).toBe(false);
+    expect(dock.style.getPropertyValue("--site-dock-focus-shift")).toBe("");
+  });
   it("moves the dock just above an overlapping focused control", () => {
     expect(
       focusAvoidanceShift(

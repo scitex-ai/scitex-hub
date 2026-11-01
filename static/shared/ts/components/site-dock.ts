@@ -36,6 +36,7 @@ import {
   FOCUS_AVOID_CLASS,
   FOCUS_SHIFT_VAR,
   focusAvoidanceShift,
+  isFocusAvoidanceTarget,
 } from "./_site-dock/focus-avoid";
 import {
   gripTap,
@@ -159,7 +160,7 @@ class SiteDock {
     this.dock.classList.remove(FOCUS_AVOID_CLASS);
     this.dock.style.removeProperty(FOCUS_SHIFT_VAR);
     if (
-      !(target instanceof HTMLElement) ||
+      !isFocusAvoidanceTarget(target) ||
       this.dock.contains(target) ||
       this.dock.classList.contains("site-dock--floating") ||
       isMinimized(this.dock)
