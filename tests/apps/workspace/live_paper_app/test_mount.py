@@ -76,3 +76,16 @@ def test_full_app_keeps_header_and_explicit_iframe_can_hide_it(tmp_path, embedde
         request.live_paper_context = hub_resolver(request)
         response = viewer_page(request)
     assert (b'data-embed-mode="1"' in response.content) == embedded
+
+
+def test_unrelated_project_link_does_not_prevent_reading_actual_bundle(tmp_path):
+    # Arrange
+    bundle = _bundle(tmp_path / "data/users/bundle-reader/proj/demo/paper")
+    outside = tmp_path / "unrelated-environment"
+    outside.mkdir()
+    (bundle / ".venv").symlink_to(outside, target_is_directory=True)
+    # Act
+    with override_settings(BASE_DIR=tmp_path):
+        loaded = hub_resolver(_request(bundle)).source.load()
+    # Assert
+    assert loaded.root == bundle
