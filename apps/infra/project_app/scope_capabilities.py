@@ -48,7 +48,7 @@ def scope_policy(request):
         raise ImproperlyConfigured("Duplicate app scope capability declarations")
     declared = declarations[0] if declarations else None
     if not declarations and callback is not None:
-        from scitex_sdk.app._app_scope import normalize_scope_capabilities
+        from scitex_sdk.app.embed import normalize_scope_capabilities
 
         declared = normalize_scope_capabilities(
             getattr(callback, "scitex_scope_capabilities", None)
