@@ -22,16 +22,24 @@ from scitex_live_paper import (
 def hub_resolver(request, **url_kwargs) -> BundleContext:
     """Resolve the paper bundle for this request from ``?working_dir=``.
 
-    The manifest declares ``working_dir_param: working_dir``: the deep
-    link carries the bundle directory path, resolved server-side against the
-    caller's data jail. Missing/unreadable/out-of-jail paths map to the
-    leaf's documented HTTP statuses (404/403), never a 500.
+    Explicit deep links carry a bundle directory in ``working_dir``.
+    Otherwise use the current authorized project, consistently for the
+    viewer and its API calls. Both paths remain inside the caller's jail.
     """
     from scitex_live_paper import BundleAccessDenied
 
     raw = (request.GET.get("working_dir") or "").strip()
     if not raw:
-        raise BundleNotFound("no paper selected (missing ?working_dir=)")
+        from apps.infra.project_app.services.filesystem.paths import (
+            get_project_root_path,
+        )
+        from apps.infra.project_app.services.project_scope import resolve_scoped_project
+
+        project = resolve_scoped_project(request)
+        root = get_project_root_path(project.owner, project) if project else None
+        if root is None:
+            raise BundleNotFound("no paper bundle selected in your projects")
+        raw = str(root)
     candidate = Path(raw)
     if not candidate.is_absolute():
         raise BundleNotFound(f"paper path is not absolute: {raw!r}")
@@ -56,11 +64,14 @@ def hub_resolver(request, **url_kwargs) -> BundleContext:
             raise BundleAccessDenied("paper bundle must not contain symbolic links")
         return load(resolved)
 
+    from django.urls import reverse
+
+    api_ping = reverse("live_paper:api_dispatch", kwargs={"endpoint": "api/ping"})
     return BundleContext(
         source=BundleSource.from_resolver(_load),
         paper_state=PaperState(),
-        api_base=request.path.rsplit("/", 1)[0] + "/",
-        options=RendererOptions(embed_mode=True),
+        api_base=api_ping.removesuffix("ping"),
+        options=RendererOptions(embed_mode=False),
     )
 
 
