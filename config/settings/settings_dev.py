@@ -251,7 +251,7 @@ INSTALLED_APPS = (
 # ASGI Application
 ASGI_APPLICATION = "config.asgi.application"
 MIDDLEWARE += [
-    "django_browser_reload.middleware.BrowserReloadMiddleware",
+    "config.dev_browser_reload.SandboxAwareBrowserReloadMiddleware",
     "config.middleware.DevNoCacheMiddleware",  # Prevent browser caching of JS modules + HTML
 ]
 
