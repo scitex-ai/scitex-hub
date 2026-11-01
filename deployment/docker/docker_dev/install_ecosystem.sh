@@ -8,6 +8,10 @@
 # Mark all mounted repos as safe for git (prevents "dubious ownership" errors)
 git config --global --add safe.directory '*' 2>/dev/null || true
 
+# Record requested roots so the final solve sees peer extras together.
+# Sequential installs can each succeed while replacing another peer's deps.
+declare -A ECOSYSTEM_EDITABLE_EXTRAS=()
+
 # Generic editable install function
 # Usage: try_editable_install <mount_path> <package_name> [extras]
 #   mount_path:    e.g. /figrecipe
@@ -28,6 +32,8 @@ try_editable_install() {
         echo -e "⚠️  WARNING: $mount_path exists but is not a valid Python package"
         return
     fi
+
+    ECOSYSTEM_EDITABLE_EXTRAS["$mount_path"]="$extras"
 
     # The migration sentinel persists outside the container, while
     # site-packages does not.  Inspect the installed distribution itself so a
@@ -98,6 +104,7 @@ try_editable_install "/scitex-container" "scitex-container"
 
 # Install scitex-hub itself in editable mode
 if [ -f "/app/pyproject.toml" ]; then
+    ECOSYSTEM_EDITABLE_EXTRAS["/app"]="[all]"
     echo_info "Installing scitex-hub (editable)..."
     uv pip install -e "/app" --link-mode=copy 2>&1 || true
 fi
@@ -133,5 +140,11 @@ install_ecosystem_packages
 
 # A later peer can replace an earlier editable package during resolution.
 # Refuse a mismatched environment instead of serving an outdated SDK silently.
+echo_info "Resolving the requested ecosystem cohort together..."
+cohort_args=()
+for mount_path in "${!ECOSYSTEM_EDITABLE_EXTRAS[@]}"; do
+    cohort_args+=(--editable "${mount_path}${ECOSYSTEM_EDITABLE_EXTRAS[$mount_path]}")
+done
+uv pip install --system --link-mode=copy "${cohort_args[@]}"
 echo_info "Checking the final ecosystem dependency environment..."
 uv pip check --system
