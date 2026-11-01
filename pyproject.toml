@@ -292,7 +292,9 @@ dependencies = [
     # would resolve an SDK without the jail contract.
     # 0.3.16 adds disabled-with-reason scope choices; older SDKs let
     # unavailable All Projects selections reach a failing backend.
-    "scitex-sdk>=0.3.16",
+    # 0.3.17 adds remember=False for authorized resource reads without
+    # replacing the shared navigation preference.
+    "scitex-sdk>=0.3.17",
     "gitpython>=3.1.51",
 ]
 
