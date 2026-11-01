@@ -13,7 +13,23 @@ _APP_PATH = re.compile(r"^/apps/([a-z][a-z0-9-]*)(?:/|$)")
 
 def request_scope_app(request):
     """The mounted app wins over caller query data; shared APIs carry context."""
-    match = _APP_PATH.match(getattr(request, "path_info", ""))
+    path = getattr(request, "path_info", "")
+    if path.startswith("/apps/workspace/"):
+        from django.urls import Resolver404, resolve
+        from apps.infra.workspace_app.registry import get_module
+
+        try:
+            resolved = getattr(request, "resolver_match", None) or resolve(path)
+        except Resolver404:
+            resolved = None
+        if (resolved is not None and "workspace_app" in resolved.app_names
+                and resolved.url_name in {"module_content", "shell_module"}):
+            module = get_module(resolved.kwargs.get("module"))
+            if module is not None:
+                target = _APP_PATH.match(module.get_url())
+                if target is not None:
+                    return target.group(1)
+    match = _APP_PATH.match(path)
     return match.group(1) if match else request.GET.get("app")
 
 
