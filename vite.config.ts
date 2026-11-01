@@ -112,6 +112,10 @@ function scitexSdkSubpathAliases(): Record<string, string> {
   }
 }
 
+// CSS ownership follows the SDK package's public exports, independently of
+// an older SCITEX_UI_STATIC pin still needed by legacy JS/TS consumers.
+const SCITEX_SDK_CSS = scitexSdkSubpathAliases()["@scitex/sdk/ui/css"] ?? null;
+
 /** Discovered app bridge configuration. */
 interface AppBridgeInfo {
   slug: string;
@@ -375,6 +379,19 @@ export default defineConfig(({ command }) => ({
       // dagre / @xyflow/react (both imported from scitex-cards' bridged
       // layout.ts) are handled by the generic resolveBridgedBareImports()
       // plugin below instead of one-off aliases -- see its docstring.
+      // Match CSS before the broad legacy JS/TS prefix. Both URL spellings
+      // resolve to the same exported SDK source, even with SCITEX_UI_STATIC.
+      ...(SCITEX_SDK_CSS
+        ? {
+            "scitex-ui/css": SCITEX_SDK_CSS,
+            "../../../scitex_ui/css": SCITEX_SDK_CSS,
+          }
+        : SCITEX_UI_STATIC
+          ? {
+              "scitex-ui/css": resolve(SCITEX_UI_STATIC, "css"),
+              "../../../scitex_ui/css": resolve(SCITEX_UI_STATIC, "css"),
+            }
+          : {}),
       // scitex-ui: shared component library (auto-discovered)
       ...(SCITEX_UI_STATIC
         ? {
@@ -382,9 +399,6 @@ export default defineConfig(({ command }) => ({
             // @scitex/ui is the npm package name used by figrecipe's frontend
             // imports like @scitex/ui/src/scitex_ui/static/... resolve from repo root
             "@scitex/ui": resolve(SCITEX_UI_STATIC, "../../../.."),
-            // shared/css/primitives/variables.css @imports scitex-ui tokens by
-            // their collectstatic URL; lets the bundled head CSS resolve them.
-            "../../../scitex_ui/css": resolve(SCITEX_UI_STATIC, "css"),
           }
         : {}),
       // Auto-discovered app bridges (e.g. "figrecipe-editor" → sibling repo)

@@ -13,7 +13,6 @@
  * STATIC_URL prefix survives. variables.css re-exports scitex-ui's own
  * primitives, so the header reads the same tokens as on hub pages. */
 @import url("../primitives/variables.css");
-@import url("platform-backdrop.css");
 @import url("../components/header/00-header.css");
 @import url("../components/header/01-container.css");
 @import url("../components/header/02-layout.css");

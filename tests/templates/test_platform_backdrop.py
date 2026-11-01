@@ -11,6 +11,7 @@ from django.test import RequestFactory
 from apps.infra.workspace_app.middleware_site_content_frame import (
     FRAME_STYLESHEET,
     LEAF_CHROME_STYLESHEET,
+    PLATFORM_BACKDROP_STYLESHEET,
     inject_frame_stylesheet,
 )
 
@@ -18,17 +19,20 @@ ROOT = Path(__file__).resolve().parents[2]
 LAYOUTS = ROOT / "static/shared/css/layouts"
 
 
-def test_both_real_stylesheet_entries_import_the_same_backdrop():
+def test_both_real_paths_load_the_same_independently_versioned_backdrop():
     # Arrange
-    entries = [LAYOUTS / "global-base.css", LAYOUTS / "leaf-host-chrome.css"]
+    native = (LAYOUTS / "global-base.css").read_text()
+    leaf = (LAYOUTS / "leaf-host-chrome.css").read_text()
+    middleware = (
+        ROOT / "apps/infra/workspace_app/middleware_site_content_frame.py"
+    ).read_text()
     # Act
-    imports = [
-        re.findall(r'@import\s+url\("([^\"]+)"\)', path.read_text()) for path in entries
-    ]
+    native_imports = re.findall(r'@import\s+url\("([^\"]+)"\)', native)
     # Assert
-    assert all(
-        imports_for_entry.count("platform-backdrop.css") == 1
-        for imports_for_entry in imports
+    assert (
+        native_imports.count("platform-backdrop.css") == 1
+        and "platform-backdrop.css" not in leaf
+        and "versioned_static(PLATFORM_BACKDROP_STYLESHEET)" in middleware
     )
 
 
@@ -90,7 +94,11 @@ def test_injected_host_stylesheets_use_their_actual_content_hashes():
     html = response.content.decode()
     expected = [
         f"/static/{path}?v={sha256((ROOT / 'static' / path).read_bytes()).hexdigest()[:12]}"
-        for path in (FRAME_STYLESHEET, LEAF_CHROME_STYLESHEET)
+        for path in (
+            FRAME_STYLESHEET,
+            LEAF_CHROME_STYLESHEET,
+            PLATFORM_BACKDROP_STYLESHEET,
+        )
     ]
     # Assert
     assert all(url in html for url in expected)
