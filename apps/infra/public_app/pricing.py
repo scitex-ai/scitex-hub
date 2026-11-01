@@ -894,21 +894,21 @@ def plan_comparison(today=None):
     return {
         "columns": [
             {
-                "label": _("SciTeX™ Cloud Free"),
+                "label": _("SciTeX® Cloud Free"),
                 "recommended": False,
                 "cta_label": _("Create a free account"),
                 "cta_url": reverse("auth_app:signup"),
                 "cta_primary": False,
             },
             {
-                "label": _("SciTeX™ Cloud Pro"),
+                "label": _("SciTeX® Cloud Pro"),
                 "recommended": True,
                 "cta_label": _("Start with Pro"),
                 "cta_url": reverse("auth_app:signup"),
                 "cta_primary": True,
             },
             {
-                "label": _("SciTeX™ Self-Hosted (AGPL)"),
+                "label": _("SciTeX® Self-Hosted (AGPL)"),
                 "recommended": False,
                 "cta_label": _("Get the source"),
                 "cta_url": load_pricing()["links"]["self_hosted_source"],
@@ -916,7 +916,7 @@ def plan_comparison(today=None):
                 "cta_external": True,
             },
             {
-                "label": _("SciTeX™ Self-Hosted (Enterprise)"),
+                "label": _("SciTeX® Self-Hosted (Enterprise)"),
                 "recommended": False,
                 "cta_label": _("Contact us"),
                 "cta_url": reverse("public_app:contact"),

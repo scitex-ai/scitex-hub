@@ -776,8 +776,8 @@ msgstr "無料"
 msgid "License"
 msgstr "ライセンス"
 
-msgid "Try SciTeX™ Cloud with a 30-day free trial"
-msgstr "30日間の無料トライアルで SciTeX™ クラウドを試す"
+msgid "Try SciTeX® Cloud with a 30-day free trial"
+msgstr "30日間の無料トライアルで SciTeX® クラウドを試す"
 
 msgid "¥ Ask"
 msgstr "¥ お問い合わせ"
@@ -7584,20 +7584,20 @@ msgid "Compare current plans"
 msgstr "現在のプランを比較"
 
 #: apps/infra/public_app/pricing.py
-msgid "SciTeX™ Cloud Free"
-msgstr "SciTeX™ Cloud Free"
+msgid "SciTeX® Cloud Free"
+msgstr "SciTeX® Cloud Free"
 
 #: apps/infra/public_app/pricing.py
-msgid "SciTeX™ Cloud Pro"
-msgstr "SciTeX™ Cloud Pro"
+msgid "SciTeX® Cloud Pro"
+msgstr "SciTeX® Cloud Pro"
 
 #: apps/infra/public_app/pricing.py
-msgid "SciTeX™ Self-Hosted (AGPL)"
-msgstr "SciTeX™ セルフホスト (AGPL)"
+msgid "SciTeX® Self-Hosted (AGPL)"
+msgstr "SciTeX® セルフホスト (AGPL)"
 
 #: apps/infra/public_app/pricing.py
-msgid "SciTeX™ Self-Hosted (Enterprise)"
-msgstr "SciTeX™ セルフホスト (エンタープライズ)"
+msgid "SciTeX® Self-Hosted (Enterprise)"
+msgstr "SciTeX® セルフホスト (エンタープライズ)"
 
 #: apps/infra/public_app/pricing.py
 msgid "Start with Pro"
@@ -8877,8 +8877,8 @@ msgid "Cancel all SLURM jobs"
 msgstr "すべてのSLURMジョブをキャンセル"
 
 #: apps/infra/public_app/templates/public_app/landing_partials/landing_hero.html
-msgid "Try SciTeX™ Cloud with 30-day Free Trial"
-msgstr "30日間無料トライアルで SciTeX™ クラウドを試す"
+msgid "Try SciTeX® Cloud with 30-day Free Trial"
+msgstr "30日間無料トライアルで SciTeX® クラウドを試す"
 
 #: apps/infra/public_app/templates/public_app/landing_partials/landing_hero.html
 msgid "See Plans"

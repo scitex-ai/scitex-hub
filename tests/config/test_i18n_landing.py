@@ -57,8 +57,8 @@ SWITCHER_TEMPLATE = "global_base_partials/language_switcher.html"
 # One string per surface, chosen because each proves a DIFFERENT link in the
 # chain: the constant path (branding.py -> context processor), the plain
 # template path, and the interpolating one (blocktrans).
-CTA_EN = "Try SciTeX™ Cloud with 30-day Free Trial"
-CTA_JA = "30日間無料トライアルで SciTeX™ クラウドを試す"
+CTA_EN = "Try SciTeX® Cloud with 30-day Free Trial"
+CTA_JA = "30日間無料トライアルで SciTeX® クラウドを試す"
 
 
 def _reverse_or_none(name):
@@ -568,9 +568,9 @@ def test_landing_pricing_renders_fully_english_by_default():
     # one CTA per column, Pro recommended, academic in-cell. Prices are
     # ALWAYS USD on the marketing card (operator: "drop the yen at all").
     assert '<html lang="en"' in html
-    assert "SciTeX™ Cloud Free" in html and "SciTeX™ Cloud Pro" in html
-    assert "SciTeX™ Self-Hosted (AGPL)" in html
-    assert "SciTeX™ Self-Hosted (Enterprise)" in html
+    assert "SciTeX® Cloud Free" in html and "SciTeX® Cloud Pro" in html
+    assert "SciTeX® Self-Hosted (AGPL)" in html
+    assert "SciTeX® Self-Hosted (Enterprise)" in html
     assert "Recommended" in html
     assert "Create a free account" in html and "Start with Pro" in html
     assert "Get the source" in html and "Contact us" in html

@@ -51,7 +51,7 @@ def gettext_noop(message):
 
 
 # Core branding
-SITE_NAME = "SciTeX™"
+SITE_NAME = "SciTeX®"
 # The tagline is TWO lines: the promise, then what SciTeX is. Both are shown
 # together wherever the brand introduces itself (the landing hero), so they are
 # defined together here rather than one in a template and one in Python.
@@ -329,7 +329,11 @@ ACCOUNT_PAGE_NAMES = {
 
 # Paths whose tab must never borrow the AMBIENT project (current_project /
 # project from context processors). An explicit page_title_detail from a view
-# still applies. The console is a shell, not a project view.
+# still applies. The console is a shell, not a project view. The
+# agent-container dashboard is a fleet view, not a project view: its detail
+# pages are agents (e.g. /apps/agent-container/dotfiles/), so the ambient
+# project leaked into the tab ("dotfiles — SciTeX …") while naming nothing
+# the page is about. Operator report 2026-10-31.
 NON_PROJECT_PREFIXES = (
     "/accounts/",
     "/auth/",
@@ -337,6 +341,7 @@ NON_PROJECT_PREFIXES = (
     "/console/",
     "/apps/console/",
     "/apps/workspace/console/",
+    "/apps/agent-container/",
 )
 
 # Everything that can name a tab. Apps win over sections on an exact tie;

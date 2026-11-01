@@ -4,7 +4,7 @@ POLICY CHANGE, lead decision 2026-09-30 (Free-on-Cool STANDS): the Free tier
 needs NO card (pricing.json: subscription-free has no_card_required=true with
 2 GB Cool included_storage), and the landing pricing card is the unified
 compare-plans table (operator-authored commit 662f236fc): four columns
-(SciTeX™ Cloud Free / SciTeX™ Cloud Pro, recommended / SciTeX™ Self-Hosted
+(SciTeX® Cloud Free / SciTeX® Cloud Pro, recommended / SciTeX® Self-Hosted
 AGPL / Enterprise), one CTA per column, Pro recommended, academic pricing
 in-cell — never a hand-written copy. The card therefore shows generic signup
 CTAs ("Create a free account", "Start with Pro") and NO card-required copy:
@@ -45,13 +45,13 @@ REPO = Path(__file__).resolve().parents[2]
 
 EXPECTED_UNIFIED_TABLE = {
     # Unified compare-plans table (operator 662f236fc): four columns —
-    # SciTeX™ Cloud Free / SciTeX™ Cloud Pro (recommended) / SciTeX™
+    # SciTeX® Cloud Free / SciTeX® Cloud Pro (recommended) / SciTeX®
     # Self-Hosted AGPL / Enterprise — one CTA per column, academic pricing
     # in the Pro price cell, Free-on-Cool storage (Free 2 GB, Pro 32 GB).
     # Prices are USD (always) on the marketing card; JPY lives on /tokushoho/.
     "en": (
-        "SciTeX™ Cloud Free",
-        "SciTeX™ Cloud Pro",
+        "SciTeX® Cloud Free",
+        "SciTeX® Cloud Pro",
         "Recommended",
         "Create a free account",
         "Start with Pro",
@@ -64,8 +64,8 @@ EXPECTED_UNIFIED_TABLE = {
         "32 GB included",
     ),
     "ja": (
-        "SciTeX™ Cloud Free",
-        "SciTeX™ Cloud Pro",
+        "SciTeX® Cloud Free",
+        "SciTeX® Cloud Pro",
         "おすすめ",
         "無料アカウントを作成",
         "Pro で始める",
