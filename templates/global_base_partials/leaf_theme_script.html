@@ -1,0 +1,7 @@
+{% load vite %}
+{% comment %}
+The injected header includes Appearance on standalone leaf pages. Load its
+shared controller once with that header; the SDK theme boot only paints the
+initial preference and does not wire the hub menu button.
+{% endcomment %}
+{% vite_script 'shared/utils/theme-switcher' %}

@@ -100,6 +100,7 @@ SCITEX_APP_MODE = branding.MODE_HUB
 
 # A plugin leaf asks the hub which directories belong to the requester.
 SCITEX_STORAGE_VOLUMES_PROVIDER = "apps.workspace.apps_app.services.plugin_volumes.user_volumes"
+SCITEX_USER_HOME_PROVIDER = "apps.workspace.apps_app.services.plugin_volumes.user_home"
 
 # Usernames admitted to restricted-audience plugin mounts (staff and
 # superusers always pass). Deployment DATA, not app logic. Defaults to the

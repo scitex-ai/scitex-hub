@@ -29,7 +29,7 @@ def _detail_from_context(context, path=""):
     Precedence:
       1. ``page_title_detail`` -- an explicit per-view override. A view that
          wants "Account Settings · ... — SciTeX" puts the detail in its context
-         rather than writing its own <title>, so the brand suffix is still
+         rather than writing its own <title>, so the environment marker is still
          appended exactly once, by the policy, in one place.
       2. ``current_project`` / ``project`` -- the workspace project's display
          NAME, falling back to its slug.
@@ -80,9 +80,9 @@ def page_title(context):
     """Render the browser tab title for the current page.
 
     Pattern (see ``config.branding.page_title``):
-        ``<Detail> · <App> — SciTeX``            hub, production
-        ``<App> — SciTeX (dev|staging)``         hub, non-production
-        ``<App> — SciTeX (standalone)``          standalone app
+        ``<Detail> · <App>``            hub, production
+        ``<App> (dev|staging)``         hub, non-production
+        ``<App> (standalone)``          standalone app
     """
     request = context.get("request")
     path = getattr(request, "path", "") or ""
