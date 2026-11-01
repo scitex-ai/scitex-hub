@@ -33,6 +33,22 @@ __DIR__ = os.path.dirname(__FILE__)
 
 logger = logging.getLogger(__name__)
 
+# The hub header shows the LEAF package version, never the hub's own version
+# (leaf contract in scitex-writer's writer/_app_header.html: "a writer header
+# that a host sheds light on"). Fail-soft: an unresolvable version omits the
+# attribute (the template guards with {% if %}) instead of breaking the page.
+LEAF_WRITER_LABEL = "SciTeX Writer"
+
+
+def _leaf_writer_version():
+    try:
+        from importlib import metadata as _metadata
+
+        return _metadata.version("scitex-writer")
+    except Exception:  # noqa: BLE001 - version display must never break render
+        logger.warning("leaf scitex-writer version unresolvable", exc_info=True)
+        return ""
+
 
 def _strip_stray_template_bracket(user, project):
     # Workspaces made from the pre-#393 template end abstract.tex with a lone 」.
@@ -67,6 +83,10 @@ def build_writer_context(request, current_project=None):
     context = {
         "writer_initialized": False,
         "document_type": document_type,
+        # Leaf header identity (converged 10-19 audit plan): the host passes
+        # the leaf's own label + version into the shared AppHeader mount.
+        "writer_label": LEAF_WRITER_LABEL,
+        "writer_version": _leaf_writer_version(),
     }
 
     if not request.user.is_authenticated:
