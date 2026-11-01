@@ -111,9 +111,10 @@ install_ecosystem_packages() {
     try_editable_install "/scitex-storage" "scitex-storage"
     try_editable_install "/scitex-cards" "scitex-cards"
     try_editable_install "/scitex-agentic-journal" "scitex-agentic-journal"
+    try_editable_install "/scitex-live-paper" "scitex-live-paper" "[server]"
     try_editable_install "/scitex-agent-container" "scitex-agent-container" "[gui]"
-    try_editable_install "/crossref-local" "crossref-local" "[all]"
-    try_editable_install "/openalex-local" "openalex-local" "[all]"
+    try_editable_install "/crossref-local" "crossref-local"
+    try_editable_install "/openalex-local" "openalex-local"
     try_editable_install "/socialia" "socialia" "[all]"
     try_editable_install "/scitex-dev" "scitex-dev" "[all]"
     try_editable_install "/scitex-dataset" "scitex-dataset" "[all]"
@@ -129,3 +130,8 @@ install_ecosystem_packages() {
     fi
 }
 install_ecosystem_packages
+
+# A later peer can replace an earlier editable package during resolution.
+# Refuse a mismatched environment instead of serving an outdated SDK silently.
+echo_info "Checking the final ecosystem dependency environment..."
+uv pip check --system

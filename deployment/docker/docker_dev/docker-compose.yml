@@ -45,15 +45,16 @@ services:
       - ../../../../scitex-storage:/scitex-storage:cached
       - ../../../../scitex-cards:/scitex-cards:cached
       - ../../../../scitex-agentic-journal:/scitex-agentic-journal:cached
-      - ../../../../crossref-local:/crossref-local:cached
-      - ../../../../openalex-local:/openalex-local:cached
+      - ${SCITEX_LIVE_PAPER_SOURCE_DIR:-../../../../scitex-live-paper}:/scitex-live-paper:cached
+      - ${CROSSREF_LOCAL_SOURCE_DIR:-../../../../crossref-local}:/crossref-local:cached
+      - ${OPENALEX_LOCAL_SOURCE_DIR:-../../../../openalex-local}:/openalex-local:cached
       - ../../../../socialia:/socialia:cached
       - ../../../../scitex-ui:/scitex-ui:cached
       - ../../../../scitex-app:/scitex-app:cached
       - ../../../../scitex-sdk:/scitex-sdk:cached
       - ../../../../scitex-plt:/scitex-plt:cached
       - ../../../../scitex-audio:/scitex-audio:cached
-      - ../../../../scitex-dev:/scitex-dev:cached
+      - ${SCITEX_DEV_SOURCE_DIR:-../../../../scitex-dev}:/scitex-dev:cached
       - ../../../../scitex-notification:/scitex-notification:cached
       - ../../../../scitex-db:/scitex-db:cached
 
@@ -337,15 +338,16 @@ services:
       - ../../../../scitex-storage:/scitex-storage:cached
       - ../../../../scitex-cards:/scitex-cards:cached
       - ../../../../scitex-agentic-journal:/scitex-agentic-journal:cached
-      - ../../../../crossref-local:/crossref-local:cached
-      - ../../../../openalex-local:/openalex-local:cached
+      - ${SCITEX_LIVE_PAPER_SOURCE_DIR:-../../../../scitex-live-paper}:/scitex-live-paper:cached
+      - ${CROSSREF_LOCAL_SOURCE_DIR:-../../../../crossref-local}:/crossref-local:cached
+      - ${OPENALEX_LOCAL_SOURCE_DIR:-../../../../openalex-local}:/openalex-local:cached
       - ../../../../socialia:/socialia:cached
       - ../../../../scitex-ui:/scitex-ui:cached
       - ../../../../scitex-app:/scitex-app:cached
       - ../../../../scitex-sdk:/scitex-sdk:cached
       - ../../../../scitex-plt:/scitex-plt:cached
       - ../../../../scitex-audio:/scitex-audio:cached
-      - ../../../../scitex-dev:/scitex-dev:cached
+      - ${SCITEX_DEV_SOURCE_DIR:-../../../../scitex-dev}:/scitex-dev:cached
       - ../../../../scitex-notification:/scitex-notification:cached
       - ../../../../scitex-db:/scitex-db:cached
       # PS-102 — see the first logs mount above.
@@ -466,15 +468,16 @@ services:
       - ../../../../scitex-storage:/scitex-storage:cached
       - ../../../../scitex-cards:/scitex-cards:cached
       - ../../../../scitex-agentic-journal:/scitex-agentic-journal:cached
-      - ../../../../crossref-local:/crossref-local:cached
-      - ../../../../openalex-local:/openalex-local:cached
+      - ${SCITEX_LIVE_PAPER_SOURCE_DIR:-../../../../scitex-live-paper}:/scitex-live-paper:cached
+      - ${CROSSREF_LOCAL_SOURCE_DIR:-../../../../crossref-local}:/crossref-local:cached
+      - ${OPENALEX_LOCAL_SOURCE_DIR:-../../../../openalex-local}:/openalex-local:cached
       - ../../../../socialia:/socialia:cached
       - ../../../../scitex-ui:/scitex-ui:cached
       - ../../../../scitex-app:/scitex-app:cached
       - ../../../../scitex-sdk:/scitex-sdk:cached
       - ../../../../scitex-plt:/scitex-plt:cached
       - ../../../../scitex-audio:/scitex-audio:cached
-      - ../../../../scitex-dev:/scitex-dev:cached
+      - ${SCITEX_DEV_SOURCE_DIR:-../../../../scitex-dev}:/scitex-dev:cached
       - ../../../../scitex-notification:/scitex-notification:cached
       - ../../../../scitex-db:/scitex-db:cached
       # PS-102 — see the first logs mount above.
