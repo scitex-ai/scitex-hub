@@ -1,7 +1,7 @@
 """``{% hub_project_provider_meta %}``: advertises the hub's project provider (a host service).
 
 Leaf apps place the SDK project picker themselves; the hub only serves the
-projects. Renders nothing while the installed scitex-ui predates the tag.
+projects through the canonical SDK declaration.
 """
 
 from __future__ import annotations
@@ -14,7 +14,7 @@ register = template.Library()
 @register.simple_tag(takes_context=True)
 def hub_project_provider_meta(context):
     try:
-        from scitex_ui.templatetags.scitex_project_picker import (
+        from scitex_sdk.ui.templatetags.scitex_project_picker import (
             scitex_project_provider_meta,
         )
     except ImportError:
