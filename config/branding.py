@@ -423,7 +423,7 @@ def page_title(app=None, detail=None, *, env, mode=MODE_HUB):
         mode: one of ``KNOWN_MODES``; defaults to hub-embedded.
 
     Returns:
-        e.g. ``"my-project · Writer — SciTeX (dev)"``.
+        e.g. ``"my-project · Writer (dev)"``.
     """
     marker = title_marker(env, mode)
     brand = f"{SITE_NAME} ({marker})" if marker else SITE_NAME
@@ -431,4 +431,6 @@ def page_title(app=None, detail=None, *, env, mode=MODE_HUB):
     lead = [part for part in (detail, app) if part]
     if not lead:
         return brand
-    return DETAIL_SEPARATOR.join(lead) + TITLE_SEPARATOR + brand
+    # App/page titles identify the content; the site brand belongs in chrome.
+    suffix = f" ({marker})" if marker else ""
+    return DETAIL_SEPARATOR.join(lead) + suffix
