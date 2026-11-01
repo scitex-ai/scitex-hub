@@ -140,6 +140,22 @@ class HubProjectProvider:
         if project is not None:
             remember_last_visited(request.user, project)
 
+    def canonical_project_id(self, request, selector: str) -> Optional[str]:
+        """Map a legacy numeric hub project pk to its canonical owner/slug key.
+
+        Hub links and probes address projects by numeric pk (``?project=218``)
+        while the listed canonical IDs are ``owner/slug``. Translate
+        digits-only selectors through the SAME accessible-only query as the
+        listing, so a pk the user cannot access (or that does not exist)
+        yields None and the SDK denies rather than falls back. Non-numeric
+        selectors are not aliases — None leaves the canonical path untouched.
+        """
+        key = (selector or "").strip().strip("/")
+        if not key.isdigit():
+            return None
+        project = accessible_projects(request.user).filter(pk=int(key)).first()
+        return project_key(project) if project is not None else None
+
     def current_scope(self, request):
         """The committed tagged selection, or None when unselected."""
         from scitex_sdk.ui.project_scope import ProjectSelection

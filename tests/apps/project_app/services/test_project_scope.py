@@ -125,6 +125,52 @@ class ProjectScopeTest(TestCase):
         # Assert
         assert listed == expected
 
+    def test_numeric_pk_alias_maps_owned_project_to_canonical_key(self):
+        # Arrange
+        provider = HubProjectProvider()
+        request = self._request()
+        # Act
+        canonical = provider.canonical_project_id(request, str(self.notes.pk))
+        # Assert
+        assert canonical == project_key(self.notes)
+
+    def test_numeric_pk_alias_maps_shared_project_to_canonical_key(self):
+        # Arrange
+        provider = HubProjectProvider()
+        request = self._request()
+        # Act
+        canonical = provider.canonical_project_id(request, str(self.shared.pk))
+        # Assert
+        assert canonical == project_key(self.shared)
+
+    def test_numeric_pk_alias_refuses_inaccessible_project(self):
+        # Arrange
+        provider = HubProjectProvider()
+        request = self._request()
+        secret = Project.objects.get(slug="secret")
+        # Act
+        canonical = provider.canonical_project_id(request, str(secret.pk))
+        # Assert
+        assert canonical is None
+
+    def test_numeric_pk_alias_ignores_missing_pk(self):
+        # Arrange
+        provider = HubProjectProvider()
+        request = self._request()
+        # Act
+        canonical = provider.canonical_project_id(request, "999999")
+        # Assert
+        assert canonical is None
+
+    def test_numeric_pk_alias_leaves_canonical_selector_untouched(self):
+        # Arrange
+        provider = HubProjectProvider()
+        request = self._request()
+        # Act
+        canonical = provider.canonical_project_id(request, project_key(self.notes))
+        # Assert
+        assert canonical is None
+
     def test_hub_current_project_preserves_authorized_shared_last_visited(self):
         # Arrange
         profile = User.objects.get(pk=self.me.pk).profile
