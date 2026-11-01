@@ -12,6 +12,13 @@
   --site-content-max-width: min(90vw, 2560px);
 }
 
+/* The shared width includes header padding in standalone leaves too, where
+   Bootstrap's global border-box reset is intentionally absent. */
+.global-header,
+.global-header .global-header-inner {
+  box-sizing: border-box;
+}
+
 /* Below 1024px phones and tablets keep their own full-width layout. */
 @media (min-width: 1024px) {
   .global-header .global-header-inner,
