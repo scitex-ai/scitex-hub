@@ -43,17 +43,18 @@ services:
       - ../../../../figrecipe:/figrecipe:cached
       - ../../../../scitex-writer:/scitex-writer:cached
       - ../../../../scitex-storage:/scitex-storage:cached
-      - ../../../../scitex-cards:/scitex-cards:cached
+      - ${SCITEX_CARDS_SOURCE_DIR:-../../../../scitex-cards}:/scitex-cards:cached
       - ../../../../scitex-agentic-journal:/scitex-agentic-journal:cached
-      - ../../../../crossref-local:/crossref-local:cached
-      - ../../../../openalex-local:/openalex-local:cached
+      - ${SCITEX_LIVE_PAPER_SOURCE_DIR:-../../../../scitex-live-paper}:/scitex-live-paper:cached
+      - ${CROSSREF_LOCAL_SOURCE_DIR:-../../../../crossref-local}:/crossref-local:cached
+      - ${OPENALEX_LOCAL_SOURCE_DIR:-../../../../openalex-local}:/openalex-local:cached
       - ../../../../socialia:/socialia:cached
       - ../../../../scitex-ui:/scitex-ui:cached
       - ../../../../scitex-app:/scitex-app:cached
       - ../../../../scitex-sdk:/scitex-sdk:cached
       - ../../../../scitex-plt:/scitex-plt:cached
       - ../../../../scitex-audio:/scitex-audio:cached
-      - ../../../../scitex-dev:/scitex-dev:cached
+      - ${SCITEX_DEV_SOURCE_DIR:-../../../../scitex-dev}:/scitex-dev:cached
       - ../../../../scitex-notification:/scitex-notification:cached
       - ../../../../scitex-db:/scitex-db:cached
 
@@ -179,6 +180,7 @@ services:
       - SCITEX_SCHOLAR_CROSSREF_MODE=http
       - CROSSREF_LOCAL_MODE=http
       - CROSSREF_LOCAL_API_URL=${SCITEX_HUB_CROSSREF_API_URL_DEV:-http://scitex-primary:31291}
+      - SCITEX_SCHOLAR_CROSSREF_API_URL=${SCITEX_HUB_CROSSREF_API_URL_DEV:-http://scitex-primary:31291}
       - OPENALEX_LOCAL_MODE=http
       - OPENALEX_LOCAL_API_URL=${SCITEX_HUB_OPENALEX_API_URL_DEV:-http://scitex-primary:31292}
       - SCITEX_AGENT_CONTAINER_API_TOKEN_FILE=/run/secrets/sac-listen-token
@@ -335,17 +337,18 @@ services:
       - ../../../../figrecipe:/figrecipe:cached
       - ../../../../scitex-writer:/scitex-writer:cached
       - ../../../../scitex-storage:/scitex-storage:cached
-      - ../../../../scitex-cards:/scitex-cards:cached
+      - ${SCITEX_CARDS_SOURCE_DIR:-../../../../scitex-cards}:/scitex-cards:cached
       - ../../../../scitex-agentic-journal:/scitex-agentic-journal:cached
-      - ../../../../crossref-local:/crossref-local:cached
-      - ../../../../openalex-local:/openalex-local:cached
+      - ${SCITEX_LIVE_PAPER_SOURCE_DIR:-../../../../scitex-live-paper}:/scitex-live-paper:cached
+      - ${CROSSREF_LOCAL_SOURCE_DIR:-../../../../crossref-local}:/crossref-local:cached
+      - ${OPENALEX_LOCAL_SOURCE_DIR:-../../../../openalex-local}:/openalex-local:cached
       - ../../../../socialia:/socialia:cached
       - ../../../../scitex-ui:/scitex-ui:cached
       - ../../../../scitex-app:/scitex-app:cached
       - ../../../../scitex-sdk:/scitex-sdk:cached
       - ../../../../scitex-plt:/scitex-plt:cached
       - ../../../../scitex-audio:/scitex-audio:cached
-      - ../../../../scitex-dev:/scitex-dev:cached
+      - ${SCITEX_DEV_SOURCE_DIR:-../../../../scitex-dev}:/scitex-dev:cached
       - ../../../../scitex-notification:/scitex-notification:cached
       - ../../../../scitex-db:/scitex-db:cached
       # PS-102 — see the first logs mount above.
@@ -361,6 +364,7 @@ services:
       - SCITEX_SCHOLAR_CROSSREF_MODE=http
       - CROSSREF_LOCAL_MODE=http
       - CROSSREF_LOCAL_API_URL=${SCITEX_HUB_CROSSREF_API_URL_DEV:-http://scitex-primary:31291}
+      - SCITEX_SCHOLAR_CROSSREF_API_URL=${SCITEX_HUB_CROSSREF_API_URL_DEV:-http://scitex-primary:31291}
       - OPENALEX_LOCAL_MODE=http
       - OPENALEX_LOCAL_API_URL=${SCITEX_HUB_OPENALEX_API_URL_DEV:-http://scitex-primary:31292}
       # Same shell-resolved credential as `django`: this service sends OTP
@@ -464,17 +468,18 @@ services:
       - ../../../../figrecipe:/figrecipe:cached
       - ../../../../scitex-writer:/scitex-writer:cached
       - ../../../../scitex-storage:/scitex-storage:cached
-      - ../../../../scitex-cards:/scitex-cards:cached
+      - ${SCITEX_CARDS_SOURCE_DIR:-../../../../scitex-cards}:/scitex-cards:cached
       - ../../../../scitex-agentic-journal:/scitex-agentic-journal:cached
-      - ../../../../crossref-local:/crossref-local:cached
-      - ../../../../openalex-local:/openalex-local:cached
+      - ${SCITEX_LIVE_PAPER_SOURCE_DIR:-../../../../scitex-live-paper}:/scitex-live-paper:cached
+      - ${CROSSREF_LOCAL_SOURCE_DIR:-../../../../crossref-local}:/crossref-local:cached
+      - ${OPENALEX_LOCAL_SOURCE_DIR:-../../../../openalex-local}:/openalex-local:cached
       - ../../../../socialia:/socialia:cached
       - ../../../../scitex-ui:/scitex-ui:cached
       - ../../../../scitex-app:/scitex-app:cached
       - ../../../../scitex-sdk:/scitex-sdk:cached
       - ../../../../scitex-plt:/scitex-plt:cached
       - ../../../../scitex-audio:/scitex-audio:cached
-      - ../../../../scitex-dev:/scitex-dev:cached
+      - ${SCITEX_DEV_SOURCE_DIR:-../../../../scitex-dev}:/scitex-dev:cached
       - ../../../../scitex-notification:/scitex-notification:cached
       - ../../../../scitex-db:/scitex-db:cached
       # PS-102 — see the first logs mount above.
@@ -490,6 +495,7 @@ services:
       - SCITEX_SCHOLAR_CROSSREF_MODE=http
       - CROSSREF_LOCAL_MODE=http
       - CROSSREF_LOCAL_API_URL=${SCITEX_HUB_CROSSREF_API_URL_DEV:-http://scitex-primary:31291}
+      - SCITEX_SCHOLAR_CROSSREF_API_URL=${SCITEX_HUB_CROSSREF_API_URL_DEV:-http://scitex-primary:31291}
       - OPENALEX_LOCAL_MODE=http
       - OPENALEX_LOCAL_API_URL=${SCITEX_HUB_OPENALEX_API_URL_DEV:-http://scitex-primary:31292}
       # Same shell-resolved credential as `django`: this service sends OTP

@@ -9,16 +9,21 @@ Both accept a TerminalConsumer instance as their argument.
 """
 
 import asyncio
-import logging
 import os
 import pty
 import select
 import signal
 
+import scitex_logging as slogging
+
 from apps.workspace.console_app.services.terminal_broker._pipeline_status import (
     PipelineStatus,
 )
+from apps.workspace.console_app.views.terminal.pty_children import (
+    register_pty_child,
+)
 
+from ._runtime_preflight import TerminalConfigurationError, validate_terminal_host_paths
 from .config import USER_DATA_ROOT
 from .decline import send_decline
 from .execution import (
@@ -27,11 +32,8 @@ from .execution import (
     select_container,
 )
 from .workspace import ensure_workspace
-from apps.workspace.console_app.views.terminal.pty_children import (
-    register_pty_child,
-)
 
-logger = logging.getLogger(__name__)
+logger = slogging.getLogger(__name__)
 
 
 async def _send_pipeline_failure(consumer, pipeline: PipelineStatus) -> None:
@@ -102,8 +104,10 @@ async def spawn_via_broker(consumer):
     slurm_user_dir = SLURM_USER_DATA_ROOT / username
     slurm_project_dir = slurm_user_dir / "proj" / project_slug
 
-    stage = "workspace setup"
+    stage = "runtime configuration"
     try:
+        validate_terminal_host_paths(SLURM_CONTAINER_PATH, str(SLURM_USER_DATA_ROOT))
+        stage = "workspace setup"
         await ensure_workspace(user_data_dir, username, project_slug)
 
         stage = "AI config setup"
@@ -114,6 +118,12 @@ async def spawn_via_broker(consumer):
             consumer.project.name,
             username,
         )
+    except TerminalConfigurationError as exc:
+        logger.error("Terminal runtime configuration refused: %s", exc)
+        pipeline.fail_stage("apptainer", str(exc))
+        await _send_pipeline_failure(consumer, pipeline)
+        await consumer.close(code=4003)
+        return
     except Exception as exc:
         # Fail-loud, fail-closed: previously this propagated up and closed
         # the socket with a bare 1011 and zero frames.
@@ -121,9 +131,7 @@ async def spawn_via_broker(consumer):
         return
 
     try:
-        container_path = await asyncio.to_thread(
-            select_container, user_data_dir, project_dir
-        )
+        await asyncio.to_thread(select_container, user_data_dir, project_dir)
     except Exception as e:
         from .execution import ContainerNotFoundError
 
