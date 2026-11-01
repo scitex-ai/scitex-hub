@@ -43,7 +43,7 @@ services:
       - ../../../../figrecipe:/figrecipe:cached
       - ../../../../scitex-writer:/scitex-writer:cached
       - ../../../../scitex-storage:/scitex-storage:cached
-      - ../../../../scitex-cards:/scitex-cards:cached
+      - ${SCITEX_CARDS_SOURCE_DIR:-../../../../scitex-cards}:/scitex-cards:cached
       - ../../../../scitex-agentic-journal:/scitex-agentic-journal:cached
       - ${SCITEX_LIVE_PAPER_SOURCE_DIR:-../../../../scitex-live-paper}:/scitex-live-paper:cached
       - ${CROSSREF_LOCAL_SOURCE_DIR:-../../../../crossref-local}:/crossref-local:cached
@@ -336,7 +336,7 @@ services:
       - ../../../../figrecipe:/figrecipe:cached
       - ../../../../scitex-writer:/scitex-writer:cached
       - ../../../../scitex-storage:/scitex-storage:cached
-      - ../../../../scitex-cards:/scitex-cards:cached
+      - ${SCITEX_CARDS_SOURCE_DIR:-../../../../scitex-cards}:/scitex-cards:cached
       - ../../../../scitex-agentic-journal:/scitex-agentic-journal:cached
       - ${SCITEX_LIVE_PAPER_SOURCE_DIR:-../../../../scitex-live-paper}:/scitex-live-paper:cached
       - ${CROSSREF_LOCAL_SOURCE_DIR:-../../../../crossref-local}:/crossref-local:cached
@@ -466,7 +466,7 @@ services:
       - ../../../../figrecipe:/figrecipe:cached
       - ../../../../scitex-writer:/scitex-writer:cached
       - ../../../../scitex-storage:/scitex-storage:cached
-      - ../../../../scitex-cards:/scitex-cards:cached
+      - ${SCITEX_CARDS_SOURCE_DIR:-../../../../scitex-cards}:/scitex-cards:cached
       - ../../../../scitex-agentic-journal:/scitex-agentic-journal:cached
       - ${SCITEX_LIVE_PAPER_SOURCE_DIR:-../../../../scitex-live-paper}:/scitex-live-paper:cached
       - ${CROSSREF_LOCAL_SOURCE_DIR:-../../../../crossref-local}:/crossref-local:cached
