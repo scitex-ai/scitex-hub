@@ -25,3 +25,5 @@ The separate Workflow, Custom Apps and Deployment sections were removed by the o
 The pricing coupon field uses the translated placeholder “COUPON CODE”; actual coupon definitions and validation remain owned by the pricing provider.
 
 The native section-navigation enhancement is pinned to scitex-sdk source `721c15fe18ccd1715c7e287832bd7bc556dd169a` under `static/vendor/scitex-sdk/721c15fe18cc/`, with original license, origin paths and exact artifact hashes. This is a provider build, not a host implementation fork or a changed installed SDK wheel. The pin supports `aria-current` underline styling and passive section tracking until a normal published SDK upgrade includes it.
+
+Provenance copy leads with “Record Forward. Verify Backward.” and Clew as the ecosystem foundation. It explains the I/O design intent (scitex-io post-load/post-save observer hooks and specialized packages) separately from Hub’s GUI and external-agent API role. Claim-to-source tracing does not promise independent scientific truth or a globally minimal dependency set.

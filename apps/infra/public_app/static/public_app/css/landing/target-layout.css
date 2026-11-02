@@ -197,3 +197,14 @@
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
+
+
+.landing-v2-clew-copy .landing-v2-clew-tagline {
+  margin-top: 1.5rem;
+  color: inherit;
+  font-size: 1.15rem;
+}
+
+.landing-v2-clew-copy > p + p {
+  margin-top: 1rem;
+}
