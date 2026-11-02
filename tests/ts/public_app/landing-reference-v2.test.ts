@@ -131,6 +131,16 @@ describe("landing V2 product carousel", () => {
     expect(document.querySelector("[data-carousel-status]")?.textContent).toBe("3 / 3");
   });
 
+  it("does not hijack Home outside category or app tabs", () => {
+    initLandingCarousels();
+    document.querySelector<HTMLElement>("[data-carousel-next]")!.click();
+    const carousel = document.querySelector<HTMLElement>("[data-landing-carousel]")!;
+    const event = new KeyboardEvent("keydown", {key: "Home", bubbles: true, cancelable: true});
+    carousel.dispatchEvent(event);
+    expect(event.defaultPrevented).toBe(false);
+    expect(document.querySelector("[data-carousel-status]")?.textContent).toBe("2 / 3");
+  });
+
   it("pauses in a hidden browser tab", () => {
     initLandingCarousels();
     Object.defineProperty(document, "hidden", { configurable: true, value: true });
