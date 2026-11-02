@@ -106,11 +106,14 @@ def test_hero_keeps_real_entry_contracts_and_research_photography():
             "research-collaboration-640.webp",
             "research-collaboration-1280.webp",
             'fetchpriority="high"',
-            "Edward Jenner",
-            "https://www.pexels.com/license/",
-            "not SciTeX customers, employees, or endorsers",
         )
     )
+    # Keep provenance in the asset record without covering the hero photograph
+    # with attribution or promotional text.
+    assert "<figcaption>" not in source
+    provenance = _text(ASSETS / "PROVENANCE.md")
+    assert "Edward Jenner" in provenance
+    assert "https://www.pexels.com/license/" in provenance
 
 
 def test_v2_explains_one_context_builtins_and_extension_contract():

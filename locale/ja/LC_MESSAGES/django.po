@@ -5867,12 +5867,6 @@ msgstr "メニュー"
 msgid "Toggle dark mode"
 msgstr "ダークモード切り替え"
 
-msgid "Switch to dark mode"
-msgstr "ダークモードに切り替える"
-
-msgid "Switch to light mode"
-msgstr "ライトモードに切り替える"
-
 msgid "SciTeX Inc"
 msgstr "株式会社SciTeX"
 
@@ -9223,3 +9217,47 @@ msgstr "4枚中4枚目：Writer"
 #: apps/infra/public_app/templates/public_app/landing_partials/landing_modules.html
 msgid "Unedited interface captures from tracked product-guide screenshots; resize and compression only."
 msgstr "管理対象の製品ガイド画像を使用した未編集の画面です。サイズ変更と圧縮のみを行っています。"
+
+#: templates/global_base_partials/global_header.html apps/infra/public_app/templates/public_app/landing_partials/landing_section_nav.html
+msgid "SciTeX® Cloud is in alpha. Features may change. Keep separate backups of important work."
+msgstr "SciTeX® Cloud はアルファ版です。機能は変更される場合があります。重要な作業のバックアップは別に保管してください。"
+
+#: templates/global_base_partials/global_header.html apps/infra/public_app/templates/public_app/landing_partials/landing_section_nav.html
+msgid "Alpha"
+msgstr "アルファ版"
+
+#: templates/global_base_partials/global_header.html apps/infra/public_app/templates/public_app/landing_partials/landing_section_nav.html
+msgid "Features may change. Keep backups."
+msgstr "機能は変更される場合があります。バックアップを保管してください。"
+
+#: templates/global_base_partials/global_header.html apps/infra/public_app/templates/public_app/landing_partials/landing_section_nav.html
+msgid "SciTeX® Cloud is in alpha."
+msgstr "SciTeX® Cloud はアルファ版です。"
+
+#: templates/global_base_partials/global_header.html apps/infra/public_app/templates/public_app/landing_partials/landing_section_nav.html
+msgid "Features and APIs may change, and interruptions or data loss are possible. Keep separate backups of important work. For production workflows, use the local Python toolkit."
+msgstr "機能や API は変更される場合があり、中断やデータ損失の可能性があります。重要な作業のバックアップは別に保管してください。本番の研究ワークフローにはローカルの Python ツールキットをご利用ください。"
+
+#: templates/global_base_partials/global_header.html apps/infra/public_app/templates/public_app/landing_partials/landing_section_nav.html
+msgid "Feedback and contributions are welcome:"
+msgstr "ご意見や開発へのご参加を歓迎します："
+
+#: templates/global_base_partials/global_header.html apps/infra/public_app/templates/public_app/landing_partials/landing_section_nav.html
+msgid "Explore SciTeX"
+msgstr "SciTeX を知る"
+
+#: templates/global_base_partials/global_header.html apps/infra/public_app/templates/public_app/landing_partials/landing_section_nav.html
+msgid "One project: literature, data, analysis, figures, and writing."
+msgstr "ひとつのプロジェクトで、文献・データ・解析・図・執筆をつなぐ。"
+
+#: templates/global_base_partials/global_header.html apps/infra/public_app/templates/public_app/landing_partials/landing_section_nav.html
+msgid "Workflow"
+msgstr "ワークフロー"
+
+#: templates/global_base_partials/global_header.html apps/infra/public_app/templates/public_app/landing_partials/landing_section_nav.html
+msgid "Provenance"
+msgstr "来歴"
+
+#: templates/global_base_partials/global_header.html apps/infra/public_app/templates/public_app/landing_partials/landing_section_nav.html
+msgid "Deployment"
+msgstr "利用環境"
