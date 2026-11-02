@@ -9788,3 +9788,11 @@ msgstr "scitex-ioライブラリと分野別のSciTeX®パッケージは、デ�
 #: apps/infra/public_app/templates/public_app/landing_partials/landing_modules.html
 msgid "SciTeX® Hub provides a graphical workspace for users and API endpoints for agents outside the ecosystem."
 msgstr "SciTeX® Hubは、ユーザー向けのGUIワークスペースと、エコシステム外のエージェント向けAPIエンドポイントを提供します。"
+
+#: apps/infra/public_app/templates/public_app/landing_partials
+msgid "SciTeX® Clew is the foundation of the ecosystem. The scitex-io library and specialized SciTeX® packages are designed to capture provenance during data reads and writes. SciTeX® Hub provides a graphical workspace for users and API endpoints for external agents."
+msgstr "SciTeX® Clewは、このエコシステムの基盤です。scitex-ioライブラリと分野別のSciTeX®パッケージは、データの読み書きに合わせて来歴を記録するよう設計されています。SciTeX® Hubは、ユーザー向けのGUIワークスペースと、外部エージェント向けのAPIエンドポイントを提供します。"
+
+#: apps/infra/public_app/templates/public_app/landing_partials
+msgid "SciTeX® Clew records the connections between source data, code, and research outputs as work progresses. Starting from a manuscript claim, it traces those connections backward to identify the data and code behind the result."
+msgstr "SciTeX® Clewは、研究の進行に合わせて元データ、コード、研究成果のつながりを記録します。原稿の主張を出発点に、そのつながりを逆にたどり、結果を支えるデータとコードを特定します。"
