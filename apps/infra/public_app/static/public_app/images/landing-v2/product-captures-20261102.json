@@ -138,6 +138,54 @@
           "sha256": "df170f478f4a4680be67ed6437a64a3256f1275c006ddbc33f92dba85c45ce94"
         }
       ]
+    },
+    {
+      "app": "scholar",
+      "captured_at_utc": "2026-11-02T16:02:13Z",
+      "path": "/apps/scholar/",
+      "raw_sha256": "64be329e497718d586d92bfe52d4f397b09fcfd396c51c8809c51f87a5b4db06",
+      "privacy_masked_png_sha256": "9e4cc87516c602fc65e7b151436e63428ac8b14816ad7511777e7c8093eb9e08",
+      "privacy_mask_selectors": ".stx-app-header__project,.stx-app-project-selector,.project-scope-selector,#site-project-selector,.site-header__user,.user-menu,.account-menu,[data-user-menu],[role=tooltip]",
+      "sample_description": "Actual MNIST project library with four curated real references and native metadata reader. No search, enrichment, download or Graph operation. No abstract is stored for the selected reference.",
+      "source_checkout_observed": "ca410ea9f3444720d533f1233574dcea2c5535ee",
+      "reader_geometry": {
+        "titleWidth": 241,
+        "titleHeight": 45,
+        "closeWidth": 44,
+        "closeHeight": 44,
+        "readerVisible": true,
+        "papers": 4
+      },
+      "served_reader_stylesheet": [
+        {
+          "path": "/static/scholar/css/library-reader.css",
+          "status": 200,
+          "sha256": "623735bc562ea3018760502ab1e368944b9722146b53ac851689ef072e61b3f1"
+        }
+      ],
+      "renditions": [
+        {
+          "file": "scholar-20261102-768.webp",
+          "width": 768,
+          "height": 480,
+          "bytes": 25948,
+          "sha256": "db4b0107baf0428bba3081ccc7b50db853d1263a268dd7f9d631b24090910f5d"
+        },
+        {
+          "file": "scholar-20261102-1200.webp",
+          "width": 1200,
+          "height": 750,
+          "bytes": 52730,
+          "sha256": "78fe9f288d7534fb9d98ff1f01c212b588462e3d1f28905e89aafefaa95dbf19"
+        },
+        {
+          "file": "scholar-20261102-1200.jpg",
+          "width": 1200,
+          "height": 750,
+          "bytes": 104655,
+          "sha256": "3cef4cbca353d8fb1d0fc7d9879e607db60096698b939f1671106c10671b0aa9"
+        }
+      ]
     }
   ],
   "allowed_stateless_post_exceptions": [

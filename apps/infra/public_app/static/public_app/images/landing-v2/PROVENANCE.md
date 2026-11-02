@@ -24,7 +24,7 @@ source photographs with Pillow; no generated imagery was added.
 
 `product-captures-20261102.json` records the actual capture times, original PNG
 hashes, privacy-masked PNG hashes, responsive rendition hashes and dimensions.
-The four new capture sets were taken from the running development site at
+The five new capture sets were taken from the running development site at
 <https://compute-03-net.scitex.ai/> with a 1440 × 900 viewport and device scale 1.
 The date comes from the capture host's observed UTC clock.
 
@@ -33,6 +33,13 @@ The date comes from the capture host's observed UTC clock.
   evidence that its backend is available.
 - `figrecipe-20261102-*`: existing six-row synthetic worksheet, showing separate
   X/Y axis-role badges and unchanged column names. This worksheet is not MNIST.
+- `scholar-20261102-*`: the actual MNIST project's four curated references and
+  native metadata reader, after the real library seed and deployed reader UI.
+  The selected OpenML paper has no stored abstract, which is shown honestly.
+  No search, enrichment, download or citation-graph operation was performed.
+  The served reader stylesheet matched SHA-256
+  `623735bc562ea3018760502ab1e368944b9722146b53ac851689ef072e61b3f1`;
+  the visible title measured 241 pixels wide and the close button 44 × 44 pixels.
 - `stats-20261102-*`: built-in two-group sample, showing the actual recommended
   Welch test and computed result. This sample is not MNIST.
 - `live-paper-20261102-*`: existing MNIST demonstration bundle with its claims
