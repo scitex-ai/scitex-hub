@@ -1,3 +1,5 @@
+import { readFileSync } from "node:fs";
+import { resolve } from "node:path";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { initLandingCarousels } from "@public_app/landing/reference-v2";
@@ -107,5 +109,44 @@ describe("landing V2 product carousel", () => {
       document.querySelector<HTMLElement>("[data-carousel-slide]:not([hidden])")
         ?.textContent,
     ).toBe("Scholar");
+  });
+});
+
+
+describe("current six-application template", () => {
+  it("keeps all six actual slides reachable by keyboard, swipe and dots", () => {
+    const source = readFileSync(
+      resolve(process.cwd(), "apps/infra/public_app/templates/public_app/landing_partials/landing_modules.html"),
+      "utf8",
+    );
+    // Django's translated strings/static tags are irrelevant to event binding;
+    // the separate rendered-template contract checks their final values/assets.
+    document.body.innerHTML = source.replace(/{%[\s\S]*?%}/g, "");
+    const carousel = document.querySelector<HTMLElement>("[data-landing-carousel]")!;
+    const slides = [...carousel.querySelectorAll<HTMLElement>("[data-carousel-slide]")];
+    const dots = [...carousel.querySelectorAll<HTMLButtonElement>("[data-carousel-dot]")];
+    expect(slides.map(s => s.querySelector("strong")?.textContent)).toEqual([
+      "SciTeX Hub", "Scholar", "FigRecipe", "Writer", "Stats", "Live Paper",
+    ]);
+    expect(dots).toHaveLength(6);
+    initLandingCarousels();
+    const status = () => carousel.querySelector("[data-carousel-status]")?.textContent;
+    expect(status()).toBe("1 / 6");
+    dots[0].focus();
+    dots[0].dispatchEvent(new KeyboardEvent("keydown", { key: "ArrowLeft", bubbles: true }));
+    expect(status()).toBe("6 / 6");
+    expect(document.activeElement).toBe(dots[5]);
+    expect(slides.map(s => s.hidden)).toEqual([true, true, true, true, true, false]);
+    dots[5].dispatchEvent(new KeyboardEvent("keydown", { key: "ArrowRight", bubbles: true }));
+    expect(status()).toBe("1 / 6");
+    const track = carousel.querySelector<HTMLElement>("[data-carousel-track]")!;
+    track.dispatchEvent(pointer("pointerdown", 280));
+    track.dispatchEvent(pointer("pointerup", 180));
+    expect(status()).toBe("2 / 6");
+    dots[3].click();
+    expect(status()).toBe("4 / 6");
+    expect(slides[3].hidden).toBe(false);
+    expect(dots.map(d => d.tabIndex)).toEqual([-1, -1, -1, 0, -1, -1]);
+    expect(slides.filter(s => s.getAttribute("aria-hidden") === "false")).toHaveLength(1);
   });
 });

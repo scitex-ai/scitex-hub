@@ -9223,3 +9223,79 @@ msgstr "4枚中4枚目：Writer"
 #: apps/infra/public_app/templates/public_app/landing_partials/landing_modules.html
 msgid "Unedited interface captures from tracked product-guide screenshots; resize and compression only."
 msgstr "管理対象の製品ガイド画像を使用した未編集の画面です。サイズ変更と圧縮のみを行っています。"
+
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_modules.html
+msgid "1 of 6: Hub"
+msgstr "6枚中1枚目：Hub"
+
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_modules.html
+msgid "2 of 6: Scholar"
+msgstr "6枚中2枚目：Scholar"
+
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_modules.html
+msgid "3 of 6: FigRecipe"
+msgstr "6枚中3枚目：FigRecipe"
+
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_modules.html
+msgid "4 of 6: Writer"
+msgstr "6枚中4枚目：Writer"
+
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_modules.html
+msgid "5 of 6: Stats"
+msgstr "6枚中5枚目：Stats"
+
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_modules.html
+msgid "6 of 6: Live Paper"
+msgstr "6枚中6枚目：Live Paper"
+
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_modules.html
+msgid "Current SciTeX Hub application launcher."
+msgstr "現在の SciTeX Hub アプリランチャー。"
+
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_modules.html
+msgid "SciTeX Scholar MNIST reference library with the native paper metadata reader."
+msgstr "論文メタデータの閲覧パネルを開いた SciTeX Scholar の MNIST 参考文献ライブラリ。"
+
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_modules.html
+msgid "SciTeX FigRecipe sample worksheet with separate X axis and Y axis badges."
+msgstr "X軸・Y軸バッジを区別して表示する SciTeX FigRecipe のサンプルワークシート。"
+
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_modules.html
+msgid "SciTeX Writer MNIST example Abstract source and genuine compiled section preview."
+msgstr "MNIST サンプルの要旨ソースと実際にコンパイルしたセクションプレビューを表示する SciTeX Writer。"
+
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_modules.html
+msgid "SciTeX Stats built-in two-group sample with the recommended Welch test and actual results."
+msgstr "組み込みの2群サンプル、推奨 Welch 検定と実際の結果を表示する SciTeX Stats。"
+
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_modules.html
+msgid "SciTeX Live Paper computed MNIST demonstration claims and example PDF."
+msgstr "計算済み MNIST デモの主張とサンプル PDF を表示する SciTeX Live Paper。"
+
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_modules.html
+msgid "Current application launcher; development capture, 2026-11-02."
+msgstr "現在のアプリランチャー。2026年11月2日の開発環境の画面。"
+
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_modules.html
+msgid "MNIST reference library and native metadata reader; development capture, 2026-11-02."
+msgstr "MNIST 参考文献ライブラリとメタデータ閲覧パネル。2026年11月2日の開発環境の画面。"
+
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_modules.html
+msgid "Six-row sample worksheet with distinct axis-role badges; development capture, 2026-11-02."
+msgstr "軸の役割を区別するバッジを備えた6行のサンプルワークシート。2026年11月2日の開発環境の画面。"
+
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_modules.html
+msgid "MNIST example Abstract source and compiled section preview; development capture, 2026-11-02."
+msgstr "MNIST サンプルの要旨ソースとコンパイル済みセクションプレビュー。2026年11月2日の開発環境の画面。"
+
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_modules.html
+msgid "Sample two-group analysis with recommended test and actual results; development capture, 2026-11-02."
+msgstr "サンプル2群データの推奨検定と実際の結果。2026年11月2日の開発環境の画面。"
+
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_modules.html
+msgid "Computed MNIST demonstration claims and PDF, not research findings; development capture, 2026-11-02."
+msgstr "研究成果ではない計算済み MNIST デモの主張と PDF。2026年11月2日の開発環境の画面。"
+
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_modules.html
+msgid "Actual development captures with account/project controls hidden for privacy, then resized and compressed. Example data is labeled; screenshots do not prove complete feature coverage or production availability."
+msgstr "開発環境の実際の画面です。プライバシー保護のためアカウント・プロジェクト操作部を隠し、サイズ変更と圧縮を行っています。サンプルデータであることを明示しています。画面画像は全機能の検証や本番環境での提供状況を証明するものではありません。"

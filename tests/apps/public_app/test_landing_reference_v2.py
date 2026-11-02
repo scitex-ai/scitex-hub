@@ -282,8 +282,8 @@ def test_carousel_script_is_manual_keyboard_and_swipe_only():
         ),
         (
             "public_app/landing_partials/landing_modules.html",
-            "5枚中5枚目",
-            "5 of 5: Stats",
+            "6枚中6枚目",
+            "6 of 6: Live Paper",
         ),
         (
             "public_app/landing_partials/landing_modules.html",
@@ -304,37 +304,43 @@ def test_v2_copy_switches_cleanly_between_english_and_japanese(
     assert en_needle in en_html and ja_needle not in en_html
 
 
-def test_carousel_has_five_slides():
-    assert _text(MODULES).count("data-carousel-slide") == 5
+def test_carousel_has_six_current_application_slides():
+    assert _text(MODULES).count("data-carousel-slide") == 6
 
 
-def test_carousel_has_five_dots_ending_in_stats():
+def test_carousel_has_six_dots_ending_in_live_paper():
     assert re.findall(r'data-carousel-dot="(\d)"', _text(MODULES)) == [
         "0",
         "1",
         "2",
         "3",
         "4",
+        "5",
     ]
 
 
-def test_carousel_status_starts_at_one_of_five():
-    assert ">1 / 5<" in _text(MODULES)
+def test_carousel_status_starts_at_one_of_six():
+    assert ">1 / 6<" in _text(MODULES)
 
 
-def test_stats_slide_closes_the_five_slide_arc():
-    assert "5 of 5: Stats" in _text(MODULES)
+def test_stats_and_live_paper_have_distinct_sample_and_mnist_captures():
+    assert "5 of 6: Stats" in _text(MODULES)
+    assert "6 of 6: Live Paper" in _text(MODULES)
+    assert "not research findings" in _text(MODULES)
 
 
 def test_stats_slide_uses_dedicated_renditions():
     assert all(
         (ASSETS / name).exists()
-        for name in ("stats-768.webp", "stats-1200.webp", "stats-1200.jpg")
+        for name in (
+            "stats-20261102-768.webp",
+            "stats-20261102-1200.webp",
+            "stats-20261102-1200.jpg",
+        )
     )
 
 
-def test_stats_provenance_records_the_dev_capture_hash():
-    assert (
-        "4b8a0c4a348100999d834ec962b6e23c5eacc8ad3f09d4db9eefd146616a4678"
-        in _text(ASSETS / "PROVENANCE.md")
+def test_historical_stats_capture_hash_remains_in_provenance():
+    assert "4b8a0c4a348100999d834ec962b6e23c5eacc8ad3f09d4db9eefd146616a4678" in _text(
+        ASSETS / "PROVENANCE.md"
     )

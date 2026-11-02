@@ -24,7 +24,7 @@ source photographs with Pillow; no generated imagery was added.
 
 `product-captures-20261102.json` records the actual capture times, original PNG
 hashes, privacy-masked PNG hashes, responsive rendition hashes and dimensions.
-The five new capture sets were taken from the running development site at
+The six new capture sets were taken from the running development site at
 <https://compute-03-net.scitex.ai/> with a 1440 × 900 viewport and device scale 1.
 The date comes from the capture host's observed UTC clock.
 
@@ -40,6 +40,18 @@ The date comes from the capture host's observed UTC clock.
   The served reader stylesheet matched SHA-256
   `623735bc562ea3018760502ab1e368944b9722146b53ac851689ef072e61b3f1`;
   the visible title measured 241 pixels wide and the close button 44 × 44 pixels.
+- `writer-20261102-*`: actual MNIST example Abstract source and its genuinely
+  compiled one-page section preview. The source explicitly says this is not a
+  research finding and the claims have not been independently verified. Exactly
+  one approved Abstract-preview POST was permitted, pinned to the authorized
+  project, section path and content SHA-256
+  `6933993915a0903e8b14b294756430f88a3b10a44209760c326a5ca79b1f3f2c`.
+  It returned HTTP 200 and the actual PDF SHA-256 was
+  `c60728aa3910c56534be7af09caa453d0274d15e26cf8d103562161288a2d364`.
+  Abstract/Methods/Results, claims, provenance and the existing root PDF hashes
+  stayed unchanged; the full Writer manuscript PDF remained absent. No save or
+  full-manuscript compile was allowed. The root Live Paper PDF was not imported
+  as Writer output.
 - `stats-20261102-*`: built-in two-group sample, showing the actual recommended
   Welch test and computed result. This sample is not MNIST.
 - `live-paper-20261102-*`: existing MNIST demonstration bundle with its claims
@@ -54,12 +66,13 @@ resizing and JPEG/WebP compression were applied; no generated imagery was used.
 The original PNGs remain in the private audit capture bundle, rather than exposing
 unmasked account context in public static files.
 
-All non-GET application requests were blocked except the three source-reviewed,
-stateless Stats sample operations: `api/recommend-test`, `api/run`, and `api/plot`.
+All non-GET application requests were blocked except the pinned Writer Abstract
+preview described above and the three source-reviewed, stateless Stats sample operations: `api/recommend-test`, `api/run`, and `api/plot`.
 They compute recommendations, a test result, and an in-memory SVG/PNG; project
 save, report-save and FigRecipe import endpoints remained blocked. WebSockets and
-SSE were disabled. No manuscript compile, annotation, message, project save,
-recipe write, model call, or Scholar Graph backfill was performed.
+SSE were disabled. No full-manuscript compile, annotation, message, project save,
+recipe write, model call, or Scholar Graph backfill was performed. The approved
+single-section preview operation genuinely compiles an isolated Abstract artifact.
 
 The recorded source checkouts are contextual evidence, not proof that an
 unpublished source preview is an official package release. The captures likewise

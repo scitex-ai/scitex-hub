@@ -186,6 +186,43 @@
           "sha256": "3cef4cbca353d8fb1d0fc7d9879e607db60096698b939f1671106c10671b0aa9"
         }
       ]
+    },
+    {
+      "app": "writer",
+      "captured_at_utc": "2026-11-02T16:14:47Z",
+      "path": "/apps/writer/",
+      "raw_sha256": "ef654fbddf07831853f62e84322eccb9204316223b4616f6cd129c602e74cba5",
+      "privacy_masked_png_sha256": "8c3f49765c6d9f38fd629355f263574c4db7c41d16913434beef1abd74eb1495",
+      "privacy_mask_selectors": ".stx-app-header__project,.stx-app-project-selector,.project-scope-selector,#site-project-selector,.site-header__user,.user-menu,.account-menu,[data-user-menu],[role=tooltip]",
+      "sample_description": "Actual seeded MNIST example Abstract source with genuine single-section compiled PDF, explicitly not a research finding. No manuscript save or full compilation.",
+      "source_checkout_observed": "6b9795b5de02a1eb6f228c7e708b370575bc46fe",
+      "approved_abstract_content_sha256": "6933993915a0903e8b14b294756430f88a3b10a44209760c326a5ca79b1f3f2c",
+      "preview_pdf_sha256": "c60728aa3910c56534be7af09caa453d0274d15e26cf8d103562161288a2d364",
+      "protected_source_hashes_unchanged": true,
+      "full_writer_manuscript_pdf_untouched": true,
+      "renditions": [
+        {
+          "file": "writer-20261102-768.webp",
+          "width": 768,
+          "height": 480,
+          "bytes": 17582,
+          "sha256": "dd81f362564424c7840a19480f307af05b21cb7306a5eec74cfc2a8ea626b315"
+        },
+        {
+          "file": "writer-20261102-1200.webp",
+          "width": 1200,
+          "height": 750,
+          "bytes": 35476,
+          "sha256": "cdc4f4768c5b70c530805668b2465b124f08725e1d79fce286feab0f6ee80f2b"
+        },
+        {
+          "file": "writer-20261102-1200.jpg",
+          "width": 1200,
+          "height": 750,
+          "bytes": 65446,
+          "sha256": "491a80c7fefaf5fccc4322635c0bd60762d6f0fa5c8e99a2058d47cbcdade72d"
+        }
+      ]
     }
   ],
   "allowed_stateless_post_exceptions": [
@@ -193,5 +230,12 @@
     "/apps/stats/api/run",
     "/apps/stats/api/plot"
   ],
-  "prohibited_actions": "No project save, recipe write, manuscript compile, annotation, message, model call, graph backfill, or application response substitution."
+  "prohibited_actions": "No project save, recipe write, full manuscript compile, annotation, message, model call, graph backfill, or application response substitution. One pinned Abstract preview compilation is explicitly recorded separately.",
+  "allowed_scoped_preview_exception": {
+    "path": "/apps/writer/api/preview",
+    "section_path": "01_manuscript/contents/abstract.tex",
+    "content_sha256": "6933993915a0903e8b14b294756430f88a3b10a44209760c326a5ca79b1f3f2c",
+    "maximum_requests": 1,
+    "description": "One actual approved Abstract-only compile/cache request; all manuscript saves/full compilations/other POSTs blocked. Source/facts/root PDF byte hashes unchanged."
+  }
 }
