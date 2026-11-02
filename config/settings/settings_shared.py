@@ -22,6 +22,7 @@ from ._optional_apps import (
     _with_host_plugin_apps,
     optional_sdk_ui_template_dirs,
     optional_upstream_apps,
+    plugin_store_route_bindings,
 )
 
 
@@ -99,6 +100,7 @@ SCITEX_APP_MODE = branding.MODE_HUB
 
 # A plugin leaf asks the hub which directories belong to the requester.
 SCITEX_STORAGE_VOLUMES_PROVIDER = "apps.workspace.apps_app.services.plugin_volumes.user_volumes"
+SCITEX_USER_HOME_PROVIDER = "apps.workspace.apps_app.services.plugin_volumes.user_home"
 
 # Usernames admitted to restricted-audience plugin mounts (staff and
 # superusers always pass). Deployment DATA, not app logic. Defaults to the
@@ -222,6 +224,8 @@ THIRD_PARTY_APPS.append("scitex_ui")
 # lives in _optional_apps.py — including the scitex-cards rename-window
 # shim and the reason it exists. Extracted 2026-08-16.
 THIRD_PARTY_APPS.extend(optional_upstream_apps())
+# Request-scoped plugin credentials never replace the ambient host store.
+PLUGIN_STORE_ROUTE_SECRET_BINDINGS = plugin_store_route_bindings()
 # Existing host apps keep their labels and ordering when plugins are discovered.
 LOCAL_APPS = discover_local_apps()
 THIRD_PARTY_APPS = _with_host_plugin_apps(
@@ -248,9 +252,10 @@ SCITEX_UI_ELEMENT_INSPECTOR = _scitex_hub_env in ("development", "staging")
 
 # Host service for leaf apps' project pickers (scitex_ui.project_scope).
 SCITEX_PROJECT_PROVIDER = (
-    "apps.infra.project_app.services.project_scope.HubProjectProvider"
+    "apps.infra.project_app.services.project_scope.AppAwareHubProjectProvider"
 )
 SCITEX_PROJECT_PROVIDER_URL = "api_project_scope"
+from .settings_scope import SCITEX_APP_SCOPE_CAPABILITIES
 
 # ── Internal-app release channel ────────────────────────────────────────
 # Whether "internal"-visibility apps (Cards, Storage, todo, …) are released

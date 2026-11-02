@@ -75,6 +75,7 @@ def workspace_page(request, slug):
     from ..models import DevInstallation
     from ..services.appmaker_agent import resolve_chat_backend
     from ..services.dev_app_loader import read_manifest
+    from scitex_sdk.app.embed import package_version
 
     project = owned_app_project(request.user, slug)
     project_dir = project_dir_for(project)
@@ -90,6 +91,7 @@ def workspace_page(request, slug):
         "project": project,
         "current_project": project,
         "app_label": manifest.get("label") or project.name,
+        "app_version": package_version(manifest["pip_package"]) if manifest.get("pip_package") else "",
         "files": files,
         "file_base_url": f"/{request.user.username}/{project.slug}/blob/",
         "has_ai_provider": resolve_chat_backend(request.user) is not None,
@@ -199,3 +201,9 @@ def api_run(request, slug):
 
 
 # EOF
+
+
+# This controller owns private project workspaces, independently of the SDK wizard.
+# The generic host resolver reads the actual resolved callback's declaration.
+create_page.scitex_scope_capabilities = {"user": False, "project": True}
+workspace_page.scitex_scope_capabilities = {"user": False, "project": True}

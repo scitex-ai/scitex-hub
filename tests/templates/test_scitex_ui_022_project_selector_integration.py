@@ -54,7 +54,10 @@ def test_writer_ancillary_header_uses_the_same_canonical_slot() -> None:
 
 def test_appmaker_real_header_uses_the_same_canonical_slot() -> None:
     text = _text(APPMAKER)
-    assert text.index("stx-app-header__identity") < text.index("stx-app-header__slot--project-selector") < text.index("appmaker-actions")
+    assert 'data-stx-app-header data-app-title="{{ app_label }}"' in text
+    assert 'class="appmaker-head stx-app-header"' not in text
+    assert text.count("{% scitex_project_picker") == 1
+    assert text.index("data-stx-app-header") < text.index("{% scitex_project_picker") < text.index("appmaker-actions")
 
 
 def test_hub_templates_use_only_the_canonical_picker_tag() -> None:

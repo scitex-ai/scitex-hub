@@ -22,8 +22,8 @@ import {
   handleMeProjectSelect,
   closeMeProjectDropdowns,
   filterRepoCards,
-  initRepoFilterShortcut,
 } from "./hub-me-tab";
+import { initRepoFilters } from "./hub-repo-filter";
 import "./toolbar-dropdowns"; // Exposes dropdown toggle functions to window
 import { submitToAppStore } from "../../../../../infra/project_app/static/project_app/ts/shared/project-app/project-actions";
 import {
@@ -474,7 +474,7 @@ function boot(): void {
   initHub();
   syncHubFromCanonicalHeader();
   handleBrowseHash(selectProject);
-  initRepoFilterShortcut();
+  void initRepoFilters();
 }
 
 if (document.readyState === "loading") {

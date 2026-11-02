@@ -1,7 +1,6 @@
 """Hub provider for the SciTeX SDK project picker (project-scope apps).
 
-Implements the SDK ``ProjectProvider`` contract (``scitex_ui.project_scope``)
-structurally, so the hub does not need that release to import:
+Implements the SDK ``ProjectProvider`` contract (``scitex_sdk.ui.project_scope``):
 
 - the listing is only projects the user can access: owned plus shared through
   ``ProjectMembership``; other users' projects never appear, public or not;
@@ -13,28 +12,17 @@ structurally, so the hub does not need that release to import:
 
 from __future__ import annotations
 
-from dataclasses import dataclass
 from typing import Optional
 
 from django.db.models import Q
+from scitex_sdk.ui.project_scope import ProjectEntry
+
+from ..scope_capabilities import ScopeCapabilityProjectProvider
 
 from apps.infra.project_app.models import Project
 from apps.infra.project_app.services.filesystem.paths import get_project_root_path
 
 PROJECT_QUERY_PARAM = "project"
-
-
-@dataclass(frozen=True)
-class ProjectEntry:
-    id: str
-    name: str
-    detail: str = ""
-
-    def as_option(self) -> dict:
-        option = {"id": self.id, "name": self.name}
-        if self.detail:
-            option["detail"] = self.detail
-        return option
 
 
 def project_key(project: Project) -> str:
@@ -175,6 +163,13 @@ class HubProjectProvider:
             # any other exception would surface as a 500, correctly loud.
             raise ValueError("project not accessible")
         remember_last_visited(request.user, project)
+
+
+class AppAwareHubProjectProvider(ScopeCapabilityProjectProvider):
+    """The host provider with explicit per-app scope capabilities."""
+
+    def __init__(self):
+        super().__init__(HubProjectProvider())
 
 
 class HubProjectStorage:

@@ -256,6 +256,30 @@ def resolve_plugin_tenant_store(request, rel_store: str):
     return store
 
 
+def _server_route_store(prefix: str, path: str):
+    """Return only a server-configured, boundary-matched store binding.
+
+    Called after authentication and the leaf audience check. Route keys must
+    be relative directory prefixes, so ``dm/`` cannot match ``dm-other/``.
+    The browser's query, body and headers cannot choose this credential.
+    """
+    from django.conf import settings
+
+    bindings = getattr(settings, "PLUGIN_STORE_ROUTE_SECRET_BINDINGS", {}).get(prefix, {})
+    subpath = path[len(prefix) :]
+    for route, store in sorted(bindings.items(), key=lambda item: -len(item[0])):
+        if (
+            route
+            and route.endswith("/")
+            and not route.startswith("/")
+            and ".." not in route.split("/")
+            and subpath.startswith(route)
+            and store
+        ):
+            return store
+    return None
+
+
 def _wants_html(request) -> bool:
     """Navigations get a page; fetches/scripts get shaped JSON.
 
@@ -306,7 +330,10 @@ def _plugin_mount_rejection(request, mount_path: str):
 
     tenant_store = policy.get("tenant_store", "")
     tenant_attr = policy.get("tenant_attribute", "")
-    if tenant_store and tenant_attr:
+    server_store = _server_route_store(prefix, mount_path)
+    if server_store and tenant_attr:
+        setattr(request, tenant_attr, server_store)
+    elif tenant_store and tenant_attr:
         store = resolve_plugin_tenant_store(request, tenant_store)
         if store is None:
             return JsonResponse(

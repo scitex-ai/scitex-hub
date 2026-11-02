@@ -31,11 +31,16 @@ import {
   recordVisit,
 } from "./_site-dock/history-stack";
 import { initChatPanel } from "./_site-dock/chat-panel";
+import {
+  initContentScrollAvoidance,
+  PHONE_MAX_WIDTH,
+} from "./_site-dock/content-scroll";
 import { enforceDockBoundary } from "./_site-dock/dock-boundary";
 import {
   FOCUS_AVOID_CLASS,
   FOCUS_SHIFT_VAR,
   focusAvoidanceShift,
+  isFocusAvoidanceTarget,
 } from "./_site-dock/focus-avoid";
 import {
   gripTap,
@@ -108,6 +113,8 @@ class SiteDock {
   private back: HTMLButtonElement | null;
   private forward: HTMLButtonElement | null;
   private stack: HistoryStack;
+  private scrollCollapsed = false;
+  private clearScrollIntent = (): void => {};
 
   constructor(dock: HTMLElement) {
     this.dock = dock;
@@ -125,6 +132,10 @@ class SiteDock {
     this.restorePosition();
     syncDockHeight(this.dock);
     window.addEventListener("resize", () => {
+      if (this.scrollCollapsed && window.innerWidth > PHONE_MAX_WIDTH) {
+        this.scrollCollapsed = false;
+        setMinimized(this.dock, false, false);
+      }
       this.restorePosition();
       syncDockHeight(this.dock);
     });
@@ -149,6 +160,11 @@ class SiteDock {
     }
     this.initDrag();
     this.initFocusAvoidance();
+    this.clearScrollIntent = initContentScrollAvoidance(this.dock, () => {
+      this.scrollCollapsed = true;
+      setMinimized(this.dock, true, false);
+      this.avoidFocusedControl(document.activeElement);
+    });
     this.initHistory();
     initChatPanel(this.dock);
   }
@@ -159,7 +175,7 @@ class SiteDock {
     this.dock.classList.remove(FOCUS_AVOID_CLASS);
     this.dock.style.removeProperty(FOCUS_SHIFT_VAR);
     if (
-      !(target instanceof HTMLElement) ||
+      !isFocusAvoidanceTarget(target) ||
       this.dock.contains(target) ||
       this.dock.classList.contains("site-dock--floating") ||
       isMinimized(this.dock)
@@ -237,10 +253,13 @@ class SiteDock {
   }
 
   private toggleMinimized(on: boolean, at?: { x: number; y: number }): void {
+    this.clearScrollIntent();
     const before = this.dock.getBoundingClientRect();
     const gripBefore = this.grabber?.getBoundingClientRect();
     const wasFloating = this.dock.classList.contains("site-dock--floating");
-    setMinimized(this.dock, on);
+    const persist = !this.scrollCollapsed;
+    this.scrollCollapsed = false;
+    setMinimized(this.dock, on, persist);
     if (!wasFloating) {
       // A bottom-docked launcher stays centred at the exact same anchor. Do
       // not resurrect an old stored floating position just because its width

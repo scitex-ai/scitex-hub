@@ -280,6 +280,9 @@ APP_NAMES = {
     "/apps/comms/": "Comms",
     "/apps/storage/": "Storage",
     "/apps/stats/": "Stats",
+    "/apps/sdk/": "SDK",
+    "/apps/live-paper/": "Live Paper",
+    "/apps/agentic-journal/": "Agentic Journal",
     "/apps/files/": "Files",
     "/apps/clew/": "Clew",
     "/apps/public-projects/": "Public Projects",
@@ -288,6 +291,12 @@ APP_NAMES = {
     "/apps/tools/": "Tools",
     "/apps/my-projects/": "My Projects",
 }
+
+# These app tabs identify the tool, not the ambient project selection.
+# This title-only policy does not change project scoping or permissions.
+APP_TITLE_ONLY_PREFIXES = (
+    "/apps/storage/", "/apps/stats/", "/apps/figrecipe/", "/apps/sdk/",
+)
 
 # Hub sections that are not products, but still need a stable tab label.
 SECTION_NAMES = {
@@ -416,7 +425,7 @@ def page_title(app=None, detail=None, *, env, mode=MODE_HUB):
         mode: one of ``KNOWN_MODES``; defaults to hub-embedded.
 
     Returns:
-        e.g. ``"my-project · Writer — SciTeX (dev)"``.
+        e.g. ``"my-project · Writer (dev)"``.
     """
     marker = title_marker(env, mode)
     brand = f"{SITE_NAME} ({marker})" if marker else SITE_NAME
@@ -424,4 +433,6 @@ def page_title(app=None, detail=None, *, env, mode=MODE_HUB):
     lead = [part for part in (detail, app) if part]
     if not lead:
         return brand
-    return DETAIL_SEPARATOR.join(lead) + TITLE_SEPARATOR + brand
+    # App/page titles identify the content; the site brand belongs in chrome.
+    suffix = f" ({marker})" if marker else ""
+    return DETAIL_SEPARATOR.join(lead) + suffix

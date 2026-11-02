@@ -3,6 +3,7 @@
  */
 
 import { hubGet, hubPost } from "./hub-api";
+import { initRepoFilters } from "./hub-repo-filter";
 import {
   pushDashboardUrl,
   pushExploreUrl,
@@ -66,7 +67,10 @@ export async function loadMe(): Promise<void> {
   const username = getHubUsername();
   if (username) pushMeUrl(username);
   const data = await hubGet("/apps/my-projects/api/me/");
-  if (data?.success) content.innerHTML = data.html;
+  if (data?.success) {
+    content.innerHTML = data.html;
+    await initRepoFilters(content);
+  }
   content.style.opacity = "1";
 }
 

@@ -28,7 +28,11 @@ export function syncDockHeight(
   else root.style.removeProperty(LIVE_HEIGHT_VAR);
 }
 
-export function setMinimized(dock: HTMLElement, on: boolean): void {
+export function setMinimized(
+  dock: HTMLElement,
+  on: boolean,
+  persist = true,
+): void {
   dock.classList.toggle(MINIMIZED_CLASS, on);
   const grabber = dock.querySelector<HTMLElement>("[data-dock-grabber]");
   const { labelShow, labelMove, titleMove } = grabber?.dataset ?? {};
@@ -37,8 +41,10 @@ export function setMinimized(dock: HTMLElement, on: boolean): void {
     grabber.setAttribute("title", on ? labelShow : (titleMove ?? labelMove));
   }
   try {
-    if (on) window.localStorage.setItem(MINIMIZED_KEY, "1");
-    else window.localStorage.removeItem(MINIMIZED_KEY);
+    if (persist) {
+      if (on) window.localStorage.setItem(MINIMIZED_KEY, "1");
+      else window.localStorage.removeItem(MINIMIZED_KEY);
+    }
   } catch {
     /* storage unavailable: the state lasts for this page only */
   }

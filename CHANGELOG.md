@@ -9,6 +9,12 @@ verbatim. See [ADR-0001](docs/adr/0001-rename-scitex-cloud-to-scitex-hub.md).
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+- Keep launcher focus avoidance scoped to actionable controls. When a tab switch
+  leaves focus on the page body or a structural panel, clear the temporary shift
+  so the launcher returns to its anchor instead of covering the graph.
+
 ## [0.20.0a2] - 2026-09-17
 
 Second follow-up alpha for the signed-in-only SciTeX application platform.

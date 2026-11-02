@@ -4,13 +4,11 @@
  */
 
 import {
-  CHAT_URL,
-  EMBED_NAVIGATION_MESSAGE,
   EMBED_THEME_MESSAGE,
   effectiveTheme,
+  embedUrl,
   maximizedRect,
   panelRect,
-  parentNavigationUrl,
   toggleMaximized,
 } from "./chat-float";
 import { trustedParentNavigationPath } from "./embed-navigation";
@@ -93,7 +91,15 @@ export function initChatPanel(
   const resetFrame = () => frame.removeAttribute("src");
 
   const setOpen = (open: boolean) => {
-    resetFrame();
+    if (open) {
+      frame.src = embedUrl(
+        window.location.pathname,
+        document.title,
+        pageTheme(),
+      );
+    } else {
+      resetFrame();
+    }
     panel.hidden = !open;
     toggle.setAttribute("aria-expanded", String(open));
     toggle.classList.toggle("is-active", open);

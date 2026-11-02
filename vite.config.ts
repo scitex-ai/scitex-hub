@@ -3,7 +3,7 @@ import { defineConfig, Plugin } from "vite";
 import { resolve } from "path";
 import * as path from "path";
 import * as fs from "fs";
-import { execSync } from "child_process";
+import { execFileSync, execSync } from "child_process";
 import { createRequire } from "module";
 import { getEntryPoints } from "./vite.entries";
 
@@ -43,9 +43,10 @@ function discoverScitexUiStatic(): string | null {
 const SCITEX_UI_STATIC = discoverScitexUiStatic();
 
 /**
- * Discover the scitex-sdk npm package root (sibling checkout file layout).
+ * Discover the scitex-sdk npm package root from source or the Python install.
  * Same pattern as discoverScitexUiStatic — supports a Docker/CI `.apps/`
- * layout, the standard sibling checkout, and an explicit env override.
+ * layout, the standard sibling checkout, an explicit env override, and the
+ * installed SDK public frontend-package API (used by standalone CI builds).
  */
 function discoverScitexSdkRoot(): string | null {
   if (process.env.SCITEX_SDK_ROOT) {
@@ -59,6 +60,16 @@ function discoverScitexSdkRoot(): string | null {
   ];
   for (const candidate of candidates) {
     if (fs.existsSync(resolve(candidate, "package.json"))) return candidate;
+  }
+  try {
+    const installed = execFileSync(
+      "python3",
+      ["-c", "from scitex_sdk import get_frontend_package_dir; print(get_frontend_package_dir())"],
+      { encoding: "utf-8", timeout: 5000 },
+    ).trim();
+    if (fs.existsSync(resolve(installed, "package.json"))) return installed;
+  } catch {
+    // An absent SDK install leaves ordinary non-SDK entries available.
   }
   return null;
 }
@@ -111,6 +122,10 @@ function scitexSdkSubpathAliases(): Record<string, string> {
     return {};
   }
 }
+
+// CSS ownership follows the SDK package's public exports, independently of
+// an older SCITEX_UI_STATIC pin still needed by legacy JS/TS consumers.
+const SCITEX_SDK_CSS = scitexSdkSubpathAliases()["@scitex/sdk/ui/css"] ?? null;
 
 /** Discovered app bridge configuration. */
 interface AppBridgeInfo {
@@ -375,6 +390,19 @@ export default defineConfig(({ command }) => ({
       // dagre / @xyflow/react (both imported from scitex-cards' bridged
       // layout.ts) are handled by the generic resolveBridgedBareImports()
       // plugin below instead of one-off aliases -- see its docstring.
+      // Match CSS before the broad legacy JS/TS prefix. Both URL spellings
+      // resolve to the same exported SDK source, even with SCITEX_UI_STATIC.
+      ...(SCITEX_SDK_CSS
+        ? {
+            "scitex-ui/css": SCITEX_SDK_CSS,
+            "../../../scitex_ui/css": SCITEX_SDK_CSS,
+          }
+        : SCITEX_UI_STATIC
+          ? {
+              "scitex-ui/css": resolve(SCITEX_UI_STATIC, "css"),
+              "../../../scitex_ui/css": resolve(SCITEX_UI_STATIC, "css"),
+            }
+          : {}),
       // scitex-ui: shared component library (auto-discovered)
       ...(SCITEX_UI_STATIC
         ? {
@@ -382,9 +410,6 @@ export default defineConfig(({ command }) => ({
             // @scitex/ui is the npm package name used by figrecipe's frontend
             // imports like @scitex/ui/src/scitex_ui/static/... resolve from repo root
             "@scitex/ui": resolve(SCITEX_UI_STATIC, "../../../.."),
-            // shared/css/primitives/variables.css @imports scitex-ui tokens by
-            // their collectstatic URL; lets the bundled head CSS resolve them.
-            "../../../scitex_ui/css": resolve(SCITEX_UI_STATIC, "css"),
           }
         : {}),
       // Auto-discovered app bridges (e.g. "figrecipe-editor" → sibling repo)
