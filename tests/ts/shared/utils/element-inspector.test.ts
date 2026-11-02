@@ -2,13 +2,26 @@
  * Tests for static/shared/ts/utils/element-inspector.ts
  */
 
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { describe, it, expect, vi, beforeAll, beforeEach, afterEach } from 'vitest';
 
 // TODO: Update import path based on your tsconfig paths
 // import { } from '@/static/shared/ts/utils/element-inspector';
 
 describe('element-inspector', () => {
     const FLAG = '__scitexElementInspectorLoaded';
+
+    beforeAll(async () => {
+        // Load the real module graph in the bounded hook, before behavioral
+        // deadlines. Its document guard prevents a throwaway inspector.
+        // Each test still resets the module cache and evaluates real code.
+        (window as any)[FLAG] = true;
+        try {
+            await importFresh();
+        } finally {
+            delete (window as any)[FLAG];
+            vi.resetModules();
+        }
+    });
 
     beforeEach(() => {
         document.body.innerHTML = '';
