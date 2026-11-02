@@ -853,7 +853,7 @@
   }
 
   .landing-v2-hero h1:lang(ja) span {
-    white-space: nowrap;
+    white-space: normal;
   }
 
   .landing-v2-actions {

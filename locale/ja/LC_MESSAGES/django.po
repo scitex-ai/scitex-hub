@@ -9756,3 +9756,19 @@ msgstr "機能やAPIは変更される場合があり、サービスの中断や
 #: templates/global_base_partials/global_header.html
 msgid "The backend packages are more stable."
 msgstr "バックエンドのパッケージは、より安定しています。"
+
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_pricing.html
+msgid "COUPON CODE"
+msgstr "クーポンコード"
+
+#: apps/infra/public_app/templates/public_app/landing_partials
+msgid "A hub for research projects, apps, and collaborators"
+msgstr "研究プロジェクト、アプリ、共同研究者をつなぐハブ"
+
+#: apps/infra/public_app/templates/public_app/landing_partials
+msgid "SciTeX — A hub for research projects, apps, and collaborators"
+msgstr "SciTeX — 研究プロジェクト、アプリ、共同研究者をつなぐハブ"
+
+#: apps/infra/public_app/templates/public_app/landing_partials
+msgid "AI Agent + SciTeX®"
+msgstr "AIエージェント + SciTeX®"

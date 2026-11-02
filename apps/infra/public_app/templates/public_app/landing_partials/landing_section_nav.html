@@ -1,15 +1,12 @@
 {% load i18n %}
-<nav class="landing-section-nav" aria-label="{% trans 'Explore SciTeX' %}">
+<nav data-stx-section-nav class="landing-section-nav" aria-label="{% trans 'Explore SciTeX' %}">
     <div class="landing-section-nav__inner">
-        <ul>
-            <li><a href="#overview">{% trans "Overview" %}</a></li>
-            <li><a href="#demo">{% trans "Demo" %}</a></li>
-            <li><a href="#workflow">{% trans "Workflow" %}</a></li>
-            <li><a href="#provenance">{% trans "Provenance" %}</a></li>
-            <li><a href="#custom-apps">{% trans "Custom Apps" %}</a></li>
-            <li><a href="#deployment">{% trans "Deployment" %}</a></li>
-            <li><a href="#open-source">{% trans "Open source" %}</a></li>
-            <li><a href="#pricing">{% trans "Pricing" %}</a></li>
+        <ul class="stx-content-tabs landing-section-nav__tabs">
+            <li><a class="stx-content-tabs__tab" href="#overview" aria-current="location">{% trans "Overview" %}</a></li>
+            <li><a class="stx-content-tabs__tab" href="#provenance">{% trans "Provenance" %}</a></li>
+            <li><a class="stx-content-tabs__tab" href="#demo">{% trans "Demo" %}</a></li>
+            <li><a class="stx-content-tabs__tab" href="#open-source">{% trans "Open source" %}</a></li>
+            <li><a class="stx-content-tabs__tab" href="#pricing">{% trans "Pricing" %}</a></li>
         </ul>
     </div>
 </nav>

@@ -116,17 +116,14 @@ def test_hero_keeps_real_entry_contracts_without_stock_photography():
     assert "https://www.pexels.com/license/" in provenance
 
 
-def test_v2_explains_one_context_builtins_and_extension_contract():
+def test_v2_connects_app_previews_to_the_toolkit_workflow():
     source = (_text(MODULES) + _text(GALLERY))
     expected = (
-        "SciTeX Cloud",
-        "The Python toolkit in action",
+        "Actual SciTeX® Cloud Screenshots",
+        "AI Agent + SciTeX®",
         *BUILT_IN_APPS,
-        "Custom Apps",
-        "shared interface components",
-        "Phone",
-        "Laptop",
-        "HPC",
+        "MCP tools",
+        "Trace claims back to their sources",
     )
     assert all(label in source for label in expected)
 
@@ -228,23 +225,23 @@ def test_styles_keep_brand_contrast_touch_targets_and_reduced_motion():
     assert ":focus-visible" in css
 
 
-def test_mobile_japanese_hero_keeps_words_on_semantic_lines():
+def test_mobile_japanese_hero_allows_the_full_heading_to_wrap():
     # Arrange
     hero = _text(HERO)
     css = re.sub(r"\s+", " ", _text(CSS))
     # Act
     contracts = {
-        "headline": '<span>{% trans "Where Research Happens" %}</span>' in hero,
+        "headline": '<span>{% trans "A hub for research projects, apps, and collaborators" %}</span>' in hero,
         "ja_size": ".landing-v2-hero h1:lang(ja)" in css,
         "narrow_fit": "font-size: clamp(1.65rem, 8vw, 4rem)" in css,
-        "no_word_split": "h1:lang(ja) span { white-space: nowrap;" in css,
+        "wrap_translation": "h1:lang(ja) span { white-space: normal;" in css,
     }
     # Assert
     assert contracts == {
         "headline": True,
         "ja_size": True,
         "narrow_fit": True,
-        "no_word_split": True,
+        "wrap_translation": True,
     }
 
 
@@ -269,13 +266,13 @@ def test_carousel_script_is_manual_keyboard_and_swipe_only():
     [
         (
             "public_app/landing_partials/landing_hero.html",
-            "研究が進む場所",
-            "Where Research Happens",
+            "研究プロジェクト、アプリ、共同研究者をつなぐハブ",
+            "A hub for research projects, apps, and collaborators",
         ),
         (
             "public_app/landing_partials/landing_modules.html",
-            "スマートフォン、ノートPC、HPCで研究を進める",
-            "Work from your phone, laptop, or HPC",
+            "AIエージェント + SciTeX®",
+            "AI Agent + SciTeX®",
         ),
         (
             "public_app/landing_partials/landing_app_gallery.html",

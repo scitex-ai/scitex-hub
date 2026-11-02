@@ -4,7 +4,6 @@
   position: sticky;
   top: calc(var(--landing-header-height) + env(safe-area-inset-top, 0px));
   z-index: 900;
-  border-bottom: 1px solid var(--border-default);
   background: var(--bg-page);
   color: var(--text-primary);
 }
@@ -15,46 +14,27 @@
   padding-block: 8px;
 }
 
-.landing-section-nav__overview {
-  margin: 0;
-  color: var(--text-secondary);
-  font-size: 12px;
-  line-height: 1.5;
-}
-
-.landing-section-nav ul {
+.landing-section-nav__tabs {
   display: grid;
-  grid-template-columns: repeat(8, minmax(0, 1fr));
-  gap: 4px;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
   padding: 0;
   margin: 0;
   list-style: none;
+  overflow: visible;
 }
 
-.landing-section-nav a {
+.landing-section-nav__tabs li {
   display: flex;
-  align-items: center;
-  justify-content: center;
-  min-height: 44px;
-  padding: 4px 6px;
-  color: var(--text-primary);
-  font-size: 12px;
-  font-weight: 600;
-  line-height: 1.25;
+  min-width: 0;
+}
+
+/* Layout and wrapping only; SDK owns underline, text, hover and focus. */
+.landing-section-nav__tabs .stx-content-tabs__tab {
+  flex: 1 1 auto;
+  min-width: 0;
+  padding-inline: 6px;
+  white-space: normal;
   text-align: center;
-  text-decoration: none;
-}
-
-.landing-section-nav a:hover,
-.landing-section-nav a:focus-visible {
-  background: var(--workspace-bg-secondary);
-  text-decoration: underline;
-  text-underline-offset: 4px;
-}
-
-.landing-section-nav a:focus-visible {
-  outline: 2px solid var(--text-primary);
-  outline-offset: -2px;
 }
 
 .landing-v2-hero,
@@ -73,8 +53,8 @@
     width: calc(100% - 24px);
   }
 
-  .landing-section-nav ul {
-    grid-template-columns: repeat(4, minmax(0, 1fr));
+  .landing-section-nav__tabs {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 
   .landing-v2-hero,

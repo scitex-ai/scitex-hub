@@ -1,54 +1,5 @@
 {% load static i18n %}
 
-<section class="landing-v2-section landing-v2-demo" id="demo" aria-labelledby="landing-v2-demo-title">
-    <div class="container landing-v2-shell">
-        <div class="landing-v2-intro">
-            <div>
-                <p class="landing-v2-eyebrow"><a class="landing-v2-section-label" href="#demo"><i class="fa-solid fa-link" aria-hidden="true"></i> {% trans "Demo" %}</a></p>
-                <h2 id="landing-v2-demo-title">{% trans "The Python toolkit in action" %}</h2>
-            </div>
-            <p>{% trans "An AI-agent research workflow with the SciTeX Python toolkit and MCP tools: literature search, experiments, analysis, figures, and manuscript writing." %}</p>
-        </div>
-        {% include "public_app/landing_partials/landing_research_demo.html" %}
-    </div>
-</section>
-
-<section class="landing-v2-section landing-v2-context" id="workflow" aria-labelledby="landing-v2-context-title">
-    <span id="context" class="landing-section-alias" aria-hidden="true"></span>
-    <span id="devices" class="landing-section-alias" aria-hidden="true"></span>
-    <div class="container landing-v2-shell">
-        <div class="landing-v2-intro">
-            <div>
-                <p class="landing-v2-eyebrow"><a class="landing-v2-section-label" href="#workflow"><i class="fa-solid fa-link" aria-hidden="true"></i> {% trans "Workflow" %}</a></p>
-                <h2 id="landing-v2-context-title">{% trans "Work from your phone, laptop, or HPC" %}</h2>
-            </div>
-            <p>{% trans "Move between a quick mobile review, focused browser work, and HPC over SSH without rebuilding the project around each device." %}</p>
-        </div>
-        <ol class="landing-v2-context-grid">
-            <li>
-                <span class="landing-v2-context-number" aria-hidden="true">01</span>
-                <h3>{% trans "Phone" %}</h3>
-                <p>{% trans "Review a result, save a paper, or capture the next step." %}</p>
-            </li>
-            <li>
-                <span class="landing-v2-context-number" aria-hidden="true">02</span>
-                <h3>{% trans "Laptop" %}</h3>
-                <p>{% trans "Use the browser for daily analysis, figures, and writing." %}</p>
-            </li>
-            <li>
-                <span class="landing-v2-context-number" aria-hidden="true">03</span>
-                <h3>{% trans "HPC + SSH" %}</h3>
-                <p>{% trans "Run near the scheduler and data while the project stays connected." %}</p>
-            </li>
-            <li class="landing-v2-context-custom">
-                <span class="landing-v2-context-number" aria-hidden="true">04</span>
-                <h3>{% trans "Custom Apps" %}</h3>
-                <p>{% trans "Extend the same project and command contract for your lab." %}</p>
-            </li>
-        </ol>
-    </div>
-</section>
-
 <section class="landing-v2-section landing-v2-clew" id="provenance" aria-labelledby="landing-v2-clew-title">
     <span id="clew" class="landing-section-alias" aria-hidden="true"></span>
     <div class="container landing-v2-shell landing-v2-clew-grid">
@@ -83,59 +34,15 @@
     </div>
 </section>
 
-<section class="landing-v2-section landing-v2-custom" id="custom-apps" aria-labelledby="landing-v2-custom-title">
-    <span id="sdk" class="landing-section-alias" aria-hidden="true"></span>
+<section class="landing-v2-section landing-v2-demo" id="demo" aria-labelledby="landing-v2-demo-title">
     <div class="container landing-v2-shell">
         <div class="landing-v2-intro">
             <div>
-                <p class="landing-v2-eyebrow"><a class="landing-v2-section-label" href="#custom-apps"><i class="fa-solid fa-link" aria-hidden="true"></i> {% trans "Custom Apps" %}</a></p>
-                <h2 id="landing-v2-custom-title">{% trans "Build apps your research needs" %}</h2>
+                <p class="landing-v2-eyebrow"><a class="landing-v2-section-label" href="#demo"><i class="fa-solid fa-link" aria-hidden="true"></i> {% trans "Demo" %}</a></p>
+                <h2 id="landing-v2-demo-title">{% trans "AI Agent + SciTeX®" %}</h2>
             </div>
-            <p>{% trans "Research needs tools that fit the experiment. Build your own app with the SciTeX SDK, using the platform's project context and shared interface components." %}</p>
+            <p>{% trans "An AI-agent research workflow with the SciTeX Python toolkit and MCP tools: literature search, experiments, analysis, figures, and manuscript writing." %}</p>
         </div>
-        <ul class="landing-v2-custom-capabilities">
-            <li><h3>DataStore</h3><p>{% trans "Work with structured records." %}</p></li>
-            <li><h3>FileVault</h3><p>{% trans "Store files in your app’s namespace." %}</p></li>
-            <li><h3>JobQueue</h3><p>{% trans "Submit background work through the shared job interface." %}</p></li>
-        </ul>
-        <a class="landing-v2-button landing-v2-button-primary" href="/apps/sdk/">{% trans "Explore the SDK" %}<span aria-hidden="true"> →</span></a>
-    </div>
-</section>
-
-<section class="landing-v2-section landing-v2-open" id="deployment" aria-labelledby="landing-v2-open-title">
-    <span id="open" class="landing-section-alias" aria-hidden="true"></span>
-    <span id="byox" class="landing-section-alias" aria-hidden="true"></span>
-    <div class="container landing-v2-shell landing-v2-open-grid">
-        <figure class="landing-v2-photo landing-v2-open-photo">
-            <picture>
-                <source type="image/webp"
-                        srcset="{% static 'public_app/images/landing-v2/research-computer-640.webp' %} 640w, {% static 'public_app/images/landing-v2/research-computer-1280.webp' %} 1280w"
-                        sizes="(max-width: 820px) 100vw, 46vw" />
-                <img src="{% static 'public_app/images/landing-v2/research-computer-1280.jpg' %}"
-                     width="1280"
-                     height="853"
-                     loading="lazy"
-                     alt="{% trans 'A laboratory researcher works at a desktop computer beside scientific equipment.' %}" />
-            </picture>
-            <figcaption>
-                {% trans "Illustrative stock photography:" %}
-                <a href="https://www.pexels.com/photo/medical-professional-using-computer-9574502/"
-                   target="_blank"
-                   rel="noopener noreferrer">Tima Miroshnichenko / Pexels</a>.
-                {% trans "No customer or product endorsement is implied." %}
-            </figcaption>
-        </figure>
-        <div class="landing-v2-open-copy">
-            <p class="landing-v2-eyebrow"><a class="landing-v2-section-label" href="#deployment"><i class="fa-solid fa-link" aria-hidden="true"></i> {% trans "Deployment" %}</a></p>
-            <h2 id="landing-v2-open-title">{% trans "Your projects. Your infrastructure" %}</h2>
-            <p>{% trans "Use SciTeX Cloud or self-host. Keep human judgment at the center and choose the environment, compute, and integrations that fit the work." %}</p>
-            <ul>
-                <li>{% trans "Cloud for a managed browser workspace" %}</li>
-                <li>{% trans "Self-hosting for your own environment" %}</li>
-                <li>{% trans "Local tools" %}</li>
-            </ul>
-            <p class="landing-v2-small">{% trans "Available deployment options and integrations depend on the selected setup." %}</p>
-            <a class="landing-v2-button landing-v2-button-primary" href="#pricing">{% trans "Compare current plans" %}</a>
-        </div>
+        {% include "public_app/landing_partials/landing_research_demo.html" %}
     </div>
 </section>

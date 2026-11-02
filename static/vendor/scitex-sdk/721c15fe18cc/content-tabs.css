@@ -1,0 +1,108 @@
+/* =============================================================================
+ * SciTeX App — Content Tabs (shared selected-tab primitive)
+ * =============================================================================
+ * Prefix: stx-content-tabs
+ * Requires: shell/theme.css
+ *
+ * THE contract for "which tab is selected", identical on mobile and desktop
+ * (card ui-tabs-selected-state-standard-20260918; operator mandate CCT
+ * 3707/3710). Responsive differences are limited to overflow/scroll/wrapping;
+ * the selected look never forks by viewport.
+ *
+ * MARKUP CONTRACT (producers: ts/app/panes/_Panes.ts renders exactly this):
+ *   <div class="stx-content-tabs" role="tablist" aria-label="...">
+ *     <button type="button" class="stx-content-tabs__tab" role="tab"
+ *             aria-selected="true|false" aria-controls="<pane id>"
+ *             tabindex="0|-1">Label</button>
+ *   </div>
+ * Roving tabindex + ArrowLeft/ArrowRight live in the producer; the CSS only
+ * reads aria-selected for tabs and aria-current for native section links, so
+ * any producer emitting the corresponding attributes gets the
+ * same selected state. Keyboard focus keeps its own ring, visually distinct
+ * from the selected underline.
+ *
+ * REFERENCE MEASUREMENTS (kept, not re-decided here):
+ * - 13px label: Writer .writer-section-tab, Scholar .tab-nav/.tab-btn and
+ *   FigRecipe .inner-editor__tab all render 13px (scitex-ui audit
+ *   2026-10-16). The SDK had no content-tabs primitive at all.
+ * - Selected = underline ONLY in theme --accent (SciTeX navy #1a2a40 light /
+ *   gold #d4a87a dark, via shell/theme.css): no box, no surface tint, no
+ *   weight change. Operator 2026-10-20 (card
+ *   scholar-sdk-tabs-underline-polish-20261020): the boxed + brand-blue
+ *   selected state is superseded — the polished version is the simple
+ *   scitex-colour underline Scholar rendered before convergence.
+ * - Focus ring is --focus-ring-color, a different token from the indicator,
+ *   drawn OUTSIDE the tab so it never sits on the selected underline.
+ * ============================================================================= */
+
+.stx-content-tabs {
+  display: flex;
+  flex: none;
+  align-items: stretch;
+  gap: var(--spacing-xs, 4px);
+  padding: var(--spacing-xs, 4px);
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  scrollbar-width: thin;
+  background: var(--bg-page, #faf9f7);
+  border-bottom: 1px solid var(--border-muted, #c0c0c0);
+}
+
+.stx-content-tabs__tab {
+  box-sizing: border-box;
+  display: inline-flex;
+  flex: 1 0 auto;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-width: 44px;
+  min-height: 44px;
+  padding: 0 12px;
+  border: 1px solid transparent;
+  border-radius: var(--radius-lg, 6px);
+  background: transparent;
+  color: var(--text-secondary, #4a4a4a);
+  font: inherit;
+  font-size: 13px;
+  font-weight: 400;
+  white-space: nowrap;
+  text-decoration: none;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.stx-content-tabs__tab:hover {
+  color: var(--text-primary, #1a1a1a);
+  background: var(--bg-surface, #f8f7f5);
+}
+
+/* Selected: underline ONLY in theme --accent (SciTeX navy light / gold dark).
+ * No box (border stays transparent), no surface tint, no weight change —
+ * the tab reads exactly like its siblings except for the 2px underline. */
+.stx-content-tabs__tab:is([aria-selected="true"], [aria-current="location"], [aria-current="page"]) {
+  border-color: transparent;
+  border-bottom: 2px solid var(--accent, #1a2a40);
+  background: transparent;
+  color: var(--accent, #1a2a40);
+  box-shadow: none;
+  border-radius: 0;
+}
+
+/* Focus keeps its own ring: --focus-ring-color is a different token from the
+ * selected indicator, and the outline sits OUTSIDE the tab so the two can
+ * never overlap, including on the selected tab's underline. */
+.stx-content-tabs__tab:focus-visible {
+  outline: 2px solid var(--focus-ring-color, rgba(26, 42, 64, 0.35));
+  outline-offset: 2px;
+}
+
+.stx-content-tabs__tab-icon {
+  font-size: 1.05rem;
+  line-height: 1;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .stx-content-tabs__tab {
+    transition: none;
+  }
+}
