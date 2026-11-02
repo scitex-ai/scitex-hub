@@ -81,3 +81,9 @@
 .landing-v2-carousel-track figcaption { color: var(--text-secondary); }
 .landing-v2-carousel-track figcaption strong { color: var(--text-primary); }
 .landing-v2-carousel-track figcaption a { color: var(--text-link); }
+
+.landing-v2-provenance-note {
+  color: var(--text-secondary);
+  font-size: var(--font-size-xs, 12px);
+  line-height: 1.6;
+}
