@@ -367,6 +367,8 @@ directory's `PROVENANCE.md`.
 
 ## Contributing
 
+Existing MNIST projects have an explicit, guarded [Writer showcase plan/apply](docs/project-samples/mnist-writer.md). It derives example-only sections from the existing computed bundle, preserves authored files, and never seeds or compiles during a page GET.
+
 We welcome contributions! See [CONTRIBUTING.md](CONTRIBUTING.md).
 
 ---
