@@ -152,7 +152,34 @@
 
 /* Layout only; selected underline and focus styles belong to scitex-sdk. */
 .landing-v2-carousel-tabs {
-  flex-wrap: wrap;
+  flex-direction: column;
+  flex-wrap: nowrap;
   margin-top: 1rem;
   overflow: visible;
+}
+
+
+.landing-v2-carousel-category {
+  display: grid;
+  grid-template-columns: 90px minmax(0, 1fr);
+  align-items: center;
+  gap: 4px;
+}
+
+.landing-v2-carousel-category-label {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-secondary);
+}
+
+.landing-v2-carousel-category-items {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-xs, 4px);
+  min-width: 0;
+}
+
+.landing-v2-hero-gallery .landing-v2-carousel-controls {
+  flex-wrap: nowrap;
+  flex-shrink: 0;
 }

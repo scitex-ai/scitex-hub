@@ -15,15 +15,17 @@ TEMPLATE = (
 )
 
 
-def test_all_nine_carousel_pictures_reference_the_current_capture_manifest():
+def test_all_eleven_carousel_pictures_reference_the_current_capture_manifest():
     source = TEMPLATE.read_text()
     start = source.index('<div class="landing-v2-carousel-track"')
     end = source.index('data-carousel-tabs', start)
     region = source[start:end]
     files = set(re.findall(r"public_app/images/landing-v2/([^']+)", region))
-    manifest = json.loads((ASSETS / "product-captures-nine-apps-20261103.json").read_text())
+    manifest = json.loads((ASSETS / "product-captures-eleven-apps-20261103.json").read_text())
     captures = manifest["captures"]
     assert {c["app"] for c in captures} == {
+        "hub",
+        "sdk",
         "agent-container",
         "cards",
         "storage",
@@ -36,8 +38,8 @@ def test_all_nine_carousel_pictures_reference_the_current_capture_manifest():
     }
     declared = {row["file"] for capture in captures for row in capture["renditions"]}
     assert files == declared
-    assert len(files) == 27
-    assert region.count("<picture>") == 9
+    assert len(files) == 33
+    assert region.count("<picture>") == 11
     assert "-20261102-" in region
     assert all("-20261102-" in name for name in files)
     for capture in captures:
@@ -65,7 +67,7 @@ def test_actual_capture_disclosure_does_not_claim_unedited_or_uniform_mnist_inpu
     assert "Six-row sample worksheet" in source
     assert "not research findings" in source
     assert "MNIST reference library" in source
-    manifest = json.loads((ASSETS / "product-captures-nine-apps-20261103.json").read_text())
+    manifest = json.loads((ASSETS / "product-captures-eleven-apps-20261103.json").read_text())
     assert manifest["asset_substitution"] is False
     assert manifest["allowed_stateless_post_exceptions"] == [
         "/apps/stats/api/recommend-test",

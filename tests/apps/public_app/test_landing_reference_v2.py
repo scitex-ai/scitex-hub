@@ -284,8 +284,8 @@ def test_carousel_script_is_manual_keyboard_and_swipe_only():
         ),
         (
             "public_app/landing_partials/landing_app_gallery.html",
-            "9枚中9枚目",
-            "9 of 9: Agentic Journal",
+            "11枚中11枚目",
+            "11 of 11: Agentic Journal",
         ),
         (
             "public_app/landing_partials/landing_app_gallery.html",
@@ -306,12 +306,12 @@ def test_v2_copy_switches_cleanly_between_english_and_japanese(
     assert en_needle in en_html and ja_needle not in en_html
 
 
-def test_carousel_has_nine_current_application_slides():
-    assert (_text(MODULES) + _text(GALLERY)).count("data-carousel-slide") == 9
+def test_carousel_has_eleven_current_application_slides():
+    assert (_text(MODULES) + _text(GALLERY)).count("data-carousel-slide") == 11
 
 
-def test_carousel_has_nine_dots_ending_in_agentic_journal():
-    assert re.findall(r'data-carousel-dot="(\d)"', (_text(MODULES) + _text(GALLERY))) == [
+def test_carousel_has_eleven_dots_ending_in_agentic_journal():
+    assert re.findall(r'data-carousel-dot="(\d+)"', (_text(MODULES) + _text(GALLERY))) == [
         "0",
         "1",
         "2",
@@ -321,16 +321,18 @@ def test_carousel_has_nine_dots_ending_in_agentic_journal():
         "6",
         "7",
         "8",
+        "9",
+        "10",
     ]
 
 
-def test_carousel_status_starts_at_one_of_nine():
-    assert ">1 / 9<" in (_text(MODULES) + _text(GALLERY))
+def test_carousel_status_starts_at_one_of_eleven():
+    assert ">1 / 11<" in (_text(MODULES) + _text(GALLERY))
 
 
 def test_stats_and_live_paper_have_distinct_sample_and_mnist_captures():
-    assert "5 of 9: Stats" in (_text(MODULES) + _text(GALLERY))
-    assert "8 of 9: Live Paper" in (_text(MODULES) + _text(GALLERY))
+    assert "7 of 11: Stats" in (_text(MODULES) + _text(GALLERY))
+    assert "10 of 11: Live Paper" in (_text(MODULES) + _text(GALLERY))
     assert "not research findings" in (_text(MODULES) + _text(GALLERY))
 
 

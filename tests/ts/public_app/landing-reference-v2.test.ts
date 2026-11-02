@@ -113,8 +113,8 @@ describe("landing V2 product carousel", () => {
 });
 
 
-describe("current nine-application template", () => {
-  it("keeps all nine actual slides reachable by keyboard, swipe and dots", () => {
+describe("current eleven-application template", () => {
+  it("keeps all eleven actual slides reachable by keyboard, swipe and dots", () => {
     const source = readFileSync(
       resolve(process.cwd(), "apps/infra/public_app/templates/public_app/landing_partials/landing_app_gallery.html"),
       "utf8",
@@ -126,27 +126,27 @@ describe("current nine-application template", () => {
     const slides = [...carousel.querySelectorAll<HTMLElement>("[data-carousel-slide]")];
     const dots = [...carousel.querySelectorAll<HTMLButtonElement>("[data-carousel-dot]")];
     expect(slides.map(s => s.querySelector("strong")?.textContent)).toEqual([
-      "Agent Container", "Cards", "Storage", "Scholar", "Stats", "FigRecipe", "Writer", "Live Paper", "Agentic Journal",
+      "Hub", "SDK", "Agent Container", "Cards", "Storage", "Scholar", "Stats", "FigRecipe", "Writer", "Live Paper", "Agentic Journal",
     ]);
-    expect(dots).toHaveLength(9);
+    expect(dots).toHaveLength(11);
     initLandingCarousels();
     const status = () => carousel.querySelector("[data-carousel-status]")?.textContent;
-    expect(status()).toBe("1 / 9");
+    expect(status()).toBe("1 / 11");
     dots[0].focus();
     dots[0].dispatchEvent(new KeyboardEvent("keydown", { key: "ArrowLeft", bubbles: true }));
-    expect(status()).toBe("9 / 9");
-    expect(document.activeElement).toBe(dots[8]);
-    expect(slides.map(s => s.hidden)).toEqual([true, true, true, true, true, true, true, true, false]);
-    dots[8].dispatchEvent(new KeyboardEvent("keydown", { key: "ArrowRight", bubbles: true }));
-    expect(status()).toBe("1 / 9");
+    expect(status()).toBe("11 / 11");
+    expect(document.activeElement).toBe(dots[10]);
+    expect(slides.map(s => s.hidden)).toEqual([true, true, true, true, true, true, true, true, true, true, false]);
+    dots[10].dispatchEvent(new KeyboardEvent("keydown", { key: "ArrowRight", bubbles: true }));
+    expect(status()).toBe("1 / 11");
     const track = carousel.querySelector<HTMLElement>("[data-carousel-track]")!;
     track.dispatchEvent(pointer("pointerdown", 280));
     track.dispatchEvent(pointer("pointerup", 180));
-    expect(status()).toBe("2 / 9");
+    expect(status()).toBe("2 / 11");
     dots[3].click();
-    expect(status()).toBe("4 / 9");
+    expect(status()).toBe("4 / 11");
     expect(slides[3].hidden).toBe(false);
-    expect(dots.map(d => d.tabIndex)).toEqual([-1, -1, -1, 0, -1, -1, -1, -1, -1]);
+    expect(dots.map(d => d.tabIndex)).toEqual([-1, -1, -1, 0, -1, -1, -1, -1, -1, -1, -1]);
     expect(slides.filter(s => s.getAttribute("aria-hidden") === "false")).toHaveLength(1);
   });
 });

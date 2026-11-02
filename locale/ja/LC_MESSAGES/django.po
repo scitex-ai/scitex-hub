@@ -9676,3 +9676,71 @@ msgstr "基盤"
 #: apps/infra/public_app/templates/public_app/landing_partials
 msgid "Research"
 msgstr "研究"
+
+#: apps/infra/public_app/templates/public_app/landing_partials
+msgid "1 of 11: Hub"
+msgstr "11枚中1枚目：Hub"
+
+#: apps/infra/public_app/templates/public_app/landing_partials
+msgid "2 of 11: SDK"
+msgstr "11枚中2枚目：SDK"
+
+#: apps/infra/public_app/templates/public_app/landing_partials
+msgid "3 of 11: Agent Container"
+msgstr "11枚中3枚目：Agent Container"
+
+#: apps/infra/public_app/templates/public_app/landing_partials
+msgid "4 of 11: Cards"
+msgstr "11枚中4枚目：Cards"
+
+#: apps/infra/public_app/templates/public_app/landing_partials
+msgid "5 of 11: Storage"
+msgstr "11枚中5枚目：Storage"
+
+#: apps/infra/public_app/templates/public_app/landing_partials
+msgid "6 of 11: Scholar"
+msgstr "11枚中6枚目：Scholar"
+
+#: apps/infra/public_app/templates/public_app/landing_partials
+msgid "7 of 11: Stats"
+msgstr "11枚中7枚目：Stats"
+
+#: apps/infra/public_app/templates/public_app/landing_partials
+msgid "8 of 11: FigRecipe"
+msgstr "11枚中8枚目：FigRecipe"
+
+#: apps/infra/public_app/templates/public_app/landing_partials
+msgid "9 of 11: Writer"
+msgstr "11枚中9枚目：Writer"
+
+#: apps/infra/public_app/templates/public_app/landing_partials
+msgid "10 of 11: Live Paper"
+msgstr "11枚中10枚目：Live Paper"
+
+#: apps/infra/public_app/templates/public_app/landing_partials
+msgid "11 of 11: Agentic Journal"
+msgstr "11枚中11枚目：Agentic Journal"
+
+#: apps/infra/public_app/templates/public_app/landing_partials
+msgid "Application launcher and research workspace; development capture."
+msgstr "アプリランチャーと研究ワークスペース。開発環境の画面です。"
+
+#: apps/infra/public_app/templates/public_app/landing_partials
+msgid "App creation workspace with four starter templates; development capture."
+msgstr "4種類のスターターを備えたアプリ作成画面。開発環境の画面です。"
+
+#: apps/infra/public_app/templates/public_app/landing_partials
+msgid "Hub — Application launcher and research workspace; development capture."
+msgstr "Hub — アプリランチャーと研究ワークスペース。開発環境の画面です。"
+
+#: apps/infra/public_app/templates/public_app/landing_partials
+msgid "Application launcher and research workspace; development capture. 2026-11-02."
+msgstr "アプリランチャーと研究ワークスペース。開発環境の画面です。 2026-11-02."
+
+#: apps/infra/public_app/templates/public_app/landing_partials
+msgid "SDK — App creation workspace with four starter templates; development capture."
+msgstr "SDK — 4種類のスターターを備えたアプリ作成画面。開発環境の画面です。"
+
+#: apps/infra/public_app/templates/public_app/landing_partials
+msgid "App creation workspace with four starter templates; development capture. 2026-11-02."
+msgstr "4種類のスターターを備えたアプリ作成画面。開発環境の画面です。 2026-11-02."
