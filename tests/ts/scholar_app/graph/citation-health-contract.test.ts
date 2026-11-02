@@ -1,4 +1,4 @@
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
 
 // Both loaded entrypoints that toggle the Scholar tabs. scholar_unified.html
 // mounts scholar-unified-init (the LIVE page); scholar_partial.html mounts
@@ -27,9 +27,26 @@ async function loadSwitchTab(which: EntryKind): Promise<(tab: string) => void> {
 
 const config = { urls: { health: "/apps/scholar/citation-graph/health/" } };
 
+// Production loads this ES module once, then remounts injected Scholar DOM.
+// Keep cold Vite transformation in bounded setup rather than the 5s behavior
+// deadline; re-importing every fixture also accumulates document listeners.
+beforeAll(async () => {
+  window.CITATION_GRAPH_CONFIG = { urls: {} } as typeof window.CITATION_GRAPH_CONFIG;
+  try {
+    await import("@scholar_app/graph/citation-graph");
+  } finally {
+    delete window.CITATION_GRAPH_CONFIG;
+  }
+}, 10_000);
+
+function mountGraph(): void {
+  document.dispatchEvent(new CustomEvent("workspace:module-injected", {
+    detail: { module: "scholar" },
+  }));
+}
+
 describe.each(ENTRYPOINTS)("$label", (entrypoint) => {
   beforeEach(() => {
-    vi.resetModules();
     document.documentElement.lang = "en";
     document.body.innerHTML = `
     <button class="scholar-tab" data-tab="graph">Citations</button>
@@ -50,7 +67,7 @@ describe.each(ENTRYPOINTS)("$label", (entrypoint) => {
       json: async () => ({ status: "configured", probed: false }),
     });
     vi.stubGlobal("fetch", fetcher);
-    await import("@scholar_app/graph/citation-graph");
+    mountGraph();
     await vi.waitFor(() => {
       expect(document.getElementById("serviceStatus")!.textContent).toContain(
         "not checked",
@@ -61,6 +78,18 @@ describe.each(ENTRYPOINTS)("$label", (entrypoint) => {
     );
   });
 
+  it("does not duplicate health checks when the cached module sees repeated mount events", async () => {
+    const fetcher = vi.fn().mockResolvedValue({
+      ok: true, json: async () => ({ status: "configured", probed: false }),
+    });
+    vi.stubGlobal("fetch", fetcher);
+    mountGraph();
+    await vi.waitFor(() => expect(fetcher).toHaveBeenCalledTimes(1));
+    mountGraph();
+    await new Promise(resolve => setTimeout(resolve, 0));
+    expect(fetcher).toHaveBeenCalledTimes(1);
+  });
+
   it("probes only when Citations is activated, once per mount", async () => {
     const fetcher = vi.fn().mockImplementation(async (url: string) => ({
       ok: true,
@@ -69,7 +98,7 @@ describe.each(ENTRYPOINTS)("$label", (entrypoint) => {
         : { status: "configured", probed: false },
     }));
     vi.stubGlobal("fetch", fetcher);
-    await import("@scholar_app/graph/citation-graph");
+    mountGraph();
     const switchTab = await loadSwitchTab(entrypoint.which);
     await vi.waitFor(() => expect(fetcher).toHaveBeenCalledTimes(1));
     expect(new URL(fetcher.mock.calls[0][0]).searchParams.has("probe")).toBe(false);
@@ -91,7 +120,7 @@ describe.each(ENTRYPOINTS)("$label", (entrypoint) => {
     ["unexpected", false, "could not be checked"],
   ])("renders %s truthfully without inventing an online fallback", async (status, probed, text) => {
     vi.stubGlobal("fetch", vi.fn().mockResolvedValue({ ok: true, json: async () => ({ status, probed }) }));
-    await import("@scholar_app/graph/citation-graph");
+    mountGraph();
     await vi.waitFor(() => expect(document.getElementById("serviceStatus")!.textContent).toContain(text));
     expect(document.getElementById("serviceStatus")!.textContent).not.toContain("online Crossref");
   });
@@ -102,7 +131,7 @@ describe.each(ENTRYPOINTS)("$label", (entrypoint) => {
       .mockRejectedValueOnce(new Error("network unavailable"))
       .mockResolvedValue({ ok: true, json: async () => ({ status: "healthy", probed: true }) });
     vi.stubGlobal("fetch", fetcher);
-    await import("@scholar_app/graph/citation-graph");
+    mountGraph();
     await vi.waitFor(() => expect(document.getElementById("serviceStatus")!.textContent).toContain("状態を確認できませんでした"));
     const retry = document.querySelector<HTMLButtonElement>("#serviceStatus button")!;
     expect(retry.textContent).toBe("状態を確認");
@@ -117,7 +146,7 @@ describe.each(ENTRYPOINTS)("$label", (entrypoint) => {
       .mockImplementationOnce(() => new Promise((resolve) => { resolveInitial = resolve; }))
       .mockResolvedValue({ ok: true, json: async () => ({ status: "healthy", probed: true }) });
     vi.stubGlobal("fetch", fetcher);
-    await import("@scholar_app/graph/citation-graph");
+    mountGraph();
     const switchTab = await loadSwitchTab(entrypoint.which);
     switchTab("graph");
     await vi.waitFor(() => expect(document.getElementById("serviceStatus")!.dataset.healthState).toBe("healthy"));
