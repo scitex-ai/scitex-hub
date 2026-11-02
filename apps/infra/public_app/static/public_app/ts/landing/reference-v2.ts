@@ -118,6 +118,7 @@ function initCarousel(carousel: HTMLElement): void {
     const category = target?.closest<HTMLButtonElement>("[data-carousel-category-tab]");
     const dot = target?.closest<HTMLButtonElement>("[data-carousel-dot]");
     if (!["ArrowLeft", "ArrowRight", "Home", "End"].includes(event.key)) return;
+    if ((event.key === "Home" || event.key === "End") && !category && !dot) return;
     const step = event.key === "ArrowLeft" ? -1 : 1;
     event.preventDefault();
     if (category) {
