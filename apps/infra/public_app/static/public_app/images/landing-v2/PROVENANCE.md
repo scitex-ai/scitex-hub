@@ -20,7 +20,53 @@ hashes are recorded so the page can be re-audited from the repository.
 The 640 and 1280 pixel JPEG/WebP renditions were resized and cropped locally from the
 source photographs with Pillow; no generated imagery was added.
 
-## Fresh development captures — 2026-11-02 UTC
+## Nine leaf application capture set
+
+`product-captures-nine-apps-20261103.json` indexes the nine leaf applications:
+Agent Container, Cards, Storage, Scholar, Stats, FigRecipe, Writer, Live Paper,
+and Agentic Journal. It combines five unchanged earlier captures with four new
+actual development captures. The Hub launcher is excluded from this nine-app set;
+its historical assets and `product-captures-20261102.json` remain unchanged.
+The manifest task date is 2026-11-03; new image filenames and per-image timestamps
+use the capture host's observed UTC date, 2026-11-02, rather than forcing that date.
+
+The new four images are actual authenticated development views at
+<https://compute-03-net.scitex.ai/>, captured at 1440 × 900, device scale 1:
+
+- `agent-container-20261102-*`: cached fleet inventory and controls, with 21
+  roster rows. The visible stale-cache banner is preserved. Liveness badges are
+  cached inventory metadata, not evidence of model activity or goal completion.
+  Non-public agent labels and account/project controls are hidden. No agent
+  conversation, detail/status/tail read, control or goal operation was performed.
+- `cards-20261102-*`: the real dedicated task-board Stats view. Private task
+  content and account/project identifiers are hidden. Activity/status counts are
+  the actual visible UI values; this is not a seeded MNIST task dataset. No DM
+  API or message request was allowed; no tasks were edited or sent.
+- `storage-20261102-*`: the actual MNIST project-scoped Usage iframe after its
+  sunburst finished rendering (36 SVG segments). Path/generation/breadcrumb
+  labels are hidden. No move, delete, duplicate scan or planning operation was
+  performed. The chart is not substituted with a PNG or a different frame.
+- `agentic-journal-20261102-*`: the native author guidance and submission workflow,
+  with an honestly empty user archive. No sample submission, review, publication,
+  model call or fabricated record was created for the screenshot.
+
+For these four operational views, privacy filters were applied before the first
+PNG was persisted. The recorded raw/original hash therefore identifies the
+privacy-filtered browser capture, not an unmasked private-data image. Account and
+project controls, private task text, non-public agent names and relevant path
+labels are masked; exact selectors/styles are recorded in the manifest. The dock
+was minimized using its normal control. No application HTML, data, script or
+stylesheet response was replaced. Only faithful resizing and JPEG/WebP compression
+were applied after capture; no generated imagery was used.
+
+These four captures allow GET only, block DM/control/message/goal endpoints,
+block all POSTs, and disable WebSockets/SSE. The manifest separately preserves
+historical exceptions for the earlier Stats sample computation and Writer Abstract
+preview; neither was repeated for this four-app extension. Captures document
+visible interface state, not complete feature health, independent scientific
+verification or production availability.
+
+## Earlier six-screen development capture group — 2026-11-02 UTC
 
 `product-captures-20261102.json` records the actual capture times, original PNG
 hashes, privacy-masked PNG hashes, responsive rendition hashes and dimensions.
@@ -114,8 +160,8 @@ outside the repository; its SHA-256 is recorded in the table above.
 Related tracked demo videos remain available at
 `apps/infra/public_app/static/public_app/videos/landing/`: `hub-demo.mp4`,
 `scholar-demo.mp4`, `writer-demo.mp4`, and `visualizer-demo.mp4`. These legacy
-recordings and guide renditions remain as historical sources. The current carousel
-uses the six dated actual development captures documented above.
+recordings and guide renditions remain as historical sources. The earlier six-screen group uses the dated actual development captures documented
+above; the separate nine-leaf manifest identifies the expanded set.
 
 ## SciTeX Clew DAG
 
