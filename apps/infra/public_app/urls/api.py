@@ -15,8 +15,10 @@ REST API endpoints:
 from django.urls import path
 
 from .. import api_views, views
+from ..api_github import github_counts
 
 urlpatterns = [
+    path("api/landing/github-counts/", github_counts, name="landing-github-counts"),
     # Status API endpoints
     #
     # api/status/ is the JSON twin of the /server-status/ PAGE — same collector,
@@ -51,7 +53,6 @@ urlpatterns = [
         views.server_metrics_series_api,
         name="server_metrics_series",
     ),
-
     # MCP tools API
     path(
         "api/mcp/tools/",

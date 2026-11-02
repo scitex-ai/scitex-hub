@@ -100,15 +100,15 @@ class LandingResearchDemoBlockTest(TestCase):
         # Assert — the demo block carries its anchor
         assert b'id="research-demo"' in resp.content
 
-    def test_demo_video_uses_optional_disclosure_with_native_controls(self):
+    def test_demo_video_is_visible_with_native_controls(self):
         # Arrange: an anonymous visitor
         # Act
         resp = self.client.get("/landing/")
-        # Assert — workflow disclosure is manual; native controls remain available.
+        # Assert — the workflow video is visible with native controls, no disclosure.
         demo = resp.content.split(b'id="research-demo"', 1)[1].split(b"</details>", 1)[
             0
         ]
-        assert (b"<summary" in demo, b"controls" in demo) == (True, True)
+        assert (b"<summary" in demo, b"controls" in demo) == (False, True)
 
     def test_demo_video_is_manual_inline_without_autoplay_or_loop(self):
         # Arrange: an anonymous visitor
@@ -173,12 +173,12 @@ class LandingResearchDemoBlockTest(TestCase):
         # Assert — no per-movie watch URL appears in the new section
         assert b'href="/demos/watch/' not in resp.content
 
-    def test_full_workflow_disclosure_has_a_clear_manual_summary(self):
+    def test_full_workflow_has_no_retired_disclosure_summary(self):
         # Arrange: an anonymous visitor
         # Act
         resp = self.client.get("/landing/")
         # Assert — no stale promise is substituted for the real manual video.
-        assert b"Watch the full workflow" in resp.content
+        assert b"Watch the full workflow" not in resp.content
 
 
 class LandingAppStoreNoteTest(TestCase):

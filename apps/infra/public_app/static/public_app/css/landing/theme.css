@@ -1,0 +1,83 @@
+/* Landing surfaces consume the shared light/dark roles; screenshots stay untouched.
+ * Load after landing-reference-v2.css and landing/target-layout.css. */
+.landing-v2-hero,
+.landing-v2-section {
+  --landing-ink: var(--text-primary);
+  --landing-muted: var(--text-secondary);
+  --landing-paper: var(--bg-page);
+  --landing-surface: var(--bg-surface);
+  --landing-soft: var(--bg-muted);
+  --landing-line: var(--border-default);
+  --landing-gold: var(--accent);
+  color: var(--text-primary);
+  background: var(--bg-page);
+}
+
+/* Match the old dark-hero specificity without changing shared theme tokens. */
+[data-theme] .landing-v2-hero {
+  background: var(--bg-page);
+  color: var(--text-primary);
+}
+
+[data-theme] .landing-v2-hero .landing-v2-lead,
+[data-theme] .landing-v2-hero .landing-v2-context-line,
+[data-theme] .landing-v2-hero .landing-v2-points li,
+.landing-v2-demo-copy > p:not(.landing-v2-eyebrow) {
+  color: var(--text-secondary);
+}
+
+.landing-v2-clew,
+.landing-v2-demo,
+.landing-v2-oss,
+.section-pricing {
+  background: var(--bg-page);
+  color: var(--text-primary);
+}
+
+.landing-v2-clew .landing-v2-clew-figure,
+.landing-v2-oss .landing-oss-packages li,
+.landing-v2-hero .landing-v2-carousel {
+  background: var(--bg-surface);
+  color: var(--text-primary);
+  border-color: var(--border-default);
+}
+
+.landing-v2-carousel-controls,
+.landing-v2-carousel-controls button,
+.landing-v2-carousel-category-label {
+  color: var(--text-secondary);
+}
+
+.landing-v2-carousel-controls button {
+  border-color: var(--border-default);
+  background: var(--bg-surface);
+}
+
+.landing-v2-carousel-controls button:hover {
+  background: var(--bg-muted);
+  border-color: var(--accent);
+  color: var(--text-primary);
+}
+
+.landing-v2-eyebrow,
+.landing-v2-context-icon {
+  color: var(--accent);
+}
+
+.landing-v2-clew-figure figcaption,
+.landing-oss-packages p,
+.landing-v2-small {
+  color: var(--text-secondary);
+}
+
+.landing-v2-clew-figure code {
+  background: var(--bg-muted);
+  color: var(--text-primary);
+}
+
+/* Primary CTAs already use --color-primary/--color-on-primary in target-layout;
+ * the SDK still owns selected navigation, focus rings and screenshots. */
+
+.landing-v2-carousel-track figcaption { color: var(--text-secondary); }
+.landing-v2-carousel-track figcaption strong { color: var(--text-primary); }
+.landing-v2-carousel-track figcaption a { color: var(--text-link); }
