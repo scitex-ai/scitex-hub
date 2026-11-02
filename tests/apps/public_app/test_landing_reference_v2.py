@@ -231,7 +231,7 @@ def test_mobile_japanese_hero_allows_the_full_heading_to_wrap():
     css = re.sub(r"\s+", " ", _text(CSS))
     # Act
     contracts = {
-        "headline": '<span>{% trans "A hub for research projects, apps, and collaborators" %}</span>' in hero,
+        "headline": '<span>{% trans "Hub for Scientists" %}</span>' in hero,
         "ja_size": ".landing-v2-hero h1:lang(ja)" in css,
         "narrow_fit": "font-size: clamp(1.65rem, 8vw, 4rem)" in css,
         "wrap_translation": "h1:lang(ja) span { white-space: normal;" in css,
@@ -266,8 +266,8 @@ def test_carousel_script_is_manual_keyboard_and_swipe_only():
     [
         (
             "public_app/landing_partials/landing_hero.html",
-            "研究プロジェクト、アプリ、共同研究者をつなぐハブ",
-            "A hub for research projects, apps, and collaborators",
+            "科学者のためのハブ",
+            "Hub for Scientists",
         ),
         (
             "public_app/landing_partials/landing_modules.html",

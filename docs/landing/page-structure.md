@@ -4,7 +4,7 @@ The anonymous landing page is assembled by `apps/infra/public_app/templates/publ
 
 | Order | Heading | Link | Other supported hashes |
 | --- | --- | --- | --- |
-| 1 | A hub for research projects, apps, and collaborators | `#overview` | `#home`, `#hero`, `#apps`, `#hub`, `#screenshots` |
+| 1 | Hub for Scientists | `#overview` | `#home`, `#hero`, `#apps`, `#hub`, `#screenshots` |
 | 2 | Trace claims back to their sources | `#provenance` | `#clew` |
 | 3 | AI Agent + SciTeX® | `#demo` | `#research-demo` (video disclosure) |
 | 4 | Open source, throughout the stack | `#open-source` | `#github` |

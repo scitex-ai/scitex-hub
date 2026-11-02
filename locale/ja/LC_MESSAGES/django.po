@@ -9796,3 +9796,11 @@ msgstr "SciTeX® Clewは、このエコシステムの基盤です。scitex-io�
 #: apps/infra/public_app/templates/public_app/landing_partials
 msgid "SciTeX® Clew records the connections between source data, code, and research outputs as work progresses. Starting from a manuscript claim, it traces those connections backward to identify the data and code behind the result."
 msgstr "SciTeX® Clewは、研究の進行に合わせて元データ、コード、研究成果のつながりを記録します。原稿の主張を出発点に、そのつながりを逆にたどり、結果を支えるデータとコードを特定します。"
+
+#: apps/infra/public_app/templates/public_app/landing_partials
+msgid "Hub for Scientists"
+msgstr "科学者のためのハブ"
+
+#: apps/infra/public_app/templates/public_app/landing_partials
+msgid "SciTeX — Hub for Scientists"
+msgstr "SciTeX — 科学者のためのハブ"
