@@ -20,11 +20,12 @@ hashes are recorded so the page can be re-audited from the repository.
 The 640 and 1280 pixel JPEG/WebP renditions were resized and cropped locally from the
 source photographs with Pillow; no generated imagery was added.
 
-## Ten application capture set: SDK extension
+## Eleven application capture set: SDK and Hub
 
-`product-captures-ten-apps-20261103.json` retains the nine leaf-app captures and
-adds the actual SDK creator view. Both earlier manifests and every historical
-asset remain unchanged. It indexes ten applications and thirty responsive
+`product-captures-eleven-apps-20261103.json` retains the nine leaf-app captures,
+adds the actual SDK creator view, and reuses the actual Hub launcher from
+`product-captures-20261102.json`. Both earlier manifests and every historical
+asset remain unchanged. It indexes eleven applications and thirty-three responsive
 renditions; image timestamps and filenames use the capture host's observed UTC
 date rather than forcing the manifest task date.
 

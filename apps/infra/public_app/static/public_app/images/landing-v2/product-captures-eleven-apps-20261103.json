@@ -398,6 +398,39 @@
           "sha256": "392729f602dfbfbf1635226301f18e6b5c2f87f299c54ad20e40ae7e7c7a1bb4"
         }
       ]
+    },
+    {
+      "app": "hub",
+      "captured_at_utc": "2026-11-02T15:38:33Z",
+      "path": "/apps/",
+      "raw_sha256": "d54678882ceb0647d29a517bc0af6d9d05a1a0d6d396aeaad5b1ee64d9df1cf0",
+      "privacy_masked_png_sha256": "30114306bad0bbe17972069ed2e9e31dddc5e2f38f96df1388a993685cda8a9f",
+      "privacy_mask_selectors": ".stx-app-header__project,.stx-app-project-selector,.project-scope-selector,#site-project-selector,.site-header__user,.user-menu,.account-menu,[data-user-menu],.launcher-active-project,.project-files-panel,.file-tree,[role=tooltip]",
+      "sample_description": "Current application launcher; no availability or runtime-health claim.",
+      "source_checkout_observed": "4a2babbdb115dcdb7c4cc82979807e7eae8afd18",
+      "renditions": [
+        {
+          "file": "hub-20261102-768.webp",
+          "width": 768,
+          "height": 480,
+          "bytes": 11996,
+          "sha256": "a633ca0957a9635858aec1e22081d427951b786bd92bf844204d6b7db452752b"
+        },
+        {
+          "file": "hub-20261102-1200.webp",
+          "width": 1200,
+          "height": 750,
+          "bytes": 21232,
+          "sha256": "2b4f7c870543f34de003a45b9fd1e295c6913287688c5f975d324d64547f3bf7"
+        },
+        {
+          "file": "hub-20261102-1200.jpg",
+          "width": 1200,
+          "height": 750,
+          "bytes": 47462,
+          "sha256": "2a3341e86ca6166d21e16b75df9db65d10ba2b90a6daf3ce0e7f0187f1742ee4"
+        }
+      ]
     }
   ],
   "allowed_stateless_post_exceptions": [
@@ -420,5 +453,7 @@
   "retained_capture_exception_notes": "Stats sample computation and pinned Writer Abstract preview exceptions belong only to the five retained earlier captures; they were not repeated during the new four captures.",
   "previous_nine_app_manifest": "product-captures-nine-apps-20261103.json",
   "previous_nine_app_manifest_sha256": "524528c95260b654a975d52fd6b71384cfdec221339e14779f8614c1dc65151b",
-  "sdk_capture_policy": "GET-only default SDK creator view. No scaffold/create/validate/filesystem/user mutations, POSTs, model calls, dev-install or publish."
+  "sdk_capture_policy": "GET-only default SDK creator view. No scaffold/create/validate/filesystem/user mutations, POSTs, model calls, dev-install or publish.",
+  "hub_capture_source_manifest": "product-captures-20261102.json",
+  "hub_capture_source_manifest_sha256": "ee1422beb82d1796a5391c714966694085a6614dd465c32b5e372503ec7aad6f"
 }
