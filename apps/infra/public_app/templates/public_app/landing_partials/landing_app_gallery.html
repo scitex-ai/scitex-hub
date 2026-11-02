@@ -7,21 +7,20 @@
              tabindex="0">
             <div class="landing-v2-carousel-head">
                 <div>
-                    <p class="landing-v2-eyebrow">{% trans "Actual product screens" %}</p>
-                    <h3 id="landing-v2-carousel-title">{% trans "Actual SciTeX Cloud screens" %}</h3>
+                    <h3 id="landing-v2-carousel-title">{% trans "Actual SciTeX® Cloud Screenshots" %}</h3>
                 </div>
                 <div class="landing-v2-carousel-controls">
                     <button type="button"
                             data-carousel-prev
-                            aria-label="{% trans 'Previous product screen' %}">←</button>
+                            aria-label="{% trans 'Previous screenshot' %}">←</button>
                     <span data-carousel-status aria-live="polite">1 / 9</span>
                     <button type="button"
                             data-carousel-next
-                            aria-label="{% trans 'Next product screen' %}">→</button>
+                            aria-label="{% trans 'Next screenshot' %}">→</button>
                 </div>
             </div>
             <div class="landing-v2-carousel-track" data-carousel-track>
-                <figure data-carousel-slide role="group" aria-roledescription="slide"
+                <figure id="landing-app-slide-agent-container" aria-labelledby="landing-app-tab-agent-container" data-carousel-slide role="tabpanel" aria-roledescription="slide"
                         aria-label="{% trans '1 of 9: Agent Container' %}">
                     <picture>
                         <source type="image/webp"
@@ -33,7 +32,7 @@
                     </picture>
                     <figcaption><strong><a href="/apps/agent-container/">Agent Container</a></strong> — {% trans "Agent overview with cached runtime inventory; development capture. 2026-11-02." %}</figcaption>
                 </figure>
-                <figure data-carousel-slide role="group" aria-roledescription="slide"
+                <figure id="landing-app-slide-cards" aria-labelledby="landing-app-tab-cards" data-carousel-slide role="tabpanel" aria-roledescription="slide"
                         aria-label="{% trans '2 of 9: Cards' %}" hidden>
                     <picture>
                         <source type="image/webp"
@@ -45,7 +44,7 @@
                     </picture>
                     <figcaption><strong><a href="/apps/cards/">Cards</a></strong> — {% trans "Read-only board statistics; private task content hidden. 2026-11-02." %}</figcaption>
                 </figure>
-                <figure data-carousel-slide role="group" aria-roledescription="slide"
+                <figure id="landing-app-slide-storage" aria-labelledby="landing-app-tab-storage" data-carousel-slide role="tabpanel" aria-roledescription="slide"
                         aria-label="{% trans '3 of 9: Storage' %}" hidden>
                     <picture>
                         <source type="image/webp"
@@ -57,7 +56,7 @@
                     </picture>
                     <figcaption><strong><a href="/apps/storage/">Storage</a></strong> — {% trans "MNIST project usage and interactive disk breakdown; development capture. 2026-11-02." %}</figcaption>
                 </figure>
-                <figure data-carousel-slide role="group" aria-roledescription="slide"
+                <figure id="landing-app-slide-scholar" aria-labelledby="landing-app-tab-scholar" data-carousel-slide role="tabpanel" aria-roledescription="slide"
                         aria-label="{% trans '4 of 9: Scholar' %}" hidden>
                     <picture>
                         <source type="image/webp"
@@ -69,7 +68,7 @@
                     </picture>
                     <figcaption><strong><a href="/apps/scholar/">Scholar</a></strong> — {% trans "MNIST reference library and native metadata reader; development capture. 2026-11-02." %}</figcaption>
                 </figure>
-                <figure data-carousel-slide role="group" aria-roledescription="slide"
+                <figure id="landing-app-slide-stats" aria-labelledby="landing-app-tab-stats" data-carousel-slide role="tabpanel" aria-roledescription="slide"
                         aria-label="{% trans '5 of 9: Stats' %}" hidden>
                     <picture>
                         <source type="image/webp"
@@ -81,7 +80,7 @@
                     </picture>
                     <figcaption><strong><a href="/apps/stats/">Stats</a></strong> — {% trans "Sample two-group analysis with a real Welch test result; not MNIST data. 2026-11-02." %}</figcaption>
                 </figure>
-                <figure data-carousel-slide role="group" aria-roledescription="slide"
+                <figure id="landing-app-slide-figrecipe" aria-labelledby="landing-app-tab-figrecipe" data-carousel-slide role="tabpanel" aria-roledescription="slide"
                         aria-label="{% trans '6 of 9: FigRecipe' %}" hidden>
                     <picture>
                         <source type="image/webp"
@@ -93,7 +92,7 @@
                     </picture>
                     <figcaption><strong><a href="/apps/figrecipe/">FigRecipe</a></strong> — {% trans "Six-row sample worksheet with distinct axis-role badges; development capture. 2026-11-02." %}</figcaption>
                 </figure>
-                <figure data-carousel-slide role="group" aria-roledescription="slide"
+                <figure id="landing-app-slide-writer" aria-labelledby="landing-app-tab-writer" data-carousel-slide role="tabpanel" aria-roledescription="slide"
                         aria-label="{% trans '7 of 9: Writer' %}" hidden>
                     <picture>
                         <source type="image/webp"
@@ -105,7 +104,7 @@
                     </picture>
                     <figcaption><strong><a href="/apps/writer/">Writer</a></strong> — {% trans "MNIST example Abstract and genuine compiled preview; not research findings. 2026-11-02." %}</figcaption>
                 </figure>
-                <figure data-carousel-slide role="group" aria-roledescription="slide"
+                <figure id="landing-app-slide-live-paper" aria-labelledby="landing-app-tab-live-paper" data-carousel-slide role="tabpanel" aria-roledescription="slide"
                         aria-label="{% trans '8 of 9: Live Paper' %}" hidden>
                     <picture>
                         <source type="image/webp"
@@ -117,7 +116,7 @@
                     </picture>
                     <figcaption><strong><a href="/apps/live-paper/">Live Paper</a></strong> — {% trans "MNIST worked example and registered claims; not independently verified findings. 2026-11-02." %}</figcaption>
                 </figure>
-                <figure data-carousel-slide role="group" aria-roledescription="slide"
+                <figure id="landing-app-slide-agentic-journal" aria-labelledby="landing-app-tab-agentic-journal" data-carousel-slide role="tabpanel" aria-roledescription="slide"
                         aria-label="{% trans '9 of 9: Agentic Journal' %}" hidden>
                     <picture>
                         <source type="image/webp"
@@ -130,16 +129,16 @@
                     <figcaption><strong><a href="/apps/agentic-journal/">Agentic Journal</a></strong> — {% trans "Author guidance and publication workflow; no submissions shown. 2026-11-02." %}</figcaption>
                 </figure>
             </div>
-            <div class="landing-v2-carousel-dots" role="tablist" aria-label="{% trans 'Choose a product screen' %}">
-                <button type="button" role="tab" data-carousel-dot="0" aria-selected="true">Agent Container</button>
-                <button type="button" role="tab" data-carousel-dot="1" aria-selected="false" tabindex="-1">Cards</button>
-                <button type="button" role="tab" data-carousel-dot="2" aria-selected="false" tabindex="-1">Storage</button>
-                <button type="button" role="tab" data-carousel-dot="3" aria-selected="false" tabindex="-1">Scholar</button>
-                <button type="button" role="tab" data-carousel-dot="4" aria-selected="false" tabindex="-1">Stats</button>
-                <button type="button" role="tab" data-carousel-dot="5" aria-selected="false" tabindex="-1">FigRecipe</button>
-                <button type="button" role="tab" data-carousel-dot="6" aria-selected="false" tabindex="-1">Writer</button>
-                <button type="button" role="tab" data-carousel-dot="7" aria-selected="false" tabindex="-1">Live Paper</button>
-                <button type="button" role="tab" data-carousel-dot="8" aria-selected="false" tabindex="-1">Agentic Journal</button>
+            <div class="stx-content-tabs landing-v2-carousel-tabs" data-carousel-tabs role="tablist" aria-label="{% trans 'Choose a screenshot' %}">
+                <button type="button" role="tab" class="stx-content-tabs__tab" id="landing-app-tab-agent-container" aria-controls="landing-app-slide-agent-container" data-carousel-dot="0" aria-selected="true">Agent Container</button>
+                <button type="button" role="tab" class="stx-content-tabs__tab" id="landing-app-tab-cards" aria-controls="landing-app-slide-cards" data-carousel-dot="1" aria-selected="false" tabindex="-1">Cards</button>
+                <button type="button" role="tab" class="stx-content-tabs__tab" id="landing-app-tab-storage" aria-controls="landing-app-slide-storage" data-carousel-dot="2" aria-selected="false" tabindex="-1">Storage</button>
+                <button type="button" role="tab" class="stx-content-tabs__tab" id="landing-app-tab-scholar" aria-controls="landing-app-slide-scholar" data-carousel-dot="3" aria-selected="false" tabindex="-1">Scholar</button>
+                <button type="button" role="tab" class="stx-content-tabs__tab" id="landing-app-tab-stats" aria-controls="landing-app-slide-stats" data-carousel-dot="4" aria-selected="false" tabindex="-1">Stats</button>
+                <button type="button" role="tab" class="stx-content-tabs__tab" id="landing-app-tab-figrecipe" aria-controls="landing-app-slide-figrecipe" data-carousel-dot="5" aria-selected="false" tabindex="-1">FigRecipe</button>
+                <button type="button" role="tab" class="stx-content-tabs__tab" id="landing-app-tab-writer" aria-controls="landing-app-slide-writer" data-carousel-dot="6" aria-selected="false" tabindex="-1">Writer</button>
+                <button type="button" role="tab" class="stx-content-tabs__tab" id="landing-app-tab-live-paper" aria-controls="landing-app-slide-live-paper" data-carousel-dot="7" aria-selected="false" tabindex="-1">Live Paper</button>
+                <button type="button" role="tab" class="stx-content-tabs__tab" id="landing-app-tab-agentic-journal" aria-controls="landing-app-slide-agentic-journal" data-carousel-dot="8" aria-selected="false" tabindex="-1">Agentic Journal</button>
             </div>
             <p class="landing-v2-provenance-note">
                 {% trans "Actual development captures with account/project controls hidden for privacy, then resized and compressed. Example data is labeled; screenshots do not prove complete feature coverage or production availability." %}

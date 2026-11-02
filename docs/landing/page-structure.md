@@ -17,6 +17,8 @@ The hero pairs its introduction with the actual app screenshot carousel. On phon
 
 `landing_section_nav.html` provides native links; `landing/section-nav.css` reserves space below the global header. `landing/target-layout.css` styles linked section labels, legacy aliases and the text hero. Both stylesheets use the SDK `app_static` helper so source changes produce new asset query hashes.
 
+Gallery selectors use `stx-content-tabs` / `stx-content-tabs__tab` and the SDK `content-tabs.css` underline primitive, with stable `aria-controls` panel IDs. Landing styles adjust wrapping only; they do not redefine the selected tab or focus ring.
+
 The carousel must represent Agent Container, Cards, Storage, Scholar, Stats, FigRecipe, Writer, Live Paper, and Agentic Journal. Captures record their actual origin, observation time, privacy masks, sample context and hashes in a packaged manifest. A screenshot is evidence of the captured interface, not proof of every advertised feature or production availability. Preserve historical captures and their provenance when replacing the active gallery.
 
 Validate source rendering in English and Japanese, native section links and aliases, desktop and phone layout, every gallery slide, keyboard and touch controls, delivered image hashes, and absence of horizontal overflow. The existing landing template, asset and carousel checks cover these contracts; current live browser receipts are retained separately from source tests.

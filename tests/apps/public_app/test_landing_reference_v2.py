@@ -174,8 +174,8 @@ def test_carousel_markup_is_semantic_manual_and_lazy():
         for marker in (
             'role="region"',
             'aria-roledescription="carousel"',
-            "aria-label=\"{% trans 'Previous product screen' %}\"",
-            "aria-label=\"{% trans 'Next product screen' %}\"",
+            "aria-label=\"{% trans 'Previous screenshot' %}\"",
+            "aria-label=\"{% trans 'Next screenshot' %}\"",
             'role="tablist"',
             'aria-live="polite"',
             'loading="lazy"',
@@ -279,8 +279,8 @@ def test_carousel_script_is_manual_keyboard_and_swipe_only():
         ),
         (
             "public_app/landing_partials/landing_app_gallery.html",
-            "実際の SciTeX Cloud 画面",
-            "Actual SciTeX Cloud screens",
+            "実際のSciTeX® Cloudスクリーンショット",
+            "Actual SciTeX® Cloud Screenshots",
         ),
         (
             "public_app/landing_partials/landing_app_gallery.html",

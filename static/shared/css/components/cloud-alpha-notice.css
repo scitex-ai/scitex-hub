@@ -18,22 +18,16 @@
 }
 
 .header-alpha-stage {
-  border: 1px solid var(--border-default);
-  border-radius: 3px;
   padding: 1px 5px;
-  background: var(--workspace-bg-secondary);
-  color: var(--text-primary);
-  font-size: 10px;
-  font-weight: 700;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
+  line-height: 1.2;
 }
 
 .landing-v2-alpha.cloud-alpha-banner {
   padding: 12px 16px;
-  border-left: 3px solid var(--landing-gold);
-  background: var(--landing-navy-raised);
-  color: var(--landing-paper);
+  border: 1px solid var(--status-warning-border);
+  border-left: 3px solid var(--status-warning-text);
+  background: var(--status-warning-bg);
+  color: var(--status-warning-text);
 }
 
 .cloud-alpha-banner strong {
@@ -46,4 +40,9 @@
   .header-alpha-description {
     display: none;
   }
+}
+
+.cloud-alpha-banner a {
+  color: inherit;
+  text-decoration: underline;
 }

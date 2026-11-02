@@ -18,7 +18,7 @@ TEMPLATE = (
 def test_all_nine_carousel_pictures_reference_the_current_capture_manifest():
     source = TEMPLATE.read_text()
     start = source.index('<div class="landing-v2-carousel-track"')
-    end = source.index('<div class="landing-v2-carousel-dots"', start)
+    end = source.index('data-carousel-tabs', start)
     region = source[start:end]
     files = set(re.findall(r"public_app/images/landing-v2/([^']+)", region))
     manifest = json.loads((ASSETS / "product-captures-nine-apps-20261103.json").read_text())

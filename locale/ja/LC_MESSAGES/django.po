@@ -9652,3 +9652,27 @@ msgstr "SciTeXのPythonツールキットとMCPツールを使い、AIエージ�
 #: apps/infra/public_app/templates/public_app/landing_partials
 msgid "Recorded with SciTeX v2.10. The current app interfaces are shown in Overview."
 msgstr "SciTeX v2.10で収録したデモです。現在のアプリ画面は「概要」で紹介しています。"
+
+#: apps/infra/public_app/templates/public_app/landing_partials
+msgid "Actual SciTeX® Cloud Screenshots"
+msgstr "実際のSciTeX® Cloudスクリーンショット"
+
+#: apps/infra/public_app/templates/public_app/landing_partials
+msgid "Previous screenshot"
+msgstr "前のスクリーンショット"
+
+#: apps/infra/public_app/templates/public_app/landing_partials
+msgid "Next screenshot"
+msgstr "次のスクリーンショット"
+
+#: apps/infra/public_app/templates/public_app/landing_partials
+msgid "Choose a screenshot"
+msgstr "スクリーンショットを選択"
+
+#: apps/infra/public_app/templates/public_app/landing_partials
+msgid "Infrastructure"
+msgstr "基盤"
+
+#: apps/infra/public_app/templates/public_app/landing_partials
+msgid "Research"
+msgstr "研究"

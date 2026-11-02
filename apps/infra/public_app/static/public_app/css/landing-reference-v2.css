@@ -38,8 +38,8 @@
 
 .landing-v2-hero a:focus-visible,
 .landing-v2-section a:focus-visible,
-.landing-v2-hero button:focus-visible,
-.landing-v2-section button:focus-visible {
+.landing-v2-hero button:not(.stx-content-tabs__tab):focus-visible,
+.landing-v2-section button:not(.stx-content-tabs__tab):focus-visible {
   outline: 3px solid #93c5fd;
   outline-offset: 4px;
 }
@@ -560,8 +560,7 @@
   font-size: 0.75rem;
 }
 
-.landing-v2-carousel-controls button,
-.landing-v2-carousel-dots button {
+.landing-v2-carousel-controls button {
   min-width: 44px;
   min-height: 44px;
   border: 1px solid #53637a;
@@ -570,8 +569,7 @@
   color: #ffffff;
 }
 
-.landing-v2-carousel-controls button:hover,
-.landing-v2-carousel-dots button:hover {
+.landing-v2-carousel-controls button:hover {
   border-color: #93a4b8;
   background: rgb(255 255 255 / 8%);
 }
@@ -610,25 +608,8 @@
   color: #ffffff;
 }
 
-.landing-v2-carousel-dots {
-  display: flex;
-  gap: 0.55rem;
-  margin-top: 1rem;
-  flex-wrap: wrap;
-}
 
-.landing-v2-carousel-dots button {
-  min-width: 96px;
-  padding: 0.55rem 0.8rem;
-  color: #bdc9d6;
-  font-size: 0.76rem;
-}
 
-.landing-v2-carousel-dots button[aria-selected="true"] {
-  border-color: var(--landing-blue);
-  background: var(--landing-blue);
-  color: #ffffff;
-}
 
 .landing-v2-provenance-note {
   margin: 0.8rem 0 0;
@@ -941,15 +922,7 @@
     justify-content: end;
   }
 
-  .landing-v2-carousel-dots {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-  }
 
-  .landing-v2-carousel-dots button {
-    width: 100%;
-    min-width: 0;
-  }
 
   .landing-v2-carousel-track figcaption {
     min-height: 3.2em;
