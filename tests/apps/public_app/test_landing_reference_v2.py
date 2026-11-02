@@ -235,16 +235,14 @@ def test_mobile_japanese_hero_keeps_words_on_semantic_lines():
     css = re.sub(r"\s+", " ", _text(CSS))
     # Act
     contracts = {
-        "line_one": '<span>{% trans "A platform" %}</span>' in hero,
-        "line_two": '<span>{% trans "for science." %}</span>' in hero,
+        "headline": '<span>{% trans "Where Research Happens" %}</span>' in hero,
         "ja_size": ".landing-v2-hero h1:lang(ja)" in css,
         "narrow_fit": "font-size: clamp(1.65rem, 8vw, 4rem)" in css,
         "no_word_split": "h1:lang(ja) span { white-space: nowrap;" in css,
     }
     # Assert
     assert contracts == {
-        "line_one": True,
-        "line_two": True,
+        "headline": True,
         "ja_size": True,
         "narrow_fit": True,
         "no_word_split": True,
@@ -272,8 +270,8 @@ def test_carousel_script_is_manual_keyboard_and_swipe_only():
     [
         (
             "public_app/landing_partials/landing_hero.html",
-            "科学のための",
-            "A platform",
+            "研究が進む場所",
+            "Where Research Happens",
         ),
         (
             "public_app/landing_partials/landing_modules.html",
