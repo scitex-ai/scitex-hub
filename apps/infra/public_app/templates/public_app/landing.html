@@ -1,6 +1,6 @@
 {% extends "global_base.html" %}
 
-{% load static vite i18n %}
+{% load static vite i18n scitex_static %}
 
 {% block title %}{% trans "SciTeX — A platform for science" %}{% endblock %}
 {% block meta_description %}{% trans "Connect literature, files, analysis, figures, writing, and compute in one SciTeX project context." %}{% endblock %}
@@ -9,10 +9,12 @@
     <link rel="stylesheet" href="{% static 'public_app/css/landing/03-landing-sections.css' %}" />
     <link rel="stylesheet" href="{% static 'public_app/css/landing/11-pricing.css' %}?v=20260926" />
     <link rel="stylesheet" href="{% static 'public_app/css/landing-reference-v2.css' %}?v=2026092419" />
+    <link rel="stylesheet" href="{% app_static 'public_app/css/landing/section-nav.css' %}" />
 {% endblock %}
 
 {% block content %}
     {% include 'public_app/landing_partials/landing_announcement.html' %}
+    {% include 'public_app/landing_partials/landing_section_nav.html' %}
     {% include 'public_app/landing_partials/landing_hero.html' %}
     {% include 'public_app/landing_partials/landing_modules.html' %}
     {% include 'public_app/landing_partials/landing_opensource.html' %}

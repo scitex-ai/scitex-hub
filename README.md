@@ -359,7 +359,15 @@ The landing page explains that features and APIs may change and that separate
 backups are needed. These notices describe product maturity independently of
 the deployed version number.
 
+The landing page's section navigator summarizes the connected research workflow
+and links directly to the app overview, provenance, deployment choices, open
+source, research demo, and pricing. It uses native anchors and remains available
+while scrolling. Photography source and licence records are kept in the asset
+directory's `PROVENANCE.md`.
+
 ## Contributing
+
+Existing MNIST projects have an explicit, guarded [Writer showcase plan/apply](docs/project-samples/mnist-writer.md). It derives example-only sections from the existing computed bundle, preserves authored files, and never seeds or compiles during a page GET.
 
 We welcome contributions! See [CONTRIBUTING.md](CONTRIBUTING.md).
 
