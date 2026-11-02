@@ -30,3 +30,11 @@ def tokushoho_url():
     """
     name = "tokushoho" if (get_language() or "").startswith("ja") else "tokushoho_en"
     return reverse(f"public_app:{name}")
+
+
+@register.simple_tag
+def landing_github_repositories():
+    """Read timestamped public GitHub counts locally, without visitor network I/O."""
+    from ..services.landing_github import repository_cards
+
+    return repository_cards()

@@ -1,0 +1,132 @@
+{
+  "schema": 1,
+  "checked_at": "2026-11-02T21:03:05+00:00",
+  "repositories": {
+    "scitex-python": {
+      "available": true,
+      "stars": 86,
+      "forks": 20,
+      "description": "The main package for SciTeX — reproducible science from raw data to manuscript",
+      "source": "https://api.github.com/repos/scitex-ai/scitex-python"
+    },
+    "scitex-hub": {
+      "available": true,
+      "stars": 2,
+      "forks": 2,
+      "description": "SciTeX Hub deployment and management CLI",
+      "source": "https://api.github.com/repos/scitex-ai/scitex-hub"
+    },
+    "scitex-sdk": {
+      "available": true,
+      "stars": 0,
+      "forks": 0,
+      "description": "SciTeX SDK — one project for the app contract (scitex_sdk.app) + UI shell (scitex_sdk.ui). Facade over scitex-app + scitex-ui; implementation consolidates gradually.",
+      "source": "https://api.github.com/repos/scitex-ai/scitex-sdk"
+    },
+    "scitex-dev": {
+      "available": true,
+      "stars": 0,
+      "forks": 0,
+      "description": "Dev tooling, linters & ecosystem auditor for SciTeX packages",
+      "source": "https://api.github.com/repos/scitex-ai/scitex-dev"
+    },
+    "scitex-agent-container": {
+      "available": true,
+      "stars": 0,
+      "forks": 0,
+      "description": "Declarative YAML framework to define, run & orchestrate AI coding agents",
+      "source": "https://api.github.com/repos/scitex-ai/scitex-agent-container"
+    },
+    "scitex-cards": {
+      "available": true,
+      "stars": 0,
+      "forks": 0,
+      "description": "Canonical YAML task store with pluggable adapters + mermaid graphs",
+      "source": "https://api.github.com/repos/scitex-ai/scitex-cards"
+    },
+    "scitex-storage": {
+      "available": true,
+      "stars": 0,
+      "forks": 0,
+      "description": "",
+      "source": "https://api.github.com/repos/scitex-ai/scitex-storage"
+    },
+    "scitex-scholar": {
+      "available": true,
+      "stars": 6,
+      "forks": 1,
+      "description": "Scientific paper search, enrichment, download, and management",
+      "source": "https://api.github.com/repos/scitex-ai/scitex-scholar"
+    },
+    "scitex-stats": {
+      "available": true,
+      "stars": 0,
+      "forks": 3,
+      "description": "Statistical testing framework — 23 tests, effect sizes, power analysis",
+      "source": "https://api.github.com/repos/scitex-ai/scitex-stats"
+    },
+    "figrecipe": {
+      "available": true,
+      "stars": 1,
+      "forks": 2,
+      "description": "Reproducible matplotlib wrapper with mm-precision layouts",
+      "source": "https://api.github.com/repos/scitex-ai/figrecipe"
+    },
+    "scitex-writer": {
+      "available": true,
+      "stars": 4,
+      "forks": 3,
+      "description": "LaTeX manuscript compilation for scientific documents, with MCP server",
+      "source": "https://api.github.com/repos/scitex-ai/scitex-writer"
+    },
+    "scitex-live-paper": {
+      "available": true,
+      "stars": 0,
+      "forks": 0,
+      "description": "SciTeX Live Paper — interactive, AI-verifiable rendered scientific manuscripts (consumer of scitex-clew claim model). Part of SciTeX.",
+      "source": "https://api.github.com/repos/scitex-ai/scitex-live-paper"
+    },
+    "scitex-agentic-journal": {
+      "available": true,
+      "stars": 0,
+      "forks": 0,
+      "description": "ARA-native AI-reviewed open publishing on top of Clew. Submit -> ORCID+code+DAG gate -> AI review (Spartan Qwen) -> internal persistent ID -> Live Paper. Part of SciTeX.",
+      "source": "https://api.github.com/repos/scitex-ai/scitex-agentic-journal"
+    },
+    "scitex-clew": {
+      "available": true,
+      "stars": 2,
+      "forks": 0,
+      "description": "Verifiable knowledge graph for scientific experiments",
+      "source": "https://api.github.com/repos/scitex-ai/scitex-clew"
+    },
+    "scitex-io": {
+      "available": true,
+      "stars": 0,
+      "forks": 4,
+      "description": "Universal scientific data I/O with a plugin format registry",
+      "source": "https://api.github.com/repos/scitex-ai/scitex-io"
+    },
+    "scitex-ui": {
+      "available": true,
+      "stars": 0,
+      "forks": 1,
+      "description": "Archived predecessor of scitex-sdk. UI code is maintained in scitex_sdk.ui.",
+      "source": "https://api.github.com/repos/scitex-ai/scitex-ui"
+    },
+    "openalex-local": {
+      "available": true,
+      "stars": 4,
+      "forks": 1,
+      "description": "Local OpenAlex database with 284M+ works, abstracts, and semantic search",
+      "source": "https://api.github.com/repos/scitex-ai/openalex-local"
+    },
+    "crossref-local": {
+      "available": true,
+      "stars": 5,
+      "forks": 2,
+      "description": "Local CrossRef database with 167M+ works and full-text search",
+      "source": "https://api.github.com/repos/scitex-ai/crossref-local"
+    }
+  }
+}
