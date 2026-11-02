@@ -74,6 +74,7 @@ services:
     env_file:
       - ./envs/.env.staging
     environment:
+      SCITEX_APPS_PYTHON_MODE: editable
       DJANGO_SETTINGS_MODULE: config.settings.settings_staging
       SCITEX_HUB_DJANGO_SETTINGS_MODULE: config.settings.settings_staging
       SCITEX_HUB_ENV: staging
@@ -202,6 +203,7 @@ services:
     env_file:
       - ./envs/.env.staging
     environment:
+      SCITEX_APPS_PYTHON_MODE: editable
       DJANGO_SETTINGS_MODULE: config.settings.settings_staging
       SCITEX_HUB_DJANGO_SETTINGS_MODULE: config.settings.settings_staging
       SCITEX_HUB_ENV: staging
@@ -259,6 +261,7 @@ services:
     env_file:
       - ./envs/.env.staging
     environment:
+      SCITEX_APPS_PYTHON_MODE: editable
       DJANGO_SETTINGS_MODULE: config.settings.settings_staging
       SCITEX_HUB_DJANGO_SETTINGS_MODULE: config.settings.settings_staging
       SCITEX_HUB_ENV: staging
