@@ -9892,3 +9892,12 @@ msgstr "元データ → 入力・実行コード・出力のステップ"
 #: apps/infra/public_app/templates/public_app/landing_partials/landing_modules.html
 msgid "Claims → outputs–executable–inputs steps → source data"
 msgstr "主張 → 出力・実行コード・入力のステップ → 元データ"
+
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_app_gallery.html
+msgid "Screenshot categories"
+msgstr "画面のカテゴリ"
+
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_app_gallery.html
+#, python-format
+msgid "%(category)s screenshots"
+msgstr "%(category)s の画面"

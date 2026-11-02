@@ -117,7 +117,7 @@ def test_hero_keeps_real_entry_contracts_without_stock_photography():
 
 
 def test_v2_connects_app_previews_to_the_toolkit_workflow():
-    source = (_text(MODULES) + _text(GALLERY))
+    source = _text(MODULES) + _text(GALLERY)
     expected = (
         "Screenshots of SciTeX® Cloud",
         "AI Agent + SciTeX®",
@@ -129,7 +129,7 @@ def test_v2_connects_app_previews_to_the_toolkit_workflow():
 
 
 def test_v2_uses_real_product_captures_and_clew_dag_with_provenance():
-    source = (_text(MODULES) + _text(GALLERY))
+    source = _text(MODULES) + _text(GALLERY)
     provenance = _text(ASSETS / "PROVENANCE.md")
     assert all(
         marker in source
@@ -165,7 +165,7 @@ def test_v2_uses_real_product_captures_and_clew_dag_with_provenance():
 
 
 def test_carousel_markup_keeps_manual_controls_and_quiet_automatic_updates():
-    source = (_text(MODULES) + _text(GALLERY))
+    source = _text(MODULES) + _text(GALLERY)
     assert all(
         marker in source
         for marker in (
@@ -175,7 +175,7 @@ def test_carousel_markup_keeps_manual_controls_and_quiet_automatic_updates():
             "aria-label=\"{% trans 'Next screenshot' %}\"",
             'role="tablist"',
             'aria-live="off"',
-            'data-carousel-rotation',
+            "data-carousel-rotation",
             'loading="lazy"',
         )
     )
@@ -193,7 +193,9 @@ def test_every_content_image_has_dimensions_and_nonempty_alt():
 
 
 def test_no_synthetic_ui_or_large_inline_payload_returns():
-    combined = "\n".join((_text(HERO), (_text(MODULES) + _text(GALLERY)), _text(LANDING), _text(TS)))
+    combined = "\n".join(
+        (_text(HERO), (_text(MODULES) + _text(GALLERY)), _text(LANDING), _text(TS))
+    )
     forbidden = (
         "Signal response over time",
         "illustrative product-design walkthrough",
@@ -232,7 +234,8 @@ def test_mobile_japanese_hero_allows_the_full_heading_to_wrap():
     css = re.sub(r"\s+", " ", _text(CSS))
     # Act
     contracts = {
-        "headline": '<span>{% trans "Open-source Ecosystem for Scientific Research" %}</span>' in hero,
+        "headline": '<span>{% trans "Open-source Ecosystem for Scientific Research" %}</span>'
+        in hero,
         "ja_size": ".landing-v2-hero h1:lang(ja)" in css,
         "narrow_fit": "font-size: clamp(1.65rem, 8vw, 4rem)" in css,
         "wrap_translation": "h1:lang(ja) span { white-space: normal;" in css,
@@ -310,7 +313,14 @@ def test_carousel_has_eleven_current_application_slides():
 
 
 def test_carousel_has_eleven_dots_ending_in_agentic_journal():
-    assert re.findall(r'data-carousel-dot="(\d+)"', (_text(MODULES) + _text(GALLERY))) == [
+    from apps.infra.public_app.templatetags.landing_capture_tabs import (
+        capture_tab_groups,
+    )
+
+    assert 'data-carousel-dot="{{ app.index }}"' in _text(GALLERY)
+    assert [
+        str(app["index"]) for group in capture_tab_groups() for app in group["apps"]
+    ] == [
         "0",
         "1",
         "2",

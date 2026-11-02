@@ -48,7 +48,14 @@
         }
       ],
       "cached_inventory": true,
-      "visible_roster_rows": 21
+      "visible_roster_rows": 21,
+      "gallery_category": "infrastructure",
+      "gallery_label": "Agent Container",
+      "gallery_slide_index": 2,
+      "capture_version": "0.38.6",
+      "capture_version_basis": "visible_capture_header",
+      "source_declared_version": "0.38.6",
+      "capture_version_note": "Captured header v0.38.6; recorded source declares v0.38.6 at 58a7fc189d82."
     },
     {
       "app": "cards",
@@ -89,7 +96,14 @@
           "bytes": 53152,
           "sha256": "be38f56046bfafd1d99edb55c7d0e852ae41e2fafcab71a5177b1546ca5ada8e"
         }
-      ]
+      ],
+      "gallery_category": "infrastructure",
+      "gallery_label": "Cards",
+      "gallery_slide_index": 3,
+      "capture_version": "0.56.22",
+      "capture_version_basis": "visible_capture_header",
+      "source_declared_version": "0.56.22",
+      "capture_version_note": "Captured header v0.56.22; recorded source declares v0.56.22 at bfebb541a36c."
     },
     {
       "app": "storage",
@@ -131,7 +145,14 @@
           "sha256": "9674de1ef8008319f26710ff19f1f75259439b5a88e93576e5f6cbf0f0fc7fe4"
         }
       ],
-      "rendered_svg_segments": 36
+      "rendered_svg_segments": 36,
+      "gallery_category": "infrastructure",
+      "gallery_label": "Storage",
+      "gallery_slide_index": 4,
+      "capture_version": "0.6.16",
+      "capture_version_basis": "visible_capture_header",
+      "source_declared_version": "0.6.16",
+      "capture_version_note": "Captured header v0.6.16; recorded source declares v0.6.16 at 310ffb6c41d4."
     },
     {
       "app": "scholar",
@@ -179,7 +200,14 @@
           "bytes": 104655,
           "sha256": "3cef4cbca353d8fb1d0fc7d9879e607db60096698b939f1671106c10671b0aa9"
         }
-      ]
+      ],
+      "gallery_category": "research",
+      "gallery_label": "Scholar",
+      "gallery_slide_index": 5,
+      "capture_version": "1.29.1",
+      "capture_version_basis": "visible_capture_header",
+      "source_declared_version": "1.29.1",
+      "capture_version_note": "Captured header v1.29.1; recorded source declares v1.29.1 at ca410ea9f344."
     },
     {
       "app": "stats",
@@ -212,7 +240,14 @@
           "bytes": 90441,
           "sha256": "16c46919c7af4813a101afbd5fdb7d8ec03007017aa529765d8383dc6ecb95ea"
         }
-      ]
+      ],
+      "gallery_category": "research",
+      "gallery_label": "Stats",
+      "gallery_slide_index": 6,
+      "capture_version": "1.0.0",
+      "capture_version_basis": "captured_source_declaration_only",
+      "source_declared_version": "1.0.0",
+      "capture_version_note": "No app-version badge is visible in the screenshot. Version v1.0.0 comes only from recorded source 6d47e5eb4654, not observed installed runtime metadata."
     },
     {
       "app": "figrecipe",
@@ -245,7 +280,14 @@
           "bytes": 57091,
           "sha256": "d84d595e48a1e1c3f163d8963766aa9898f804b5299cabe534058b1767410461"
         }
-      ]
+      ],
+      "gallery_category": "research",
+      "gallery_label": "FigRecipe",
+      "gallery_slide_index": 7,
+      "capture_version": "0.44.0",
+      "capture_version_basis": "visible_capture_header",
+      "source_declared_version": "0.44.1",
+      "capture_version_note": "Captured header v0.44.0; recorded source declares v0.44.1 at 8c808b6969f0. Header/source mismatch: this development screenshot uses a source overlay; do not describe the capture as an unmodified 0.44.0 release."
     },
     {
       "app": "writer",
@@ -282,7 +324,14 @@
           "bytes": 65446,
           "sha256": "491a80c7fefaf5fccc4322635c0bd60762d6f0fa5c8e99a2058d47cbcdade72d"
         }
-      ]
+      ],
+      "gallery_category": "research",
+      "gallery_label": "Writer",
+      "gallery_slide_index": 8,
+      "capture_version": "2.43.19",
+      "capture_version_basis": "visible_capture_header",
+      "source_declared_version": "2.43.19",
+      "capture_version_note": "Captured header v2.43.19; recorded source declares v2.43.19 at 6b9795b5de02."
     },
     {
       "app": "live-paper",
@@ -315,7 +364,14 @@
           "bytes": 62091,
           "sha256": "df170f478f4a4680be67ed6437a64a3256f1275c006ddbc33f92dba85c45ce94"
         }
-      ]
+      ],
+      "gallery_category": "publication",
+      "gallery_label": "Live Paper",
+      "gallery_slide_index": 9,
+      "capture_version": "0.2.20",
+      "capture_version_basis": "visible_capture_header",
+      "source_declared_version": "0.2.20",
+      "capture_version_note": "Captured header v0.2.20; recorded source declares v0.2.20 at 51378eb2f31e."
     },
     {
       "app": "agentic-journal",
@@ -356,7 +412,14 @@
           "bytes": 86256,
           "sha256": "8ed147ec5986ebe3958635b5d47c3000ee9ded2241674b5cdc230e4a5225ac6b"
         }
-      ]
+      ],
+      "gallery_category": "publication",
+      "gallery_label": "Agentic Journal",
+      "gallery_slide_index": 10,
+      "capture_version": "0.1.0a4",
+      "capture_version_basis": "visible_capture_header",
+      "source_declared_version": "0.1.0a4",
+      "capture_version_note": "Captured header v0.1.0a4; recorded source declares v0.1.0a4 at f0491346e861."
     },
     {
       "app": "sdk",
@@ -397,7 +460,14 @@
           "bytes": 61601,
           "sha256": "392729f602dfbfbf1635226301f18e6b5c2f87f299c54ad20e40ae7e7c7a1bb4"
         }
-      ]
+      ],
+      "gallery_category": "platform",
+      "gallery_label": "SDK",
+      "gallery_slide_index": 1,
+      "capture_version": "0.3.18",
+      "capture_version_basis": "visible_capture_header",
+      "source_declared_version": "0.3.18",
+      "capture_version_note": "Captured header v0.3.18; recorded source declares v0.3.18 at 88d2b7facbc2."
     },
     {
       "app": "hub",
@@ -430,7 +500,14 @@
           "bytes": 47462,
           "sha256": "2a3341e86ca6166d21e16b75df9db65d10ba2b90a6daf3ce0e7f0187f1742ee4"
         }
-      ]
+      ],
+      "gallery_category": "platform",
+      "gallery_label": "Hub",
+      "gallery_slide_index": 0,
+      "capture_version": "0.21.0",
+      "capture_version_basis": "visible_capture_header",
+      "source_declared_version": "0.21.0",
+      "capture_version_note": "Captured header v0.21.0; recorded source declares v0.21.0 at 4a2babbdb115. This is the platform Cloud header shown above the Hub launcher."
     }
   ],
   "allowed_stateless_post_exceptions": [

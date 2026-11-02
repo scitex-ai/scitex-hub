@@ -151,54 +151,45 @@
 
 
 
-/* Layout only; selected underline and focus styles belong to scitex-sdk. */
+/* Layout only; both tab rows use the SDK underline/focus contract. */
 .landing-v2-carousel-tabs {
-  flex-direction: column;
-  flex-wrap: nowrap;
   margin-top: 1rem;
-  overflow: visible;
-}
-
-
-.landing-v2-carousel-category {
-  display: grid;
-  grid-template-columns: 90px minmax(0, 1fr);
-  align-items: center;
-  gap: 4px;
-}
-
-.landing-v2-carousel-category-label {
-  font-size: 11px;
-  font-weight: 600;
-  color: var(--text-secondary);
-}
-
-.landing-v2-carousel-category-items {
-  display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: var(--spacing-xs, 4px);
   min-width: 0;
 }
-
-.landing-v2-hero-gallery .landing-v2-carousel-controls {
-  flex-wrap: nowrap;
-  flex-shrink: 0;
+.landing-v2-carousel-category-tabs,
+.landing-v2-carousel-app-tabs {
+  display: flex;
+  min-width: 0;
 }
-
-
-/* Equal cells across all category rows; selection remains SDK-owned. */
-.landing-v2-carousel-category-items .stx-content-tabs__tab {
+.landing-v2-carousel-category-tabs .stx-content-tabs__tab,
+.landing-v2-carousel-app-tabs .stx-content-tabs__tab {
+  flex: 1 1 0;
   min-width: 0;
   padding-inline: 6px;
   white-space: normal;
 }
-
-@media (max-width: 768px) {
-  .landing-v2-carousel-category-items {
+.landing-v2-carousel-app-tabs .stx-content-tabs__tab {
+  flex-direction: column;
+  gap: 2px;
+}
+.landing-v2-app-version {
+  font-size: 0.8em;
+  font-weight: 400;
+  color: var(--text-secondary);
+}
+.landing-v2-carousel-category-panel[hidden] {
+  display: none;
+}
+.landing-v2-hero-gallery .landing-v2-carousel-controls {
+  flex-wrap: nowrap;
+  flex-shrink: 0;
+}
+@media (max-width: 600px) {
+  .landing-v2-carousel-category-tabs {
+    display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
-
 
 .landing-v2-clew-copy .landing-v2-clew-tagline {
   margin-top: 1.5rem;
