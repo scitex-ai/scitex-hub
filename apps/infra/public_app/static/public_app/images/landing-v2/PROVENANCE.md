@@ -20,10 +20,49 @@ hashes are recorded so the page can be re-audited from the repository.
 The 640 and 1280 pixel JPEG/WebP renditions were resized and cropped locally from the
 source photographs with Pillow; no generated imagery was added.
 
-## Actual SciTeX product captures
+## Fresh development captures — 2026-11-02 UTC
 
-The carousel renditions come from tracked in-repository guide screenshots, except
-Stats (see below). They are
+`product-captures-20261102.json` records the actual capture times, original PNG
+hashes, privacy-masked PNG hashes, responsive rendition hashes and dimensions.
+The four new capture sets were taken from the running development site at
+<https://compute-03-net.scitex.ai/> with a 1440 × 900 viewport and device scale 1.
+The date comes from the capture host's observed UTC clock.
+
+- `hub-20261102-*`: current application launcher. The account/project label is
+  hidden; the actual app tiles and their labels are unchanged. A tile is not
+  evidence that its backend is available.
+- `figrecipe-20261102-*`: existing six-row synthetic worksheet, showing separate
+  X/Y axis-role badges and unchanged column names. This worksheet is not MNIST.
+- `stats-20261102-*`: built-in two-group sample, showing the actual recommended
+  Welch test and computed result. This sample is not MNIST.
+- `live-paper-20261102-*`: existing MNIST demonstration bundle with its claims
+  and PDF. The document explicitly labels these as example claims, not research
+  findings. No models were trained or downloaded during capture.
+
+These are actual application responses, without replacement HTML, scripts,
+styles or application data. Privacy masking hides account/project controls and
+file-tree/tooltips if present; it does not replace any application content.
+The dock was minimized through its normal control. After masking, only faithful
+resizing and JPEG/WebP compression were applied; no generated imagery was used.
+The original PNGs remain in the private audit capture bundle, rather than exposing
+unmasked account context in public static files.
+
+All non-GET application requests were blocked except the three source-reviewed,
+stateless Stats sample operations: `api/recommend-test`, `api/run`, and `api/plot`.
+They compute recommendations, a test result, and an in-memory SVG/PNG; project
+save, report-save and FigRecipe import endpoints remained blocked. WebSockets and
+SSE were disabled. No manuscript compile, annotation, message, project save,
+recipe write, model call, or Scholar Graph backfill was performed.
+
+The recorded source checkouts are contextual evidence, not proof that an
+unpublished source preview is an official package release. The captures likewise
+prove the visible state at their recorded time, not complete feature coverage,
+performance, independent scientific verification or production availability.
+
+## Historical product-guide captures
+
+The historical renditions below come from tracked in-repository guide screenshots,
+except the older Stats capture (see below). They are
 real captures of the application; only resize/compression was applied. The captions on
 the page describe only what is visible and do not claim that a static image proves
 feature availability or performance.
