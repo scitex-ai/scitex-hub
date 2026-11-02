@@ -144,7 +144,7 @@ def test_v2_uses_real_product_captures_and_clew_dag_with_provenance():
             "Backward",
             "Source data → inputs–executable–outputs steps",
             "Claims → outputs–executable–inputs steps → source data",
-            "https://github.com/scitex-ai/scitex-clew",
+            "https://scitex.ai/ywatanabe/paper-scitex-clew/",
         )
     )
     assert all(
