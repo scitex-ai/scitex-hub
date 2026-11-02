@@ -2,10 +2,16 @@
 <div class="landing-v2-carousel" role="region" aria-roledescription="carousel"
      aria-labelledby="landing-v2-carousel-title" data-landing-carousel tabindex="0">
     <div class="landing-v2-carousel-head">
-        <h3 id="landing-v2-carousel-title">{% trans "Actual SciTeX® Cloud Screenshots" %}</h3>
+        <h3 id="landing-v2-carousel-title">{% trans "Screenshots of SciTeX® Cloud" %}</h3>
         <div class="landing-v2-carousel-controls">
             <button type="button" data-carousel-prev aria-label="{% trans 'Previous screenshot' %}">←</button>
-            <span data-carousel-status aria-live="polite">1 / 11</span>
+            <button type="button" class="landing-v2-carousel-rotation" data-carousel-rotation
+                    data-pause-label="{% trans 'Pause automatic screenshots' %}"
+                    data-resume-label="{% trans 'Resume automatic screenshots' %}"
+                    aria-label="{% trans 'Pause automatic screenshots' %}">
+                <span data-carousel-status aria-live="off">1 / 11</span>
+                <i class="fa-solid fa-pause" data-carousel-rotation-icon aria-hidden="true"></i>
+            </button>
             <button type="button" data-carousel-next aria-label="{% trans 'Next screenshot' %}">→</button>
         </div>
     </div>

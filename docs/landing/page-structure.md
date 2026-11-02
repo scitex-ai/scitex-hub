@@ -4,7 +4,7 @@ The anonymous landing page is assembled by `apps/infra/public_app/templates/publ
 
 | Order | Heading | Link | Other supported hashes |
 | --- | --- | --- | --- |
-| 1 | Hub for Scientists | `#overview` | `#home`, `#hero`, `#apps`, `#hub`, `#screenshots` |
+| 1 | Open-source Ecosystem for Scientific Research | `#overview` | `#home`, `#hero`, `#apps`, `#hub`, `#screenshots` |
 | 2 | Trace claims back to their sources | `#provenance` | `#clew` |
 | 3 | AI Agent + SciTeX® | `#demo` | `#research-demo` (video disclosure) |
 | 4 | Open source, throughout the stack | `#open-source` | `#github` |
@@ -31,3 +31,5 @@ Overview uses a three-item list to explain the ecosystem roles: Clew as the foun
 The hero omits the earlier “Literature, files, analysis…” introductory sentence; the ecosystem-role list carries the explanation instead.
 
 The Clew section also top-aligns its text and diagram.
+
+The screenshot gallery advances every six seconds while visible. Its counter includes a pause/resume control. Pointer hover, keyboard focus, hidden tabs, and an off-screen gallery pause rotation; reduced-motion preferences disable automatic rotation initially. Manual selection and swipe remain available, with SDK underline tabs unchanged.

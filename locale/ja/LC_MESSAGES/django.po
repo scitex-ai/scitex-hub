@@ -9828,3 +9828,67 @@ msgstr "scitex-ioライブラリと分野別のSciTeXパッケージは、デー
 #: apps/infra/public_app/templates/public_app/landing_partials/landing_hero.html
 msgid "scitex-hub provides a graphical workspace for users and API endpoints for external agents."
 msgstr "scitex-hubは、ユーザー向けのGUIワークスペースと、外部エージェント向けのAPIエンドポイントを提供します。"
+
+#: apps/infra/public_app/templates/public_app/landing_partials
+msgid "scitex-clew provides the foundation for provenance-based verification in AI for Science."
+msgstr "scitex-clewは、AI for Scienceにおける来歴に基づく検証の基盤を提供します。"
+
+#: apps/infra/public_app/templates/public_app/landing_partials
+msgid "SciTeX packages provide deterministic research tools with native scitex-clew support."
+msgstr "SciTeXパッケージは、scitex-clewを標準でサポートする決定論的な研究ツールを提供します。"
+
+#: apps/infra/public_app/templates/public_app/landing_partials
+msgid "scitex-hub provides a graphical workspace and API endpoints for users and external agents."
+msgstr "scitex-hubは、ユーザーと外部エージェント向けにGUIワークスペースとAPIエンドポイントを提供します。"
+
+#: apps/infra/public_app/templates/public_app/landing_partials
+msgid "Pause automatic screenshots"
+msgstr "スクリーンショットの自動切り替えを一時停止"
+
+#: apps/infra/public_app/templates/public_app/landing_partials
+msgid "Resume automatic screenshots"
+msgstr "スクリーンショットの自動切り替えを再開"
+
+#: apps/infra/public_app/templates/public_app/landing_partials
+msgid "Hub for Science"
+msgstr "科学のためのハブ"
+
+#: apps/infra/public_app/templates/public_app/landing_partials
+msgid "SciTeX — Hub for Science"
+msgstr "SciTeX — 科学のためのハブ"
+
+#: apps/infra/public_app/templates/public_app/landing_partials
+msgid "Screenshots of SciTeX® Cloud"
+msgstr "SciTeX® Cloudのスクリーンショット"
+
+#: apps/infra/public_app/templates/public_app/landing_partials
+msgid "SciTeX — Open-source Ecosystem for Scientific Research"
+msgstr "SciTeX — 科学研究のためのオープンソース・エコシステム"
+
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_modules.html
+msgid "SciTeX® Clew records source data and input–executable–output triplets in a hash-linked provenance graph. It traces manuscript claims backward to their sources, verifying the recorded hashes at each step."
+msgstr "SciTeX® Clewは、元データと入力・実行コード・出力の3要素を、ハッシュで結び付けた来歴グラフに記録します。原稿の主張から出典まで逆にたどり、各段階で記録済みのハッシュを検証します。"
+
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_modules.html
+msgid "Backward"
+msgstr "逆方向"
+
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_modules.html
+msgid "Source data → input–executable–output steps"
+msgstr "元データ → 入力・実行コード・出力のステップ"
+
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_modules.html
+msgid "Claims → output–executable–input steps → source data"
+msgstr "主張 → 出力・実行コード・入力のステップ → 元データ"
+
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_modules.html
+msgid "SciTeX® Clew records source data and inputs–executable–outputs triplets in a hash-linked provenance graph. It traces manuscript claims backward to their sources, verifying the recorded hashes at each step."
+msgstr "SciTeX® Clewは、元データと入力・実行コード・出力の3要素を、ハッシュで結び付けた来歴グラフに記録します。原稿の主張から出典まで逆にたどり、各段階で記録済みのハッシュを検証します。"
+
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_modules.html
+msgid "Source data → inputs–executable–outputs steps"
+msgstr "元データ → 入力・実行コード・出力のステップ"
+
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_modules.html
+msgid "Claims → outputs–executable–inputs steps → source data"
+msgstr "主張 → 出力・実行コード・入力のステップ → 元データ"
