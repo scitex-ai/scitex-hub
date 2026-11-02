@@ -60,6 +60,14 @@ This document describes the relationships between TypeScript, JavaScript, Vite, 
 
 **File:** `vite.config.ts`
 
+**SDK frontend discovery:** `vite.config.ts` resolves the SDK from
+`SCITEX_SDK_ROOT`, `.apps/scitex-sdk`, a sibling checkout, or a worktree-relative
+checkout, in that order. When those checkouts are absent, it calls the installed
+Python SDK's public `get_frontend_package_dir()` API using `python3` on `PATH`.
+The returned directory must contain `package.json`; its public export map owns
+SDK subpath aliases, including CSS imported by bridged leaf frontends. CI can
+therefore build with the normally installed SDK wheel without cloning SDK.
+
 **Development Server:**
 - Port: 5173
 - Host: 0.0.0.0 (Docker accessible)
