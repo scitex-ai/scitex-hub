@@ -342,7 +342,38 @@ print(json.dumps([attempts,html.count('class="far fa-star"'),list(Path.home().it
             (False, True),
         )
 
-    def test_full_workflow_is_manual_and_uses_the_real_context_media_urls(self):
+    def test_footer_contains_visible_star_and_fork_words_in_the_shared_row(self):
+        # Arrange
+        from django.template import Context
+
+        source = (
+            ROOT
+            / "apps/infra/public_app/templates/public_app/landing_partials/landing_opensource.html"
+        ).read_text()
+        card = source[
+            source.index(
+                "                        <li data-github-repo="
+            ) : source.index("                        </li>")
+        ]
+        template = self.engine.from_string("{% load i18n %}" + card)
+        repo = {
+            "name": "scitex-sdk",
+            "url": "https://github.com/scitex-ai/scitex-sdk",
+            **validate_repository("scitex-sdk", snapshot_record()),
+        }
+        # Act
+        html = template.render(Context({"repo": repo}, use_l10n=False))
+        # Assert
+        self.assertEqual(
+            (
+                "GitHub</a>" in html,
+                "<span data-github-count-label>stars</span>" in html,
+                "<span data-github-count-label>forks</span>" in html,
+            ),
+            (True, True, True),
+        )
+
+    def test_full_workflow_is_visible_and_uses_the_real_context_media_urls(self):
         # Arrange
         from django.template import Context
         from django.test import override_settings
@@ -382,11 +413,14 @@ print(json.dumps([attempts,html.count('class="far fa-star"'),list(Path.home().it
         self.assertEqual(
             (
                 media in html,
-                '<details class="landing-oss-demo"' in html,
+                '<div class="landing-oss-demo"' in html,
                 "autoplay" in html,
                 'preload="none"' in html,
+                "<details" in html
+                or "<summary" in html
+                or "Recorded backend workflow" in html,
             ),
-            (True, True, False, True),
+            (True, True, False, True, False),
         )
 
 

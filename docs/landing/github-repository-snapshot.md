@@ -55,3 +55,16 @@ python .github/ci/check_landing_github_counts.py
 
 The separate `landing_research_demo.html` remains a manual Apps-section disclosure
 with the existing media URLs; this counter feature does not alter video playback.
+
+## Landing theme surfaces
+
+Load `public_app/css/landing/theme.css` after the reference and target-layout
+styles. It maps the active landing sections and panels to the shared
+`--bg-page`, `--bg-surface`, `--bg-muted`, `--text-primary`, `--text-secondary`,
+`--border-default` and `--accent` roles. It replaces fixed light paper/white
+surfaces and the carousel's independent fixed palette; it does not filter,
+recolor or replace screenshot/diagram image pixels. Shared SDK tab styles and
+the existing semantic primary CTA tokens remain owned by their existing layers.
+`python .github/ci/check_landing_themes.py` checks the actual styles in an owned
+light/dark component fixture, including the 240px visible-label footer layout;
+public-page acceptance remains a separate post-deployment check.
