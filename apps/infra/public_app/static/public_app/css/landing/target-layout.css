@@ -2,6 +2,7 @@
 .landing-v2-hero-grid {
   grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
   gap: clamp(1.5rem, 3vw, 3rem);
+  align-items: start;
 }
 
 .landing-v2-hero {
