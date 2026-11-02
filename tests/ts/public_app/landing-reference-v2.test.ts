@@ -116,7 +116,7 @@ describe("landing V2 product carousel", () => {
 describe("current six-application template", () => {
   it("keeps all six actual slides reachable by keyboard, swipe and dots", () => {
     const source = readFileSync(
-      resolve(process.cwd(), "apps/infra/public_app/templates/public_app/landing_partials/landing_modules.html"),
+      resolve(process.cwd(), "apps/infra/public_app/templates/public_app/landing_partials/landing_app_gallery.html"),
       "utf8",
     );
     // Django's translated strings/static tags are irrelevant to event binding;

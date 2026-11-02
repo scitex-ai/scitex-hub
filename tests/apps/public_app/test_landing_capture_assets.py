@@ -11,7 +11,7 @@ ROOT = Path(__file__).resolve().parents[3]
 ASSETS = ROOT / "apps/infra/public_app/static/public_app/images/landing-v2"
 TEMPLATE = (
     ROOT
-    / "apps/infra/public_app/templates/public_app/landing_partials/landing_modules.html"
+    / "apps/infra/public_app/templates/public_app/landing_partials/landing_app_gallery.html"
 )
 
 

@@ -1,6 +1,7 @@
 /* Landing brief: one clear sequence, with native and shareable section links. */
 .landing-v2-hero-grid {
-  grid-template-columns: minmax(0, 1fr);
+  grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
+  gap: clamp(1.5rem, 3vw, 3rem);
 }
 
 .landing-v2-hero {
@@ -8,7 +9,7 @@
 }
 
 .landing-v2-hero h1 {
-  max-width: 1050px;
+  max-width: 720px;
   font-size: clamp(3rem, 6vw, 5.6rem);
 }
 
@@ -96,4 +97,71 @@
 .landing-v2-hero .hero-cta-button:hover,
 .landing-v2-section .landing-v2-button-primary:hover {
   background: var(--color-primary-hover);
+}
+
+
+.landing-v2-hero-gallery {
+  min-width: 0;
+}
+
+.landing-v2-hero-gallery .landing-v2-carousel {
+  margin-top: 0;
+  padding: 1rem;
+}
+
+.landing-v2-hero-gallery .landing-v2-carousel-head {
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.landing-v2-hero-gallery .landing-v2-carousel-head h3 {
+  font-size: clamp(1.05rem, 1.6vw, 1.4rem);
+}
+
+.landing-v2-hero-gallery .landing-v2-carousel-dots {
+  flex-wrap: wrap;
+}
+
+.landing-app-directory {
+  list-style: none;
+  margin: 0 0 2rem;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1rem;
+}
+
+.landing-app-directory li {
+  min-width: 0;
+  padding: 1.25rem;
+  border: 1px solid var(--border-default);
+  border-radius: var(--landing-radius);
+  background: var(--bg-secondary);
+  color: var(--text-primary);
+}
+
+.landing-app-directory a {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  min-height: 44px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.landing-app-directory p {
+  margin-bottom: 0;
+  color: var(--text-secondary);
+}
+
+@media (max-width: 900px) {
+  .landing-v2-hero-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+@media (max-width: 768px) {
+  .landing-app-directory {
+    grid-template-columns: minmax(0, 1fr);
+  }
 }

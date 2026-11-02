@@ -22,6 +22,7 @@ STATIC_DIR = ROOT / "apps/infra/public_app/static/public_app"
 LANDING = TEMPLATE_DIR / "landing.html"
 HERO = TEMPLATE_DIR / "landing_partials/landing_hero.html"
 MODULES = TEMPLATE_DIR / "landing_partials/landing_modules.html"
+GALLERY = TEMPLATE_DIR / "landing_partials/landing_app_gallery.html"
 CSS = STATIC_DIR / "css/landing-reference-v2.css"
 TS = STATIC_DIR / "ts/landing/reference-v2.ts"
 ASSETS = STATIC_DIR / "images/landing-v2"
@@ -107,8 +108,8 @@ def test_hero_keeps_real_entry_contracts_without_stock_photography():
     )
     # Keep provenance in the asset record without covering the hero photograph
     # with attribution or promotional text.
-    assert "<figure" not in source
-    assert "<img" not in source
+    assert "research-collaboration-" not in source
+    assert "landing_app_gallery.html" in source
     assert "<figcaption>" not in source
     provenance = _text(ASSETS / "PROVENANCE.md")
     assert "Edward Jenner" in provenance
@@ -116,7 +117,7 @@ def test_hero_keeps_real_entry_contracts_without_stock_photography():
 
 
 def test_v2_explains_one_context_builtins_and_extension_contract():
-    source = _text(MODULES)
+    source = (_text(MODULES) + _text(GALLERY))
     expected = (
         "SciTeX Cloud",
         "One project, connected research tools",
@@ -131,7 +132,7 @@ def test_v2_explains_one_context_builtins_and_extension_contract():
 
 
 def test_v2_uses_real_product_captures_and_clew_dag_with_provenance():
-    source = _text(MODULES)
+    source = (_text(MODULES) + _text(GALLERY))
     provenance = _text(ASSETS / "PROVENANCE.md")
     assert all(
         marker in source
@@ -167,7 +168,7 @@ def test_v2_uses_real_product_captures_and_clew_dag_with_provenance():
 
 
 def test_carousel_markup_is_semantic_manual_and_lazy():
-    source = _text(MODULES)
+    source = (_text(MODULES) + _text(GALLERY))
     assert all(
         marker in source
         for marker in (
@@ -185,7 +186,7 @@ def test_carousel_markup_is_semantic_manual_and_lazy():
 
 
 def test_every_content_image_has_dimensions_and_nonempty_alt():
-    source = _text(HERO) + _text(MODULES)
+    source = _text(HERO) + (_text(MODULES) + _text(GALLERY))
     tags = re.findall(r"<img\b[^>]*>", source, flags=re.S)
     assert tags
     assert all(re.search(r'\bwidth="\d+"', tag) for tag in tags)
@@ -194,7 +195,7 @@ def test_every_content_image_has_dimensions_and_nonempty_alt():
 
 
 def test_no_synthetic_ui_or_large_inline_payload_returns():
-    combined = "\n".join((_text(HERO), _text(MODULES), _text(LANDING), _text(TS)))
+    combined = "\n".join((_text(HERO), (_text(MODULES) + _text(GALLERY)), _text(LANDING), _text(TS)))
     forbidden = (
         "Signal response over time",
         "illustrative product-design walkthrough",
@@ -204,7 +205,7 @@ def test_no_synthetic_ui_or_large_inline_payload_returns():
     )
     assert all(term.lower() not in combined.lower() for term in forbidden)
     assert len(_text(HERO).encode()) < 20_000
-    assert len(_text(MODULES).encode()) < 35_000
+    assert len((_text(MODULES) + _text(GALLERY)).encode()) < 35_000
     assert len(_text(CSS).encode()) < 45_000
     assert len(_text(TS).encode()) < 12_000
 
@@ -277,17 +278,17 @@ def test_carousel_script_is_manual_keyboard_and_swipe_only():
             "Work from your phone, laptop, or HPC",
         ),
         (
-            "public_app/landing_partials/landing_modules.html",
+            "public_app/landing_partials/landing_app_gallery.html",
             "実際の SciTeX Cloud 画面",
             "Actual SciTeX Cloud screens",
         ),
         (
-            "public_app/landing_partials/landing_modules.html",
+            "public_app/landing_partials/landing_app_gallery.html",
             "6枚中6枚目",
             "6 of 6: Live Paper",
         ),
         (
-            "public_app/landing_partials/landing_modules.html",
+            "public_app/landing_partials/landing_app_gallery.html",
             "サンプル2群データの推奨検定",
             "Sample two-group analysis",
         ),
@@ -306,11 +307,11 @@ def test_v2_copy_switches_cleanly_between_english_and_japanese(
 
 
 def test_carousel_has_six_current_application_slides():
-    assert _text(MODULES).count("data-carousel-slide") == 6
+    assert (_text(MODULES) + _text(GALLERY)).count("data-carousel-slide") == 6
 
 
 def test_carousel_has_six_dots_ending_in_live_paper():
-    assert re.findall(r'data-carousel-dot="(\d)"', _text(MODULES)) == [
+    assert re.findall(r'data-carousel-dot="(\d)"', (_text(MODULES) + _text(GALLERY))) == [
         "0",
         "1",
         "2",
@@ -321,13 +322,13 @@ def test_carousel_has_six_dots_ending_in_live_paper():
 
 
 def test_carousel_status_starts_at_one_of_six():
-    assert ">1 / 6<" in _text(MODULES)
+    assert ">1 / 6<" in (_text(MODULES) + _text(GALLERY))
 
 
 def test_stats_and_live_paper_have_distinct_sample_and_mnist_captures():
-    assert "5 of 6: Stats" in _text(MODULES)
-    assert "6 of 6: Live Paper" in _text(MODULES)
-    assert "not research findings" in _text(MODULES)
+    assert "5 of 6: Stats" in (_text(MODULES) + _text(GALLERY))
+    assert "6 of 6: Live Paper" in (_text(MODULES) + _text(GALLERY))
+    assert "not research findings" in (_text(MODULES) + _text(GALLERY))
 
 
 def test_stats_slide_uses_dedicated_renditions():
