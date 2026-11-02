@@ -94,3 +94,50 @@ describe("site dock focus avoidance", () => {
     );
   });
 });
+
+describe("focused controls beneath the minimized pill", () => {
+  const setup = (className = "site-dock site-dock--minimized") => {
+    document.body.innerHTML = `
+      <main><textarea id="composer"></textarea><button id="clear-control">Next</button></main>
+      <nav data-site-dock class="${className}"><button data-dock-grabber>Restore</button></nav>
+    `;
+    const dock = document.querySelector<HTMLElement>("[data-site-dock]")!;
+    const composer = document.querySelector<HTMLTextAreaElement>("#composer")!;
+    dock.getBoundingClientRect = () => rect(143, 790, 94, 44);
+    composer.getBoundingClientRect = () => rect(62, 800, 225, 44);
+    new SiteDock(dock).init();
+    return { dock, composer };
+  };
+
+  it("moves the minimized pill clear of an overlapping focused textarea", () => {
+    const { dock, composer } = setup();
+    composer.focus();
+    expect(dock.classList.contains("site-dock--minimized")).toBe(true);
+    expect(dock.classList.contains("site-dock--avoiding-focus")).toBe(true);
+    expect(dock.style.getPropertyValue("--site-dock-focus-shift")).toBe("-42px");
+  });
+
+  it("returns the pill to its anchor when focus moves to a clear control", () => {
+    const { dock, composer } = setup();
+    composer.focus();
+    expect(dock.classList.contains("site-dock--avoiding-focus")).toBe(true);
+    const next = document.querySelector<HTMLElement>("#clear-control")!;
+    next.getBoundingClientRect = () => rect(10, 100, 100, 44);
+    next.focus();
+    expect(dock.classList.contains("site-dock--avoiding-focus")).toBe(false);
+    expect(dock.style.getPropertyValue("--site-dock-focus-shift")).toBe("");
+  });
+
+  it("keeps a floating minimized dock at its user-selected position", () => {
+    const { dock, composer } = setup();
+    dock.classList.add("site-dock--floating");
+    composer.focus();
+    expect(dock.classList.contains("site-dock--avoiding-focus")).toBe(false);
+  });
+
+  it("does not move the pill when its own restore button receives focus", () => {
+    const { dock } = setup();
+    dock.querySelector<HTMLButtonElement>("[data-dock-grabber]")!.focus();
+    expect(dock.classList.contains("site-dock--avoiding-focus")).toBe(false);
+  });
+});
