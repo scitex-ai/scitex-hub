@@ -11,6 +11,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+- Preserve native submission for explicit GET forms, including read-only Storage
+  calculations and move planning. Implicit-method legacy forms remain guarded,
+  and JS-driven form owners can still cancel their own submissions.
+
 - Move the minimized launcher pill away from overlapping focused controls, just
   like the expanded launcher, without reserving page space. Floating launchers
   keep their selected position. Before focus, the pill remains an overlay.
