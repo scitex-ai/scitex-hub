@@ -14,122 +14,132 @@
                     <button type="button"
                             data-carousel-prev
                             aria-label="{% trans 'Previous product screen' %}">←</button>
-                    <span data-carousel-status aria-live="polite">1 / 6</span>
+                    <span data-carousel-status aria-live="polite">1 / 9</span>
                     <button type="button"
                             data-carousel-next
                             aria-label="{% trans 'Next product screen' %}">→</button>
                 </div>
             </div>
             <div class="landing-v2-carousel-track" data-carousel-track>
-                <figure data-carousel-slide
-                        role="group"
-                        aria-roledescription="slide"
-                        aria-label="{% trans '1 of 6: Hub' %}">
+                <figure data-carousel-slide role="group" aria-roledescription="slide"
+                        aria-label="{% trans '1 of 9: Agent Container' %}">
                     <picture>
                         <source type="image/webp"
-                                srcset="{% static 'public_app/images/landing-v2/hub-20261102-768.webp' %} 768w, {% static 'public_app/images/landing-v2/hub-20261102-1200.webp' %} 1200w"
-                                sizes="(max-width: 820px) 100vw, 1100px" />
-                        <img src="{% static 'public_app/images/landing-v2/hub-20261102-1200.jpg' %}"
-                             width="1200"
-                             height="750"
-                             loading="lazy"
-                             alt="{% trans 'Current SciTeX Hub application launcher.' %}" />
+                                srcset="{% static 'public_app/images/landing-v2/agent-container-20261102-768.webp' %} 768w, {% static 'public_app/images/landing-v2/agent-container-20261102-1200.webp' %} 1200w"
+                                sizes="(max-width: 900px) 100vw, 54vw" />
+                        <img src="{% static 'public_app/images/landing-v2/agent-container-20261102-1200.jpg' %}"
+                             width="1200" height="750" fetchpriority="high"
+                             alt="{% trans 'Agent Container — Agent overview with cached runtime inventory; development capture.' %}" />
                     </picture>
-                    <figcaption><strong>SciTeX Hub</strong> — {% trans "Current application launcher; development capture, 2026-11-02." %}</figcaption>
+                    <figcaption><strong><a href="/apps/agent-container/">Agent Container</a></strong> — {% trans "Agent overview with cached runtime inventory; development capture. 2026-11-02." %}</figcaption>
                 </figure>
-                <figure data-carousel-slide
-                        role="group"
-                        aria-roledescription="slide"
-                        aria-label="{% trans '2 of 6: Scholar' %}"
-                        hidden>
+                <figure data-carousel-slide role="group" aria-roledescription="slide"
+                        aria-label="{% trans '2 of 9: Cards' %}" hidden>
+                    <picture>
+                        <source type="image/webp"
+                                srcset="{% static 'public_app/images/landing-v2/cards-20261102-768.webp' %} 768w, {% static 'public_app/images/landing-v2/cards-20261102-1200.webp' %} 1200w"
+                                sizes="(max-width: 900px) 100vw, 54vw" />
+                        <img src="{% static 'public_app/images/landing-v2/cards-20261102-1200.jpg' %}"
+                             width="1200" height="750" loading="lazy"
+                             alt="{% trans 'Cards — Read-only board statistics; private task content hidden.' %}" />
+                    </picture>
+                    <figcaption><strong><a href="/apps/cards/">Cards</a></strong> — {% trans "Read-only board statistics; private task content hidden. 2026-11-02." %}</figcaption>
+                </figure>
+                <figure data-carousel-slide role="group" aria-roledescription="slide"
+                        aria-label="{% trans '3 of 9: Storage' %}" hidden>
+                    <picture>
+                        <source type="image/webp"
+                                srcset="{% static 'public_app/images/landing-v2/storage-20261102-768.webp' %} 768w, {% static 'public_app/images/landing-v2/storage-20261102-1200.webp' %} 1200w"
+                                sizes="(max-width: 900px) 100vw, 54vw" />
+                        <img src="{% static 'public_app/images/landing-v2/storage-20261102-1200.jpg' %}"
+                             width="1200" height="750" loading="lazy"
+                             alt="{% trans 'Storage — MNIST project usage and interactive disk breakdown; development capture.' %}" />
+                    </picture>
+                    <figcaption><strong><a href="/apps/storage/">Storage</a></strong> — {% trans "MNIST project usage and interactive disk breakdown; development capture. 2026-11-02." %}</figcaption>
+                </figure>
+                <figure data-carousel-slide role="group" aria-roledescription="slide"
+                        aria-label="{% trans '4 of 9: Scholar' %}" hidden>
                     <picture>
                         <source type="image/webp"
                                 srcset="{% static 'public_app/images/landing-v2/scholar-20261102-768.webp' %} 768w, {% static 'public_app/images/landing-v2/scholar-20261102-1200.webp' %} 1200w"
-                                sizes="(max-width: 820px) 100vw, 1100px" />
+                                sizes="(max-width: 900px) 100vw, 54vw" />
                         <img src="{% static 'public_app/images/landing-v2/scholar-20261102-1200.jpg' %}"
-                             width="1200"
-                             height="750"
-                             loading="lazy"
-                             alt="{% trans 'SciTeX Scholar MNIST reference library with the native paper metadata reader.' %}" />
+                             width="1200" height="750" loading="lazy"
+                             alt="{% trans 'Scholar — MNIST reference library and native metadata reader; development capture.' %}" />
                     </picture>
-                    <figcaption><strong>Scholar</strong> — {% trans "MNIST reference library and native metadata reader; development capture, 2026-11-02." %}</figcaption>
+                    <figcaption><strong><a href="/apps/scholar/">Scholar</a></strong> — {% trans "MNIST reference library and native metadata reader; development capture. 2026-11-02." %}</figcaption>
                 </figure>
-                <figure data-carousel-slide
-                        role="group"
-                        aria-roledescription="slide"
-                        aria-label="{% trans '3 of 6: FigRecipe' %}"
-                        hidden>
-                    <picture>
-                        <source type="image/webp"
-                                srcset="{% static 'public_app/images/landing-v2/figrecipe-20261102-768.webp' %} 768w, {% static 'public_app/images/landing-v2/figrecipe-20261102-1200.webp' %} 1200w"
-                                sizes="(max-width: 820px) 100vw, 1100px" />
-                        <img src="{% static 'public_app/images/landing-v2/figrecipe-20261102-1200.jpg' %}"
-                             width="1200"
-                             height="750"
-                             loading="lazy"
-                             alt="{% trans 'SciTeX FigRecipe sample worksheet with separate X axis and Y axis badges.' %}" />
-                    </picture>
-                    <figcaption><strong>FigRecipe</strong> — {% trans "Six-row sample worksheet with distinct axis-role badges; development capture, 2026-11-02." %}</figcaption>
-                </figure>
-                <figure data-carousel-slide
-                        role="group"
-                        aria-roledescription="slide"
-                        aria-label="{% trans '4 of 6: Writer' %}"
-                        hidden>
-                    <picture>
-                        <source type="image/webp"
-                                srcset="{% static 'public_app/images/landing-v2/writer-20261102-768.webp' %} 768w, {% static 'public_app/images/landing-v2/writer-20261102-1200.webp' %} 1200w"
-                                sizes="(max-width: 820px) 100vw, 1100px" />
-                        <img src="{% static 'public_app/images/landing-v2/writer-20261102-1200.jpg' %}"
-                             width="1200"
-                             height="750"
-                             loading="lazy"
-                             alt="{% trans 'SciTeX Writer MNIST example Abstract source and genuine compiled section preview.' %}" />
-                    </picture>
-                    <figcaption><strong>Writer</strong> — {% trans "MNIST example Abstract source and compiled section preview; development capture, 2026-11-02." %}</figcaption>
-                </figure>
-                <figure data-carousel-slide
-                        role="group"
-                        aria-roledescription="slide"
-                        aria-label="{% trans '5 of 6: Stats' %}"
-                        hidden>
+                <figure data-carousel-slide role="group" aria-roledescription="slide"
+                        aria-label="{% trans '5 of 9: Stats' %}" hidden>
                     <picture>
                         <source type="image/webp"
                                 srcset="{% static 'public_app/images/landing-v2/stats-20261102-768.webp' %} 768w, {% static 'public_app/images/landing-v2/stats-20261102-1200.webp' %} 1200w"
-                                sizes="(max-width: 820px) 100vw, 1100px" />
+                                sizes="(max-width: 900px) 100vw, 54vw" />
                         <img src="{% static 'public_app/images/landing-v2/stats-20261102-1200.jpg' %}"
-                             width="1200"
-                             height="750"
-                             loading="lazy"
-                             alt="{% trans 'SciTeX Stats built-in two-group sample with the recommended Welch test and actual results.' %}" />
+                             width="1200" height="750" loading="lazy"
+                             alt="{% trans 'Stats — Sample two-group analysis with a real Welch test result; not MNIST data.' %}" />
                     </picture>
-                    <figcaption><strong>Stats</strong> — {% trans "Sample two-group analysis with recommended test and actual results; development capture, 2026-11-02." %}</figcaption>
+                    <figcaption><strong><a href="/apps/stats/">Stats</a></strong> — {% trans "Sample two-group analysis with a real Welch test result; not MNIST data. 2026-11-02." %}</figcaption>
                 </figure>
-                <figure data-carousel-slide
-                        role="group"
-                        aria-roledescription="slide"
-                        aria-label="{% trans '6 of 6: Live Paper' %}"
-                        hidden>
+                <figure data-carousel-slide role="group" aria-roledescription="slide"
+                        aria-label="{% trans '6 of 9: FigRecipe' %}" hidden>
+                    <picture>
+                        <source type="image/webp"
+                                srcset="{% static 'public_app/images/landing-v2/figrecipe-20261102-768.webp' %} 768w, {% static 'public_app/images/landing-v2/figrecipe-20261102-1200.webp' %} 1200w"
+                                sizes="(max-width: 900px) 100vw, 54vw" />
+                        <img src="{% static 'public_app/images/landing-v2/figrecipe-20261102-1200.jpg' %}"
+                             width="1200" height="750" loading="lazy"
+                             alt="{% trans 'FigRecipe — Six-row sample worksheet with distinct axis-role badges; development capture.' %}" />
+                    </picture>
+                    <figcaption><strong><a href="/apps/figrecipe/">FigRecipe</a></strong> — {% trans "Six-row sample worksheet with distinct axis-role badges; development capture. 2026-11-02." %}</figcaption>
+                </figure>
+                <figure data-carousel-slide role="group" aria-roledescription="slide"
+                        aria-label="{% trans '7 of 9: Writer' %}" hidden>
+                    <picture>
+                        <source type="image/webp"
+                                srcset="{% static 'public_app/images/landing-v2/writer-20261102-768.webp' %} 768w, {% static 'public_app/images/landing-v2/writer-20261102-1200.webp' %} 1200w"
+                                sizes="(max-width: 900px) 100vw, 54vw" />
+                        <img src="{% static 'public_app/images/landing-v2/writer-20261102-1200.jpg' %}"
+                             width="1200" height="750" loading="lazy"
+                             alt="{% trans 'Writer — MNIST example Abstract and genuine compiled preview; not research findings.' %}" />
+                    </picture>
+                    <figcaption><strong><a href="/apps/writer/">Writer</a></strong> — {% trans "MNIST example Abstract and genuine compiled preview; not research findings. 2026-11-02." %}</figcaption>
+                </figure>
+                <figure data-carousel-slide role="group" aria-roledescription="slide"
+                        aria-label="{% trans '8 of 9: Live Paper' %}" hidden>
                     <picture>
                         <source type="image/webp"
                                 srcset="{% static 'public_app/images/landing-v2/live-paper-20261102-768.webp' %} 768w, {% static 'public_app/images/landing-v2/live-paper-20261102-1200.webp' %} 1200w"
-                                sizes="(max-width: 820px) 100vw, 1100px" />
+                                sizes="(max-width: 900px) 100vw, 54vw" />
                         <img src="{% static 'public_app/images/landing-v2/live-paper-20261102-1200.jpg' %}"
-                             width="1200"
-                             height="750"
-                             loading="lazy"
-                             alt="{% trans 'SciTeX Live Paper computed MNIST demonstration claims and example PDF.' %}" />
+                             width="1200" height="750" loading="lazy"
+                             alt="{% trans 'Live Paper — MNIST worked example and registered claims; not independently verified findings.' %}" />
                     </picture>
-                    <figcaption><strong>Live Paper</strong> — {% trans "Computed MNIST demonstration claims and PDF, not research findings; development capture, 2026-11-02." %}</figcaption>
+                    <figcaption><strong><a href="/apps/live-paper/">Live Paper</a></strong> — {% trans "MNIST worked example and registered claims; not independently verified findings. 2026-11-02." %}</figcaption>
+                </figure>
+                <figure data-carousel-slide role="group" aria-roledescription="slide"
+                        aria-label="{% trans '9 of 9: Agentic Journal' %}" hidden>
+                    <picture>
+                        <source type="image/webp"
+                                srcset="{% static 'public_app/images/landing-v2/agentic-journal-20261102-768.webp' %} 768w, {% static 'public_app/images/landing-v2/agentic-journal-20261102-1200.webp' %} 1200w"
+                                sizes="(max-width: 900px) 100vw, 54vw" />
+                        <img src="{% static 'public_app/images/landing-v2/agentic-journal-20261102-1200.jpg' %}"
+                             width="1200" height="750" loading="lazy"
+                             alt="{% trans 'Agentic Journal — Author guidance and publication workflow; no submissions shown.' %}" />
+                    </picture>
+                    <figcaption><strong><a href="/apps/agentic-journal/">Agentic Journal</a></strong> — {% trans "Author guidance and publication workflow; no submissions shown. 2026-11-02." %}</figcaption>
                 </figure>
             </div>
             <div class="landing-v2-carousel-dots" role="tablist" aria-label="{% trans 'Choose a product screen' %}">
-                <button type="button" role="tab" data-carousel-dot="0" aria-selected="true">Hub</button>
-                <button type="button" role="tab" data-carousel-dot="1" aria-selected="false" tabindex="-1">Scholar</button>
-                <button type="button" role="tab" data-carousel-dot="2" aria-selected="false" tabindex="-1">FigRecipe</button>
-                <button type="button" role="tab" data-carousel-dot="3" aria-selected="false" tabindex="-1">Writer</button>
+                <button type="button" role="tab" data-carousel-dot="0" aria-selected="true">Agent Container</button>
+                <button type="button" role="tab" data-carousel-dot="1" aria-selected="false" tabindex="-1">Cards</button>
+                <button type="button" role="tab" data-carousel-dot="2" aria-selected="false" tabindex="-1">Storage</button>
+                <button type="button" role="tab" data-carousel-dot="3" aria-selected="false" tabindex="-1">Scholar</button>
                 <button type="button" role="tab" data-carousel-dot="4" aria-selected="false" tabindex="-1">Stats</button>
-                <button type="button" role="tab" data-carousel-dot="5" aria-selected="false" tabindex="-1">Live Paper</button>
+                <button type="button" role="tab" data-carousel-dot="5" aria-selected="false" tabindex="-1">FigRecipe</button>
+                <button type="button" role="tab" data-carousel-dot="6" aria-selected="false" tabindex="-1">Writer</button>
+                <button type="button" role="tab" data-carousel-dot="7" aria-selected="false" tabindex="-1">Live Paper</button>
+                <button type="button" role="tab" data-carousel-dot="8" aria-selected="false" tabindex="-1">Agentic Journal</button>
             </div>
             <p class="landing-v2-provenance-note">
                 {% trans "Actual development captures with account/project controls hidden for privacy, then resized and compressed. Example data is labeled; screenshots do not prove complete feature coverage or production availability." %}

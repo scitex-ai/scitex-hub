@@ -284,12 +284,12 @@ def test_carousel_script_is_manual_keyboard_and_swipe_only():
         ),
         (
             "public_app/landing_partials/landing_app_gallery.html",
-            "6枚中6枚目",
-            "6 of 6: Live Paper",
+            "9枚中9枚目",
+            "9 of 9: Agentic Journal",
         ),
         (
             "public_app/landing_partials/landing_app_gallery.html",
-            "サンプル2群データの推奨検定",
+            "サンプル2群データ",
             "Sample two-group analysis",
         ),
     ],
@@ -306,11 +306,11 @@ def test_v2_copy_switches_cleanly_between_english_and_japanese(
     assert en_needle in en_html and ja_needle not in en_html
 
 
-def test_carousel_has_six_current_application_slides():
-    assert (_text(MODULES) + _text(GALLERY)).count("data-carousel-slide") == 6
+def test_carousel_has_nine_current_application_slides():
+    assert (_text(MODULES) + _text(GALLERY)).count("data-carousel-slide") == 9
 
 
-def test_carousel_has_six_dots_ending_in_live_paper():
+def test_carousel_has_nine_dots_ending_in_agentic_journal():
     assert re.findall(r'data-carousel-dot="(\d)"', (_text(MODULES) + _text(GALLERY))) == [
         "0",
         "1",
@@ -318,16 +318,19 @@ def test_carousel_has_six_dots_ending_in_live_paper():
         "3",
         "4",
         "5",
+        "6",
+        "7",
+        "8",
     ]
 
 
-def test_carousel_status_starts_at_one_of_six():
-    assert ">1 / 6<" in (_text(MODULES) + _text(GALLERY))
+def test_carousel_status_starts_at_one_of_nine():
+    assert ">1 / 9<" in (_text(MODULES) + _text(GALLERY))
 
 
 def test_stats_and_live_paper_have_distinct_sample_and_mnist_captures():
-    assert "5 of 6: Stats" in (_text(MODULES) + _text(GALLERY))
-    assert "6 of 6: Live Paper" in (_text(MODULES) + _text(GALLERY))
+    assert "5 of 9: Stats" in (_text(MODULES) + _text(GALLERY))
+    assert "8 of 9: Live Paper" in (_text(MODULES) + _text(GALLERY))
     assert "not research findings" in (_text(MODULES) + _text(GALLERY))
 
 

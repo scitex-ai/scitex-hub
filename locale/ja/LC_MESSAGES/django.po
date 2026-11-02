@@ -9456,3 +9456,183 @@ msgstr "SciTeXのツールを使った一連の研究ワークフローです。
 #: apps/infra/public_app/templates/public_app/landing_partials
 msgid "Full-length demo — about 40 minutes, end to end."
 msgstr "全編デモ：約40分で最初から最後まで紹介します。"
+
+#: apps/infra/public_app/templates/public_app/landing_partials
+msgid "Agent overview with cached runtime inventory; development capture."
+msgstr "キャッシュされた実行情報を含むエージェント一覧。開発環境の画面です。"
+
+#: apps/infra/public_app/templates/public_app/landing_partials
+msgid "Read-only board statistics; private task content hidden."
+msgstr "ボード統計の閲覧画面。非公開のタスク内容は表示していません。"
+
+#: apps/infra/public_app/templates/public_app/landing_partials
+msgid "MNIST project usage and interactive disk breakdown; development capture."
+msgstr "MNISTプロジェクトの使用量と対話的なディスク内訳。開発環境の画面です。"
+
+#: apps/infra/public_app/templates/public_app/landing_partials
+msgid "MNIST reference library and native metadata reader; development capture."
+msgstr "MNISTの参考文献ライブラリと論文情報の閲覧画面。開発環境の画面です。"
+
+#: apps/infra/public_app/templates/public_app/landing_partials
+msgid "Sample two-group analysis with a real Welch test result; not MNIST data."
+msgstr "サンプル2群データの分析と実際のWelch検定結果。MNISTのデータではありません。"
+
+#: apps/infra/public_app/templates/public_app/landing_partials
+msgid "Six-row sample worksheet with distinct axis-role badges; development capture."
+msgstr "軸の役割を明示した6行のサンプル表。開発環境の画面です。"
+
+#: apps/infra/public_app/templates/public_app/landing_partials
+msgid "MNIST example Abstract and genuine compiled preview; not research findings."
+msgstr "MNIST例の要旨と実際にコンパイルしたプレビュー。研究成果の報告ではありません。"
+
+#: apps/infra/public_app/templates/public_app/landing_partials
+msgid "MNIST worked example and registered claims; not independently verified findings."
+msgstr "MNISTの実例と登録済みの主張。独立に検証された研究成果ではありません。"
+
+#: apps/infra/public_app/templates/public_app/landing_partials
+msgid "Author guidance and publication workflow; no submissions shown."
+msgstr "著者向け案内と出版ワークフロー。投稿済みの原稿は表示していません。"
+
+#: apps/infra/public_app/templates/public_app/landing_partials
+msgid "Agent overview and runtime inventory."
+msgstr "エージェント一覧と実行情報。"
+
+#: apps/infra/public_app/templates/public_app/landing_partials
+msgid "Tasks, boards, and conversations."
+msgstr "タスク、ボード、会話。"
+
+#: apps/infra/public_app/templates/public_app/landing_partials
+msgid "Inspect disk usage and plan data operations."
+msgstr "ディスク使用量の確認とデータ操作の計画。"
+
+#: apps/infra/public_app/templates/public_app/landing_partials
+msgid "Search papers and organize references."
+msgstr "論文検索と参考文献の整理。"
+
+#: apps/infra/public_app/templates/public_app/landing_partials
+msgid "Choose tests and inspect analysis results."
+msgstr "検定の選択と分析結果の確認。"
+
+#: apps/infra/public_app/templates/public_app/landing_partials
+msgid "Create figures from data and recipes."
+msgstr "データとレシピからの図の作成。"
+
+#: apps/infra/public_app/templates/public_app/landing_partials
+msgid "Edit manuscript sections and preview PDFs."
+msgstr "原稿セクションの編集とPDFプレビュー。"
+
+#: apps/infra/public_app/templates/public_app/landing_partials
+msgid "Read papers alongside claims and provenance."
+msgstr "主張や来歴とともに論文を読む。"
+
+#: apps/infra/public_app/templates/public_app/landing_partials
+msgid "Explore the author and publication workflow."
+msgstr "著者向けの案内と出版ワークフロー。"
+
+#: apps/infra/public_app/templates/public_app/landing_partials
+msgid "1 of 9: Agent Container"
+msgstr "9枚中1枚目：Agent Container"
+
+#: apps/infra/public_app/templates/public_app/landing_partials
+msgid "2 of 9: Cards"
+msgstr "9枚中2枚目：Cards"
+
+#: apps/infra/public_app/templates/public_app/landing_partials
+msgid "3 of 9: Storage"
+msgstr "9枚中3枚目：Storage"
+
+#: apps/infra/public_app/templates/public_app/landing_partials
+msgid "4 of 9: Scholar"
+msgstr "9枚中4枚目：Scholar"
+
+#: apps/infra/public_app/templates/public_app/landing_partials
+msgid "5 of 9: Stats"
+msgstr "9枚中5枚目：Stats"
+
+#: apps/infra/public_app/templates/public_app/landing_partials
+msgid "6 of 9: FigRecipe"
+msgstr "9枚中6枚目：FigRecipe"
+
+#: apps/infra/public_app/templates/public_app/landing_partials
+msgid "7 of 9: Writer"
+msgstr "9枚中7枚目：Writer"
+
+#: apps/infra/public_app/templates/public_app/landing_partials
+msgid "8 of 9: Live Paper"
+msgstr "9枚中8枚目：Live Paper"
+
+#: apps/infra/public_app/templates/public_app/landing_partials
+msgid "9 of 9: Agentic Journal"
+msgstr "9枚中9枚目：Agentic Journal"
+
+#: apps/infra/public_app/templates/public_app/landing_partials
+msgid "Agent Container — Agent overview with cached runtime inventory; development capture."
+msgstr "Agent Container — キャッシュされた実行情報を含むエージェント一覧。開発環境の画面です。"
+
+#: apps/infra/public_app/templates/public_app/landing_partials
+msgid "Agent overview with cached runtime inventory; development capture. 2026-11-02."
+msgstr "キャッシュされた実行情報を含むエージェント一覧。開発環境の画面です。 2026-11-02."
+
+#: apps/infra/public_app/templates/public_app/landing_partials
+msgid "Cards — Read-only board statistics; private task content hidden."
+msgstr "Cards — ボード統計の閲覧画面。非公開のタスク内容は表示していません。"
+
+#: apps/infra/public_app/templates/public_app/landing_partials
+msgid "Read-only board statistics; private task content hidden. 2026-11-02."
+msgstr "ボード統計の閲覧画面。非公開のタスク内容は表示していません。 2026-11-02."
+
+#: apps/infra/public_app/templates/public_app/landing_partials
+msgid "Storage — MNIST project usage and interactive disk breakdown; development capture."
+msgstr "Storage — MNISTプロジェクトの使用量と対話的なディスク内訳。開発環境の画面です。"
+
+#: apps/infra/public_app/templates/public_app/landing_partials
+msgid "MNIST project usage and interactive disk breakdown; development capture. 2026-11-02."
+msgstr "MNISTプロジェクトの使用量と対話的なディスク内訳。開発環境の画面です。 2026-11-02."
+
+#: apps/infra/public_app/templates/public_app/landing_partials
+msgid "Scholar — MNIST reference library and native metadata reader; development capture."
+msgstr "Scholar — MNISTの参考文献ライブラリと論文情報の閲覧画面。開発環境の画面です。"
+
+#: apps/infra/public_app/templates/public_app/landing_partials
+msgid "MNIST reference library and native metadata reader; development capture. 2026-11-02."
+msgstr "MNISTの参考文献ライブラリと論文情報の閲覧画面。開発環境の画面です。 2026-11-02."
+
+#: apps/infra/public_app/templates/public_app/landing_partials
+msgid "Stats — Sample two-group analysis with a real Welch test result; not MNIST data."
+msgstr "Stats — サンプル2群データの分析と実際のWelch検定結果。MNISTのデータではありません。"
+
+#: apps/infra/public_app/templates/public_app/landing_partials
+msgid "Sample two-group analysis with a real Welch test result; not MNIST data. 2026-11-02."
+msgstr "サンプル2群データの分析と実際のWelch検定結果。MNISTのデータではありません。 2026-11-02."
+
+#: apps/infra/public_app/templates/public_app/landing_partials
+msgid "FigRecipe — Six-row sample worksheet with distinct axis-role badges; development capture."
+msgstr "FigRecipe — 軸の役割を明示した6行のサンプル表。開発環境の画面です。"
+
+#: apps/infra/public_app/templates/public_app/landing_partials
+msgid "Six-row sample worksheet with distinct axis-role badges; development capture. 2026-11-02."
+msgstr "軸の役割を明示した6行のサンプル表。開発環境の画面です。 2026-11-02."
+
+#: apps/infra/public_app/templates/public_app/landing_partials
+msgid "Writer — MNIST example Abstract and genuine compiled preview; not research findings."
+msgstr "Writer — MNIST例の要旨と実際にコンパイルしたプレビュー。研究成果の報告ではありません。"
+
+#: apps/infra/public_app/templates/public_app/landing_partials
+msgid "MNIST example Abstract and genuine compiled preview; not research findings. 2026-11-02."
+msgstr "MNIST例の要旨と実際にコンパイルしたプレビュー。研究成果の報告ではありません。 2026-11-02."
+
+#: apps/infra/public_app/templates/public_app/landing_partials
+msgid "Live Paper — MNIST worked example and registered claims; not independently verified findings."
+msgstr "Live Paper — MNISTの実例と登録済みの主張。独立に検証された研究成果ではありません。"
+
+#: apps/infra/public_app/templates/public_app/landing_partials
+msgid "MNIST worked example and registered claims; not independently verified findings. 2026-11-02."
+msgstr "MNISTの実例と登録済みの主張。独立に検証された研究成果ではありません。 2026-11-02."
+
+#: apps/infra/public_app/templates/public_app/landing_partials
+msgid "Agentic Journal — Author guidance and publication workflow; no submissions shown."
+msgstr "Agentic Journal — 著者向け案内と出版ワークフロー。投稿済みの原稿は表示していません。"
+
+#: apps/infra/public_app/templates/public_app/landing_partials
+msgid "Author guidance and publication workflow; no submissions shown. 2026-11-02."
+msgstr "著者向け案内と出版ワークフロー。投稿済みの原稿は表示していません。 2026-11-02."
