@@ -42,10 +42,10 @@
             <p>{% trans "An AI-agent research workflow with the SciTeX Python toolkit and MCP tools: literature search, experiments, analysis, figures, and manuscript writing." %}</p>
             <ol class="landing-v2-demo-setup">
                 <li><strong>{% trans "Install the toolkit" %}</strong>
-                    <pre><code>uv pip install 'scitex[all]'</code></pre>
+                    <pre data-language="bash"><code class="language-bash">uv pip install 'scitex[all]'</code></pre>
                 </li>
                 <li><strong>{% trans "Connect your MCP client" %}</strong>
-                    <pre><code>{
+                    <pre data-language="json"><code class="language-json">{
   "mcpServers": {
     "scitex": {
       "command": "scitex",
@@ -56,9 +56,10 @@
                     <p class="landing-v2-small">{% trans "Use the full path to scitex if your MCP client does not inherit your environment’s PATH." %}</p>
                 </li>
                 <li><strong>{% trans "Install agent skills" %}</strong>
-                    <pre><code>scitex-dev skills install</code></pre>
-                    <p class="landing-v2-small">{% trans "With newer scitex-dev releases:" %} <code>scitex-dev dev skills install</code></p>
-                    <p class="landing-v2-small">{% trans "Skills are collected from installed packages into ~/.scitex/dev/skills/." %}</p>
+                    <pre data-language="bash"><code class="language-bash">scitex-dev skills install --claude-symlink</code></pre>
+                    <p class="landing-v2-small">{% trans "With newer scitex-dev releases:" %} </p>
+                    <pre data-language="bash"><code class="language-bash">scitex-dev dev skills install --claude-symlink</code></pre>
+                    <p class="landing-v2-small">{% trans "The default shared store is ~/.scitex/dev/skills/. For Claude Code, --claude-symlink exposes it at ~/.claude/skills/scitex/." %}</p>
                 </li>
             </ol>
         </div>

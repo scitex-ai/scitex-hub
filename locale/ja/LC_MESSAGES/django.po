@@ -9930,3 +9930,6 @@ msgstr "FigRecipe — 3つの合成例の図と、選択した線の詳細。開
 
 msgid "Three synthetic figures with a selected line and native Details; development capture. 2026-11-02."
 msgstr "3つの合成例の図と、選択した線の詳細。開発環境の画面。2026-11-02。"
+
+msgid "The default shared store is ~/.scitex/dev/skills/. For Claude Code, --claude-symlink exposes it at ~/.claude/skills/scitex/."
+msgstr "既定の共有ストアは ~/.scitex/dev/skills/ です。Claude Codeでは --claude-symlink により ~/.claude/skills/scitex/ から参照できます。"

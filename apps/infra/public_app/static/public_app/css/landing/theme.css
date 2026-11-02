@@ -87,3 +87,17 @@
   font-size: var(--font-size-xs, 12px);
   line-height: 1.6;
 }
+
+/* Shared highlighting tokens remain readable on both landing code surfaces. */
+.landing-v2-demo-setup .hljs-attr,
+.landing-v2-demo-setup .hljs-built_in,
+.landing-v2-demo-setup .hljs-keyword {
+  color: var(--text-link) !important;
+}
+.landing-v2-demo-setup .hljs-string {
+  color: var(--text-primary) !important;
+}
+.landing-v2-demo-setup .hljs-punctuation,
+.landing-v2-demo-setup .hljs-comment {
+  color: var(--text-secondary) !important;
+}
