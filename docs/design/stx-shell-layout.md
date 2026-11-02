@@ -185,12 +185,14 @@ Rules, evidenced by `tests/templates/test_site_dock_overlay_contract.py`
    dock (`leaf-host-chrome.css` keeps only `env(safe-area-inset-bottom)`).
    Source: `static/shared/css/layouts/leaf-host-chrome.css`,
    `static/shared/css/components/site-dock.css`.
-2. **Scroll-end travel instead** — the scroll container gets
-   `scroll-padding-bottom: var(--site-dock-scroll-clearance) + 24px` plus
-   a scroll-only `::after` spacer, so the last line scrolls clear without
-   changing resting document height. Scoped to pages rendering the dock
-   (`body:has(> nav.site-dock)`), covering `#main-content` (SDK wizard),
-   `main`, `[role="main"]`, `.workspace-three-col`.
+2. **Scroll alignment, without artificial children** — scroll containers use
+   `scroll-padding-bottom: calc(var(--site-dock-scroll-clearance) + 24px)`.
+   This changes focus/scroll alignment, not the available scroll range. No
+   `::after` spacer is added: on nested flex containers each spacer consumes
+   actual height, shrinking both the workspace and its app content. The
+   existing dock grip and focus avoidance expose controls when content does
+   not naturally overflow. On phones, actual content scrolling also collapses
+   the dock transiently without changing the saved preference.
 3. **Focus avoidance is the dock's own job** — `site-dock.ts`
    `avoidFocusedControl` lifts the dock (`--site-dock-focus-shift`) when
    keyboard focus lands under it; inputs never need per-page hacks.

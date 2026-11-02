@@ -11,6 +11,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+- Move the minimized launcher pill away from overlapping focused controls, just
+  like the expanded launcher, without reserving page space. Floating launchers
+  keep their selected position. Before focus, the pill remains an overlay.
+
 - Keep launcher focus avoidance scoped to actionable controls. When a tab switch
   leaves focus on the page body or a structural panel, clear the temporary shift
   so the launcher returns to its anchor instead of covering the graph.

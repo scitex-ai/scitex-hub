@@ -177,8 +177,7 @@ class SiteDock {
     if (
       !isFocusAvoidanceTarget(target) ||
       this.dock.contains(target) ||
-      this.dock.classList.contains("site-dock--floating") ||
-      isMinimized(this.dock)
+      this.dock.classList.contains("site-dock--floating")
     ) {
       return;
     }
