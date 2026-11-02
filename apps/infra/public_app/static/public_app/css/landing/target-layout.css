@@ -217,3 +217,34 @@
   padding-left: 1.25rem;
   list-style: disc;
 }
+
+
+.landing-v2-demo-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
+  gap: clamp(1.5rem, 3vw, 3rem);
+  align-items: start;
+}
+
+.landing-v2-demo-copy,
+.landing-v2-demo-media {
+  min-width: 0;
+}
+
+.landing-v2-demo-copy > p:not(.landing-v2-eyebrow) {
+  margin-top: 1rem;
+  color: var(--landing-muted);
+  font-size: 1rem;
+  line-height: 1.65;
+}
+
+.landing-v2-demo-media .landing-oss-demo {
+  padding-top: 0;
+  border-top: 0;
+}
+
+@media (max-width: 900px) {
+  .landing-v2-demo-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
