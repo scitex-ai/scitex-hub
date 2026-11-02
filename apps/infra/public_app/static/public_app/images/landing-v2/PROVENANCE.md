@@ -20,6 +20,29 @@ hashes are recorded so the page can be re-audited from the repository.
 The 640 and 1280 pixel JPEG/WebP renditions were resized and cropped locally from the
 source photographs with Pillow; no generated imagery was added.
 
+## Eleven application capture set: SDK and Hub
+
+`product-captures-eleven-apps-20261103.json` retains the nine leaf-app captures,
+adds the actual SDK creator view, and reuses the actual Hub launcher from
+`product-captures-20261102.json`. Both earlier manifests and every historical
+asset remain unchanged. It indexes eleven applications and thirty-three responsive
+renditions; image timestamps and filenames use the capture host's observed UTC
+date rather than forcing the manifest task date.
+
+- `sdk-20261102-*`: actual authenticated `/apps/sdk/` default starter catalog
+  and creation form, with four real starter options. The screenshot does not
+  claim that an app was scaffolded or validated. Owner/project controls and
+  target/app/server/token fields were privacy-filtered before any PNG was saved.
+  The recorded original hash identifies that privacy-filtered browser capture;
+  an unmasked private-data image was not persisted.
+
+The SDK capture allowed GET only. No create, scaffold, validate, filesystem/user
+write, dev-install, publish, model call or other POST was executed. No application
+HTML, data or asset response was substituted. The dock was minimized through its
+normal control; only faithful resize/compression followed the privacy filter.
+This records actual interface state, not complete backend feature health or
+production availability.
+
 ## Nine leaf application capture set
 
 `product-captures-nine-apps-20261103.json` indexes the nine leaf applications:
