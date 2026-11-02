@@ -9816,3 +9816,15 @@ msgstr "scitex-ioライブラリと分野別のSciTeX®パッケージは、デ�
 #: apps/infra/public_app/templates/public_app/landing_partials/landing_hero.html
 msgid "SciTeX® Hub provides a graphical workspace for users and API endpoints for external agents."
 msgstr "SciTeX® Hubは、ユーザー向けのGUIワークスペースと、外部エージェント向けのAPIエンドポイントを提供します。"
+
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_hero.html
+msgid "scitex-clew is the foundation of the ecosystem."
+msgstr "scitex-clewは、このエコシステムの基盤です。"
+
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_hero.html
+msgid "The scitex-io library and specialized SciTeX packages are designed to capture provenance during data reads and writes."
+msgstr "scitex-ioライブラリと分野別のSciTeXパッケージは、データの読み書きに合わせて来歴を記録するよう設計されています。"
+
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_hero.html
+msgid "scitex-hub provides a graphical workspace for users and API endpoints for external agents."
+msgstr "scitex-hubは、ユーザー向けのGUIワークスペースと、外部エージェント向けのAPIエンドポイントを提供します。"
