@@ -196,9 +196,14 @@ print(json.dumps([attempts,all(not r['available'] for r in result['repositories'
         # Arrange
         data = json.loads(SNAPSHOT.read_text())
         # Act
-        observed = set(data["repositories"])
+        visible = {
+            row["name"]
+            for group in repository_cards()["groups"]
+            for row in group["cards"]
+        }
+        observed = (set(REPOSITORIES).issubset(data["repositories"]), visible)
         # Assert
-        self.assertEqual(observed, set(REPOSITORIES))
+        self.assertEqual(observed, (True, set(REPOSITORIES)))
 
 
 class LandingTemplateTests(unittest.TestCase):
@@ -240,6 +245,11 @@ class LandingTemplateTests(unittest.TestCase):
                             path(
                                 "open-source/", lambda request: None, name="open_source"
                             ),
+                            path(
+                                "api/landing/github-counts/",
+                                lambda request: None,
+                                name="landing-github-counts",
+                            ),
                         ],
                         "public_app",
                     )
@@ -279,7 +289,7 @@ settings.configure(USE_I18N=False,ROOT_URLCONF='owned_landing_urls',SECRET_KEY='
 from django.urls import include,path
 from types import ModuleType
 routes=ModuleType('owned_landing_urls')
-routes.urlpatterns=[path('',include(([path('open-source/',lambda request:None,name='open_source')],'public_app')))]
+routes.urlpatterns=[path('',include(([path('open-source/',lambda request:None,name='open_source'),path('api/landing/github-counts/',lambda request:None,name='landing-github-counts')],'public_app')))]
 sys.modules[routes.__name__]=routes
 from django.template import Engine,Context
 engine=Engine(dirs=['apps/infra/public_app/templates'],libraries={
@@ -311,9 +321,9 @@ print(json.dumps([attempts,html.count('class="far fa-star"'),list(Path.home().it
             / "apps/infra/public_app/templates/public_app/landing_partials/landing_opensource.html"
         ).read_text()
         card = source[
-            source.index("                        <li>") : source.index(
-                "                        </li>"
-            )
+            source.index(
+                "                        <li data-github-repo="
+            ) : source.index("                        </li>")
         ]
         template = self.engine.from_string("{% load i18n %}" + card)
         repo = {
