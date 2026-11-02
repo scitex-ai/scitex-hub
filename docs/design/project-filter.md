@@ -14,7 +14,9 @@ handler or filter CSS is copied into Hub.
 
 `scripts/testing/verify-hub-repo-filter.py` renders the real installed SDK module
 and the actual Hub controllers in Chromium against owned fixture data. It
-checks desktop/phone input, mouse and keyboard focus, matching, empty results,
+checks the complete production profile/header template and host CSS with its
+title and New action, including usable phone input width and a full filter row.
+It also checks desktop/phone input, mouse and keyboard focus, matching, empty results,
 clear/blur, and the real AJAX `loadMe()` remount path. Supply the installed
 `scitex_sdk` package directory, a Chromium executable and the TypeScript package
 path with its CLI options. It does not access live user projects or accounts.
