@@ -29,6 +29,49 @@ function pointer(type: string, clientX: number): Event {
   return event;
 }
 
+function actualGalleryMarkup(): string {
+  const source = readFileSync(resolve(process.cwd(), "apps/infra/public_app/templates/public_app/landing_partials/landing_app_gallery.html"), "utf8");
+  const manifest = JSON.parse(readFileSync(resolve(process.cwd(), "apps/infra/public_app/static/public_app/images/landing-v2/product-captures-eleven-apps-20261103.json"), "utf8"));
+  const host = document.createElement("div");
+  host.innerHTML = source.replace(/{%[\s\S]*?%}/g, "");
+  // Unit fixture for the rendered tab contract. Actual Django rendering and
+  // public metadata projection are checked by test_landing_capture_tabs.py.
+  const tabs = host.querySelector<HTMLElement>("[data-carousel-tabs]")!;
+  tabs.replaceChildren();
+  const categoryRow = document.createElement("div");
+  categoryRow.dataset.carouselCategories = "";
+  categoryRow.setAttribute("role", "tablist");
+  tabs.append(categoryRow);
+  const groups = new Map<string, HTMLElement>();
+  const captures = [...manifest.captures].sort((a, b) => a.gallery_slide_index - b.gallery_slide_index);
+  for (const app of captures) {
+    let panel = groups.get(app.gallery_category);
+    if (!panel) {
+      const category = document.createElement("button");
+      category.dataset.carouselCategoryTab = app.gallery_category;
+      category.setAttribute("role", "tab");
+      category.textContent = app.gallery_category;
+      categoryRow.append(category);
+      panel = document.createElement("div");
+      panel.dataset.carouselCategoryPanel = app.gallery_category;
+      panel.hidden = groups.size > 0;
+      groups.set(app.gallery_category, panel);
+      tabs.append(panel);
+    }
+    const button = document.createElement("button");
+    button.dataset.carouselDot = String(app.gallery_slide_index);
+    button.dataset.carouselAppCategory = app.gallery_category;
+    button.title = app.capture_version_note;
+    button.textContent = app.gallery_label;
+    const version = document.createElement("small");
+    version.textContent = "v" + app.capture_version;
+    button.append(version);
+    button.setAttribute("role", "tab");
+    panel.append(button);
+  }
+  return host.innerHTML;
+}
+
 beforeEach(() => {
   vi.useFakeTimers();
   Object.defineProperty(document, "hidden", { configurable: true, value: false });
@@ -174,13 +217,7 @@ describe("landing V2 product carousel", () => {
 
 describe("current eleven-application template", () => {
   it("keeps all eleven actual slides reachable by keyboard, swipe and dots", () => {
-    const source = readFileSync(
-      resolve(process.cwd(), "apps/infra/public_app/templates/public_app/landing_partials/landing_app_gallery.html"),
-      "utf8",
-    );
-    // Django's translated strings/static tags are irrelevant to event binding;
-    // the separate rendered-template contract checks their final values/assets.
-    document.body.innerHTML = source.replace(/{%[\s\S]*?%}/g, "");
+    document.body.innerHTML = actualGalleryMarkup();
     const carousel = document.querySelector<HTMLElement>("[data-landing-carousel]")!;
     const slides = [...carousel.querySelectorAll<HTMLElement>("[data-carousel-slide]")];
     const dots = [...carousel.querySelectorAll<HTMLButtonElement>("[data-carousel-dot]")];
@@ -193,19 +230,92 @@ describe("current eleven-application template", () => {
     expect(status()).toBe("1 / 11");
     dots[0].focus();
     dots[0].dispatchEvent(new KeyboardEvent("keydown", { key: "ArrowLeft", bubbles: true }));
-    expect(status()).toBe("11 / 11");
-    expect(document.activeElement).toBe(dots[10]);
-    expect(slides.map(s => s.hidden)).toEqual([true, true, true, true, true, true, true, true, true, true, false]);
-    dots[10].dispatchEvent(new KeyboardEvent("keydown", { key: "ArrowRight", bubbles: true }));
+    expect(status()).toBe("2 / 11");
+    expect(document.activeElement).toBe(dots[1]);
+    expect(slides.map(s => s.hidden)).toEqual([true, false, true, true, true, true, true, true, true, true, true]);
+    dots[1].dispatchEvent(new KeyboardEvent("keydown", { key: "ArrowRight", bubbles: true }));
     expect(status()).toBe("1 / 11");
     const track = carousel.querySelector<HTMLElement>("[data-carousel-track]")!;
     track.dispatchEvent(pointer("pointerdown", 280));
     track.dispatchEvent(pointer("pointerup", 180));
     expect(status()).toBe("2 / 11");
+    document.querySelector<HTMLButtonElement>('[data-carousel-category-tab="infrastructure"]')!.click();
     dots[3].click();
     expect(status()).toBe("4 / 11");
     expect(slides[3].hidden).toBe(false);
     expect(dots.map(d => d.tabIndex)).toEqual([-1, -1, -1, 0, -1, -1, -1, -1, -1, -1, -1]);
     expect(slides.filter(s => s.getAttribute("aria-hidden") === "false")).toHaveLength(1);
+  });
+});
+
+
+describe("two-level screenshot categories", () => {
+  beforeEach(() => { document.body.innerHTML = actualGalleryMarkup(); initLandingCarousels(); });
+  const category = (key: string) => document.querySelector<HTMLButtonElement>(`[data-carousel-category-tab="${key}"]`)!;
+  const dot = (index: number) => document.querySelector<HTMLButtonElement>(`[data-carousel-dot="${index}"]`)!;
+  const status = () => document.querySelector("[data-carousel-status]")?.textContent;
+  const visibleGroup = () => [...document.querySelectorAll<HTMLElement>("[data-carousel-category-panel]")].filter(p => !p.hidden).map(p => p.dataset.carouselCategoryPanel);
+
+  it("shows only the selected group's apps and remembers the last app per category", () => {
+    expect(visibleGroup()).toEqual(["platform"]);
+    dot(1).click();
+    category("research").click();
+    expect(status()).toBe("6 / 11");
+    expect(visibleGroup()).toEqual(["research"]);
+    dot(8).click();
+    category("platform").click();
+    expect(status()).toBe("2 / 11");
+    category("research").click();
+    expect(status()).toBe("9 / 11");
+  });
+
+  it("keeps app arrows and Home/End within their group", () => {
+    category("research").click();
+    dot(5).focus();
+    dot(5).dispatchEvent(new KeyboardEvent("keydown", {key: "ArrowLeft", bubbles: true}));
+    expect(status()).toBe("9 / 11");
+    expect(document.activeElement).toBe(dot(8));
+    dot(8).dispatchEvent(new KeyboardEvent("keydown", {key: "Home", bubbles: true}));
+    expect(status()).toBe("6 / 11");
+    dot(5).dispatchEvent(new KeyboardEvent("keydown", {key: "End", bubbles: true}));
+    expect(status()).toBe("9 / 11");
+  });
+
+  it("navigates the category row without handing focus to an app tab", () => {
+    category("platform").focus();
+    category("platform").dispatchEvent(new KeyboardEvent("keydown", {key: "ArrowLeft", bubbles: true}));
+    expect(visibleGroup()).toEqual(["publication"]);
+    expect(status()).toBe("10 / 11");
+    expect(document.activeElement).toBe(category("publication"));
+  });
+
+  it("synchronizes categories when global manual controls and swipe cross groups", () => {
+    dot(1).click();
+    document.querySelector<HTMLElement>("[data-carousel-next]")!.click();
+    expect(status()).toBe("3 / 11");
+    expect(visibleGroup()).toEqual(["infrastructure"]);
+    category("research").click();
+    dot(8).click();
+    const track = document.querySelector<HTMLElement>("[data-carousel-track]")!;
+    track.dispatchEvent(pointer("pointerdown", 280));track.dispatchEvent(pointer("pointerup", 180));
+    expect(status()).toBe("10 / 11");
+    expect(visibleGroup()).toEqual(["publication"]);
+    expect(category("publication").getAttribute("aria-selected")).toBe("true");
+  });
+
+  it("preserves autoplay across category boundaries and wraps all eleven slides", () => {
+    dot(1).click();
+    vi.advanceTimersByTime(6000);
+    expect(status()).toBe("3 / 11");expect(visibleGroup()).toEqual(["infrastructure"]);
+    category("publication").click();dot(10).click();vi.advanceTimersByTime(6000);
+    expect(status()).toBe("1 / 11");expect(visibleGroup()).toEqual(["platform"]);
+  });
+
+  it("uses captured versions and keeps source-only/mismatched evidence in tooltips", () => {
+    expect(dot(6).querySelector("small")?.textContent).toBe("v1.0.0");
+    expect(dot(6).title).toContain("No app-version badge");
+    expect(dot(7).querySelector("small")?.textContent).toBe("v0.44.0");
+    expect(dot(7).title).toContain("0.44.1");
+    expect(dot(0).querySelector("small")?.textContent).toBe("v0.21.0");
   });
 });

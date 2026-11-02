@@ -9916,3 +9916,11 @@ msgstr "インストール済みパッケージのスキルを ~/.scitex/dev/ski
 
 msgid "With newer scitex-dev releases:"
 msgstr "新しい scitex-dev では："
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_app_gallery.html
+msgid "Screenshot categories"
+msgstr "画面のカテゴリ"
+
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_app_gallery.html
+#, python-format
+msgid "%(category)s screenshots"
+msgstr "%(category)s の画面"

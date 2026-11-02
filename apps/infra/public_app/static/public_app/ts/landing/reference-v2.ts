@@ -14,6 +14,13 @@ function initCarousel(carousel: HTMLElement): void {
 
   const slides = asElements<HTMLElement>(carousel, "[data-carousel-slide]");
   const dots = asElements<HTMLButtonElement>(carousel, "[data-carousel-dot]");
+  const categories = asElements<HTMLButtonElement>(carousel, "[data-carousel-category-tab]");
+  const categoryPanels = asElements<HTMLElement>(carousel, "[data-carousel-category-panel]");
+  const remembered = new Map<string, number>();
+  const categoryOf = (index: number): string | undefined => dots[index]?.dataset.carouselAppCategory;
+  const indicesIn = (key: string): number[] => dots.flatMap((dot, index) =>
+    dot.dataset.carouselAppCategory === key ? [index] : []);
+
   const previous = carousel.querySelector<HTMLButtonElement>(
     "[data-carousel-prev]",
   );
@@ -73,11 +80,32 @@ function initCarousel(carousel: HTMLElement): void {
       dot.setAttribute("aria-selected", String(selected));
       dot.tabIndex = selected ? 0 : -1;
     });
+    const key = categoryOf(current);
+    if (key) {
+      remembered.set(key, current);
+      categories.forEach(tab => {
+        const selected = tab.dataset.carouselCategoryTab === key;
+        tab.setAttribute("aria-selected", String(selected));
+        tab.tabIndex = selected ? 0 : -1;
+      });
+      categoryPanels.forEach(panel => { panel.hidden = panel.dataset.carouselCategoryPanel !== key; });
+    }
     status.textContent = `${current + 1} / ${slides.length}`;
     const upcoming = slides[(current + 1) % slides.length].querySelector<HTMLImageElement>("img");
     if (upcoming) upcoming.loading = "eager";
     if (focusDot) dots[current]?.focus();
   };
+
+  const selectCategory = (key: string, focusCategory = false): void => {
+    const indices = indicesIn(key);
+    if (!indices.length) return;
+    show(remembered.get(key) ?? indices[0]);
+    if (focusCategory) categories.find(tab => tab.dataset.carouselCategoryTab === key)?.focus();
+    schedule();
+  };
+  categories.forEach(tab => tab.addEventListener("click", () => {
+    selectCategory(tab.dataset.carouselCategoryTab!);
+  }));
 
   previous.addEventListener("click", () => { show(current - 1); schedule(); });
   next.addEventListener("click", () => { show(current + 1); schedule(); });
@@ -86,10 +114,25 @@ function initCarousel(carousel: HTMLElement): void {
   });
 
   carousel.addEventListener("keydown", (event: KeyboardEvent) => {
-    if (event.key !== "ArrowLeft" && event.key !== "ArrowRight") return;
-    event.preventDefault();
+    const target = event.target instanceof HTMLElement ? event.target : null;
+    const category = target?.closest<HTMLButtonElement>("[data-carousel-category-tab]");
+    const dot = target?.closest<HTMLButtonElement>("[data-carousel-dot]");
+    if (!["ArrowLeft", "ArrowRight", "Home", "End"].includes(event.key)) return;
     const step = event.key === "ArrowLeft" ? -1 : 1;
-    show(current + step, event.target instanceof HTMLButtonElement);
+    event.preventDefault();
+    if (category) {
+      const index = categories.indexOf(category);
+      const nextIndex = event.key === "Home" ? 0 : event.key === "End" ? categories.length - 1
+        : (index + step + categories.length) % categories.length;
+      selectCategory(categories[nextIndex].dataset.carouselCategoryTab!, true);
+      return;
+    }
+    const key = dot?.dataset.carouselAppCategory;
+    const indices = key ? indicesIn(key) : slides.map((_, index) => index);
+    const position = indices.indexOf(current);
+    const nextPosition = event.key === "Home" ? 0 : event.key === "End" ? indices.length - 1
+      : (position + step + indices.length) % indices.length;
+    show(indices[nextPosition], event.target instanceof HTMLButtonElement);
     schedule();
   });
 
