@@ -22,8 +22,10 @@
                 {% trans "Already have an account?" %}
                 <a href="{% url 'auth_app:signin' %}">{% trans "Sign in" %}</a>
             </p>
-            <p class="landing-v2-alpha">
-                {% blocktrans with version=SCITEX_HUB_VERSION %}Alpha Release ({{ version }}) — Data persistence and API stability are not guaranteed. For production use, install the local Python toolkit. Any contribution welcome:{% endblocktrans %}
+            <p class="landing-v2-alpha cloud-alpha-banner" role="note">
+                <strong>{% trans "SciTeX® Cloud is in alpha." %}</strong>
+                {% trans "Features and APIs may change, and interruptions or data loss are possible. Keep separate backups of important work. For production workflows, use the local Python toolkit." %}
+                {% trans "Feedback and contributions are welcome:" %}
                 <a href="mailto:{{ CONTACT_EMAIL }}">{{ CONTACT_EMAIL }}</a>
             </p>
             <ul class="landing-v2-hero-rail" aria-label="{% trans 'One project across devices and compute' %}">

@@ -55,6 +55,14 @@ ssh nas "screen -ls"
 
 ## Step 4: Verify Production — ALWAYS READ LOGS
 
+Check the shared **Alpha** badge on desktop and mobile and the prominent
+alpha notice on `/landing/`. The markup lives in
+`templates/global_base_partials/global_header.html` and
+`apps/infra/public_app/templates/public_app/landing_partials/landing_hero.html`;
+`static/shared/css/components/cloud-alpha-notice.css` styles both without
+increasing the workspace header height. Verify the actual delivered stylesheet,
+not just a source checkout or image version.
+
 **DO NOT just poll HTTP status codes.** Always read actual container logs.
 
 ```bash
