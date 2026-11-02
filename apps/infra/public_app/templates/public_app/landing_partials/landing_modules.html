@@ -1,28 +1,14 @@
 {% load static i18n %}
 
-<section class="landing-v2-section landing-v2-apps" id="apps" aria-labelledby="landing-v2-apps-title">
-    <span id="hub" class="landing-section-alias" aria-hidden="true"></span>
-    <span id="screenshots" class="landing-section-alias" aria-hidden="true"></span>
+<section class="landing-v2-section landing-v2-demo" id="demo" aria-labelledby="landing-v2-demo-title">
     <div class="container landing-v2-shell">
         <div class="landing-v2-intro">
             <div>
-                <p class="landing-v2-eyebrow"><a class="landing-v2-section-label" href="#apps"><i class="fa-solid fa-link" aria-hidden="true"></i> {% trans "Apps" %}</a></p>
-                <h2 id="landing-v2-apps-title">{% trans "One project, connected research tools" %}</h2>
+                <p class="landing-v2-eyebrow"><a class="landing-v2-section-label" href="#demo"><i class="fa-solid fa-link" aria-hidden="true"></i> {% trans "Demo" %}</a></p>
+                <h2 id="landing-v2-demo-title">{% trans "The Python toolkit in action" %}</h2>
             </div>
-            <p>{% trans "Each built-in app specializes. Hub keeps project, files, identity, and commands connected. Custom Apps sit outside the built-ins and extend the same contract." %}</p>
+            <p>{% trans "An AI-agent research workflow with the SciTeX Python toolkit and MCP tools: literature search, experiments, analysis, figures, and manuscript writing." %}</p>
         </div>
-
-        <ul class="landing-app-directory">
-            <li><a href="/apps/agent-container/">Agent Container <span aria-hidden="true">→</span></a><p>{% trans "Agent overview and runtime inventory." %}</p></li>
-            <li><a href="/apps/cards/">Cards <span aria-hidden="true">→</span></a><p>{% trans "Tasks, boards, and conversations." %}</p></li>
-            <li><a href="/apps/storage/">Storage <span aria-hidden="true">→</span></a><p>{% trans "Inspect disk usage and plan data operations." %}</p></li>
-            <li><a href="/apps/scholar/">Scholar <span aria-hidden="true">→</span></a><p>{% trans "Search papers and organize references." %}</p></li>
-            <li><a href="/apps/stats/">Stats <span aria-hidden="true">→</span></a><p>{% trans "Choose tests and inspect analysis results." %}</p></li>
-            <li><a href="/apps/figrecipe/">FigRecipe <span aria-hidden="true">→</span></a><p>{% trans "Create figures from data and recipes." %}</p></li>
-            <li><a href="/apps/writer/">Writer <span aria-hidden="true">→</span></a><p>{% trans "Edit manuscript sections and preview PDFs." %}</p></li>
-            <li><a href="/apps/live-paper/">Live Paper <span aria-hidden="true">→</span></a><p>{% trans "Read papers alongside claims and provenance." %}</p></li>
-            <li><a href="/apps/agentic-journal/">Agentic Journal <span aria-hidden="true">→</span></a><p>{% trans "Explore the author and publication workflow." %}</p></li>
-        </ul>
         {% include "public_app/landing_partials/landing_research_demo.html" %}
     </div>
 </section>

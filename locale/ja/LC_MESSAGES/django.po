@@ -9636,3 +9636,19 @@ msgstr "Agentic Journal — 著者向け案内と出版ワークフロー。投�
 #: apps/infra/public_app/templates/public_app/landing_partials
 msgid "Author guidance and publication workflow; no submissions shown. 2026-11-02."
 msgstr "著者向け案内と出版ワークフロー。投稿済みの原稿は表示していません。 2026-11-02."
+
+#: apps/infra/public_app/templates/public_app/landing_partials
+msgid "Demo"
+msgstr "デモ"
+
+#: apps/infra/public_app/templates/public_app/landing_partials
+msgid "The Python toolkit in action"
+msgstr "Pythonツールキットによる研究の実例"
+
+#: apps/infra/public_app/templates/public_app/landing_partials
+msgid "An AI-agent research workflow with the SciTeX Python toolkit and MCP tools: literature search, experiments, analysis, figures, and manuscript writing."
+msgstr "SciTeXのPythonツールキットとMCPツールを使い、AIエージェントが文献検索、実験、分析、図の作成、原稿執筆を進める研究ワークフローです。"
+
+#: apps/infra/public_app/templates/public_app/landing_partials
+msgid "Recorded with SciTeX v2.10. The current app interfaces are shown in Overview."
+msgstr "SciTeX v2.10で収録したデモです。現在のアプリ画面は「概要」で紹介しています。"

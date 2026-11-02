@@ -1,8 +1,8 @@
 {% load i18n %}
-{% comment %}Optional full workflow, included by Apps. Media URLs come from the public landing view.{% endcomment %}
-<details class="landing-oss-demo" id="research-demo">
+{% comment %}Recorded backend workflow, included by the dedicated Demo section. Media URLs come from the public landing view.{% endcomment %}
+<details class="landing-oss-demo" id="research-demo" open>
     <summary id="landing-oss-demo-title">{% trans "Watch the full workflow" %}</summary>
-    <p>{% trans "An end-to-end research workflow using SciTeX tools." %}</p>
+    <p>{% trans "Recorded with SciTeX v2.10. The current app interfaces are shown in Overview." %}</p>
     <div class="landing-oss-video-wrapper">
         <video controls playsinline preload="none" class="landing-oss-video"
                poster="{{ research_demo_poster_url }}">

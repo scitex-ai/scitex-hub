@@ -36,6 +36,6 @@ credential, user directory, scheduler or runtime network access is required. Mis
 or malformed snapshots render links with “Counts unavailable”. The three group
 headings do not create additional landing navigation sections.
 
-`landing_research_demo.html` is a separate optional disclosure for the Apps section.
+`landing_research_demo.html` is an expanded disclosure in the dedicated Demo section.
 It uses the existing public-view media URL context and loads only on manual video
 interaction (`preload="none"`, no autoplay), preserving the demos-index link.

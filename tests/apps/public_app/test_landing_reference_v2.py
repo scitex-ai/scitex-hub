@@ -120,10 +120,10 @@ def test_v2_explains_one_context_builtins_and_extension_contract():
     source = (_text(MODULES) + _text(GALLERY))
     expected = (
         "SciTeX Cloud",
-        "One project, connected research tools",
+        "The Python toolkit in action",
         *BUILT_IN_APPS,
         "Custom Apps",
-        "same contract",
+        "shared interface components",
         "Phone",
         "Laptop",
         "HPC",
