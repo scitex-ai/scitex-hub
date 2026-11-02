@@ -100,20 +100,30 @@ class LandingResearchDemoBlockTest(TestCase):
         # Assert — the demo block carries its anchor
         assert b'id="research-demo"' in resp.content
 
-    def test_demo_video_uses_native_embed_with_controls(self):
+    def test_demo_video_uses_optional_disclosure_with_native_controls(self):
         # Arrange: an anonymous visitor
         # Act
         resp = self.client.get("/landing/")
-        # Assert — owner's preferred native embed style: autoplay muted loop + controls
-        assert b"<video autoplay" in resp.content and b"controls" in resp.content
+        # Assert — workflow disclosure is manual; native controls remain available.
+        demo = resp.content.split(b'id="research-demo"', 1)[1].split(b"</details>", 1)[
+            0
+        ]
+        assert (b"<summary" in demo, b"controls" in demo) == (True, True)
 
-    def test_demo_video_loop_muted_playsinline(self):
+    def test_demo_video_is_manual_inline_without_autoplay_or_loop(self):
         # Arrange: an anonymous visitor
         # Act
         resp = self.client.get("/landing/")
-        # Assert — the embed loops silently inline like the module demos
-        body = resp.content
-        assert b"loop" in body and b"muted" in body and b"playsinline" in body
+        # Assert — no automatic playback or download of the full workflow.
+        demo = resp.content.split(b'id="research-demo"', 1)[1].split(b"</details>", 1)[
+            0
+        ]
+        assert (
+            b"autoplay" in demo,
+            b"loop" in demo,
+            b"playsinline" in demo,
+            b'preload="none"' in demo,
+        ) == (False, False, True, True)
 
     def test_demo_video_src_is_research_demo_url(self):
         # Arrange: the 40-minute demo is the scitex-automated-research media file
@@ -134,7 +144,10 @@ class LandingResearchDemoBlockTest(TestCase):
         # Act
         actual = RESEARCH_DEMO_VIDEO_URL
         # Assert — no placeholder survives; it is the owner-confirmed media URL
-        assert actual == "https://scitex.ai/media/videos/scitex-automated-research-demo.mp4"
+        assert (
+            actual
+            == "https://scitex.ai/media/videos/scitex-automated-research-demo.mp4"
+        )
 
     def test_demo_video_matches_catalog_entry(self):
         # Arrange: the VIDEO_CATALOG entry the watch page serves
@@ -160,12 +173,12 @@ class LandingResearchDemoBlockTest(TestCase):
         # Assert — no per-movie watch URL appears in the new section
         assert b'href="/demos/watch/' not in resp.content
 
-    def test_sdk_custom_app_demo_slot_reserved(self):
+    def test_full_workflow_disclosure_has_a_clear_manual_summary(self):
         # Arrange: an anonymous visitor
         # Act
         resp = self.client.get("/landing/")
-        # Assert — the SDK custom-app demo slot is a marked coming-soon note
-        assert b"scitex-sdk GUI" in resp.content
+        # Assert — no stale promise is substituted for the real manual video.
+        assert b"Watch the full workflow" in resp.content
 
 
 class LandingAppStoreNoteTest(TestCase):
