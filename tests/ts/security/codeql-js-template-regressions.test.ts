@@ -24,7 +24,8 @@ describe("CodeQL JavaScript and template regressions", () => {
     );
     expect(media).not.toMatch(/\.innerHTML\s*=/);
     expect(media).toContain("encodeURIComponent");
-    expect(media).toContain('new Blob([svg], { type: "image/svg+xml" })');
+    // SVG MIME, inert image DOM and object-URL cleanup are exercised by
+    // svg-media-blob-behavior.test.ts using the real renderer and Blob.
   });
 
   it("validates sidebar fallback navigation before assigning it", () => {
