@@ -9408,3 +9408,51 @@ msgstr "手元のマシンでPythonパッケージやコマンドラインツー
 #: apps/infra/public_app/templates/public_app/landing_partials
 msgid "SciTeX — Where Research Happens"
 msgstr "SciTeX — 研究が進む場所"
+
+#: apps/infra/public_app/templates/public_app/landing_partials
+msgid "Explore the platform, research apps, and shared tools in their public source repositories. Inspect the code, review each license, and contribute."
+msgstr "プラットフォーム、研究アプリ、共通ツールの公開リポジトリを紹介します。ソースコードや各ライセンスを確認し、開発に参加できます。"
+
+#: apps/infra/public_app/templates/public_app/landing_partials
+msgid "GitHub counts checked:"
+msgstr "GitHubの集計日時："
+
+#: apps/infra/public_app/templates/public_app/landing_partials
+msgid "GitHub counts are unavailable."
+msgstr "GitHubの件数を取得できません。"
+
+#: apps/infra/public_app/templates/public_app/landing_partials
+msgid "Counts are a snapshot, not live updates."
+msgstr "件数は取得時点の値で、リアルタイムの更新ではありません。"
+
+#: apps/infra/public_app/templates/public_app/landing_partials
+msgid "Platform"
+msgstr "プラットフォーム"
+
+#: apps/infra/public_app/templates/public_app/landing_partials
+msgid "Research apps"
+msgstr "研究アプリ"
+
+#: apps/infra/public_app/templates/public_app/landing_partials
+msgid "Shared foundations"
+msgstr "共通基盤"
+
+#: apps/infra/public_app/templates/public_app/landing_partials
+msgid "forks"
+msgstr "フォーク"
+
+#: apps/infra/public_app/templates/public_app/landing_partials
+msgid "Counts unavailable"
+msgstr "件数を取得できません"
+
+#: apps/infra/public_app/templates/public_app/landing_partials
+msgid "Watch the full workflow"
+msgstr "研究ワークフロー全体を見る"
+
+#: apps/infra/public_app/templates/public_app/landing_partials
+msgid "An end-to-end research workflow using SciTeX tools."
+msgstr "SciTeXのツールを使った一連の研究ワークフローです。"
+
+#: apps/infra/public_app/templates/public_app/landing_partials
+msgid "Full-length demo — about 40 minutes, end to end."
+msgstr "全編デモ：約40分で最初から最後まで紹介します。"

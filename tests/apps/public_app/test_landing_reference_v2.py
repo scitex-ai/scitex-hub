@@ -119,7 +119,7 @@ def test_v2_explains_one_context_builtins_and_extension_contract():
     source = _text(MODULES)
     expected = (
         "SciTeX Cloud",
-        "one project context",
+        "One project, connected research tools",
         *BUILT_IN_APPS,
         "Custom Apps",
         "same contract",
