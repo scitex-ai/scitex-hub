@@ -9924,3 +9924,9 @@ msgstr "画面のカテゴリ"
 #, python-format
 msgid "%(category)s screenshots"
 msgstr "%(category)s の画面"
+
+msgid "FigRecipe — Three synthetic figures with a selected line and native Details; development capture."
+msgstr "FigRecipe — 3つの合成例の図と、選択した線の詳細。開発環境の画面。"
+
+msgid "Three synthetic figures with a selected line and native Details; development capture. 2026-11-02."
+msgstr "3つの合成例の図と、選択した線の詳細。開発環境の画面。2026-11-02。"

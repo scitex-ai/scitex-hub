@@ -1,0 +1,111 @@
+{
+  "capture_origin": "https://compute-03-net.scitex.ai",
+  "captured_at_utc": "2026-11-02T23:01:41Z",
+  "viewport": [
+    1440,
+    900
+  ],
+  "asset_substitution": false,
+  "synthetic_interface_example": true,
+  "selected_element": "ax0_line0",
+  "visible_figures_navigation": 3,
+  "visible_canvas_count": 1,
+  "javascript_errors": 0,
+  "fixture_files": [
+    {
+      "path": "01_synthetic_learning_curve.png",
+      "bytes": 78887,
+      "sha256": "a59b0f02a3132c8bb7813b2ed341a55c2610160a809fc1d97df8d7b5f5fda1f8"
+    },
+    {
+      "path": "01_synthetic_learning_curve.yaml",
+      "bytes": 7332,
+      "sha256": "50211d51c3f510392cff2da15a2ddd12f52b589bddcae7ac20aaca66f5302769"
+    },
+    {
+      "path": "01_synthetic_learning_curve_data/plot_000_x.csv",
+      "bytes": 24,
+      "sha256": "3c04196a0c3c647a6a2f2e8e8e640a233650cd6e4237de8d3be8c6d9d4d07635"
+    },
+    {
+      "path": "01_synthetic_learning_curve_data/plot_000_y.csv",
+      "bytes": 48,
+      "sha256": "d9c632a4c9457814e7737479d2b5c991a5579f2c90dde21e8700ec437e1fcf17"
+    },
+    {
+      "path": "01_synthetic_learning_curve_data/plot_001_x.csv",
+      "bytes": 24,
+      "sha256": "3c04196a0c3c647a6a2f2e8e8e640a233650cd6e4237de8d3be8c6d9d4d07635"
+    },
+    {
+      "path": "01_synthetic_learning_curve_data/plot_001_y.csv",
+      "bytes": 46,
+      "sha256": "c82960bda32feaee3983193e3ac04477885870f70ee97fb2cdf4a58aeb79a82c"
+    },
+    {
+      "path": "02_synthetic_group_comparison.png",
+      "bytes": 41959,
+      "sha256": "009384de46c0723a29eb20bc16fbbdeba485035f96277a263226d34d53ed69ac"
+    },
+    {
+      "path": "02_synthetic_group_comparison.yaml",
+      "bytes": 6638,
+      "sha256": "2db321fbab901bcae8bd792506f488d9ce46291c09d65fda514b1e375441af23"
+    },
+    {
+      "path": "02_synthetic_group_comparison_data/bar_000_height.csv",
+      "bytes": 18,
+      "sha256": "5d0b6904327d6775741932d1561b82657859cbccc44baa0c7c224bbdeeb8cdae"
+    },
+    {
+      "path": "03_synthetic_response_curve.png",
+      "bytes": 70372,
+      "sha256": "d9aa3f75ce2f0bac3b7560fa510af46882afd679a0ff215e88201e8d080efb0c"
+    },
+    {
+      "path": "03_synthetic_response_curve.yaml",
+      "bytes": 6583,
+      "sha256": "581011fd81f41bd1c4f06a3e01971d7e6afe1012b64fd68e68b0f8e57cea2a57"
+    },
+    {
+      "path": "03_synthetic_response_curve_data/plot_000_x.csv",
+      "bytes": 18,
+      "sha256": "cf8ad1d080b9016be5316199f8fb3567197fc86c8f7375aeed9f49eb3abab1eb"
+    },
+    {
+      "path": "03_synthetic_response_curve_data/plot_000_y.csv",
+      "bytes": 32,
+      "sha256": "b68c25300cfff323da200849ac406d4d953cd02eaef64fda27ed631ddb774120"
+    },
+    {
+      "path": "README-EXAMPLE.txt",
+      "bytes": 212,
+      "sha256": "292d64be75439fd6701190801cb19488e84a89ae53bf6100e5c301c0a6888a15"
+    }
+  ],
+  "renditions": [
+    {
+      "file": "figrecipe-20261103-scene-768.webp",
+      "width": 768,
+      "height": 480,
+      "bytes": 18752,
+      "sha256": "facaf1d6e74b12b5d9342b7cde91b937cddc623ec3661002cd30bde537ccf0b3"
+    },
+    {
+      "file": "figrecipe-20261103-scene-1200.webp",
+      "width": 1200,
+      "height": 750,
+      "bytes": 36786,
+      "sha256": "dc9520b3ac8a85aa7eec1c415dda9364124b628ca3d20d9c624ea426e6a04a26"
+    },
+    {
+      "file": "figrecipe-20261103-scene-1200.jpg",
+      "width": 1200,
+      "height": 750,
+      "bytes": 99221,
+      "sha256": "98bff44fff17fecf15074240915e03dda5dbf9a73b120feeaf5795555b2e1a44"
+    }
+  ],
+  "generator_sha256": "303f5ecdbc62676cb7af3b08f136ded662ebbdd252da94390a75dca419a9e4cc",
+  "caption": "Actual FigRecipe Figure view with three synthetic example recipes in its native Figure/Panel/Data hierarchy. Training line selected with eight-point Details. One figure canvas is visible at a time; Figure1/2/3 navigation and Objects tree remain visible. Synthetic values are interface examples, not MNIST findings."
+}

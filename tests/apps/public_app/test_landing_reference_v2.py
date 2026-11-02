@@ -135,7 +135,7 @@ def test_v2_uses_real_product_captures_and_clew_dag_with_provenance():
         marker in source
         for marker in (
             "scholar-20261102-1200.webp",
-            "figrecipe-20261102-1200.webp",
+            "figrecipe-20261103-scene-1200.webp",
             "writer-20261102-1200.webp",
             "stats-20261102-1200.webp",
             "live-paper-20261102-1200.webp",

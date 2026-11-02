@@ -195,3 +195,7 @@ above; the separate nine-leaf manifest identifies the expanded set.
   `d0bc3e398f9214e0b1423afe0d467c520b588be656f8b3ced37cea7608393508`.
 - `clew-dag.png` is the unmodified upstream file. `clew-dag-640.webp` is a responsive
   rendition of that file.
+
+## FigRecipe representative Figure scene (2026-11-03 gallery cohort)
+
+The active gallery uses the native Figure view with three synthetic example recipes, a selected Training line and its eight-point Details. Figure 1/2/3 navigation and the Objects list show the actual hierarchy; one canvas is visible at a time. Values are illustrative, not MNIST results. Reproduce the fixture with `scripts/demo/landing_figrecipe_scene/generate_examples.py`; its adjacent README and PROVENANCE.json record capture hashes and the real UTC timestamp. Historical worksheet images are retained.
