@@ -21,14 +21,6 @@
             <a class="landing-v2-button"
                href="{% url 'public_app:open_source' %}">{% trans "Why open source matters for research" %}<span aria-hidden="true">→</span></a>
         </div>
-        <p class="landing-v2-small landing-oss-asof">
-            {% if github_snapshot.checked_at %}
-                {% trans "GitHub counts checked:" %} <time datetime="{{ github_snapshot.checked_at }}">{{ github_snapshot.checked_at }}</time>
-            {% else %}
-                {% trans "GitHub counts are unavailable." %}
-            {% endif %}
-            {% trans "Counts are a snapshot, not live updates." %}
-        </p>
         {% for group in github_snapshot.groups %}
             <div class="landing-oss-group">
                 <h3>{% trans group.label %}</h3>
