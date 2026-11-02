@@ -165,3 +165,30 @@
     grid-template-columns: minmax(0, 1fr);
   }
 }
+
+.landing-v2-hero-gallery h3 {
+  color: inherit;
+}
+
+.landing-v2-hero .landing-v2-signin,
+.landing-v2-hero .landing-v2-hero-rail {
+  color: var(--text-secondary);
+}
+
+.landing-v2-hero .landing-v2-signin a {
+  color: var(--text-link, var(--text-primary));
+}
+
+.landing-v2-hero .hero-cta-button,
+.landing-v2-section .landing-v2-button-primary {
+  box-shadow: none;
+}
+
+.landing-v2-hero .hero-cta-button:hover,
+.landing-v2-section .landing-v2-button-primary:hover {
+  color: var(--color-on-primary);
+}
+
+.landing-v2-carousel-dots button[aria-selected="true"] {
+  box-shadow: inset 0 -2px 0 currentColor;
+}
