@@ -22,8 +22,10 @@
                 {% trans "Already have an account?" %}
                 <a href="{% url 'auth_app:signin' %}">{% trans "Sign in" %}</a>
             </p>
-            <p class="landing-v2-alpha">
-                {% blocktrans with version=SCITEX_HUB_VERSION %}Alpha Release ({{ version }}) — Data persistence and API stability are not guaranteed. For production use, install the local Python toolkit. Any contribution welcome:{% endblocktrans %}
+            <p class="landing-v2-alpha cloud-alpha-banner" role="note">
+                <strong>{% trans "SciTeX® Cloud is in alpha." %}</strong>
+                {% trans "Features and APIs may change, and interruptions or data loss are possible. Keep separate backups of important work. For production workflows, use the local Python toolkit." %}
+                {% trans "Feedback and contributions are welcome:" %}
                 <a href="mailto:{{ CONTACT_EMAIL }}">{{ CONTACT_EMAIL }}</a>
             </p>
             <ul class="landing-v2-hero-rail" aria-label="{% trans 'One project across devices and compute' %}">
@@ -44,19 +46,6 @@
                      fetchpriority="high"
                      alt="{% trans 'Two laboratory researchers review a microscopic image on a laptop while one holds a clipboard.' %}" />
             </picture>
-            <figcaption>
-                <span>{% trans "Research is human work." %}</span>
-                <small>
-                    {% trans "Illustrative stock photography:" %}
-                    <a href="https://www.pexels.com/photo/two-scientists-working-inside-the-laboratory-4031694/"
-                       target="_blank"
-                       rel="noopener noreferrer">Edward Jenner / Pexels</a>
-                    · <a href="https://www.pexels.com/license/"
-   target="_blank"
-   rel="noopener noreferrer">{% trans "Pexels license" %}</a>.
-                    {% trans "The people shown are not SciTeX customers, employees, or endorsers; no endorsement is implied." %}
-                </small>
-            </figcaption>
         </figure>
     </div>
 </section>

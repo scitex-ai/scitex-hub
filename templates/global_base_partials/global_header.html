@@ -1,6 +1,7 @@
 {% load i18n landing_i18n %}
 {% load static %}
 {% load module_icons %}
+<link rel="stylesheet" href="{% static 'shared/css/components/cloud-alpha-notice.css' %}" />
 
 <!-- hook-bypass: inline-style -->
 <!-- GitHub-Style Global Header -->
@@ -42,9 +43,13 @@
                      aria-hidden="true"
                      class="header-logo-icon header-logo-icon--dark" />
             </a>
-            <span class="header-build-meta">
+            <span class="header-build-meta header-build-meta--alpha">
                 <span class="header-hub-version" title="SciTeX Hub version"><span class="header-hub-product">SciTeX® Cloud </span>v{{ SCITEX_HUB_VERSION }}</span>
                 <time id="header-local-clock" class="header-local-clock" aria-label="Local time"></time>
+                <span class="header-alpha-notice" role="note" aria-label="{% trans 'SciTeX® Cloud is in alpha. Features may change. Keep separate backups of important work.' %}">
+                    <strong class="header-alpha-stage">{% trans "Alpha" %}</strong>
+                    <span class="header-alpha-description">{% trans "Features may change. Keep backups." %}</span>
+                </span>
             </span>
             {% if user.is_authenticated %}
                 <!-- AI Assistant Toggle (right of logo) -->
