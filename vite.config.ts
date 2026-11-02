@@ -3,7 +3,7 @@ import { defineConfig, Plugin } from "vite";
 import { resolve } from "path";
 import * as path from "path";
 import * as fs from "fs";
-import { execSync } from "child_process";
+import { execFileSync, execSync } from "child_process";
 import { createRequire } from "module";
 import { getEntryPoints } from "./vite.entries";
 
@@ -43,9 +43,10 @@ function discoverScitexUiStatic(): string | null {
 const SCITEX_UI_STATIC = discoverScitexUiStatic();
 
 /**
- * Discover the scitex-sdk npm package root (sibling checkout file layout).
+ * Discover the scitex-sdk npm package root from source or the Python install.
  * Same pattern as discoverScitexUiStatic — supports a Docker/CI `.apps/`
- * layout, the standard sibling checkout, and an explicit env override.
+ * layout, the standard sibling checkout, an explicit env override, and the
+ * installed SDK public frontend-package API (used by standalone CI builds).
  */
 function discoverScitexSdkRoot(): string | null {
   if (process.env.SCITEX_SDK_ROOT) {
@@ -59,6 +60,16 @@ function discoverScitexSdkRoot(): string | null {
   ];
   for (const candidate of candidates) {
     if (fs.existsSync(resolve(candidate, "package.json"))) return candidate;
+  }
+  try {
+    const installed = execFileSync(
+      "python3",
+      ["-c", "from scitex_sdk import get_frontend_package_dir; print(get_frontend_package_dir())"],
+      { encoding: "utf-8", timeout: 5000 },
+    ).trim();
+    if (fs.existsSync(resolve(installed, "package.json"))) return installed;
+  } catch {
+    // An absent SDK install leaves ordinary non-SDK entries available.
   }
   return null;
 }
