@@ -53,8 +53,9 @@ python -m unittest discover -s tests/apps/public_app/services -p 'test_landing_g
 python .github/ci/check_landing_github_counts.py
 ```
 
-The separate `landing_research_demo.html` remains a manual Apps-section disclosure
-with the existing media URLs; this counter feature does not alter video playback.
+The separate `landing_research_demo.html` is visible in the Demo section with
+native playback controls and the existing media URLs; the counter feature does
+not alter playback or add autoplay.
 
 ## Landing theme surfaces
 
