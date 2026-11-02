@@ -263,7 +263,7 @@ class LandingTemplateTests(unittest.TestCase):
                 html.count('class="fas fa-code-branch"'),
                 'id="github"' in html,
             ),
-            (True, 18, 18, True),
+            (True, 17, 17, True),
         )
 
     def test_fresh_template_render_performs_no_network_or_user_home_writes(self):
@@ -300,7 +300,7 @@ print(json.dumps([attempts,html.count('class="far fa-star"'),list(Path.home().it
                 check=True,
             )
         # Assert
-        self.assertEqual(json.loads(result.stdout), [[], 18, []])
+        self.assertEqual(json.loads(result.stdout), [[], 17, []])
 
     def test_actual_card_body_escapes_external_repository_descriptions(self):
         # Arrange

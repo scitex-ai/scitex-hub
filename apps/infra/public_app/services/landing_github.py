@@ -33,7 +33,6 @@ REPOSITORY_GROUPS = (
         (
             "scitex-clew",
             "scitex-io",
-            "scitex-ui",
             "openalex-local",
             "crossref-local",
         ),

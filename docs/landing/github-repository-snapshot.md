@@ -3,7 +3,9 @@
 The open-source cards list public SciTeX platform, app, and foundation repositories.
 The selection follows the ecosystem layers in the operator's presentation, with
 repository existence checked against GitHub's official public REST endpoint.
-The private presentation itself is not published with the site.
+The private presentation itself is not published with the site. The archived
+`scitex-ui` repository is excluded; its maintained UI implementation is part of
+`scitex-sdk`, which remains listed.
 
 Stars and forks come from `stargazers_count` and `forks_count` in
 [`GET /repos/{owner}/{repo}`](https://docs.github.com/en/rest/repos/repos#get-a-repository).
