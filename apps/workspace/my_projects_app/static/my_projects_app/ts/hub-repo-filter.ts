@@ -1,4 +1,5 @@
 /** Mount the installed SDK's filter component on initial and AJAX Me views. */
+import "../css/hub-repo-filter-layout.css";
 interface MountedFilter {
   readonly element: HTMLElement;
   destroy(): void;
