@@ -248,3 +248,7 @@
     grid-template-columns: minmax(0, 1fr);
   }
 }
+
+.landing-v2-clew-grid {
+  align-items: start;
+}

@@ -29,3 +29,5 @@ The native section-navigation enhancement is pinned to scitex-sdk source `721c15
 Overview uses a three-item list to explain the ecosystem roles: Clew as the foundation, scitex-io and specialized packages designed to capture provenance during reads/writes, and Hub as the GUI/external-agent API layer. Provenance itself focuses on “Record Forward. Verify Backward.” and Clew’s claim-to-source tracing. This wording does not promise independent scientific truth or a globally minimal dependency set.
 
 The hero omits the earlier “Literature, files, analysis…” introductory sentence; the ecosystem-role list carries the explanation instead.
+
+The Clew section also top-aligns its text and diagram.
