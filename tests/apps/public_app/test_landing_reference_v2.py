@@ -137,11 +137,13 @@ def test_v2_uses_real_product_captures_and_clew_dag_with_provenance():
     assert all(
         marker in source
         for marker in (
-            "hub-1200.webp",
-            "scholar-1200.webp",
-            "figrecipe-1200.webp",
-            "writer-1200.webp",
-            "short-clip-v2.mp4",
+            "hub-20261102-1200.webp",
+            "scholar-20261102-1200.webp",
+            "figrecipe-20261102-1200.webp",
+            "writer-20261102-1200.webp",
+            "stats-20261102-1200.webp",
+            "live-paper-20261102-1200.webp",
+            "clew-dag-640.webp",
             "Claim",
             "Output",
             "Processing",
@@ -233,8 +235,8 @@ def test_mobile_japanese_hero_keeps_words_on_semantic_lines():
     css = re.sub(r"\s+", " ", _text(CSS))
     # Act
     contracts = {
-        "line_one": '<span>{% trans "Where Research Happens" %}</span>' in hero,
-        "line_two": True,
+        "line_one": '<span>{% trans "A platform" %}</span>' in hero,
+        "line_two": '<span>{% trans "for science." %}</span>' in hero,
         "ja_size": ".landing-v2-hero h1:lang(ja)" in css,
         "narrow_fit": "font-size: clamp(1.65rem, 8vw, 4rem)" in css,
         "no_word_split": "h1:lang(ja) span { white-space: nowrap;" in css,
@@ -270,13 +272,13 @@ def test_carousel_script_is_manual_keyboard_and_swipe_only():
     [
         (
             "public_app/landing_partials/landing_hero.html",
-            "研究が進む場所",
-            "Where Research Happens",
+            "科学のための",
+            "A platform",
         ),
         (
             "public_app/landing_partials/landing_modules.html",
-            "ひとつのプロジェクトコンテキスト",
-            "one project context",
+            "同じプロジェクト文脈で。",
+            "The same context, from phone to compute node.",
         ),
         (
             "public_app/landing_partials/landing_modules.html",

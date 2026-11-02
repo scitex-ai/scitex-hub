@@ -113,9 +113,9 @@ outside the repository; its SHA-256 is recorded in the table above.
 
 Related tracked demo videos remain available at
 `apps/infra/public_app/static/public_app/videos/landing/`: `hub-demo.mp4`,
-`scholar-demo.mp4`, `writer-demo.mp4`, and `visualizer-demo.mp4`. The carousel uses the
-cleaner tracked guide captures rather than frames that expose local paths, third-party
-publisher pages, or unsupported manuscript claims.
+`scholar-demo.mp4`, `writer-demo.mp4`, and `visualizer-demo.mp4`. These legacy
+recordings and guide renditions remain as historical sources. The current carousel
+uses the six dated actual development captures documented above.
 
 ## SciTeX Clew DAG
 
