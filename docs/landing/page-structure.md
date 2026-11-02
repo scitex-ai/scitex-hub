@@ -33,3 +33,5 @@ The hero omits the earlier “Literature, files, analysis…” introductory sen
 The Clew section also top-aligns its text and diagram.
 
 The screenshot gallery advances every six seconds while visible. Its counter includes a pause/resume control. Pointer hover, keyboard focus, hidden tabs, and an off-screen gallery pause rotation; reduced-motion preferences disable automatic rotation initially. Manual selection and swipe remain available, with SDK underline tabs unchanged.
+
+Demo setup examples use `uv pip install 'scitex[all]'`, the umbrella stdio server (`scitex mcp start`), and `scitex-dev skills install` for the currently published umbrella dependency set (scitex2.30.8/dev0.28.0). Newer standalone Dev uses `scitex-dev dev skills install`; its older top-level alias is deprecated. The skills command collects installed providers into `~/.scitex/dev/skills/`; newer releases expose the same destination. MCP clients that do not inherit PATH need the environment’s absolute executable path. These commands were checked against CLI help and source; dependency resolution was checked with an isolated dry run, without installing into the live service.

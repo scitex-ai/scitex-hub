@@ -9898,3 +9898,21 @@ msgstr "デモで、ツールが連携して動作する様子をご覧くださ
 
 msgid "View the Clew paper repository"
 msgstr "Clew論文のリポジトリを見る"
+
+msgid "Install the toolkit"
+msgstr "ツールキットをインストール"
+
+msgid "Connect your MCP client"
+msgstr "MCPクライアントを接続"
+
+msgid "Install agent skills"
+msgstr "エージェントのスキルをインストール"
+
+msgid "Use the full path to scitex if your MCP client does not inherit your environment’s PATH."
+msgstr "MCPクライアントが環境のPATHを引き継がない場合は、scitexの絶対パスを指定してください。"
+
+msgid "Skills are collected from installed packages into ~/.scitex/dev/skills/."
+msgstr "インストール済みパッケージのスキルを ~/.scitex/dev/skills/ に集約します。"
+
+msgid "With newer scitex-dev releases:"
+msgstr "新しい scitex-dev では："

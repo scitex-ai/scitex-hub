@@ -284,3 +284,25 @@
   overflow-wrap: anywhere;
   line-height: 1.6;
 }
+
+/* Setup examples keep their own horizontal scroll on small screens. */
+.landing-v2-demo-setup {
+  margin: 1.5rem 0 0;
+  padding-left: 1.25rem;
+  display: grid;
+  gap: 1rem;
+}
+.landing-v2-demo-setup li { min-width: 0; }
+.landing-v2-demo-setup pre {
+  margin: 0.5rem 0;
+  padding: 0.75rem;
+  max-width: 100%;
+  overflow-x: auto;
+  border: 1px solid var(--border-default);
+  border-radius: var(--landing-radius);
+  background: var(--bg-secondary);
+  color: var(--text-primary);
+  font-size: 0.8rem;
+  line-height: 1.5;
+}
+.landing-v2-demo-setup code { color: inherit; }
