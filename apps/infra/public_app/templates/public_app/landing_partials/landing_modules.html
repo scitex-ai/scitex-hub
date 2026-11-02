@@ -7,17 +7,15 @@
             <p class="landing-v2-eyebrow"><a class="landing-v2-section-label" href="#provenance"><i class="fa-solid fa-link" aria-hidden="true"></i> {% trans "Provenance" %}</a></p>
             <h2 id="landing-v2-clew-title">{% trans "Trace claims back to their sources" %}</h2>
             <p class="landing-v2-clew-tagline"><strong>{% trans "Record Forward. Verify Backward." %}</strong></p>
-            <p>{% trans "SciTeX® Clew records the connections between source data, code, and research outputs as work progresses. Starting from a manuscript claim, it traces those connections backward to identify the data and code behind the result." %}</p>
-            <ol class="landing-v2-chain" aria-label="{% trans 'Claim to raw data provenance chain' %}">
-                <li>{% trans "Claim" %}</li>
-                <li>{% trans "Output" %}</li>
-                <li>{% trans "Processing" %}</li>
-                <li>{% trans "Raw data" %}</li>
-            </ol>
+            <p>{% trans "SciTeX® Clew records source data and inputs–executable–outputs triplets in a hash-linked provenance graph. It traces manuscript claims backward to their sources, verifying the recorded hashes at each step." %}</p>
+            <dl class="landing-v2-clew-directions">
+                <div><dt>{% trans "Forward" %}</dt><dd>{% trans "Source data → inputs–executable–outputs steps" %}</dd></div>
+                <div><dt>{% trans "Backward" %}</dt><dd>{% trans "Claims → outputs–executable–inputs steps → source data" %}</dd></div>
+            </dl>
             <a class="landing-v2-button landing-v2-button-primary"
-               href="https://github.com/scitex-ai/scitex-clew"
+               href="https://scitex.ai/ywatanabe/paper-scitex-clew/"
                target="_blank"
-               rel="noopener noreferrer">{% trans "View the public Clew repository" %}<span aria-hidden="true">↗</span></a>
+               rel="noopener noreferrer">{% trans "View the Clew paper repository" %}<span aria-hidden="true">↗</span></a>
         </div>
         <figure class="landing-v2-clew-figure">
             <picture>
@@ -40,6 +38,7 @@
         <div class="landing-v2-demo-copy">
             <p class="landing-v2-eyebrow"><a class="landing-v2-section-label" href="#demo"><i class="fa-solid fa-link" aria-hidden="true"></i> {% trans "Demo" %}</a></p>
             <h2 id="landing-v2-demo-title">{% trans "AI Agent + SciTeX®" %}</h2>
+            <p>{% trans "Watch the demo to see the tools working together." %}</p>
             <p>{% trans "An AI-agent research workflow with the SciTeX Python toolkit and MCP tools: literature search, experiments, analysis, figures, and manuscript writing." %}</p>
         </div>
         <div class="landing-v2-demo-media">

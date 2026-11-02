@@ -252,3 +252,35 @@
 .landing-v2-clew-grid {
   align-items: start;
 }
+
+
+.landing-v2-carousel-rotation {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
+  padding-inline: 0.4rem;
+}
+
+
+.landing-v2-clew-directions {
+  display: grid;
+  gap: 0.75rem;
+  margin: 1.5rem 0;
+}
+
+.landing-v2-clew-directions > div {
+  display: grid;
+  grid-template-columns: 76px minmax(0, 1fr);
+  gap: 0.75rem;
+}
+
+.landing-v2-clew-directions dt {
+  font-weight: 600;
+}
+
+.landing-v2-clew-directions dd {
+  margin: 0;
+  overflow-wrap: anywhere;
+  line-height: 1.6;
+}
