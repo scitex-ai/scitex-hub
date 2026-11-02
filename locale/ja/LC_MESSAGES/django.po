@@ -9744,3 +9744,15 @@ msgstr "SDK — 4種類のスターターを備えたアプリ作成画面。開
 #: apps/infra/public_app/templates/public_app/landing_partials
 msgid "App creation workspace with four starter templates; development capture. 2026-11-02."
 msgstr "4種類のスターターを備えたアプリ作成画面。開発環境の画面です。 2026-11-02."
+
+#: templates/global_base_partials/global_header.html
+msgid "Alpha — Features may change. Keep backups."
+msgstr "アルファ版 — 仕様変更に備え、バックアップを保管してください。"
+
+#: templates/global_base_partials/global_header.html
+msgid "Features and APIs may change, and interruptions or data loss are possible. Keep separate backups of important work."
+msgstr "機能やAPIは変更される場合があり、サービスの中断やデータの損失も起こり得ます。重要な作業は別途バックアップを保管してください。"
+
+#: templates/global_base_partials/global_header.html
+msgid "The backend packages are more stable."
+msgstr "バックエンドのパッケージは、より安定しています。"

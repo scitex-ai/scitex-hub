@@ -2,7 +2,8 @@
    Keep the existing header height so workspace panes retain their viewport. */
 .header-build-meta.header-build-meta--alpha {
   display: grid;
-  grid-template-columns: auto auto;
+  grid-template-columns: minmax(0, 1fr) auto;
+  min-width: 0;
   column-gap: 0.45rem;
   row-gap: 3px;
   line-height: 1.2;
@@ -10,16 +11,22 @@
 
 .header-alpha-notice {
   grid-column: 1 / -1;
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  color: var(--text-primary);
+  min-width: 0;
+  padding: 2px 6px;
+  border: 1px solid var(--status-warning-border);
+  border-left: 3px solid var(--status-warning-text);
+  border-radius: 0;
+  background: var(--status-warning-bg);
+  color: var(--status-warning-text);
   font-size: 11px;
+  line-height: 1.2;
 }
 
-.header-alpha-stage {
-  padding: 1px 5px;
-  line-height: 1.2;
+.header-alpha-line {
+  display: block;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
 }
 
 .landing-v2-alpha.cloud-alpha-banner {
@@ -36,11 +43,6 @@
   font-weight: 700;
 }
 
-@media (max-width: 768px) {
-  .header-alpha-description {
-    display: none;
-  }
-}
 
 .cloud-alpha-banner a {
   color: inherit;

@@ -173,8 +173,8 @@
 }
 
 .landing-v2-carousel-category-items {
-  display: flex;
-  flex-wrap: wrap;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: var(--spacing-xs, 4px);
   min-width: 0;
 }
@@ -182,4 +182,18 @@
 .landing-v2-hero-gallery .landing-v2-carousel-controls {
   flex-wrap: nowrap;
   flex-shrink: 0;
+}
+
+
+/* Equal cells across all category rows; selection remains SDK-owned. */
+.landing-v2-carousel-category-items .stx-content-tabs__tab {
+  min-width: 0;
+  padding-inline: 6px;
+  white-space: normal;
+}
+
+@media (max-width: 768px) {
+  .landing-v2-carousel-category-items {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
 }
