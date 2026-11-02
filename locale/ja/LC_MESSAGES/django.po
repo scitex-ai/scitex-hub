@@ -9336,3 +9336,75 @@ msgstr "来歴"
 #: templates/global_base_partials/global_header.html apps/infra/public_app/templates/public_app/landing_partials/landing_section_nav.html
 msgid "Deployment"
 msgstr "利用環境"
+
+#: apps/infra/public_app/templates/public_app/landing_partials
+msgid "One project, connected research tools"
+msgstr "ひとつのプロジェクトでつながる研究ツール"
+
+#: apps/infra/public_app/templates/public_app/landing_partials
+msgid "Work from your phone, laptop, or HPC"
+msgstr "スマートフォン、ノートPC、HPCで研究を進める"
+
+#: apps/infra/public_app/templates/public_app/landing_partials
+msgid "Trace claims back to their sources"
+msgstr "主張から根拠となるデータまでたどる"
+
+#: apps/infra/public_app/templates/public_app/landing_partials
+msgid "Build apps your research needs"
+msgstr "研究に必要なアプリをつくる"
+
+#: apps/infra/public_app/templates/public_app/landing_partials
+msgid "Your projects. Your infrastructure"
+msgstr "あなたのプロジェクトを、あなたの環境で"
+
+#: apps/infra/public_app/templates/public_app/landing_partials
+msgid "Open source, throughout the stack"
+msgstr "すべての層をオープンソースで"
+
+#: apps/infra/public_app/templates/public_app/landing_partials
+msgid "Pricing (expected from beta)"
+msgstr "料金（ベータ版から適用予定）"
+
+#: apps/infra/public_app/templates/public_app/landing_partials
+msgid "Research needs tools that fit the experiment. Build your own app with the SciTeX SDK, using the platform's project context and shared interface components."
+msgstr "研究には実験に合った道具が必要です。SciTeX SDKなら、プラットフォームのプロジェクト情報と共通のUI部品を使って独自のアプリを構築できます。"
+
+#: apps/infra/public_app/templates/public_app/landing_partials
+msgid "Work with structured records."
+msgstr "構造化されたレコードを扱います。"
+
+#: apps/infra/public_app/templates/public_app/landing_partials
+msgid "Store files in your app’s namespace."
+msgstr "アプリ専用の名前空間にファイルを保存します。"
+
+#: apps/infra/public_app/templates/public_app/landing_partials
+msgid "Submit background work through the shared job interface."
+msgstr "共通のジョブインターフェースからバックグラウンド処理を実行します。"
+
+#: apps/infra/public_app/templates/public_app/landing_partials
+msgid "Explore the SDK"
+msgstr "SDKを使ってみる"
+
+#: apps/infra/public_app/templates/public_app/landing_partials
+msgid "Self-hosted"
+msgstr "セルフホスト"
+
+#: apps/infra/public_app/templates/public_app/landing_partials
+msgid "Local tools"
+msgstr "ローカルツール"
+
+#: apps/infra/public_app/templates/public_app/landing_partials
+msgid "Use the managed browser workspace for projects and collaboration."
+msgstr "管理されたブラウザ上のワークスペースでプロジェクトや共同作業を進めます。"
+
+#: apps/infra/public_app/templates/public_app/landing_partials
+msgid "Run the platform on infrastructure you manage."
+msgstr "自分で管理するインフラ上でプラットフォームを実行します。"
+
+#: apps/infra/public_app/templates/public_app/landing_partials
+msgid "Use the Python packages and command-line tools on your own machine."
+msgstr "手元のマシンでPythonパッケージやコマンドラインツールを使います。"
+
+#: apps/infra/public_app/templates/public_app/landing_partials
+msgid "SciTeX — Where Research Happens"
+msgstr "SciTeX — 研究が進む場所"

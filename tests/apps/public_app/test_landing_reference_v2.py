@@ -95,7 +95,7 @@ def test_landing_uses_the_minimal_shell_without_workspace_js():
         assert kept in html, kept
 
 
-def test_hero_keeps_real_entry_contracts_and_research_photography():
+def test_hero_keeps_real_entry_contracts_without_stock_photography():
     source = _text(HERO)
     assert all(
         marker in source
@@ -103,13 +103,12 @@ def test_hero_keeps_real_entry_contracts_and_research_photography():
             "{% url 'auth_app:signup' %}",
             "{% url 'auth_app:signin' %}",
             "#pricing",
-            "research-collaboration-640.webp",
-            "research-collaboration-1280.webp",
-            'fetchpriority="high"',
         )
     )
     # Keep provenance in the asset record without covering the hero photograph
     # with attribution or promotional text.
+    assert "<figure" not in source
+    assert "<img" not in source
     assert "<figcaption>" not in source
     provenance = _text(ASSETS / "PROVENANCE.md")
     assert "Edward Jenner" in provenance
@@ -137,7 +136,6 @@ def test_v2_uses_real_product_captures_and_clew_dag_with_provenance():
     assert all(
         marker in source
         for marker in (
-            "hub-20261102-1200.webp",
             "scholar-20261102-1200.webp",
             "figrecipe-20261102-1200.webp",
             "writer-20261102-1200.webp",
@@ -275,8 +273,8 @@ def test_carousel_script_is_manual_keyboard_and_swipe_only():
         ),
         (
             "public_app/landing_partials/landing_modules.html",
-            "同じプロジェクト文脈で。",
-            "The same context, from phone to compute node.",
+            "スマートフォン、ノートPC、HPCで研究を進める",
+            "Work from your phone, laptop, or HPC",
         ),
         (
             "public_app/landing_partials/landing_modules.html",

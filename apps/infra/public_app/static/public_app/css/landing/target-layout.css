@@ -1,0 +1,99 @@
+/* Landing brief: one clear sequence, with native and shareable section links. */
+.landing-v2-hero-grid {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.landing-v2-hero {
+  padding-top: clamp(2rem, 5vw, 4rem);
+}
+
+.landing-v2-hero h1 {
+  max-width: 1050px;
+  font-size: clamp(3rem, 6vw, 5.6rem);
+}
+
+.landing-v2-hero .landing-v2-lead,
+.landing-v2-hero .landing-v2-context-line,
+.landing-v2-hero .cloud-alpha-banner {
+  max-width: 850px;
+}
+
+.landing-section-alias {
+  display: block;
+  position: relative;
+  height: 0;
+  scroll-margin-top: calc(160px + env(safe-area-inset-top, 0px));
+}
+
+.landing-v2-eyebrow::before {
+  content: none;
+}
+
+.landing-v2-section-label {
+  display: inline-flex;
+  gap: 0.5em;
+  align-items: center;
+  min-height: 44px;
+  color: inherit;
+  text-decoration: none;
+}
+
+.landing-v2-section-label:hover,
+.landing-v2-section-label:focus-visible {
+  text-decoration: underline;
+}
+
+.landing-v2-custom-capabilities {
+  list-style: none;
+  margin: 1.5rem 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1rem;
+}
+
+
+.landing-v2-custom-capabilities li {
+  min-width: 0;
+  padding: 1.25rem;
+  border: 1px solid var(--border-default);
+  border-radius: var(--landing-radius);
+  background: var(--bg-secondary);
+  color: var(--text-primary);
+}
+
+.landing-v2-custom-capabilities h3 {
+  font-size: 1.15rem;
+}
+
+.landing-v2-custom-capabilities p {
+  margin-bottom: 0;
+}
+
+.landing-v2-carousel-dots button[aria-selected="true"] {
+  background: var(--color-primary);
+  border-color: var(--color-primary);
+  color: var(--color-on-primary);
+}
+
+@media (max-width: 768px) {
+  .landing-v2-custom-capabilities {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .landing-section-alias {
+    scroll-margin-top: calc(205px + env(safe-area-inset-top, 0px));
+  }
+}
+
+.landing-v2-hero .hero-cta-button,
+.landing-v2-section .landing-v2-button-primary {
+  background: var(--color-primary);
+  border-color: var(--color-primary);
+  color: var(--color-on-primary);
+}
+
+.landing-v2-hero .hero-cta-button:hover,
+.landing-v2-section .landing-v2-button-primary:hover {
+  background: var(--color-primary-hover);
+}

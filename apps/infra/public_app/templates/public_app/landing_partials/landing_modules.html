@@ -1,88 +1,15 @@
 {% load static i18n %}
 
-<section class="landing-v2-section landing-v2-context" id="context" aria-labelledby="landing-v2-context-title">
-    <div class="container landing-v2-shell">
-        <div class="landing-v2-intro">
-            <div>
-                <p class="landing-v2-eyebrow">{% trans "One project, every place" %}</p>
-                <h2 id="landing-v2-context-title">{% trans "The same context, from phone to compute node." %}</h2>
-            </div>
-            <p>{% trans "Move between a quick mobile review, focused browser work, and HPC over SSH without rebuilding the project around each device." %}</p>
-        </div>
-        <ol class="landing-v2-context-grid">
-            <li>
-                <span class="landing-v2-context-number" aria-hidden="true">01</span>
-                <h3>{% trans "Phone" %}</h3>
-                <p>{% trans "Review a result, save a paper, or capture the next step." %}</p>
-            </li>
-            <li>
-                <span class="landing-v2-context-number" aria-hidden="true">02</span>
-                <h3>{% trans "Laptop" %}</h3>
-                <p>{% trans "Use the browser for daily analysis, figures, and writing." %}</p>
-            </li>
-            <li>
-                <span class="landing-v2-context-number" aria-hidden="true">03</span>
-                <h3>{% trans "HPC + SSH" %}</h3>
-                <p>{% trans "Run near the scheduler and data while the project stays connected." %}</p>
-            </li>
-            <li class="landing-v2-context-custom">
-                <span class="landing-v2-context-number" aria-hidden="true">04</span>
-                <h3>{% trans "Custom Apps" %}</h3>
-                <p>{% trans "Extend the same project and command contract for your lab." %}</p>
-            </li>
-        </ol>
-    </div>
-</section>
-
 <section class="landing-v2-section landing-v2-apps" id="apps" aria-labelledby="landing-v2-apps-title">
+    <span id="hub" class="landing-section-alias" aria-hidden="true"></span>
+    <span id="screenshots" class="landing-section-alias" aria-hidden="true"></span>
     <div class="container landing-v2-shell">
         <div class="landing-v2-intro">
             <div>
-                <p class="landing-v2-eyebrow">{% trans "Built in, connected by design" %}</p>
-                <h2 id="landing-v2-apps-title">{% trans "SciTeX Hub — one project context" %}</h2>
+                <p class="landing-v2-eyebrow"><a class="landing-v2-section-label" href="#apps"><span aria-hidden="true">#</span> {% trans "Apps" %}</a></p>
+                <h2 id="landing-v2-apps-title">{% trans "One project, connected research tools" %}</h2>
             </div>
             <p>{% trans "Each built-in app specializes. Hub keeps project, files, identity, and commands connected. Custom Apps sit outside the built-ins and extend the same contract." %}</p>
-        </div>
-        <div class="landing-v2-app-map"
-             role="img"
-             aria-label="{% trans 'SciTeX Hub provides one project context connecting Scholar, Storage, Stats, FigRecipe, Writer, Agents and Chat, Cards, and Custom Apps.' %}">
-            <span class="landing-v2-map-lines" aria-hidden="true"></span>
-            <article class="landing-v2-app-node">
-                <h3>Scholar</h3>
-                <p>{% trans "Literature and library" %}</p>
-            </article>
-            <article class="landing-v2-app-node">
-                <h3>{% trans "Storage" %}</h3>
-                <p>{% trans "Files and data" %}</p>
-            </article>
-            <article class="landing-v2-app-node">
-                <h3>{% trans "Stats" %}</h3>
-                <p>{% trans "Analysis and reports" %}</p>
-            </article>
-            <article class="landing-v2-app-node">
-                <h3>{% trans "Agents + Chat" %}</h3>
-                <p>{% trans "Commands and conversations" %}</p>
-            </article>
-            <article class="landing-v2-app-node landing-v2-app-hub">
-                <h3>SciTeX Hub</h3>
-                <p>{% trans "one project context" %}</p>
-            </article>
-            <article class="landing-v2-app-node">
-                <h3>{% trans "Cards" %}</h3>
-                <p>{% trans "Tasks and evidence" %}</p>
-            </article>
-            <article class="landing-v2-app-node">
-                <h3>FigRecipe</h3>
-                <p>{% trans "Figures and source" %}</p>
-            </article>
-            <article class="landing-v2-app-node">
-                <h3>Writer</h3>
-                <p>{% trans "Manuscript and PDF" %}</p>
-            </article>
-            <article class="landing-v2-app-node landing-v2-app-custom">
-                <h3>{% trans "Custom Apps" %}</h3>
-                <p>{% trans "Extend the same contract" %}</p>
-            </article>
         </div>
 
         <div class="landing-v2-carousel"
@@ -221,14 +148,52 @@
                 {% trans "Actual development captures with account/project controls hidden for privacy, then resized and compressed. Example data is labeled; screenshots do not prove complete feature coverage or production availability." %}
             </p>
         </div>
+        {% include "public_app/landing_partials/landing_research_demo.html" %}
     </div>
 </section>
 
-<section class="landing-v2-section landing-v2-clew" id="clew" aria-labelledby="landing-v2-clew-title">
+<section class="landing-v2-section landing-v2-context" id="workflow" aria-labelledby="landing-v2-context-title">
+    <span id="context" class="landing-section-alias" aria-hidden="true"></span>
+    <span id="devices" class="landing-section-alias" aria-hidden="true"></span>
+    <div class="container landing-v2-shell">
+        <div class="landing-v2-intro">
+            <div>
+                <p class="landing-v2-eyebrow"><a class="landing-v2-section-label" href="#workflow"><span aria-hidden="true">#</span> {% trans "Workflow" %}</a></p>
+                <h2 id="landing-v2-context-title">{% trans "Work from your phone, laptop, or HPC" %}</h2>
+            </div>
+            <p>{% trans "Move between a quick mobile review, focused browser work, and HPC over SSH without rebuilding the project around each device." %}</p>
+        </div>
+        <ol class="landing-v2-context-grid">
+            <li>
+                <span class="landing-v2-context-number" aria-hidden="true">01</span>
+                <h3>{% trans "Phone" %}</h3>
+                <p>{% trans "Review a result, save a paper, or capture the next step." %}</p>
+            </li>
+            <li>
+                <span class="landing-v2-context-number" aria-hidden="true">02</span>
+                <h3>{% trans "Laptop" %}</h3>
+                <p>{% trans "Use the browser for daily analysis, figures, and writing." %}</p>
+            </li>
+            <li>
+                <span class="landing-v2-context-number" aria-hidden="true">03</span>
+                <h3>{% trans "HPC + SSH" %}</h3>
+                <p>{% trans "Run near the scheduler and data while the project stays connected." %}</p>
+            </li>
+            <li class="landing-v2-context-custom">
+                <span class="landing-v2-context-number" aria-hidden="true">04</span>
+                <h3>{% trans "Custom Apps" %}</h3>
+                <p>{% trans "Extend the same project and command contract for your lab." %}</p>
+            </li>
+        </ol>
+    </div>
+</section>
+
+<section class="landing-v2-section landing-v2-clew" id="provenance" aria-labelledby="landing-v2-clew-title">
+    <span id="clew" class="landing-section-alias" aria-hidden="true"></span>
     <div class="container landing-v2-shell landing-v2-clew-grid">
         <div class="landing-v2-clew-copy">
-            <p class="landing-v2-eyebrow">{% trans "Verifiable provenance" %}</p>
-            <h2 id="landing-v2-clew-title">{% trans "Follow a claim back to its source." %}</h2>
+            <p class="landing-v2-eyebrow"><a class="landing-v2-section-label" href="#provenance"><span aria-hidden="true">#</span> {% trans "Provenance" %}</a></p>
+            <h2 id="landing-v2-clew-title">{% trans "Trace claims back to their sources" %}</h2>
             <p>{% trans "SciTeX Clew records relationships between research artifacts in a directed acyclic graph. The public example connects a manuscript claim to output, processing, and raw data." %}</p>
             <ol class="landing-v2-chain" aria-label="{% trans 'Claim to raw data provenance chain' %}">
                 <li>{% trans "Claim" %}</li>
@@ -257,7 +222,28 @@
     </div>
 </section>
 
-<section class="landing-v2-section landing-v2-open" id="open" aria-labelledby="landing-v2-open-title">
+<section class="landing-v2-section landing-v2-custom" id="custom-apps" aria-labelledby="landing-v2-custom-title">
+    <span id="sdk" class="landing-section-alias" aria-hidden="true"></span>
+    <div class="container landing-v2-shell">
+        <div class="landing-v2-intro">
+            <div>
+                <p class="landing-v2-eyebrow"><a class="landing-v2-section-label" href="#custom-apps"><span aria-hidden="true">#</span> {% trans "Custom Apps" %}</a></p>
+                <h2 id="landing-v2-custom-title">{% trans "Build apps your research needs" %}</h2>
+            </div>
+            <p>{% trans "Research needs tools that fit the experiment. Build your own app with the SciTeX SDK, using the platform's project context and shared interface components." %}</p>
+        </div>
+        <ul class="landing-v2-custom-capabilities">
+            <li><h3>DataStore</h3><p>{% trans "Work with structured records." %}</p></li>
+            <li><h3>FileVault</h3><p>{% trans "Store files in your app’s namespace." %}</p></li>
+            <li><h3>JobQueue</h3><p>{% trans "Submit background work through the shared job interface." %}</p></li>
+        </ul>
+        <a class="landing-v2-button landing-v2-button-primary" href="/apps/sdk/">{% trans "Explore the SDK" %}<span aria-hidden="true"> →</span></a>
+    </div>
+</section>
+
+<section class="landing-v2-section landing-v2-open" id="deployment" aria-labelledby="landing-v2-open-title">
+    <span id="open" class="landing-section-alias" aria-hidden="true"></span>
+    <span id="byox" class="landing-section-alias" aria-hidden="true"></span>
     <div class="container landing-v2-shell landing-v2-open-grid">
         <figure class="landing-v2-photo landing-v2-open-photo">
             <picture>
@@ -279,19 +265,16 @@
             </figcaption>
         </figure>
         <div class="landing-v2-open-copy">
-            <p class="landing-v2-eyebrow">{% trans "Open by design" %}</p>
-            <h2 id="landing-v2-open-title">{% trans "Your research. Your infrastructure." %}</h2>
+            <p class="landing-v2-eyebrow"><a class="landing-v2-section-label" href="#deployment"><span aria-hidden="true">#</span> {% trans "Deployment" %}</a></p>
+            <h2 id="landing-v2-open-title">{% trans "Your projects. Your infrastructure" %}</h2>
             <p>{% trans "Use SciTeX Cloud or self-host. Keep human judgment at the center and choose the environment, compute, and integrations that fit the work." %}</p>
             <ul>
                 <li>{% trans "Cloud for a managed browser workspace" %}</li>
                 <li>{% trans "Self-hosting for your own environment" %}</li>
-                <li>{% trans "Custom Apps for field-specific workflows" %}</li>
+                <li>{% trans "Local tools" %}</li>
             </ul>
             <p class="landing-v2-small">{% trans "Available deployment options and integrations depend on the selected setup." %}</p>
             <a class="landing-v2-button landing-v2-button-primary" href="#pricing">{% trans "Compare current plans" %}</a>
         </div>
     </div>
 </section>
-
-</section>
-

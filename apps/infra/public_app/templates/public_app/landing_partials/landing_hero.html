@@ -1,9 +1,11 @@
 {% load static i18n %}
 
-<section class="landing-v2-hero" id="home" aria-labelledby="landing-v2-title">
+<section class="landing-v2-hero" id="overview" aria-labelledby="landing-v2-title">
+    <span id="home" class="landing-section-alias" aria-hidden="true"></span>
+    <span id="hero" class="landing-section-alias" aria-hidden="true"></span>
     <div class="container landing-v2-shell landing-v2-hero-grid">
         <div class="landing-v2-hero-copy">
-            <p class="landing-v2-eyebrow">{% trans "Open research infrastructure" %}</p>
+            <p class="landing-v2-eyebrow"><a class="landing-v2-section-label" href="#overview"><span aria-hidden="true">#</span> {% trans "Overview" %}</a></p>
             <h1 id="landing-v2-title">
                 <span>{% trans "Where Research Happens" %}</span>
             </h1>
@@ -34,17 +36,5 @@
                 <li>{% trans "Custom Apps" %}</li>
             </ul>
         </div>
-        <figure class="landing-v2-photo landing-v2-hero-photo">
-            <picture>
-                <source type="image/webp"
-                        srcset="{% static 'public_app/images/landing-v2/research-collaboration-640.webp' %} 640w, {% static 'public_app/images/landing-v2/research-collaboration-1280.webp' %} 1280w"
-                        sizes="(max-width: 820px) 100vw, 48vw" />
-                <img src="{% static 'public_app/images/landing-v2/research-collaboration-1280.jpg' %}"
-                     width="1280"
-                     height="800"
-                     fetchpriority="high"
-                     alt="{% trans 'Two laboratory researchers review a microscopic image on a laptop while one holds a clipboard.' %}" />
-            </picture>
-        </figure>
     </div>
 </section>
