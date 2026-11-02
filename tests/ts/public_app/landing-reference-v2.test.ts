@@ -1,13 +1,15 @@
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { initLandingCarousels } from "@public_app/landing/reference-v2";
 
 const markup = `
   <section data-landing-carousel tabindex="0">
     <button type="button" data-carousel-prev>Previous</button>
-    <span data-carousel-status></span>
+    <button type="button" data-carousel-rotation data-pause-label="Pause automatic screenshots" data-resume-label="Resume automatic screenshots">
+      <span data-carousel-status></span><i data-carousel-rotation-icon></i>
+    </button>
     <button type="button" data-carousel-next>Next</button>
     <div data-carousel-track>
       <figure data-carousel-slide>Hub</figure>
@@ -27,24 +29,81 @@ function pointer(type: string, clientX: number): Event {
   return event;
 }
 
+beforeEach(() => {
+  vi.useFakeTimers();
+  Object.defineProperty(document, "hidden", { configurable: true, value: false });
+});
+
+afterEach(() => {
+  vi.clearAllTimers();
+  vi.useRealTimers();
+  vi.restoreAllMocks();
+  vi.unstubAllGlobals();
+  document.body.innerHTML = "";
+});
+
 describe("landing V2 product carousel", () => {
   beforeEach(() => {
     document.body.innerHTML = markup;
   });
 
-  it("starts from the authored first slide without scheduling autoplay", () => {
-    const interval = vi.spyOn(window, "setInterval");
-
+  it("automatically advances at six seconds and wraps to the first slide", () => {
     initLandingCarousels();
+    const status = () => document.querySelector("[data-carousel-status]")?.textContent;
+    expect(status()).toBe("1 / 3");
+    vi.advanceTimersByTime(5999);
+    expect(status()).toBe("1 / 3");
+    vi.advanceTimersByTime(1);
+    expect(status()).toBe("2 / 3");
+    vi.advanceTimersByTime(12000);
+    expect(status()).toBe("1 / 3");
+  });
 
-    const slides = [
-      ...document.querySelectorAll<HTMLElement>("[data-carousel-slide]"),
-    ];
-    expect(slides.map((slide) => slide.hidden)).toEqual([false, true, true]);
-    expect(document.querySelector("[data-carousel-status]")?.textContent).toBe(
-      "1 / 3",
-    );
-    expect(interval).not.toHaveBeenCalled();
+  it("pauses and resumes through the existing counter control", () => {
+    initLandingCarousels();
+    const toggle = document.querySelector<HTMLButtonElement>("[data-carousel-rotation]")!;
+    toggle.click();
+    vi.advanceTimersByTime(18000);
+    expect(document.querySelector("[data-carousel-status]")?.textContent).toBe("1 / 3");
+    expect(toggle.getAttribute("aria-label")).toBe("Resume automatic screenshots");
+    toggle.click();
+    vi.advanceTimersByTime(6000);
+    expect(document.querySelector("[data-carousel-status]")?.textContent).toBe("2 / 3");
+  });
+
+  it("pauses while hovered or focused without losing manual navigation", () => {
+    initLandingCarousels();
+    const carousel = document.querySelector<HTMLElement>("[data-landing-carousel]")!;
+    carousel.dispatchEvent(new Event("pointerenter"));
+    vi.advanceTimersByTime(12000);
+    expect(document.querySelector("[data-carousel-status]")?.textContent).toBe("1 / 3");
+    document.querySelector<HTMLElement>("[data-carousel-next]")!.click();
+    expect(document.querySelector("[data-carousel-status]")?.textContent).toBe("2 / 3");
+    carousel.dispatchEvent(new Event("pointerleave"));
+    document.querySelector<HTMLElement>("[data-carousel-next]")!.focus();
+    vi.advanceTimersByTime(12000);
+    expect(document.querySelector("[data-carousel-status]")?.textContent).toBe("2 / 3");
+    document.querySelector<HTMLElement>("[data-carousel-next]")!.blur();
+    vi.advanceTimersByTime(6000);
+    expect(document.querySelector("[data-carousel-status]")?.textContent).toBe("3 / 3");
+  });
+
+  it("pauses in a hidden browser tab", () => {
+    initLandingCarousels();
+    Object.defineProperty(document, "hidden", { configurable: true, value: true });
+    document.dispatchEvent(new Event("visibilitychange"));
+    vi.advanceTimersByTime(12000);
+    expect(document.querySelector("[data-carousel-status]")?.textContent).toBe("1 / 3");
+  });
+
+  it("starts paused for reduced motion and allows explicit resume", () => {
+    vi.stubGlobal("matchMedia", () => ({ matches: true, addEventListener: vi.fn() }));
+    initLandingCarousels();
+    vi.advanceTimersByTime(12000);
+    expect(document.querySelector("[data-carousel-status]")?.textContent).toBe("1 / 3");
+    document.querySelector<HTMLElement>("[data-carousel-rotation]")!.click();
+    vi.advanceTimersByTime(6000);
+    expect(document.querySelector("[data-carousel-status]")?.textContent).toBe("2 / 3");
   });
 
   it("moves with manual next and previous controls", () => {
