@@ -224,13 +224,18 @@ class TestListPythonApisCommand:
 class TestHelpRecursive:
     """Tests for --help-recursive option."""
 
-    def test_help_recursive_walks_command_groups(self, runner):
+    def test_help_recursive_walks_command_groups(self, runner, caplog):
         """``--help-recursive`` includes the nested group names."""
         # Arrange
+        import logging
+
         args = ["--help-recursive"]
-        # Act
-        result = runner.invoke(main, args)
+        # Human help uses the real INFO stdout transport. Django quiets the
+        # root logger to ERROR in tests, so state this test's output policy.
+        with caplog.at_level(logging.INFO):
+            result = runner.invoke(main, args)
         # Assert
+        assert result.exit_code == 0
         assert all(name in result.output for name in ("gitea", "mcp", "docker"))
 
 
