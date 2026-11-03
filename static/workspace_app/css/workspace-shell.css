@@ -157,16 +157,16 @@
 }
 
 /* Hide old collapsed title (show full content always) */
-.workspace-pane :is(.ws-ai-pane, .ws-worktree-pane, .ws-viewer-pane) > .stx-shell-sidebar__title {
+.workspace-pane :is(.ws-ai-pane, .ws-worktree-pane, .ws-viewer-pane) > .stx-shell-sidebar .stx-shell-sidebar__title {
   display: none !important;
 }
 
-.workspace-pane :is(.ws-ai-pane, .ws-worktree-pane, .ws-viewer-pane) > .stx-shell-sidebar__title-full {
+.workspace-pane :is(.ws-ai-pane, .ws-worktree-pane, .ws-viewer-pane) > .stx-shell-sidebar .stx-shell-sidebar__title-full {
   display: inline !important;
 }
 
 /* Ensure sidebar content fills height */
-.workspace-pane :is(.ws-ai-pane, .ws-worktree-pane, .ws-viewer-pane) > .stx-shell-sidebar__content {
+.workspace-pane :is(.ws-ai-pane, .ws-worktree-pane, .ws-viewer-pane) > .stx-shell-sidebar .stx-shell-sidebar__content {
   flex: 1;
   min-height: 0;
   overflow: auto;

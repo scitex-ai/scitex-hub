@@ -26,7 +26,7 @@ def test_host_sidebar_rules_preserve_nested_module_geometry(width, collapsed):
     <aside id="leaf" class="stx-shell-sidebar{state}"><button class="panel-toggle-btn">Toggle Details</button></aside>
     </div></div>
     <div class="workspace-pane active" data-pane="editor"><div class="ws-viewer-pane">
-    <aside id="utility" class="stx-shell-sidebar collapsed" aria-hidden="true"><button class="panel-toggle-btn">Host toggle</button></aside>
+    <aside id="utility" class="stx-shell-sidebar collapsed" aria-hidden="true"><button class="panel-toggle-btn">Host toggle</button><span class="stx-shell-sidebar__title">Old title</span><span class="stx-shell-sidebar__title-full">Full title</span><div class="stx-shell-sidebar__content">Owned content</div></aside>
     </div></div>'''
     with sync_playwright() as runtime:
         executable = os.environ.get('SCITEX_HUB_TEST_CHROMIUM', runtime.chromium.executable_path)
@@ -41,8 +41,8 @@ def test_host_sidebar_rules_preserve_nested_module_geometry(width, collapsed):
             board:document.querySelector('.leaf-main').getBoundingClientRect().width,
             leafToggle:getComputedStyle(leaf.querySelector('button')).display,
             utilityToggle:getComputedStyle(utility.querySelector('button')).display,
-            utilityDisplay:getComputedStyle(utility).display}}''')
+            utilityTitle:getComputedStyle(utility.querySelector('.stx-shell-sidebar__title')).display,utilityFullTitle:getComputedStyle(utility.querySelector('.stx-shell-sidebar__title-full')).display,utilityContent:getComputedStyle(utility.querySelector('.stx-shell-sidebar__content')).overflow,utilityDisplay:getComputedStyle(utility).display}}''')
             assert result == {'leaf':48 if collapsed else 300,'utility':width,'board':width-(48 if collapsed else 300),
-                              'leafToggle':'inline-block','utilityToggle':'none','utilityDisplay':'flex'}
+                              'leafToggle':'inline-block','utilityToggle':'none','utilityTitle':'none','utilityFullTitle':'inline','utilityContent':'auto','utilityDisplay':'flex'}
         finally:
             browser.close()
