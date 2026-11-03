@@ -104,7 +104,10 @@ scripts/deploy/compose.sh staging up -d --no-deps --no-build django celery_worke
 Staging uses its own env-file, database and named volumes. Verify those identities
 and the selected users bind; a different app name alone is not isolation. Check
 real authorized routes, frontend hashes, worker/beat behavior and relevant tests.
-A healthy container or HTTP 200 by itself is insufficient evidence.
+A healthy container or HTTP 200 by itself is insufficient evidence. Audit root
+and linked frontend dependency locks separately, and qualify actual diagram
+rendering boundaries; see [diagram rendering](../../../../docs/security/diagram-rendering.md).
+Do not equate a successful build or root-only npm audit with a clean security graph.
 
 ## Apply only the qualified production change
 

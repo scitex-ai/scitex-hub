@@ -3,6 +3,8 @@
  * Renders inline images, CSV tables, PDF links, and file links from MCP tool results.
  */
 
+import { appendSvgImage as publishSvgImage } from "@/utils/diagram-svg";
+
 export interface MediaRef {
   type:
     | "image"
@@ -90,19 +92,7 @@ function appendCaption(wrapper: HTMLElement, path: string): void {
  * the same text inserted into the active document through an HTML parsing sink.
  */
 function appendSvgImage(wrapper: HTMLElement, svg: string, path: string): void {
-  const objectUrl = URL.createObjectURL(
-    new Blob([svg], { type: "image/svg+xml;charset=utf-8" }),
-  );
-  const image = document.createElement("img");
-  image.src = objectUrl;
-  image.alt = filename(path);
-  image.className = "stx-shell-ai-media-diagram-image";
-
-  const revokeObjectUrl = () => URL.revokeObjectURL(objectUrl);
-  image.addEventListener("load", revokeObjectUrl, { once: true });
-  image.addEventListener("error", revokeObjectUrl, { once: true });
-
-  wrapper.replaceChildren(image);
+  publishSvgImage(wrapper, svg, filename(path));
   appendCaption(wrapper, path);
 }
 
