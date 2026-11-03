@@ -99,3 +99,22 @@ class TestThinWrapper(TestCase):
             (occupied / "keep.txt").write_text("data")
             with self.assertRaises(FileExistsError):
                 svc.ensure_project_link(Path(tmp) / "proj")
+
+
+    def test_empty_placeholder_through_foreign_parent_symlink_is_refused(self):
+        import tempfile
+        from pathlib import Path
+
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            svc = self._service(root)
+            project = root / "project"
+            project.mkdir()
+            outside = root / "foreign"
+            placeholder = outside / "scholar" / "library"
+            placeholder.mkdir(parents=True)
+            (project / ".scitex").symlink_to(outside, target_is_directory=True)
+            with self.assertRaises(FileExistsError):
+                svc.ensure_project_link(project)
+            self.assertTrue(placeholder.is_dir())
+            self.assertFalse(placeholder.is_symlink())

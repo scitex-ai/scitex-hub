@@ -139,13 +139,36 @@ class UserLibraryService:
         Link ``<project>/.scitex/scholar/library`` to this user's home
         library using the package verb (``link_project_tree``).
 
-        Idempotent. Returns the link path, or None when the package is
+        Idempotent. An empty regular project-local scaffold directory can be
+        adopted; nonempty placeholders and symlinked placeholder parents are
+        refused without force. Returns the link path, or None when the package is
         not importable. On leaves predating ``library_root`` (improved in
         scitex-scholar#182) the identical symlink is created manually.
         """
         project_path = Path(project_path)
         try:
             from scitex_scholar.cli._project_tree import link_project_tree
+
+            # Scaffolds may leave an empty placeholder. Admit only that empty,
+            # regular project-local directory; never ask the leaf to force-remove
+            # data. rmdir itself refuses a concurrently populated directory.
+            project_root = project_path.resolve()
+            placeholder = project_root / ".scitex" / "scholar" / "library"
+            if placeholder.is_dir() and not placeholder.is_symlink():
+                if any(parent.is_symlink() for parent in (
+                    project_root / ".scitex", placeholder.parent,
+                )):
+                    raise FileExistsError("Project library parents must not be symlinks")
+                try:
+                    placeholder.rmdir()
+                except OSError as error:
+                    import errno
+
+                    if error.errno in (errno.ENOTEMPTY, errno.EEXIST):
+                        raise FileExistsError(
+                            f"{placeholder} occupied; refusing to replace without force"
+                        ) from error
+                    raise
 
             try:
                 return link_project_tree(
