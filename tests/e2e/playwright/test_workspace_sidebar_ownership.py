@@ -26,7 +26,7 @@ def test_host_sidebar_rules_preserve_nested_module_geometry(width, collapsed):
     <aside id="leaf" class="stx-shell-sidebar{state}"><button class="panel-toggle-btn">Toggle Details</button></aside>
     </div></div>
     <div class="workspace-pane active" data-pane="editor"><div class="ws-viewer-pane">
-    <aside id="utility" class="stx-shell-sidebar collapsed" aria-hidden="true"><button class="panel-toggle-btn">Host toggle</button><span class="stx-shell-sidebar__title">Old title</span><span class="stx-shell-sidebar__title-full">Full title</span><div class="stx-shell-sidebar__content">Owned content</div></aside>
+    <aside id="utility" class="stx-shell-sidebar collapsed" aria-hidden="true"><div class="stx-shell-sidebar__header"><button class="panel-toggle-btn">Host toggle</button><span class="stx-shell-sidebar__title">Old title</span><span class="stx-shell-sidebar__title-full">Full title</span></div><div class="stx-shell-sidebar__content">Owned content</div></aside>
     </div></div>'''
     with sync_playwright() as runtime:
         executable = os.environ.get('SCITEX_HUB_TEST_CHROMIUM', runtime.chromium.executable_path)
