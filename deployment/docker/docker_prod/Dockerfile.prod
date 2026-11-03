@@ -112,8 +112,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 
 FROM alpine:latest AS tool-builder
 
-COPY deployment/docker/docker_prod/bin/yq_linux_amd64 /usr/local/bin/yq
-RUN chmod +x /usr/local/bin/yq
+COPY --chmod=755 deployment/docker/docker_prod/bin/yq_linux_amd64 /usr/local/bin/yq
+RUN chmod 755 /usr/local/bin/yq
 
 # ============================================
 # Stage 3b: whisper.cpp (Speech-to-Text)
@@ -552,9 +552,9 @@ COPY --chown=scitex:scitex . .
 # Immutable production-image policy. Keep the verifier and every policy input
 # outside the application-writable /app tree so root-init never executes
 # mutable application code as root. These COPY instructions default to root.
-COPY pyproject.toml /opt/scitex-image-contract/pyproject.toml
-COPY scripts/deploy/preflight_contract.json /opt/scitex-image-contract/scripts/deploy/preflight_contract.json
-COPY scripts/deploy/verify_image_dependency_contract.py /opt/scitex-image-contract/scripts/deploy/verify_image_dependency_contract.py
+COPY --chmod=644 pyproject.toml /opt/scitex-image-contract/pyproject.toml
+COPY --chmod=644 scripts/deploy/preflight_contract.json /opt/scitex-image-contract/scripts/deploy/preflight_contract.json
+COPY --chmod=644 scripts/deploy/verify_image_dependency_contract.py /opt/scitex-image-contract/scripts/deploy/verify_image_dependency_contract.py
 
 # --- Layer B: scitex-cloud install (changes every deploy) ---
 # This is the second half of the two-layer strategy. scitex[all] is already
@@ -756,16 +756,16 @@ RUN python scripts/deploy/installed_runtime_roots.py \
 RUN --mount=type=cache,target=/root/.npm \
     python scripts/deploy/bake_frontend.py --app-root /app --artifact /opt/scitex-frontend && \
     chown -R scitex:scitex /app/staticfiles
-COPY scripts/deploy/_frontend_artifact.py /opt/scitex-frontend-tools/_frontend_artifact.py
+COPY --chmod=644 scripts/deploy/_frontend_artifact.py /opt/scitex-frontend-tools/_frontend_artifact.py
 RUN chmod 755 /opt/scitex-frontend /opt/scitex-frontend-tools && \
     chmod 644 /opt/scitex-frontend-tools/_frontend_artifact.py
 ENV SCITEX_HUB_FRONTEND_MODE=baked SCITEX_APPS_PYTHON_MODE=image-only
 
 # Entrypoint scripts
-COPY deployment/docker/common/scripts/root-init.sh /root-init.sh
-COPY deployment/docker/common/scripts/image-runtime.sh /image-runtime.sh
-COPY deployment/docker/common/scripts/entrypoint-prod.sh /entrypoint.sh
-RUN chmod +x /root-init.sh /image-runtime.sh /entrypoint.sh
+COPY --chmod=755 deployment/docker/common/scripts/root-init.sh /root-init.sh
+COPY --chmod=755 deployment/docker/common/scripts/image-runtime.sh /image-runtime.sh
+COPY --chmod=755 deployment/docker/common/scripts/entrypoint-prod.sh /entrypoint.sh
+RUN chmod 755 /root-init.sh /image-runtime.sh /entrypoint.sh
 
 # --------------------------------------------
 # Smoke test (fail the build early if critical tools are broken)

@@ -40,6 +40,8 @@ Alpha preview; the distribution and tag use the canonical PEP 440 spelling
 
 ### Fixed
 
+- Set explicit permissions on production startup scripts, utilities and policy
+  inputs, and verify those protected paths alongside installed dependencies.
 - Resolve the retained runtime capabilities into one compiled dependency closure,
   removing obsolete cache-only helpers while preserving scientific packages and
   verifying every retained capability before the final image checks.

@@ -306,7 +306,7 @@ def test_cold_docker_build_prepares_sources_before_npm_and_protects_runtime_tool
         "python scripts/deploy/bake_frontend.py"
     )
     assert (
-        "COPY scripts/deploy/_frontend_artifact.py /opt/scitex-frontend-tools/"
+        "COPY --chmod=644 scripts/deploy/_frontend_artifact.py /opt/scitex-frontend-tools/"
         in docker
     )
     baked = source.split('if [ "$FRONTEND_MODE" = baked ]; then', 1)[1].split(
