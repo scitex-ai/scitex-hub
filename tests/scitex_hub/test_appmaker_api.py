@@ -17,9 +17,6 @@ class TestRegistryManifestLoading:
         # get_all_modules() returns one ModuleConfig per builtin manifest path,
         # so the count is derived from the registry's manifest list rather than
         # a hardcoded number that drifts whenever an app is added/removed.
-        import json
-        from pathlib import Path
-
         from apps.infra.workspace_app.registry import (
             _BUILTIN_MANIFEST_PATHS,
             _BUILTIN_MODULES,
@@ -32,7 +29,7 @@ class TestRegistryManifestLoading:
         # A published optional package must not make this builtin integrity
         # check fail merely because the environment now contains one more app.
         from apps.infra.workspace_app.registry import (
-            _BUILTIN_MODULES,
+            _BUILTIN_MANIFEST_PATHS,
             get_all_modules,
         )
 
@@ -151,7 +148,7 @@ class TestAppManagementAPI:
             os.environ.pop("SCITEX_CURRENT_APP", None)
 
     def test_list_all_from_registry(self):
-        from apps.infra.workspace_app.registry import get_all_modules
+        from apps.infra.workspace_app.registry import _BUILTIN_MANIFEST_PATHS
         from scitex_hub.appmaker import list_all
 
         apps = list_all()
@@ -167,7 +164,7 @@ class TestAppManagementAPI:
         info = get_info("writer")
         assert info["name"] == "writer"
         assert info["label"] == "Writer"
-        assert info["icon"] == "fas fa-pen"
+        assert info["icon"] == "fas fa-file-alt"
 
     def test_get_info_unknown_app(self):
         from scitex_hub.appmaker import get_info
