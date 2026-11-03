@@ -83,3 +83,46 @@ def test_fragment_and_non_html_are_not_rewritten():
         b"<section>fragment</section>",
         b'{"ok":true}',
     )
+
+
+@pytest.mark.parametrize(
+    "package,expected",
+    [("Demo_Leaf", "/docs/web-api/?package=demo-leaf"), ("", ""), ("../outside", "")],
+)
+def test_fragment_response_exposes_only_normalized_registry_identity(package, expected):
+    # Arrange
+    from apps.infra.workspace_app._api_docs_metadata import (
+        API_DOCS_HEADER,
+        stamp_module_docs_response,
+    )
+
+    response = HttpResponse("<section>owned fragment</section>")
+    # Act
+    result = stamp_module_docs_response(response, owner(package))
+    # Assert
+    assert (result[API_DOCS_HEADER], result.content) == (
+        expected,
+        b"<section>owned fragment</section>",
+    )
+
+
+@pytest.mark.django_db
+def test_real_workspace_fragment_adapter_sends_registered_owner_metadata(
+    django_user_model,
+):
+    # Arrange
+    from django.test import Client
+    from apps.infra.workspace_app._api_docs_metadata import API_DOCS_HEADER
+
+    user = django_user_model.objects.create_user(
+        username="owned-docs-reader", password="owned-fixture-only"
+    )
+    client = Client()
+    client.force_login(user)
+    # Act
+    response = client.get("/apps/workspace/content/docs/", HTTP_X_WORKSPACE_SHELL="1")
+    # Assert
+    assert (response.status_code, response.get(API_DOCS_HEADER)) == (
+        200,
+        "/docs/web-api/?package=scitex-hub",
+    )

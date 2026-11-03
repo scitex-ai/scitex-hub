@@ -35,6 +35,8 @@ dependencies = [
     # `ImportError: No module named 'requests'`.
     # Card: hub-audit-cli-runs-only-when-its-deps-happen-to-be-installed-20260809
     "requests>=2.31",
+    # Strict distribution-name validation uses canonicalize_name(validate=True).
+    "packaging>=23.2",
     # PS-220 requires shippable source to route human-facing output through
     # scitex-logging (src/scitex_hub/_logging.py is hub's one factory for it),
     # and an unguarded runtime import must resolve from

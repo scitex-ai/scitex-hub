@@ -198,7 +198,11 @@ def workspace_module_content(request, module):
     )
 
     ctx = mod_config.build_context(request, current_project)
-    return render(request, mod_config.partial_template, ctx)
+    from ._api_docs_metadata import stamp_module_docs_response
+
+    return stamp_module_docs_response(
+        render(request, mod_config.partial_template, ctx), mod_config
+    )
 
 
 def _serve_dev_module(request, module):

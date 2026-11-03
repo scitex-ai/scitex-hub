@@ -28,7 +28,11 @@ For GUI pages, the existing module registry supplies `pip_package`. Hub writes
 `data-stx-api-docs-url` onto the owned page body. The SDK AppHeader (TypeScript or
 React) renders that URL through its existing action slot. The SDK knows no Hub
 route or package catalog. A page without a registered owner receives no invented
-identity. Embedded pages receive the metadata without an extra host header.
+identity. Embedded pages receive the metadata without an extra host header. Both generic
+workspace switchers consume registry-derived `X-SciTeX-API-Docs-URL` fragment
+metadata before mounting a replacement pane. They keep an explicit empty pane
+attribute for an unknown owner, suppressing stale body inheritance, and use
+`stxAppHeader.mount(pane)` rather than relying on cached modules to run again.
 
 ## Development rollout and verification
 

@@ -2,6 +2,20 @@
 
 from html import escape
 
+API_DOCS_HEADER = "X-SciTeX-API-Docs-URL"
+
+
+def stamp_module_docs_response(response, module):
+    """Supply the registered fragment owner before the host mounts its content."""
+    from apps.infra.public_app.services.interface_catalog import api_docs_url
+
+    try:
+        value = api_docs_url(module.pip_package) if module.pip_package else ""
+    except ValueError:
+        value = ""
+    response[API_DOCS_HEADER] = value
+    return response
+
 
 def inject_api_docs_metadata(request, response, *, modules=None):
     """Stamp a registered GUI owner's docs URL, including embedded documents.
