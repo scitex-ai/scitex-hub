@@ -505,7 +505,7 @@ export default defineConfig(({ command }) => ({
   },
 
   optimizeDeps: {
-    include: ["fabric", "react", "react-dom", "mermaid"],
+    include: ["react", "react-dom", "mermaid"],
     // Exclude auto-discovered app editor aliases from pre-bundling
     exclude: Object.keys(APP_BRIDGES.aliases),
   },

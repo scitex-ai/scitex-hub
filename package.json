@@ -23,14 +23,13 @@
     "@vitest/ui": "^4.0.16",
     "jsdom": "^27.3.0",
     "typescript": "^5.2.2",
-    "vite": "^5.4.0",
+    "vite": "^6.4.4",
     "vitest": "^4.0.16"
   },
   "dependencies": {
     "@hpcc-js/wasm-graphviz": "^1.21.0",
     "@xyflow/react": "^12.3.0",
     "dagre": "^0.8.5",
-    "fabric": "^5.3.0",
     "@scitex/ui": "file:../scitex-ui",
     "figrecipe-editor": "file:../figrecipe/src/figrecipe/_django/frontend",
     "mermaid": "11.16.1",
