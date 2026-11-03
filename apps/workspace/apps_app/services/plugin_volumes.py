@@ -34,7 +34,13 @@ def _checked_user_home(base: Path, home: Path, username: str) -> Path:
 
     username = _user_home_name(username)
     try:
-        resolved = home.resolve()
+        # Python 3.13's non-strict resolve may return a still-looping path.
+        # Resolve existing homes strictly, while retaining the supported case
+        # where an owned workspace has not been created yet.
+        try:
+            resolved = home.resolve(strict=True)
+        except FileNotFoundError:
+            resolved = home.resolve()
         expected = base.resolve() / username
     except (OSError, RuntimeError, ValueError):
         raise PermissionDenied("User home cannot be resolved safely") from None
@@ -51,7 +57,9 @@ def user_home(request) -> Path | None:
     if user is None or not user.is_authenticated:
         return None
     username = _user_home_name(getattr(user, "username", None))
-    from apps.infra.project_app.services.filesystem.permissions import get_user_data_root
+    from apps.infra.project_app.services.filesystem.permissions import (
+        get_user_data_root,
+    )
 
     return _checked_user_home(
         Path(settings.BASE_DIR) / "data" / "users", get_user_data_root(user), username

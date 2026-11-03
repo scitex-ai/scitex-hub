@@ -1,11 +1,15 @@
 """A plugin cannot choose another user's persistent home."""
 from types import SimpleNamespace
-from pathlib import Path
+
 import pytest
 from django.core.exceptions import PermissionDenied
+
 from apps.workspace.apps_app.services.plugin_volumes import (
-    _checked_user_home, _user_home_name, user_home,
+    _checked_user_home,
+    _user_home_name,
+    user_home,
 )
+
 
 @pytest.mark.parametrize("name", [None, "", ".", "..", "../bob", "a/b", "a\\b", "a\0b"])
 def test_unsafe_home_identity_is_refused(name):
@@ -45,3 +49,16 @@ def test_looping_home_symlink_is_refused(tmp_path):
     (tmp_path / "alice").symlink_to(tmp_path / "alice", target_is_directory=True)
     with pytest.raises(PermissionDenied):
         _checked_user_home(tmp_path, tmp_path / "alice", "alice")
+
+
+def test_parent_symlink_loop_is_refused(tmp_path):
+    loop = tmp_path / "loop"
+    loop.symlink_to(loop, target_is_directory=True)
+    with pytest.raises(PermissionDenied):
+        _checked_user_home(loop, loop / "alice", "alice")
+
+
+def test_uncreated_owned_home_under_missing_parent_remains_supported(tmp_path):
+    base = tmp_path / "not-created" / "users"
+    assert _checked_user_home(base, base / "alice", "alice") == base / "alice"
+    assert not base.exists()
