@@ -734,11 +734,19 @@ RUN uv pip install --system --no-cache --upgrade \
     "openalex-local" \
     "crossref-local"
 
-# Cache layers can leave other installed packages with incompatible dependencies.
-# Resolve EVERY retained package with the local Hub in one normal transaction;
-# checking or re-installing Hub alone cannot see unrelated cached requirements.
-RUN python scripts/deploy/installed_runtime_roots.py /opt/scitex-image-contract/runtime-roots.in && \
-    uv pip install --system --no-cache -r /opt/scitex-image-contract/runtime-roots.in ".[all]" && \
+# Cache layers may retain orphan helpers belonging to superseded third-party
+# versions. Preserve every SciTeX/direct scientific capability and explicit
+# runtime input, then compile ONE complete closure. The seeded output file is
+# uv's version PREFERENCE input (not -c constraints); conflicts may change a
+# cached version. Sync removes only packages outside that resolved closure.
+RUN python scripts/deploy/installed_runtime_roots.py \
+        /opt/scitex-image-contract/runtime-roots.in \
+        /opt/scitex-image-contract/runtime.lock && \
+    uv pip compile --no-cache /opt/scitex-image-contract/runtime-roots.in \
+        --output-file /opt/scitex-image-contract/runtime.lock && \
+    uv pip sync --system --no-cache /opt/scitex-image-contract/runtime.lock && \
+    python scripts/deploy/installed_runtime_roots.py --verify-closure \
+        /opt/scitex-image-contract/runtime-roots.manifest.json && \
     uv pip check --system
 
 # Bake the complete frontend closure after the final normal Python graph.
