@@ -345,6 +345,7 @@ print(json.dumps([attempts,html.count('class="far fa-star"'),list(Path.home().it
     def test_footer_contains_visible_star_and_fork_words_in_the_shared_row(self):
         # Arrange
         from django.template import Context
+        from django.utils.translation import override
 
         source = (
             ROOT
@@ -362,7 +363,9 @@ print(json.dumps([attempts,html.count('class="far fa-star"'),list(Path.home().it
             **validate_repository("scitex-sdk", snapshot_record()),
         }
         # Act
-        html = template.render(Context({"repo": repo}, use_l10n=False))
+        # This assertion names English labels, independently of prior requests.
+        with override("en"):
+            html = template.render(Context({"repo": repo}, use_l10n=False))
         # Assert
         self.assertEqual(
             (

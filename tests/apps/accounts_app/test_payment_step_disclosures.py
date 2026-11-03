@@ -148,7 +148,11 @@ def test_the_step_state_follows_the_account_facts():
 
 
 def _render(**overrides) -> str:
-    return render_to_string(TEMPLATE, _disclosures(**overrides).as_context())
+    from django.utils.translation import override
+
+    # These surface contracts assert English copy; restore any inherited locale.
+    with override("en"):
+        return render_to_string(TEMPLATE, _disclosures(**overrides).as_context())
 
 
 def test_the_plan_unset_render_quotes_no_price_and_offers_no_action():
