@@ -32,3 +32,19 @@ the separate lint/build graph has minimatch-family findings. Independently
 installed linked frontend trees must also be audited, with actual Vite module
 resolution checked before classifying their findings as shipped or excluded.
 Dependency version changes require their own compatibility and build controls.
+
+## Monaco sanitizer ownership
+
+Monaco 0.45.0 embeds DOMPurify 3.0.5 in its source, which npm audit does not
+identify as an installed dependency. Vite redirects only that exact installed
+module to a local adapter over a new, isolated instance of patched DOMPurify.
+The real upstream default/named export surface is retained; hook/configuration
+changes stay inside Monaco and do not affect the shared diagram sanitizer.
+Unrelated sanitizers and same-name modules outside that installed file are not
+redirected. Build configuration helpers are included in the baked source hashes.
+
+The owned browser test builds with the real production resolver plugin, verifies
+that compiled modules exclude the vendored implementation, and exercises an
+actual Monaco editor markdown hover, malicious markdown, and hook isolation.
+This source redirect does not rewrite installed third-party files or claim to
+patch separately prebuilt leaf bundles; those require their own module inventory.

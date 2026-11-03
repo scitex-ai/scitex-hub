@@ -40,6 +40,8 @@ Alpha preview; the distribution and tag use the canonical PEP 440 spelling
 
 ### Fixed
 
+- Replace the shared build's exact Monaco-vendored sanitizer module with an
+  isolated patched instance, preserving markdown hover and hook behavior.
 - Keep chat diagrams in inert SVG images and sanitize interactive Clew diagrams
   without losing node selection or status colors. Use one patched DOMPurify
   release for bundled and legacy-global consumers, and render errors as text.
