@@ -44,18 +44,6 @@ jobs:
         with:
           python-version: "3.12"
       - name: Install scitex-sdk (drift-pack rules source)
-        run: pip install "scitex-sdk==0.3.18"
+        run: pip install "scitex-sdk==0.3.19"
       - name: Lint fixed trees (UI108/109/110/111 enforced)
-        run: |
-          scitex-sdk ui lint --json apps/workspace/writer_app > ui-violations.jsonl || true
-          scitex-sdk ui lint --json apps/workspace/apps_app/launcher_links >> ui-violations.jsonl || true
-          scitex-sdk ui lint --json apps/workspace/scholar_app/static/scholar_app/css/common/ >> ui-violations.jsonl || true
-          echo "--- UI108/109/110/111 violations (gate):"
-          grep -E '"rule": "STX-UI(108|109|110|111)"' ui-violations.jsonl || true
-          echo "--- older-rule count (grandfathered, informational):"
-          grep -vcE '"rule": "STX-UI(108|109|110|111)"' ui-violations.jsonl || true
-          if grep -qE '"rule": "STX-UI(108|109|110|111)"' ui-violations.jsonl; then
-            echo "FAIL: STX-UI108/109/110/111 violations present (see above)"
-            exit 1
-          fi
-          echo "OK: no STX-UI108/109/110/111 violations."
+        run: python .github/ci/check_sdk_ui_rules.py
