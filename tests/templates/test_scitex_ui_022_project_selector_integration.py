@@ -114,4 +114,6 @@ def test_writer_header_render_keeps_one_sdk_mount_and_one_leaf_picker():
     pickers = [a for a in elements.attributes if "data-stx-project-picker" in a]
     # Assert
     assert (len(mounts), len(pickers), mounts[0].get("data-app-version"),
-            html.count("writer/js/header-picker.js")) == (1, 1, "owned-version", 1)
+            html.count("writer/js/header-picker.js"),
+            "scitex_sdk/ui/js/app/app-header.js?v=" in html,
+            "scitex_sdk/ui/css/app/app-header.css?v=" in html) == (1, 1, "owned-version", 1, True, True)
