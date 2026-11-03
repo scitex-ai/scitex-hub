@@ -114,6 +114,7 @@ _PUBLIC_NAMES = (
     "demos",
     "donate",
     "open_source",
+    "landing-github-counts",
     "pricing",
     "privacy",
     "publications",
