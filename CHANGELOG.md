@@ -23,6 +23,9 @@ Alpha preview; the distribution and tag use the canonical PEP 440 spelling
   provenance, preserving authored sections and bibliography.
 
 ### Changed
+- Bake the production frontend from installed-release Git tags and verified
+  public SDK wheel inputs. Verify and publish the complete Vite closure after
+  collectstatic without startup Git/npm activity or deleting older hashed chunks.
 - Align mounted application headers, scope capabilities, theme controls, and
   viewport frames through shared SDK contracts.
 - Show Cloud alpha status and a research-workflow landing page with installation

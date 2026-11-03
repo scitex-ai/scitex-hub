@@ -46,6 +46,8 @@ docs/_build/
 
 # Node (if applicable)
 node_modules/
+# Baked production frontends prepare reviewed release inputs inside the image.
+.apps/
 npm-debug.log*
 
 # Docker

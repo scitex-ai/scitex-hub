@@ -18,6 +18,20 @@ if is_web_role "$@"; then
     IS_WEB_ROLE=true
 fi
 
+# BEGIN FRONTEND MODE VALIDATION
+FRONTEND_MODE="${SCITEX_HUB_FRONTEND_MODE:-build}"
+case "$FRONTEND_MODE" in
+    build) ;;
+    baked)
+        if [ "${SCITEX_APPS_PYTHON_MODE:-editable}" != "image-only" ]; then
+            echo_error "Baked frontend requires image-only Python mode"
+            exit 2
+        fi
+        ;;
+    *) echo_error "Unknown SCITEX_HUB_FRONTEND_MODE"; exit 2 ;;
+esac
+# END FRONTEND MODE VALIDATION
+
 echo -e "🏭 NAS Environment"
 
 # ============================================
@@ -166,6 +180,12 @@ if [ "$IS_WEB_ROLE" = true ]; then
 # initial SIGTERM. NOTE: the uv-cache / site-packages / .apps volume perms that
 # used to force the slow plain-pip fallback are fixed separately in
 # root-init.sh; this guard is the structural backstop for ANY residual hang.
+if [ "$FRONTEND_MODE" = baked ]; then
+    # Normal migrations/collectstatic already ran. Fail closed on a partial or
+    # mismatched image artifact; never fall back to network/build at startup.
+    python /opt/scitex-frontend-tools/_frontend_artifact.py
+    echo_info "Verified baked frontend installed (startup builds disabled)"
+else
 echo_info "Installing workspace apps for Vite bridge resolution..."
 APP_INSTALL_TIMEOUT="${APP_INSTALL_TIMEOUT_SECONDS:-300}"
 timeout --kill-after=10s "${APP_INSTALL_TIMEOUT}" \
@@ -243,6 +263,8 @@ if [ "$VITE_REBUILD_NEEDED" = true ]; then
 else
     echo_info "TypeScript build already up to date"
 fi
+
+fi # FRONTEND_MODE: baked versus the existing editable/build path
 
 # Close the web-container-only guard opened before "Install Workspace Apps"
 # above. celery_{worker,beat} land here and skip the whole frontend build +

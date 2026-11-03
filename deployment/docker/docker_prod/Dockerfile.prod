@@ -543,11 +543,8 @@ RUN useradd -m -u 1000 scitex && \
 COPY --from=python-builder /usr/local/bin/uv /usr/local/bin/uv
 RUN uv pip install --system --no-cache daphne==4.1.2 psycopg2-binary
 
-# package.json first — npm install is cached unless deps change
-COPY --chown=scitex:scitex package.json ./
-RUN --mount=type=cache,target=/root/.npm \
-    npm install && \
-    touch node_modules/.install-timestamp
+# Local file: npm dependencies require the release-matched sibling sources.
+# Install the complete frontend graph only after source and final Python wheels.
 
 # Application source (changes every deploy; immutable policy snapshot follows)
 COPY --chown=scitex:scitex . .
@@ -734,16 +731,17 @@ RUN uv pip install --system --no-cache --upgrade \
     "openalex-local" \
     "crossref-local"
 
-# Note: Vite build runs at runtime (not here) because Docker volume mounts
-# for static_volume would shadow build-time output. npm deps are cached above
-# (and .dockerignore keeps `COPY . .` from clobbering them), so startup skips
-# `npm install` — but the Vite build itself is NOT fast.
-#
-# MEASURED 2026-07-30 on a full build: 2m14.9s wall / 2m26.3s CPU
-# (443 rollup entry points, 600 output files, 10.46 MB emitted).
-# The note here previously claimed "~10s", wrong by ~13x. Budget accordingly:
-# the NAS CPU is weaker than the machine that produced that figure, so the
-# real boot cost is >= 2m15s, not less.
+# Bake the complete frontend closure after the final normal Python graph.
+# Source releases match installed versions; only verified wheel-owned SDK/LP
+# providers satisfy local npm peers. No editable Python install occurs here.
+# The artifact survives runtime static-volume shadowing under root-owned /opt.
+RUN --mount=type=cache,target=/root/.npm \
+    python scripts/deploy/bake_frontend.py --app-root /app --artifact /opt/scitex-frontend && \
+    chown -R scitex:scitex /app/staticfiles
+COPY scripts/deploy/_frontend_artifact.py /opt/scitex-frontend-tools/_frontend_artifact.py
+RUN chmod 755 /opt/scitex-frontend /opt/scitex-frontend-tools && \
+    chmod 644 /opt/scitex-frontend-tools/_frontend_artifact.py
+ENV SCITEX_HUB_FRONTEND_MODE=baked SCITEX_APPS_PYTHON_MODE=image-only
 
 # Entrypoint scripts
 COPY deployment/docker/common/scripts/root-init.sh /root-init.sh
