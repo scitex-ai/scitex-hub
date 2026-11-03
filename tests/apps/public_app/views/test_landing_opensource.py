@@ -231,11 +231,9 @@ class LandingAppStoreNoteTest(TestCase):
         ]
         # Assert — the current source section promises inspectable repositories.
         hosts = _linked_hosts(section)
-        assert (
-            "github.com" in hosts,
-            "apps.apple.com" in hosts,
-            "play.google.com" in hosts,
-        ) == (True, False, False)
+        assert hosts.intersection(
+            {"github.com", "apps.apple.com", "play.google.com"}
+        ) == {"github.com"}
 
 
 if __name__ == "__main__":
