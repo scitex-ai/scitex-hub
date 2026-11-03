@@ -48,8 +48,12 @@ the entire directory. Verification or copying failure stops startup; baked mode
 never falls back to Git/npm. Worker and beat retain their existing role behavior.
 
 An unknown frontend mode, or baked mode with editable Python mode, is refused.
-The default `build` mode outside the production image preserves existing editable
-and development startup behavior. Changing modes is not a migration bypass.
+The canonical Compose resolver sets both modes together: production and explicit
+staging candidate images use `image-only`/`baked`; ordinary staging uses
+`editable`/`build`, explicitly overriding the production image defaults. Ambient
+mode variables cannot change that derived policy. Development rejects candidate
+image overrides and keeps its own startup path. Changing modes is not a migration
+bypass.
 
 Before promotion, qualify a real cold Docker build, its receipt and actual route
 assets on an isolated staging database/users root. Unit protocol fixtures alone

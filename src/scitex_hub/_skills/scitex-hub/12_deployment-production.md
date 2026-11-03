@@ -61,7 +61,9 @@ use a unique tag for building, then an immutable identity for admission/swap.
 The canonical resolver rejects empty/malformed overrides without printing the
 value. Resolver-owned image/mode values prevent dotenv files from silently
 selecting an unvalidated candidate. With a candidate override, staging is derived as `image-only` for all
-three roles; ordinary staging remains editable. Production is always image-only.
+three roles with baked frontend publication; ordinary staging remains editable
+with runtime frontend build mode. Both modes are derived by the canonical
+resolver, not caller overrides. Production is always image-only/baked.
 An ambient mode variable cannot change this policy. Development's direct-bind
 installer does not support this image override.
 
