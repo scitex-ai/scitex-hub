@@ -13,13 +13,14 @@ contracts in `preflight_contract.json`.
 
 ## Non-production canary and rollback evidence
 
-Use the existing `nightly-staging-candidate-YYYYMMDD` GHCR artifact as the
-noncritical canary; do not retag `latest` or alter production compose links.
-Record the pushed `ghcr.io/scitex-ai/scitex-hub@sha256:...` digest. Before a
-manual staging run, record the currently configured staging digest as the
-rollback artifact (`staging-pre-dependency-floor-gate@sha256:...`). A valid
-release record contains both immutable digests and verifier output from the
-candidate. A local image ID or mutable tag is not immutable evidence.
+Use a separately qualified candidate without retagging production's `latest`.
+For a registry-backed canary, record its verified repository `@sha256:` digest
+and the previous known-good digest. On one Docker engine, a full local image ID
+binds the exact image content for admission and reuse, but does not prove a
+registry publication or source qualification. Record source/payload provenance
+and actual verifier output in either case; a mutable tag alone is insufficient.
+Historical rollback images and mounted-data backups need separate restoration
+qualification, especially when previous app roles had different package graphs.
 
 ## The pre-recreate sibling check uses the same runtime mode
 
@@ -71,3 +72,25 @@ Docker host; otherwise the check refuses without guessing a remote checkout.
 This gate checks the Python floor/import contract. It does not replace the
 immutable image verifier, migration planning, data backups, frontend/static
 qualification or the guarded production swap and rollback procedure.
+
+## Candidate image selection
+
+`SCITEX_HUB_APP_IMAGE` is the shared optional image identity for the three
+production and three staging app-service image fields. The canonical resolver
+validates it before invoking Compose and exports resolver-owned image/mode values;
+values in dotenv files cannot silently select a different candidate; an explicitly empty/unsafe value refuses
+without echoing it. Unset image defaults are unchanged. Candidate tags are for
+building; deployment admission uses the resulting immutable image ID or verified
+registry digest. Production stays image-only, while a candidate override derives
+image-only for all staging roles regardless of ambient mode values. Ordinary
+staging remains editable. Development's direct-bind installer rejects this
+override rather than silently ignoring it.
+
+Build through `scripts/deploy/compose.sh prod build --builder <owned-name> django`
+with a resource-qualified private Buildx worker and a unique candidate tag. Stage
+the same artifact using `--no-build`, separate staging data and an owned
+`SCITEX_SLURM_USER_DATA_ROOT`. Follow the source-owned
+[deployment runbook](../../src/scitex_hub/_skills/scitex-hub/12_deployment-production.md)
+for admission, targeted recreation and rollback limitations. This setting does
+not authorize a deployment or turn the generic job-cancelling rebuild into a
+safe preserve-jobs workflow.

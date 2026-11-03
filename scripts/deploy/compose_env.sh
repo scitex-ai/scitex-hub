@@ -61,6 +61,40 @@ resolve_compose_env() {
         ;;
     esac
 
+    # This is an image identity, never a URL or a place for registry credentials.
+    # Keep diagnostics fixed: rejected input can contain sensitive shell data.
+    if [ "${SCITEX_HUB_APP_IMAGE+x}" = x ]; then
+        if [ "$env" = dev ]; then
+            echo "resolve_compose_env: application image override is supported only for prod/staging" >&2
+            return 2
+        fi
+        if ! [[ "$SCITEX_HUB_APP_IMAGE" =~ ^[A-Za-z0-9][A-Za-z0-9._:/@-]{0,1023}$ ]] ||
+            [[ "$SCITEX_HUB_APP_IMAGE" = *"://"* ]] ||
+            [[ "$SCITEX_HUB_APP_IMAGE" = *@*@* ]] ||
+            { [[ "$SCITEX_HUB_APP_IMAGE" = *"@"* ]] && ! [[ "$SCITEX_HUB_APP_IMAGE" =~ @sha256:[a-f0-9]{64}$ ]]; } ||
+            { [[ "$SCITEX_HUB_APP_IMAGE" = sha256:* ]] && ! [[ "$SCITEX_HUB_APP_IMAGE" =~ ^sha256:[a-f0-9]{64}$ ]]; }; then
+            echo "resolve_compose_env: invalid application image override (value withheld)" >&2
+            return 2
+        fi
+        export SCITEX_HUB_APP_IMAGE
+    fi
+
+    # Derived, not a caller override: a candidate must test its baked graph.
+    # Ordinary staging preserves its existing editable boot behavior.
+    # Export the resolved image too: dotenv files must not introduce an
+    # unvalidated image after this resolver has derived the Python mode.
+    SCITEX_HUB_RESOLVED_APP_IMAGE=""
+    case "$env" in
+    prod) SCITEX_HUB_RESOLVED_APP_IMAGE="${SCITEX_HUB_APP_IMAGE-scitex-hub-prod-django:latest}" ;;
+    staging) SCITEX_HUB_RESOLVED_APP_IMAGE="${SCITEX_HUB_APP_IMAGE-scitex-hub-staging-django:latest}" ;;
+    esac
+    export SCITEX_HUB_RESOLVED_APP_IMAGE
+    SCITEX_HUB_RESOLVED_PYTHON_MODE=editable
+    if [ "$env" = prod ] || [ "${SCITEX_HUB_APP_IMAGE+x}" = x ]; then
+        SCITEX_HUB_RESOLVED_PYTHON_MODE=image-only
+    fi
+    export SCITEX_HUB_RESOLVED_PYTHON_MODE
+
     if [ ! -d "$DOCKER_DIR" ]; then
         echo "resolve_compose_env: docker directory not found: $DOCKER_DIR" >&2
         return 1
