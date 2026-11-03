@@ -60,24 +60,53 @@ def test_anonymous_user_cannot_install_agents(client):
 
     assert response.status_code == 302
     assert "/auth/login/" in response.url
-    assert not ModuleInstallation.objects.filter(module__module_name="agent-container").exists()
+    assert not ModuleInstallation.objects.filter(
+        module__module_name="agent-container"
+    ).exists()
 
 
 @pytest.mark.django_db
-def test_cards_dependency_hold_blocks_install_and_toggle(client):
-    user = User.objects.create_user("cards-held-user")
+def test_retired_cards_identity_cannot_be_installed_or_toggled(client):
+    # The pre-rebrand todo catalog row is deliberately retired (migration
+    # 0023); it must not return as a second Cards installation.
+    user = User.objects.create_user("cards-retired-user")
     client.force_login(user)
     ensure_builtin_modules()
 
     install = client.post("/apps/store/api/todo/install/")
     toggle = client.post("/apps/store/api/todo/toggle/")
 
-    assert (install.status_code, toggle.status_code) == (409, 409)
-    assert not ModuleInstallation.objects.filter(
-        user=user, module__module_name="todo"
-    ).exists()
-    launcher = client.get("/")
-    assert b"canonical per-tenant store verification" in launcher.content
+    observed = (
+        (install.status_code, toggle.status_code),
+        ModuleInstallation.objects.filter(
+            user=user, module__module_name="todo"
+        ).exists(),
+        set(
+            AppsModule.objects.filter(
+                module_name__in=["todo", "scitex-cards"]
+            ).values_list("module_name", flat=True)
+        ),
+    )
+    assert observed == ((404, 404), False, {"scitex-cards"})
+
+
+@pytest.mark.django_db
+def test_coming_soon_module_cannot_be_installed_or_toggled(client):
+    # A real unavailable catalog entry still exercises the 409 admission
+    # guard; a removed historical identity cannot prove this behavior.
+    user = User.objects.create_user("held-module-user")
+    client.force_login(user)
+    held = AppsModule.objects.create(
+        module_name="owned-held-module", availability="coming_soon", visibility="public"
+    )
+
+    install = client.post("/apps/store/api/owned-held-module/install/")
+    toggle = client.post("/apps/store/api/owned-held-module/toggle/")
+
+    assert (
+        (install.status_code, toggle.status_code),
+        ModuleInstallation.objects.filter(user=user, module=held).exists(),
+    ) == ((409, 409), False)
 
 
 @pytest.mark.django_db
@@ -92,9 +121,13 @@ def test_launcher_routes_builtin_agent_container_straight_to_the_app(client):
     ensure_builtin_modules()
 
     # Act
-    before = next(t for t in client.get("/").context["tiles"] if t["name"] == "agent-container")
+    before = next(
+        t for t in client.get("/").context["tiles"] if t["name"] == "agent-container"
+    )
     client.post("/apps/store/api/agent-container/install/")
-    after = next(t for t in client.get("/").context["tiles"] if t["name"] == "agent-container")
+    after = next(
+        t for t in client.get("/").context["tiles"] if t["name"] == "agent-container"
+    )
 
     # Assert — a builtin tile reads installed from the row itself, so it is
     # reachable (and already "installed") before any explicit install call.
