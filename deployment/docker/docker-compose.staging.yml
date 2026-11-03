@@ -75,6 +75,7 @@ services:
       - ./envs/.env.staging
     environment:
       SCITEX_APPS_PYTHON_MODE: ${SCITEX_HUB_RESOLVED_PYTHON_MODE:-editable}
+      SCITEX_HUB_FRONTEND_MODE: ${SCITEX_HUB_RESOLVED_FRONTEND_MODE:-build}
       DJANGO_SETTINGS_MODULE: config.settings.settings_staging
       SCITEX_HUB_DJANGO_SETTINGS_MODULE: config.settings.settings_staging
       SCITEX_HUB_ENV: staging
@@ -204,6 +205,7 @@ services:
       - ./envs/.env.staging
     environment:
       SCITEX_APPS_PYTHON_MODE: ${SCITEX_HUB_RESOLVED_PYTHON_MODE:-editable}
+      SCITEX_HUB_FRONTEND_MODE: ${SCITEX_HUB_RESOLVED_FRONTEND_MODE:-build}
       DJANGO_SETTINGS_MODULE: config.settings.settings_staging
       SCITEX_HUB_DJANGO_SETTINGS_MODULE: config.settings.settings_staging
       SCITEX_HUB_ENV: staging
@@ -262,6 +264,7 @@ services:
       - ./envs/.env.staging
     environment:
       SCITEX_APPS_PYTHON_MODE: ${SCITEX_HUB_RESOLVED_PYTHON_MODE:-editable}
+      SCITEX_HUB_FRONTEND_MODE: ${SCITEX_HUB_RESOLVED_FRONTEND_MODE:-build}
       DJANGO_SETTINGS_MODULE: config.settings.settings_staging
       SCITEX_HUB_DJANGO_SETTINGS_MODULE: config.settings.settings_staging
       SCITEX_HUB_ENV: staging
