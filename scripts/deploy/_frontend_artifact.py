@@ -64,6 +64,7 @@ def source_inputs(root: Path) -> dict[str, str]:
             ".scitex-apps.json",
         )
     ]
+    paths += list(root.glob("vite*.ts"))
     for base in (root / "static", root / "apps"):
         if not base.is_dir():
             continue

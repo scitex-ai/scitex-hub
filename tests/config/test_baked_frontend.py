@@ -94,7 +94,16 @@ def test_verified_complete_closure_installs_and_preserves_old_hashed_chunks(prep
 
 @pytest.mark.parametrize(
     "change",
-    ["tamper", "partial", "extra", "missing_receipt", "lock", "source", "sdk_metadata"],
+    [
+        "tamper",
+        "partial",
+        "extra",
+        "missing_receipt",
+        "lock",
+        "source",
+        "sdk_metadata",
+        "build_helper",
+    ],
 )
 def test_invalid_artifact_never_changes_current_manifest(prepared, change):
     app, artifact, target = prepared
@@ -113,6 +122,8 @@ def test_invalid_artifact_never_changes_current_manifest(prepared, change):
         (app / "package-lock.json").write_text("changed")
     elif change == "source":
         (app / "vite.entries.ts").write_text("changed")
+    elif change == "build_helper":
+        (app / "vite.monaco-sanitizer.ts").write_text("changed boundary")
     else:
         path = artifact / "receipt.json"
         data = json.loads(path.read_text())
