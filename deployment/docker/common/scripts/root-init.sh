@@ -347,14 +347,20 @@ fi
 # ============================================
 # Fix Vite staticfiles permissions
 # ============================================
-# Clean stale vite output so the scitex user can rebuild fresh.
-# The build step in entrypoint will recreate this directory.
-if [ -d "/app/staticfiles/vite" ]; then
-    rm -rf /app/staticfiles/vite
-    echo "✅ Vite staticfiles cleaned (will rebuild)"
-else
-    echo "✅ Vite staticfiles permissions fixed"
-fi
+# A baked deployment publishes its manifest last and retains old hashed chunks
+# for already-open pages. Only legacy runtime builds need a clean directory.
+prepare_vite_static_directory() {
+    local vite_directory="$1"
+    if [ "${SCITEX_HUB_FRONTEND_MODE:-build}" = baked ]; then
+        echo "✅ Preserving Vite staticfiles for verified baked publication"
+    elif [ -d "$vite_directory" ]; then
+        rm -rf "$vite_directory"
+        echo "✅ Vite staticfiles cleaned (will rebuild)"
+    else
+        echo "✅ Vite staticfiles permissions fixed"
+    fi
+}
+prepare_vite_static_directory /app/staticfiles/vite
 
 echo "✅ Root initialization complete"
 echo ""

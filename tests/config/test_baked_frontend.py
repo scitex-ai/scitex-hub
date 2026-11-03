@@ -9,12 +9,52 @@ import importlib.metadata as metadata
 import importlib.util
 import json
 import os
+import re
 import subprocess
 from pathlib import Path
 
 import pytest
 
 ROOT = Path(__file__).resolve().parents[2]
+
+
+@pytest.mark.parametrize("mode", ["baked", "build"])
+def test_real_boot_cleanup_preserves_baked_chunks_and_cleans_legacy_build(
+    mode, tmp_path
+):
+    source = (ROOT / "deployment/docker/common/scripts/root-init.sh").read_text()
+    function = re.search(
+        r"^prepare_vite_static_directory\(\) \{\n.*?^\}", source, re.M | re.S
+    ).group()
+    assert "prepare_vite_static_directory /app/staticfiles/vite" in source
+    vite = tmp_path / "vite"
+    (vite / ".vite").mkdir(parents=True)
+    (vite / ".vite/manifest.json").write_bytes(b'{"existing":"old-chunk.js"}')
+    (vite / "old-chunk.js").write_bytes(b"existing open page")
+    before = {
+        str(p.relative_to(vite)): p.read_bytes()
+        for p in vite.rglob("*")
+        if p.is_file()
+    }
+    subprocess.run(
+        [
+            "bash", "-c", function + '\nprepare_vite_static_directory "$1"',
+            "boot-test", str(vite),
+        ],
+        env={
+            "PATH": os.environ.get("PATH", os.defpath),
+            "SCITEX_HUB_FRONTEND_MODE": mode,
+        },
+        check=True,
+        capture_output=True,
+        timeout=10,
+    )
+    after = {
+        str(p.relative_to(vite)): p.read_bytes()
+        for p in vite.rglob("*")
+        if p.is_file()
+    }
+    assert (vite.exists(), after) == ((True, before) if mode == "baked" else (False, {}))
 
 
 def load(name):
