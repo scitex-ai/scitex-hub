@@ -40,6 +40,10 @@ Alpha preview; the distribution and tag use the canonical PEP 440 spelling
 
 ### Fixed
 
+- Keep chat diagrams in inert SVG images and sanitize interactive Clew diagrams
+  without losing node selection or status colors. Use one patched DOMPurify
+  release for bundled and legacy-global consumers, and render errors as text.
+
 - Limit workspace sidebar overrides to the Hub-owned outer panes, preserving
   nested app sidebars such as Cards Details and keeping its Board visible.
 
