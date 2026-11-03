@@ -9941,3 +9941,7 @@ msgstr "Cards — 実際のボードに表示した架空のMNISTワークフロ
 #: apps/infra/public_app/templates/public_app/landing_partials/landing_app_gallery.html
 msgid "Synthetic MNIST workflow examples, not research progress. 2026-11-03."
 msgstr "研究の進捗ではなく、架空のMNISTワークフロー例です。2026-11-03。"
+
+#: apps/infra/auth_app/templates/auth_app/signup.html
+msgid "Academic email recognized — eligible for SciTeX Cloud Academic pricing."
+msgstr "学術機関のメールアドレスとして認識されました。SciTeX Cloud Academicの学術料金の対象です。"

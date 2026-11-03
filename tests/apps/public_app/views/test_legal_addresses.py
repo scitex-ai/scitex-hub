@@ -346,15 +346,16 @@ def test_page_carrying_the_address_returns_http_200(url_name, client):
 
 @pytest.mark.django_db
 @pytest.mark.parametrize("url_name", PAGES_CARRYING_THE_ADDRESS)
-def test_page_renders_the_registered_company_address(url_name, client):
+@pytest.mark.parametrize("language", ["en", "ja"])
+def test_page_renders_the_registered_company_address(url_name, client, language):
     """The real address must reach the rendered page, not just the template."""
     # Arrange
     expected = (
         "Shizuoka City Co-Creation Space"
-        if url_name == "public_app:cookies"
+        if url_name == "public_app:cookies" and language == "en"
         else settings.COMPANY_ADDRESS
     )
-    client.cookies["django_language"] = "ja"
+    client.cookies["django_language"] = language
 
     # Act
     content = client.get(reverse(url_name)).content.decode("utf-8")
@@ -395,7 +396,9 @@ def test_cookie_policy_renders_no_us_state_zip_address(client):
     url = reverse("public_app:cookies")
 
     # Act
-    found = sorted(set(US_STATE_ZIP_RE.findall(client.get(url).content.decode("utf-8"))))
+    found = sorted(
+        set(US_STATE_ZIP_RE.findall(client.get(url).content.decode("utf-8")))
+    )
 
     # Assert
     assert found == [], (

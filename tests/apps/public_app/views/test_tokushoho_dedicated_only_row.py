@@ -38,7 +38,11 @@ TEMPLATE = "public_app/legal/tokushoho.html"
 
 #: Real rendered column text, taken from the shipped catalogue so the synthetic
 #: row carries the same shapes and phrasings a real row does.
-_REAL = published_price_rows()[0]
+_REAL = next(
+    row
+    for row in published_price_rows()
+    if all(row[field] for field in ("storage", "compute_credit", "overage"))
+)
 STORAGE = _REAL["storage"]
 COMPUTE_CREDIT = _REAL["compute_credit"]
 OVERAGE = _REAL["overage"]
