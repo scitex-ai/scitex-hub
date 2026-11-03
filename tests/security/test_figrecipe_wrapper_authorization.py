@@ -115,8 +115,15 @@ pytestmark = [
 ]
 
 
+@pytest.fixture(autouse=True)
+def figrecipe_owned_host_root(settings, tmp_path):
+    """Real canonical tenant paths belong to this test, never another worker."""
+    settings.BASE_DIR = tmp_path / "host"
+    settings.BASE_DIR.mkdir()
+
+
 @pytest.fixture
-def figrecipe_old_direct_here():
+def figrecipe_old_direct_here(figrecipe_owned_host_root):
     """Serve the old-direct parity reference to the Django test client.
 
     Cutover CCT-2784: the guarded wrapper this suite pins lives ONLY at
