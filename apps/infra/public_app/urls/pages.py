@@ -74,6 +74,7 @@ urlpatterns = [
     path("demo/", views.demo, name="demo"),
     # Web API documentation
     path("docs/web-api/", views.api_docs, name="api_docs"),
+    path("docs/web-api/catalog.json", views.api_docs_catalog, name="api_docs_catalog"),
     path(
         "docs/web-api/<str:section>/",
         views.api_docs_section,

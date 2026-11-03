@@ -300,6 +300,7 @@ APP_TITLE_ONLY_PREFIXES = (
 
 # Hub sections that are not products, but still need a stable tab label.
 SECTION_NAMES = {
+    "/docs/web-api/": "Web API",
     "/status/": "Status",
     "/explore/": "Explore",
     "/social/explore/": "Explore",

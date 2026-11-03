@@ -64,6 +64,11 @@ SciTeX Hub is an AI-native infrastructure so that researchers can focus on scien
 
 ## Architecture
 
+The [interface documentation dispatcher](docs/architecture/interface-documentation.md)
+composes installed Dev documentation and SDK Web API providers for humans and
+agents. Leaf packages own behavior; declarations, host admission and live API
+availability remain separate observations.
+
 ```mermaid
 graph TB
     subgraph workspace[apps/workspace]

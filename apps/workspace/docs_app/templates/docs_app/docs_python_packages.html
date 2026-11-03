@@ -35,19 +35,20 @@
                     </div>
                     <p class="pkg-desc">{{ pkg.description }}</p>
                     <div class="pkg-links">
-                        {% if pkg.has_sphinx %}
+                        {% if pkg.docs_url %}
                             <a href="{{ pkg.sphinx_url }}"
                                class="pkg-link pkg-link-docs"
                                data-sphinx-url="{{ pkg.sphinx_url }}">
                                 <i class="fas fa-book"></i> Docs
                             </a>
                         {% endif %}
-                        <a href="{{ pkg.docs_url }}" target="_blank" class="pkg-link">
-                            <i class="fas fa-external-link-alt"></i> RTD
-                        </a>
-                        <a href="{{ pkg.github_url }}" target="_blank" class="pkg-link">
-                            <i class="fab fa-github"></i> GitHub
-                        </a>
+                        {% if not pkg.docs_url %}<span class="text-muted">Provider reference unavailable or ambiguous</span>{% endif %}
+                        <a href="{{ pkg.api_docs_url }}" class="pkg-link">Web API declarations</a>
+                        {% if pkg.github_url %}
+                            <a href="{{ pkg.github_url }}" target="_blank" rel="noopener" class="pkg-link">
+                                <i class="fab fa-github"></i> Repository
+                            </a>
+                        {% endif %}
                         {% if pkg.pypi_version %}
                             <a href="https://pypi.org/project/{{ pkg.pip_name }}/"
                                target="_blank"
@@ -66,8 +67,8 @@
                 <i class="fas fa-cubes"></i> Standalone Packages
             </h2>
             <p>
-                Each package can be installed independently via <code>pip install &lt;name&gt;</code>
-                or accessed through the main <code>scitex</code> package.
+                These installed distributions register their own documentation providers.
+                An installed declaration does not certify a public Web endpoint.
             </p>
             {% for pkg in standalone_packages %}
                 <div class="pkg-card">
@@ -78,19 +79,20 @@
                     </div>
                     <p class="pkg-desc">{{ pkg.description }}</p>
                     <div class="pkg-links">
-                        {% if pkg.has_sphinx %}
+                        {% if pkg.docs_url %}
                             <a href="{{ pkg.sphinx_url }}"
                                class="pkg-link pkg-link-docs"
                                data-sphinx-url="{{ pkg.sphinx_url }}">
                                 <i class="fas fa-book"></i> Docs
                             </a>
                         {% endif %}
-                        <a href="{{ pkg.docs_url }}" target="_blank" class="pkg-link">
-                            <i class="fas fa-external-link-alt"></i> RTD
-                        </a>
-                        <a href="{{ pkg.github_url }}" target="_blank" class="pkg-link">
-                            <i class="fab fa-github"></i> GitHub
-                        </a>
+                        {% if not pkg.docs_url %}<span class="text-muted">Provider reference unavailable or ambiguous</span>{% endif %}
+                        <a href="{{ pkg.api_docs_url }}" class="pkg-link">Web API declarations</a>
+                        {% if pkg.github_url %}
+                            <a href="{{ pkg.github_url }}" target="_blank" rel="noopener" class="pkg-link">
+                                <i class="fab fa-github"></i> Repository
+                            </a>
+                        {% endif %}
                         {% if pkg.pypi_version %}
                             <a href="https://pypi.org/project/{{ pkg.pip_name }}/"
                                target="_blank"

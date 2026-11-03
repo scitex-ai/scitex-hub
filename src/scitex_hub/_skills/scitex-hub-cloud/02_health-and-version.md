@@ -64,3 +64,14 @@ assert status["status"] == "healthy", f"Cloud unhealthy: {status}"
 version = stx.cloud.get_version()
 print(f"Connected to scitex-cloud {version}")
 ```
+
+
+## Discover interfaces without executing leaf code
+
+Use `/apps/docs/#overview` or `/docs/web-api/` for the shared Dev/SDK/Hub and
+leaf-provider architecture. `GET /docs/web-api/catalog.json?package=PACKAGE`
+returns installed documentation and inert Web declarations. Package identifiers
+are normalized distribution names, never paths. Missing/ambiguous declarations
+and unobserved admission remain explicit; this is not a live API health probe.
+Use `scitex-dev dev skills list --package PACKAGE --json` for installed skills;
+do not infer an unverified package-specific MCP installation command.

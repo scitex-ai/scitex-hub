@@ -137,6 +137,9 @@ def _body_open_tag(body: str):
 
 def inject_frame_stylesheet(request, response) -> None:
     """Give a standalone leaf page the hub frame, header and themed ground."""
+    from ._api_docs_metadata import inject_api_docs_metadata
+
+    inject_api_docs_metadata(request, response)
     if not is_standalone_leaf_page(request, response):
         return
     charset = response.charset or "utf-8"

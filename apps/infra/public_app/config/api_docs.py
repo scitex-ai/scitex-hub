@@ -20,6 +20,18 @@ This enables programmatic testing and consistent navigation.
 #   - template: Path to the template partial
 #   - subsections: List of subsections with id, title, and emoji
 API_DOC_SECTIONS = {
+    "interfaces": {
+        "emoji": "🧩",
+        "text": "Interfaces and providers",
+        "title": "Interfaces and providers",
+        "template": "public_app/pages/api-docs-partials/interfaces.html",
+        "visibility": "public",
+        "subsections": [
+            {"id": "interface-architecture", "title": "Shared architecture", "emoji": "🧩"},
+            {"id": "interface-discovery", "title": "Discovery", "emoji": "🔎"},
+            {"id": "installed-providers", "title": "Installed providers", "emoji": "📦"},
+        ],
+    },
     "getting-started": {
         "emoji": "🚀",
         "text": "Getting Started",
@@ -137,6 +149,7 @@ API_DOC_SECTIONS = {
 
 # Order of sections in navigation
 API_DOC_SECTION_ORDER = [
+    "interfaces",
     "getting-started",
     "scholar-api",
     "plot-api",
@@ -148,7 +161,7 @@ API_DOC_SECTION_ORDER = [
 ]
 
 # Default section (landing page)
-API_DOC_DEFAULT_SECTION = "getting-started"
+API_DOC_DEFAULT_SECTION = "interfaces"
 
 
 def get_section(section_key: str) -> dict | None:
