@@ -122,6 +122,7 @@ EXEMPT_MOUNTS = frozenset(
         "static",
         "media",
         "pricing",
+        "funding",  # Public sustainability/disclosure page, not a workspace.
         "landing",
         "terms",
         "privacy",
@@ -180,6 +181,7 @@ GATED_MOUNTS = frozenset(
         "files",
         "apps",
         "new",
+        "create-app",  # Legacy redirect to the gated /apps/sdk/ creator.
         "current-project",
         "search",
         "social",
