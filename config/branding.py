@@ -345,6 +345,7 @@ ACCOUNT_PAGE_NAMES = {
 # project leaked into the tab ("dotfiles — SciTeX …") while naming nothing
 # the page is about. Operator report 2026-10-31.
 NON_PROJECT_PREFIXES = (
+    "/docs/web-api/",
     "/accounts/",
     "/auth/",
     "/new/",
