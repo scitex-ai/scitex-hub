@@ -91,18 +91,23 @@ def continuity_browser(request, pw_base_url):
 
 def _assert_project_metadata(page, app: str, version: str) -> None:
     body = page.locator("body")
-    if app == "writer":
-        # Published Writer owns an SDK standalone document, not Hub body attrs.
-        assert (
-            page.locator('meta[name="scitex-app-version"]').get_attribute("content")
-            == f"writer@{version}"
-        )
+    sdk_document = app in {"writer", "scholar"}
+    if sdk_document:
+        # Published Writer and Scholar own SDK documents, not Hub body attrs.
         header = page.locator("[data-stx-app-header][data-stx-app-header-mounted]")
         assert header.count() == 1
         assert header.get_attribute("data-app-version") == version
         picker = page.locator("[data-stx-project-picker]")
         assert picker.count() == 1
         assert picker.get_attribute("data-current") == PROJECT_KEY
+    else:
+        assert body.get_attribute("data-active-project-key") == PROJECT_KEY
+        assert body.get_attribute("data-active-app-version") == version
+    if app == "writer":
+        assert (
+            page.locator('meta[name="scitex-app-version"]').get_attribute("content")
+            == f"writer@{version}"
+        )
         writer = page.locator(".writer-app")
         assert writer.count() == 1
         assert writer.get_attribute("data-project-id") == PROJECT_KEY
@@ -115,10 +120,10 @@ def _assert_project_metadata(page, app: str, version: str) -> None:
             ".scitex",
             "writer",
         )
-    else:
-        assert body.get_attribute("data-active-project-key") == PROJECT_KEY
-        assert body.get_attribute("data-active-app-version") == version
-    if app == "writer":
+    elif app == "scholar":
+        assert page.locator("body > #workspace-three-col").count() == 1
+        assert page.locator("[data-scholar-root]").count() == 1
+    if sdk_document:
         provider_url = picker.get_attribute("data-provider-url")
     else:
         assert page.locator('meta[name="stx-project-provider"]').count() == 1
