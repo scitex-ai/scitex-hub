@@ -9933,3 +9933,11 @@ msgstr "3つの合成例の図と、選択した線の詳細。開発環境の�
 
 msgid "The default shared store is ~/.scitex/dev/skills/. For Claude Code, --claude-symlink exposes it at ~/.claude/skills/scitex/."
 msgstr "既定の共有ストアは ~/.scitex/dev/skills/ です。Claude Codeでは --claude-symlink により ~/.claude/skills/scitex/ から参照できます。"
+
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_app_gallery.html
+msgid "Cards — Synthetic MNIST workflow examples in the actual Board."
+msgstr "Cards — 実際のボードに表示した架空のMNISTワークフロー例。"
+
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_app_gallery.html
+msgid "Synthetic MNIST workflow examples, not research progress. 2026-11-03."
+msgstr "研究の進捗ではなく、架空のMNISTワークフロー例です。2026-11-03。"

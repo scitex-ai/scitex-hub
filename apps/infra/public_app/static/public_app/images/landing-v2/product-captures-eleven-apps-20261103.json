@@ -59,42 +59,42 @@
     },
     {
       "app": "cards",
-      "captured_at_utc": "2026-11-02T21:11:23Z",
+      "captured_at_utc": "2026-11-03T01:51:47Z",
       "path": "/apps/cards/board-v3",
-      "raw_sha256": "39b2558c985ecacbb47cb7f74b213ecad9879944c9461ee95bcb87bab49b667b",
-      "privacy_masked_png_sha256": "39b2558c985ecacbb47cb7f74b213ecad9879944c9461ee95bcb87bab49b667b",
+      "raw_sha256": "8b517e1ab7c3f579ff87e11ea22fbe6a7690c21a0002d3ae1b77e3d1165c23c3",
+      "privacy_masked_png_sha256": "8b517e1ab7c3f579ff87e11ea22fbe6a7690c21a0002d3ae1b77e3d1165c23c3",
       "privacy_filtered_original_only": true,
       "unmasked_operational_capture_persisted": false,
-      "privacy_mask_selectors": ".stx-app-header__project,.stx-app-project-selector,.project-scope-selector,#site-project-selector,.site-header__user,.user-menu,.account-menu,[data-user-menu],[role=tooltip],#filterbar-chips,.detail-backdrop,.d-comment,.d-desc,.tl-card-title,.mx-card__title,.card-title,.card-ctx-title,.stale-title,.stale-id,.hidden-list-title,.filt-chip-value",
-      "privacy_additional_styles": "#columns,#columns *{color:transparent!important;text-shadow:none!important}#columns text{visibility:hidden!important}",
+      "privacy_mask_selectors": ".stx-app-header__project,.stx-app-project-selector,.project-scope-selector,#site-project-selector,.site-header__user,.user-menu,.account-menu,[data-user-menu],[role=tooltip],.ww-lane-title,.ww-lane-header,.card-agent,.card-assignee,.tl-lane-label,#filterbar-chips,.site-header .username,.sw-island-title,.tl-card-meta",
+      "privacy_additional_styles": "",
       "privacy_iframe_selectors": "",
-      "short_description": "Task-board activity statistics; private task content hidden.",
-      "sample_description": "Actual dedicated board-v3 Stats view. Task content and account/project identifiers hidden before any image persistence. No DM thread/API/message opened, no tasks edited or sent. This is an operational board view, not a seeded MNIST task dataset.",
+      "short_description": "Four synthetic MNIST workflow examples in the actual Board.",
+      "sample_description": "Actual dedicated Board Timeline Simple view filtered to the MNIST example project, with Show done enabled. Four clearly labelled Demo status cards illustrate workflow stages; they are not verified research progress. Human-owned fixtures have no runnable tasks or notification recipients. Native read-only browser controls, no DM/model actions, no asset substitution, and unchanged account project preferences.",
       "source_checkout_observed": "bfebb541a36cf0d8438b92ca86904a7ca0c426b6",
       "actual_browser_status": 200,
       "javascript_errors": 0,
       "new_capture_post_requests_allowed": false,
       "renditions": [
         {
-          "file": "cards-20261102-768.webp",
+          "file": "cards-board-mnist-20261103-768.webp",
           "width": 768,
           "height": 480,
-          "bytes": 11184,
-          "sha256": "3489e8d0d65c23773806ff7b3c1e65d5e912988db3afb4877526b74c90cfdfeb"
+          "bytes": 10844,
+          "sha256": "84f50265116bdda7092e5697b5fc5f5a7b75bf6882c503171384504bfe90c2e8"
         },
         {
-          "file": "cards-20261102-1200.webp",
+          "file": "cards-board-mnist-20261103-1200.webp",
           "width": 1200,
           "height": 750,
-          "bytes": 21186,
-          "sha256": "19b477634b03b5cc4069a933d77b435e54da4faf4bf6efdc8169d18db8202ed9"
+          "bytes": 22122,
+          "sha256": "2b34472980d99821fa4af99addc01e5ec567c4bbd09e58aac5d012f431575482"
         },
         {
-          "file": "cards-20261102-1200.jpg",
+          "file": "cards-board-mnist-20261103-1200.jpg",
           "width": 1200,
           "height": 750,
-          "bytes": 53152,
-          "sha256": "be38f56046bfafd1d99edb55c7d0e852ae41e2fafcab71a5177b1546ca5ada8e"
+          "bytes": 57716,
+          "sha256": "8afc9f7fb00f775150faac0021066ac2c714f5134fe4f9a99e9d848ca3264930"
         }
       ],
       "gallery_category": "infrastructure",
@@ -103,7 +103,20 @@
       "capture_version": "0.56.22",
       "capture_version_basis": "visible_capture_header",
       "source_declared_version": "0.56.22",
-      "capture_version_note": "Captured header v0.56.22; recorded source declares v0.56.22 at bfebb541a36c."
+      "capture_version_note": "Captured header v0.56.22; unchanged Cards source declares v0.56.22 at bfebb541a36c. Hub sidebar ownership fix enables the native Board; fixture seed is separately documented.",
+      "synthetic_example": true,
+      "visible_fixture_cards": 4,
+      "hub_sidebar_owner_fix": "fc46fb5782ef114bae90ae5d30e391c0f071831b",
+      "viewport": [
+        1440,
+        875
+      ],
+      "natural_app_crop": {
+        "x": 67,
+        "y": 65,
+        "width": 1296,
+        "height": 810
+      }
     },
     {
       "app": "storage",

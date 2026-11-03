@@ -199,3 +199,38 @@ above; the separate nine-leaf manifest identifies the expanded set.
 ## FigRecipe representative Figure scene (2026-11-03 gallery cohort)
 
 The active gallery uses the native Figure view with three synthetic example recipes, a selected Training line and its eight-point Details. Figure 1/2/3 navigation and the Objects list show the actual hierarchy; one canvas is visible at a time. Values are illustrative, not MNIST results. Reproduce the fixture with `scripts/demo/landing_figrecipe_scene/generate_examples.py`; its adjacent README and PROVENANCE.json record capture hashes and the real UTC timestamp. Historical worksheet images are retained.
+
+## Cards MNIST Board replacement (2026-11-03)
+
+The active eleven-app gallery's Cards entry replaces the historical Stats image
+with the actual authenticated development `/apps/cards/board-v3` Timeline → Simple view at
+1440 × 875, naturally cropped to the actual 1296 × 810 app area. Four `Demo:`
+cards illustrate an MNIST workflow; these are synthetic
+UI stages, **not research progress or agent activity**. The Show done filter is
+on. Account/project controls and human card metadata were masked before the
+first saved image; the four example titles remain visible. The three new
+renditions total 90,682 bytes. Historical Stats images and manifests remain.
+
+The unchanged Cards source was `bfebb541a36cf0d8438b92ca86904a7ca0c426b6`
+(version 0.56.22). Hub `fc46fb5782ef114bae90ae5d30e391c0f071831b`
+scopes utility-sidebar sizing to the host's own panes: previously a broad host
+rule forced nested Cards Details to full width and hid the Board. The final
+capture used the actually served fixed CSS, without response substitution.
+
+`scripts/showcase/mnist_cards_board.py` reproduces the explicitly approved,
+idempotent fixture through the public Cards task API. It uses the authenticated
+human CLI principal, fixed IDs and a fixture marker. `kind=status` is descriptive;
+non-runnable statuses/blockers are checked independently by Cards' classifier.
+External plugin handlers are disabled only for fixture insertion; builtin
+created-event notifications are separately muted and checked to have zero
+recipients. Core validation and persistence remain active. No agent assignment,
+DM, model, relay, session or compute action is requested. The script defaults to
+read-only planning and offers guarded cleanup of unchanged fixture rows only.
+The live browser capture blocked application writes, real WebSockets and native
+agent routes, and verified unchanged project-scope and owner-session-file hashes.
+
+To reproduce the view, open the Board, search `project:example-project-mnist`,
+clear any existing Board-local project filter chip, select Details → Board →
+Timeline → Simple, and enable Details → Filters → Show done. These local
+controls do not change the account's selected project. Capture only after the visible rows are
+confirmed to be the four fixture IDs, and mask account/project/lane identifiers.
