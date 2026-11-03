@@ -102,8 +102,14 @@ scripts/deploy/compose.sh staging up -d --no-deps --no-build django celery_worke
 ```
 
 Staging uses its own env-file, database and named volumes. Verify those identities
-and the selected users bind; a different app name alone is not isolation. Check
-real authorized routes, frontend hashes, worker/beat behavior and relevant tests.
+and the selected users bind; a different app name alone is not isolation.
+
+Set `DEBUG=False` in the canonical staging env-file: image-only/baked Django
+must serve the verified manifest rather than request a Vite development server.
+The preflight refuses that debug-mode mismatch before recreation. An exported
+shell variable does not replace a value supplied through Compose's env-file.
+
+Check real authorized routes, frontend hashes, worker/beat behavior and relevant tests.
 A healthy container or HTTP 200 by itself is insufficient evidence. Audit root
 and linked frontend dependency locks separately, and qualify actual diagram
 rendering boundaries; see [diagram rendering](../../../../docs/security/diagram-rendering.md).

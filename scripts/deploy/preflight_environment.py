@@ -72,6 +72,10 @@ def parse_context(document):
         if not isinstance(image, str) or not re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9._:/@-]{0,1023}", image):
             _refuse("a Python role has no valid resolved image")
         if mode == "image-only":
+            if (name == "django" and
+                    environment.get("SCITEX_HUB_FRONTEND_MODE") == "baked" and
+                    str(environment.get("DEBUG", "False")).lower() in ("true", "1", "yes")):
+                _refuse("baked Django requires DEBUG=False to serve the qualified frontend")
             # A read-only host checkout still replaces the qualified Python
             # bytes. Refuse runtime-code overlays before probing a bare image.
             protected = ("/usr/local/lib", "/usr/local/bin",
