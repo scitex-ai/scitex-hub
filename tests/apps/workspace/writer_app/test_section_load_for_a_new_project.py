@@ -183,6 +183,7 @@ class SectionLoadForANewProjectTest(TestCase):
         payload = json.loads(fetched.content)
         assert payload["success"] is True, payload
         assert "Hello from the round trip." in payload["content"], payload
+        assert payload["file_path"] == "01_manuscript/contents/title.tex", payload
 
     # --- the fix must not turn real errors into 200s, or open the door -------
 
