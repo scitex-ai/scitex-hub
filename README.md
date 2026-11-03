@@ -120,7 +120,7 @@ make start                    # Start development environment
 # (or set SCITEX_HUB_TEST_USER_PASSWORD to choose it yourself)
 ```
 
-## Four Interfaces
+## Five Interfaces
 
 <details open>
 <summary><strong>Python API</strong></summary>
@@ -232,10 +232,10 @@ for the live list.</sub>
 Skill files provide context-aware guidance to AI agents working within the SciTeX ecosystem.
 
 ```bash
-# Export skills to dotfiles (sync to Claude)
-scitex-dev skills export --package scitex-hub
+# List installed, package-owned skills through the central dispatcher
+scitex-dev dev skills list --package scitex-hub --json
 
-# List available skills
+# Read the Hub CLI-specific listing
 scitex-hub skills list
 ```
 
@@ -244,6 +244,18 @@ Skills are stored in `src/scitex_hub/_skills/scitex-hub/` and cover deployment, 
 For release staging/production, use the [canonical candidate-image runbook](src/scitex_hub/_skills/scitex-hub/12_deployment-production.md). It preserves serving jobs and data while qualifying one immutable app image; the generic rebuild script includes job cancellation.
 
 > **[Skills index](_skills/scitex-hub/SKILL.md)**
+
+</details>
+
+<details>
+<summary><strong>Web API documentation</strong></summary>
+
+The [interface dispatcher](docs/architecture/interface-documentation.md) composes
+installed leaf documentation and SDK inert Web declarations at `/docs/web-api/`.
+Select a normalized distribution with `?package=scitex-scholar`, for example.
+Leaf-owned installed skills remain readable when canonical API metadata is
+absent; declarations, host admission and live availability are separate states.
+The Hub does not invent domain endpoints or probe handlers to render docs.
 
 </details>
 

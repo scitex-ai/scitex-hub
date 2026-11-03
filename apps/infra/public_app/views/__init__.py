@@ -19,6 +19,7 @@ Exports all view functions for URL routing.
 from .api import (
     api_docs,
     api_docs_catalog,
+    api_docs_skill,
     api_docs_download,
     api_docs_section,
     releases_view,

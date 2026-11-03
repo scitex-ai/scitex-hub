@@ -75,3 +75,8 @@ are normalized distribution names, never paths. Missing/ambiguous declarations
 and unobserved admission remain explicit; this is not a live API health probe.
 Use `scitex-dev dev skills list --package PACKAGE --json` for installed skills;
 do not infer an unverified package-specific MCP installation command.
+
+A selected package also links its installed leaf guidance. The viewer uses the
+public Dev readers, admits only an exact owner/namespace/name from that listing,
+and shows escaped Markdown with its version and fingerprint. It exposes no
+filesystem paths and does not turn historical documentation into an admitted API.

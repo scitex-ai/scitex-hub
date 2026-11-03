@@ -447,8 +447,10 @@ def docs_python(request):
 
 
 def docs_api(request):
-    """Serve REST API documentation page."""
-    return render(request, "public_app/pages/api_docs.html")
+    """Keep the legacy Docs alias on the same provider-backed dispatcher."""
+    from apps.infra.public_app.views.api import api_docs
+
+    return api_docs(request)
 
 
 def docs_page(request, module, page):

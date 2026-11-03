@@ -32,6 +32,15 @@ scitex-dev ecosystem audit-project PACKAGE --path CHECKOUT --json</code></pre>
     {% if interface_catalog.selected_not_registered %}
         <p role="status">{% trans "No documentation or canonical Web API provider is registered for this package in this environment." %}</p>
     {% endif %}
+    {% if interface_catalog.selected_package %}
+        <h3>{% trans "Installed leaf guidance" %}</h3>
+        <p>{% trans "These resources belong to the installed package and may describe optional or legacy interfaces. Reading guidance does not verify runtime availability or grant API access." %}</p>
+        {% if interface_catalog.selected_skills.state == "available" %}
+        <ul>{% for guide in interface_catalog.selected_skills.entries %}
+            <li><a href="{{ guide.url }}"><code>{{ guide.namespace }}/{{ guide.name }}</code></a>{% if guide.description and guide.description != "|" %} — {{ guide.description }}{% endif %}</li>
+        {% empty %}<li>{% trans "No registered and enabled installed skill resources were found for this owner." %}</li>{% endfor %}</ul>
+        {% else %}<p role="status">{% trans "Installed skill discovery is unavailable or ambiguous. No paths or guessed guides are advertised." %}</p>{% endif %}
+    {% endif %}
     {% for package in interface_catalog.packages %}
         <article class="api-section" data-provider-package="{{ package.distribution }}">
             <h3><a href="{{ package.api_docs_url }}">{{ package.distribution }}</a>{% if package.version %} <small>{{ package.version }}</small>{% endif %}</h3>

@@ -156,10 +156,19 @@ def build_interface_catalog(
             declaration["state"] = "invalid_descriptor"
         item["web_apis"].append(declaration)
 
+    from .installed_skill_docs import installed_skill_guides
+
+    selected_skills = (
+        installed_skill_guides(selected)
+        if selected
+        else {"state": "not_inspected", "entries": []}
+    )
+
     rows = [
         packages[name] for name in sorted(packages) if not selected or name == selected
     ]
     return {
+        "selected_skills": selected_skills,
         "schema_version": 1,
         "selected_package": selected,
         "docs_discovery": docs_state,

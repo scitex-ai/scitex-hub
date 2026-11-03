@@ -272,3 +272,21 @@ def scitex_api_keys(request):
 
 
 # EOF
+
+
+def api_docs_skill(request):
+    """Read leaf-owned installed guidance, without certifying runtime APIs."""
+    from django.http import Http404, HttpResponseNotAllowed
+    from apps.infra.public_app.services.installed_skill_docs import read_installed_skill
+
+    if request.method != "GET":
+        return HttpResponseNotAllowed(["GET"])
+    try:
+        skill = read_installed_skill(
+            request.GET.get("package", ""),
+            request.GET.get("namespace", ""),
+            request.GET.get("name", ""),
+        )
+    except (ValueError, LookupError) as exc:
+        raise Http404("Installed skill not available for this package") from exc
+    return render(request, "public_app/pages/api_docs_skill.html", {"skill": skill})

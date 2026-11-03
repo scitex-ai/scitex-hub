@@ -49,3 +49,16 @@ Record installed provider metadata separately from source declarations and
 observe each GUI's real canonical header; GUI registration alone proves neither
 an API provider nor a live API. Preserve workers, agent sessions and unrelated
 package payloads. This change does not authorize production deployment.
+
+
+## Selected-package guidance
+
+A normalized selected package also lists its installed, leaf-owned skills using
+`scitex_dev.ecosystem.list_skills(package=...)`. Links open an exact
+owner/namespace/name resource through `get_skill`; the browser does not expose
+host paths or the reader's legacy fuzzy matching. Missing, ambiguous, foreign or
+escaping resources are refused. Markdown is displayed as escaped documentation,
+with an installed version and content fingerprint, rather than executable HTML.
+This remains useful when a leaf has no canonical Web descriptor; it does not
+certify that historical endpoints are enabled or responding. The old
+`/apps/docs/api/` entry delegates to the same provider-backed page.
