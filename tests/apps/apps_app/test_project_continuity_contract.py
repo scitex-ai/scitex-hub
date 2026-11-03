@@ -68,14 +68,15 @@ def test_project_scoped_manifest_metadata_reaches_the_registry():
     assert module.scope == "project"
 
 
-def test_hub_scope_overlay_keeps_external_stats_in_the_active_project():
-    # Arrange: the current Stats entry point predates manifest scope metadata.
+def test_hub_scope_overlay_keeps_available_stats_project_scoped():
+    # Old manifests may omit scope; the host's current Stats contract is real,
+    # available project-scoped analysis. Launcher route admission is separate.
     manifest = {"name": "stats", "label": "Stats", "app_name": "stats_app"}
     # Act
     module = _manifest_to_module_config(manifest)
     # Assert
     assert module.scope == "project"
-    assert module.availability == "coming_soon"
+    assert module.availability == "available"
 
 
 def test_launcher_project_url_carries_the_active_project():

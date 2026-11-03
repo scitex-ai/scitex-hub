@@ -280,3 +280,11 @@ def test_declared_accent_has_a_token_in_both_themes(manifest, accent):
         "(expected 2: one light, one dark). The tile will render with no accent "
         "and no error — CSS resolves a missing custom property to nothing."
     )
+
+
+def test_nonrendering_journal_metadata_uses_shared_semantic_colors():
+    manifest = json.loads(
+        (_MANIFEST_ROOT / "workspace/journal_app/manifest.json").read_text()
+    )
+    assert manifest["renders_ui"] is False
+    assert not manifest.get("accent_color")
