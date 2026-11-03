@@ -25,6 +25,7 @@ def test_browser_gate_executes_real_diagram_and_monaco_security_controls():
     )
     command = steps[position]["run"]
     for name in (
+        "test_page_readiness_contract.py",
         "test_diagram_rendering_boundary.py",
         "test_monaco_sanitizer_boundary.py",
     ):

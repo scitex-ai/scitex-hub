@@ -4,7 +4,6 @@ Run with declared browser test dependencies and installed Chromium. No live app,
 model service, project store, authentication or domain endpoint is used.
 """
 
-import os
 import subprocess
 from functools import partial
 from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
@@ -12,13 +11,12 @@ from pathlib import Path
 from threading import Thread
 
 import pytest
-from playwright.sync_api import sync_playwright
 
 ROOT = Path(__file__).resolve().parents[3]
 
 
 @pytest.fixture(scope="module")
-def diagram_browser(tmp_path_factory):
+def diagram_browser(tmp_path_factory, browser):
     output = tmp_path_factory.mktemp("diagram-browser")
     build = """
 import { build } from 'esbuild';
@@ -45,12 +43,11 @@ await build({entryPoints:['tests/security/fixtures/diagram-browser.ts'],
     )
     thread = Thread(target=server.serve_forever, daemon=True)
     thread.start()
-    with sync_playwright() as playwright:
-        # Uses the normally installed browser; no downloads or live credentials.
-        browser = playwright.chromium.launch(
-            headless=True, executable_path=os.environ.get("SCITEX_HUB_TEST_CHROMIUM")
-        )
-        page = browser.new_page()
+    # Reuse pytest-playwright's session runtime; own only this fixture context.
+    context = None
+    try:
+        context = browser.new_context()
+        page = context.new_page()
         origin = f"http://127.0.0.1:{server.server_port}"
         blocked = []
 
@@ -65,10 +62,12 @@ await build({entryPoints:['tests/security/fixtures/diagram-browser.ts'],
         page.goto(origin, wait_until="domcontentloaded")
         page.wait_for_function("!!window.diagramHarness")
         yield page, blocked
-        browser.close()
-    server.shutdown()
-    server.server_close()
-    thread.join(timeout=5)
+    finally:
+        if context is not None:
+            context.close()
+        server.shutdown()
+        server.server_close()
+        thread.join(timeout=5)
 
 
 def test_real_clew_node_click_and_safe_status_colors(diagram_browser):
