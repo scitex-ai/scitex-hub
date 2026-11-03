@@ -49,6 +49,7 @@ from urllib.parse import urlparse
 import pytest
 
 from tests.e2e.playwright.content_check import (
+    CONTENT_PROBE_JS,
     PAGE_ELEMENT_SIGNALS,
     BrowserProblemLog,
     body_text_problem,
@@ -59,10 +60,10 @@ from tests.e2e.playwright.content_check import (
     loading_marker_problem,
     nonzero_count_problem,
     read_content_signals,
-    stuck_placeholder_problem,
+    writer_content_problem,
     undeclared_absent_media_problem,
 )
-from tests.e2e.playwright.page_ready import wait_for_page_ready
+from tests.e2e.playwright.page_ready import APP_READY_TIMEOUT_MS, wait_for_page_ready
 from tests.e2e.playwright.session_role_check import (
     AUTHENTICATED_WARMUP_ROUTE,
     READ_SESSION_ROLE_JS,
@@ -169,6 +170,23 @@ def navigate_product_page(page, route):
     return page.goto(route, wait_until="commit", timeout=15_000)
 
 
+def wait_for_writer_content(page, route):
+    """Wait for Writer's real selected file/model within the existing 15s gate."""
+    if route != WRITER_ROUTE:
+        return
+    predicate = """(selectors) => {
+        const signals = (PROBE)(selectors);
+        const selector = signals.elements.file_selector;
+        return selector?.shown && selector.selectedValue?.endsWith('.tex') &&
+            signals.elements.editor_content?.shown &&
+            signals.monacoModels.some(model => model.chars > 0 &&
+                !model.placeholder && model.matchesVisibleCode);
+    }""".replace("PROBE", CONTENT_PROBE_JS)
+    page.wait_for_function(
+        predicate, arg=PAGE_ELEMENT_SIGNALS[route], timeout=APP_READY_TIMEOUT_MS
+    )
+
+
 @pytest.fixture(scope="session")
 def measured_content(screenshot_test_page, content_report):
     """Measure a route's content ONCE, and let every check read that read.
@@ -200,6 +218,7 @@ def measured_content(screenshot_test_page, content_report):
                 hydration_signal=route not in ROUTES_WITHOUT_HYDRATION,
                 wait_for_load=False,
             )
+            wait_for_writer_content(page, route)
             page.evaluate(FORCE_LIGHT)
             signals = read_content_signals(page, PAGE_ELEMENT_SIGNALS.get(route))
             cache[route] = signals
@@ -294,6 +313,7 @@ class TestProductScreenshots:
             hydration_signal=route not in ROUTES_WITHOUT_HYDRATION,
             wait_for_load=False,
         )
+        wait_for_writer_content(page, route)
         page.evaluate(FORCE_LIGHT)
 
         # Act
@@ -369,9 +389,8 @@ class TestCapturedPageHasContent:
 class TestWriterShowsAManuscript:
     """02-writer.png showed an editor with nothing in it.
 
-    The Hub reference editor remains the current product route while its leaf
-    replacement reaches parity. Its file selector and word count must move
-    past their shipped placeholders for the screenshot to be truthful.
+    Published Writer owns the section selector, loaded-file label, Monaco
+    content and word count. An empty or loading model cannot qualify a capture.
     """
 
     def test_file_selector_resolved(self, measured_content):
@@ -379,9 +398,7 @@ class TestWriterShowsAManuscript:
         signals = measured_content(WRITER_ROUTE)
 
         # Act
-        problem = stuck_placeholder_problem(
-            signals, "file_selector", f"Writer ({WRITER_ROUTE})"
-        )
+        problem = writer_content_problem(signals, f"Writer ({WRITER_ROUTE})")
 
         # Assert
         assert problem == "", problem
@@ -399,23 +416,13 @@ class TestWriterShowsAManuscript:
         assert problem == "", problem
 
 
-class TestFigRecipeShowsAGallery:
-    """04-figrecipe.png was a header strip above an entirely blank body.
-
-    ``#app-mount`` is where ``figrecipe_partial.html`` mounts the FigRecipe
-    bundle. It painted; nothing mounted into it. Present-and-empty is the
-    state that has to fail, because present-and-empty is what a page looks
-    like when its front end never booted.
-    """
+class TestFigRecipeShowsAWorkspace:
+    """The native React root and editor body must both render actual content."""
 
     def test_mount_point_is_not_empty(self, measured_content):
-        # Arrange
         signals = measured_content(FIGRECIPE_ROUTE)
-
-        # Act
-        problem = empty_container_problem(
-            signals, "mount", f"FigRecipe ({FIGRECIPE_ROUTE})"
-        )
-
-        # Assert
-        assert problem == "", problem
+        for name in ("mount", "workspace"):
+            problem = empty_container_problem(
+                signals, name, f"FigRecipe ({FIGRECIPE_ROUTE})"
+            )
+            assert problem == "", problem
