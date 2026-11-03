@@ -23,6 +23,10 @@ Alpha preview; the distribution and tag use the canonical PEP 440 spelling
   provenance, preserving authored sections and bibliography.
 
 ### Changed
+- Read the global header version and description from installed `scitex-hub`
+  distribution metadata in both development and production.
+- Declare the native GUI plugin dependency closure, including SDK 0.3.19,
+  Cards 0.56.22, and FigRecipe 0.44.1; check the final image dependency graph.
 - Align mounted application headers, scope capabilities, theme controls, and
   viewport frames through shared SDK contracts.
 - Show Cloud alpha status and a research-workflow landing page with installation
@@ -32,6 +36,9 @@ Alpha preview; the distribution and tag use the canonical PEP 440 spelling
   prereleases. Post-publication branch synchronization opens an ordinary PR.
 
 ### Fixed
+
+- Limit workspace sidebar overrides to the Hub-owned outer panes, preserving
+  nested app sidebars such as Cards Details and keeping its Board visible.
 
 - Preserve native submission for explicit GET forms, including read-only Storage
   calculations and move planning. Implicit-method legacy forms remain guarded,
