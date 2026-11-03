@@ -8,15 +8,15 @@ data-focus-path="AGENTS.md" (a folder focus on a file), so the viewer said
 "No file selected". A /tree/ path that is a file in the project now opens it.
 
 One assertion per test; no mocks. The file is written to the project's real
-directory and removed afterwards.
+temporary directory and removed afterwards.
 """
 
-import shutil
+import tempfile
 from pathlib import Path
 
 from django.conf import settings
 from django.contrib.auth.models import User
-from django.test import TestCase
+from django.test import TestCase, override_settings
 
 from apps.infra.project_app.models import Project
 
@@ -34,10 +34,14 @@ class TreeLinkToAFileOpensItTest(TestCase):
         )
 
     def setUp(self):
+        self.data_root = tempfile.TemporaryDirectory()
+        self.addCleanup(self.data_root.cleanup)
+        base_dir = override_settings(BASE_DIR=Path(self.data_root.name))
+        base_dir.enable()
+        self.addCleanup(base_dir.disable)
         root = Path(settings.BASE_DIR) / "data" / "users" / USERNAME / "proj" / SLUG
         (root / "docs").mkdir(parents=True, exist_ok=True)
         (root / "AGENTS.md").write_text("# agents\n")
-        self.addCleanup(shutil.rmtree, root, ignore_errors=True)
         self.client.login(username=USERNAME, password=PASSWORD)
 
     def test_tree_link_to_a_file_opens_the_file(self):
