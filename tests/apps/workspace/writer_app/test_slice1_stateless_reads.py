@@ -37,8 +37,8 @@ leaf-code imports:
   the stateless-read GETs (200 + expected payloads, DB-free);
 * a caller-forged ``?working_dir=`` never reaches the leaf (server dir wins);
 * no-project still fails closed (pages -> /new/, API -> 404 JSON);
-* the set of hub production modules importing ``scitex_writer`` does not
-  grow (coupling guard);
+* legacy import ownership stays fixed; new thin coordination is checked against
+  the literal public Writer class (no private/deep imports);
 * the SDK jail contract + leaf mount_policy gaps blocking Slice 2 are
   recorded as tests that fail LOUDLY once the upstream lands.
 """
@@ -393,45 +393,8 @@ def test_safe_method_with_foreign_origin_still_reads(resolve_to):
 # No scitex_writer code is imported anywhere in this module.
 # =====================================================================
 
-# Hub production modules allowed to import scitex_writer: the pre-existing
-# SITE-3 wrapper + legacy writer surface. The cutover SHRINKS this set by
-# one (urls/__init__.py no longer touches the leaf — it only re-exports the
-# wrapper's leaf mount); it must only shrink further (leaf moves), never
-# grow.
-GRANDFATHERED_SCITEX_WRITER_IMPORTERS = frozenset(
-    {
-        "apps/workspace/writer_app/urls/writer_django.py",
-        "apps/workspace/writer_app/views/editor/api/compilation_full_job.py",
-        "apps/workspace/writer_app/views/overleaf/api.py",
-        "apps/workspace/writer_app/services/compiler.py",
-        "apps/workspace/writer_app/services/writer/compilation.py",
-        "apps/infra/project_app/views/projects/live_viewer.py",
-        "apps/infra/project_app/services/writer_workspace_layout.py",
-    }
-)
-
-
-def _hub_prod_importers_of_scitex_writer():
-    repo_root = Path(__file__).resolve().parents[4]
-    found = set()
-    for base in ("apps", "config"):
-        for path in (repo_root / base).rglob("*.py"):
-            try:
-                text = path.read_text()
-            except OSError:
-                continue
-            for line in text.splitlines():
-                code = line.split("#", 1)[0].strip()
-                if code.startswith("from scitex_writer") or code.startswith(
-                    "import scitex_writer"
-                ):
-                    found.add(str(path.relative_to(repo_root)))
-                    break
-    return found
-
-
-def test_no_new_bespoke_hub_imports_of_writer_leaf():
-    assert _hub_prod_importers_of_scitex_writer() == GRANDFATHERED_SCITEX_WRITER_IMPORTERS
+# Import ownership is checked separately in test_writer_public_port_contract.py:
+# legacy wrappers remain fixed; new thin coordinators use the public Writer class.
 
 
 def _leaf_manifest():
