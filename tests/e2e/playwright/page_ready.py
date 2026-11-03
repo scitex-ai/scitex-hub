@@ -71,7 +71,7 @@ def wait_for_page_ready(
         hydration_signal: require the owning Hub or SDK shell's in-band
             readiness signal. False is reserved for explicitly declared
             responses with neither shell (for example a restricted placeholder
-            in test_capture_screenshots.ROUTES_WITHOUT_GLOBAL_BASE). Native SDK
+            in test_capture_screenshots.ROUTES_WITHOUT_HYDRATION). Native SDK
             pages use the default True; they require the mounted header and
             visible module content rather than skipping readiness.
         wait_for_load: whether to wait for the browser's global ``load`` event.
