@@ -11,6 +11,28 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.22.0a0] - 2026-11-03
+
+Alpha preview; the distribution and tag use the canonical PEP 440 spelling
+`0.22.0a0` / `v0.22.0a0` (the product label is “0.22.0-alpha”).
+
+### Added
+- Current application screenshots with category/app tabs, captured-version
+  labels, accessible keyboard navigation, and pausable gallery rotation.
+- Guarded, explicit MNIST Writer sample preparation from the computed example
+  provenance, preserving authored sections and bibliography.
+
+### Changed
+- Align mounted application headers, scope capabilities, theme controls, and
+  viewport frames through shared SDK contracts.
+- Show Cloud alpha status and a research-workflow landing page with installation
+  instructions and verified screenshot provenance.
+- Require the complete declared release test dependencies; reject mismatched
+  tag/package versions before tests or builds. Alpha GitHub releases are marked
+  prereleases. Post-publication branch synchronization opens an ordinary PR.
+
+### Fixed
+
 - Preserve native submission for explicit GET forms, including read-only Storage
   calculations and move planning. Implicit-method legacy forms remain guarded,
   and JS-driven form owners can still cancel their own submissions.
