@@ -11,6 +11,8 @@ import tempfile
 import threading
 import time
 import unittest
+from types import SimpleNamespace
+from unittest.mock import patch
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 
@@ -129,6 +131,65 @@ class OwnedDiagnosticControls(unittest.TestCase):
         link.symlink_to(large)
         with self.assertRaises(OSError):
             module.private_json(link)
+
+    def test_actual_relative_writer_timeout_hook_and_foreign_refusal(self):
+        self.start(
+            "from http.server import BaseHTTPRequestHandler,HTTPServer\n"
+            "from pathlib import Path\n"
+            "class Handler(BaseHTTPRequestHandler):\n"
+            " def log_message(self,*args): pass\n"
+            " def do_GET(self):\n"
+            "  self.send_response(200); self.end_headers()\n"
+            "  self.wfile.write(b'PRIVATE_REPLY_MUST_NOT_BE_SAVED')\n"
+            "server=HTTPServer(('127.0.0.1',0),Handler)\n"
+            "Path('port').write_text(str(server.server_port))\n"
+            "server.serve_forever()\n"
+        )
+        deadline = time.monotonic() + 3
+        while not (self.root / "port").exists():
+            self.assertLess(time.monotonic(), deadline)
+            time.sleep(0.01)
+        origin = "http://127.0.0.1:" + (self.root / "port").read_text()
+        cookie_urls = []
+
+        def cookies(url):
+            cookie_urls.append(url)
+            return [{"name": "owned", "value": "COOKIE_CANARY"}]
+
+        page = SimpleNamespace(context=SimpleNamespace(cookies=cookies))
+        with patch.dict(
+            os.environ,
+            {
+                "SCITEX_E2E_DIAGNOSTIC_STATE": str(self.state),
+                "SCITEX_BASE_URL": origin,
+                "SCITEX_HUB_DB_HOST_DEV": "unapproved.invalid",
+            },
+        ):
+            module.capture_timeout(
+                page, "/apps/writer/?project=test-user%2Fcontinuity-paper"
+            )
+            first = sorted(self.state.glob("navigation-timeout-*.json"))
+            observed = module.private_json(first[0])
+            module.capture_timeout(page, "http://unapproved.invalid/apps/writer/")
+        self.assertTrue(observed["event_stack_requested"])
+        self.assertEqual(observed["health"]["status"], 200)
+        self.assertEqual(observed["authenticated_app"]["status"], 200)
+        self.assertIn("refused", observed["pg"])
+        self.assertEqual(
+            cookie_urls, [origin + "/apps/writer/?project=test-user%2Fcontinuity-paper"]
+        )
+        self.assertEqual(observed["failed_path"], "/apps/writer/")
+        second = next(
+            p for p in self.state.glob("navigation-timeout-*.json") if p not in first
+        )
+        self.assertEqual(
+            module.private_json(second)["observation_error_type"], "ValueError"
+        )
+        self.assertIn("Current thread", (self.root / "server.log").read_text())
+        self.assertNotIn("COOKIE_CANARY", json.dumps(observed))
+        self.assertNotIn("PRIVATE_REPLY", json.dumps(observed))
+        module.stop(self.state)
+        self.process.wait(timeout=5)
 
     def test_redirect_never_forwards_cookie_or_reads_reply_body(self):
         received = []

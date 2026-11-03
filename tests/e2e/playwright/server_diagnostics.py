@@ -341,6 +341,7 @@ def capture_timeout(page, href: str) -> None:
     directory = Path(directory_value)
     result = {"monotonic": time.monotonic(), "browser": _BROWSER_FACTS}
     try:
+        href = urllib.parse.urljoin(os.environ["SCITEX_BASE_URL"], href)
         parsed = urllib.parse.urlsplit(href)
         base = urllib.parse.urlsplit(os.environ["SCITEX_BASE_URL"])
         if (parsed.scheme, parsed.netloc) != (
