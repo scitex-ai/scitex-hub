@@ -6,62 +6,47 @@ tags: [scitex-hub-scitex-versions-release]
 ---
 # SciTeX Versions — Release, Tags, Environment & Troubleshooting
 
-## Version Increment Workflow
+## Hub release workflow
 
-### 0. Major, minor, and patch
+Use ordinary feature → `develop` → `main` pull requests, with required checks
+passing on the exact release candidate. Do not push directly to either protected
+branch. `main` is the stable release branch (see `CONTRIBUTING.md`).
 
-We use version in the form of vX.Y.Z, where
+The package version is declared in `pyproject.toml`; `scitex_hub.__version__`
+reads installed distribution metadata, so there is no duplicate Python constant
+to edit. Add matching release notes in `CHANGELOG.md`.
 
-X is Major
-Y is Minor
-Z is Patch and may have -alpha, -beta suffix
+Alpha versions use canonical PEP 440 spelling, for example package `0.22.0a0`
+and tag `v0.22.0a0`. The human label “0.22.0-alpha” describes that same first
+alpha; it is not an additional tag. Increment the alpha number for another
+published alpha. Published tags are immutable: never delete, move, or force-push
+one to repair a failed release.
 
-When increment version, check the difference and determine if it is minor or patch. No major update please as long as user explicitly requests.
+After normal merge/review and successful release qualification, the authorized
+release operator creates and pushes exactly the reviewed tag on the accepted
+`main` commit. Do not push unrelated tags. The tag-driven workflow
+`.github/workflows/pypi-publish-and-github-release-on-tag.yml` then:
 
-### 1. Update version in pyproject.toml
-```bash
-# Edit pyproject.toml: version = "X.Y.Z"
-```
+1. Checks tag/package version equality and the checked-out Git commit.
+2. Installs the full `.[all,dev]` dependencies and runs the PostgreSQL-backed
+   Python 3.11/3.12/3.13 tests; an install failure cannot reduce that dependency set.
+3. Builds wheel/sdist and publishes them through the configured PyPI OIDC job.
+4. Creates the GitHub release; alpha/beta/RC versions are marked prereleases.
+5. Opens a normal develop→main synchronization PR if still needed, leaving its
+   checks/review/merge to the operator.
 
-### 2. Commit and tag
-```bash
-git add pyproject.toml
-git commit -m "chore: bump version to X.Y.Z"
-git tag -a vX.Y.Z -m "Release vX.Y.Z"
-git push origin develop --tags
-```
+The tag workflow does not replace the normal TypeScript, security, import,
+quality, and documentation checks. Require those on the accepted source before
+creating a tag. A successful focused test or a deployed preview is not a full
+release qualification. Manual workflow dispatch accepts an existing immutable
+tag; inspect the original failure and public artifact availability before any
+retry, rather than creating a second spelling of the same release.
 
-### 3. Sync to all hosts
-```bash
-scitex dev versions sync --tags --confirm
-scitex dev versions sync --confirm
-```
+## Inspect installed versions
 
-## Tag Syncing
-
-### Fix tag not reachable from current branch
-When `git describe --tags` shows an older tag because the latest tag is on a different branch (e.g., main vs develop):
-```bash
-cd ~/proj/PACKAGE
-git tag -d vX.Y.Z                           # Delete local tag
-git tag -a vX.Y.Z -m "Release vX.Y.Z" HEAD  # Retag on current HEAD
-git push origin vX.Y.Z --force               # Force-push updated tag
-```
-
-### Sync all tags from remote
-```bash
-cd ~/proj/PACKAGE && git fetch --tags
-```
-
-### Push all local tags to remote
-```bash
-cd ~/proj/PACKAGE && git push origin --tags
-```
-
-### List tags sorted by version
-```bash
-cd ~/proj/PACKAGE && git tag --sort=-v:refname | head -10
-```
+Use `importlib.metadata.version("scitex-hub")` or `pip show scitex-hub` in the
+specific environment being inspected. Source checkout versions, editable
+metadata, and already-loaded worker code can differ; record each separately.
 
 ## Environment Paths
 - **Local (WSL)**: `~/.env-3.11/bin/activate`

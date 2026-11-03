@@ -31,8 +31,8 @@ scitex dev ecosystem list
 
 ## Version Bump Checklist
 - `pyproject.toml`
-- `__init__.py`
-- Git tag
-- Push to origin/main and origin/develop
+- Installed `__version__` is metadata-derived; do not add a duplicate constant
+- Normal feature → develop → main PRs and exact-head CI qualification
+- One canonical immutable Git tag after review
 - GitHub Release
 - PyPI Release
