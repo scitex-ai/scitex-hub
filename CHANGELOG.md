@@ -11,7 +11,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.22.0a2] - 2026-11-03
+
+### Fixed
+
+- Preserve existing user-data and configuration ownership and permissions during
+  container startup. Create missing directories privately; initialize inaccessible
+  empty root-owned mount roots without touching existing files. Require an
+  explicit operator repair for inaccessible existing data.
+
 ## [0.22.0a1] - 2026-11-03
+
+Unpublished candidate; its immutable tag is retained. Publication stopped before
+package build when deployment admission exposed the startup permission issue
+fixed in `0.22.0a2`.
 
 ### Fixed
 

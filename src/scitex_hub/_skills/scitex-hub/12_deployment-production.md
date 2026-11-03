@@ -24,6 +24,16 @@ and preserve user/media/static/config/frontend mount data where startup writes.
 A live file archive is not a quiescent cross-resource snapshot. Retain the old
 hashed static chunks. Never publish private rollback images or database dumps.
 
+Preserve existing user-data and configuration ownership and file modes through
+startup. Private `0700` directories and `0600` files are valid, not broken
+permissions. Qualify an owned private fixture before and after boot. Inaccessible
+existing data requires a separately reviewed operator repair; do not recursively
+change its ownership or widen its permissions to make startup succeed. Only
+absent directories or empty root-owned mount roots may be initialized for the
+application user with private permissions.
+See [the bootstrap permission boundary](../../../../docs/security/container-data-permissions.md)
+for the source-backed checks and root-owned mount qualification.
+
 `rebuild.sh` is NOT the preserve-jobs route: it cancels SLURM jobs after building
 and then swaps services. It has no build-only option. Its current build command
 uses `nice`, but does not create a systemd build scope or take the stack down
