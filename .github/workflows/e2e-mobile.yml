@@ -300,7 +300,6 @@ jobs:
             tests/e2e/playwright/test_native_form_submission.py \
             tests/e2e/playwright/test_workspace_sidebar_ownership.py \
             tests/e2e/playwright/test_page_readiness_contract.py \
-            tests/e2e/playwright/test_page_readiness_contract.py \
             tests/e2e/playwright/test_diagram_rendering_boundary.py \
             tests/e2e/playwright/test_monaco_sanitizer_boundary.py \
             --browser chromium \

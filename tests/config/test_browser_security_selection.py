@@ -30,7 +30,7 @@ def test_browser_gate_executes_real_diagram_and_monaco_security_controls():
         "test_monaco_sanitizer_boundary.py",
     ):
         relative = "tests/e2e/playwright/" + name
-        assert relative in command and (ROOT / relative).is_file()
+        assert command.count(relative) == 1 and (ROOT / relative).is_file()
     assert "--browser chromium" in command and "--timeout=120" in command
     before = "\n".join(step.get("run", "") for step in steps[:position])
     assert "npm install" in before and "npm run build" in before
