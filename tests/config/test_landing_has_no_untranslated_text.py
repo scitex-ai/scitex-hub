@@ -99,6 +99,7 @@ ALLOWED = {
     "SSH",
     "DAG",
     "scitex-clew",
+    "scitex-io",  # Package identifier retained verbatim in the translated role list.
     # Current app/fixture/algorithm names, preserved as names in Japanese.
     "scitex-hub", "Agent Container", "Cards", "Storage", "Stats", "MNIST",
     "Welch", "Live Paper", "Agentic Journal", "GUI", "AI for Science",
