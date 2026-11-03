@@ -184,12 +184,14 @@ class LandingResearchDemoBlockTest(TestCase):
 class LandingAppStoreNoteTest(TestCase):
     """The App Store section notes future native mobile stores as planned."""
 
-    def test_native_mobile_stores_noted_as_planned(self):
+    def test_open_source_section_links_repositories_without_claiming_native_stores(self):
         # Arrange: an anonymous visitor
         # Act
         resp = self.client.get("/landing/")
-        # Assert — forward-looking line, not a promise of availability
-        assert b"not yet available" in resp.content
+        section = resp.content.split(b'id="open-source"', 1)[1].split(b"</section>", 1)[0]
+        # Assert — the current source section promises inspectable repositories.
+        assert (b"https://github.com/scitex-ai" in section,
+                b"apps.apple.com" in section, b"play.google.com/store" in section) == (True, False, False)
 
 
 if __name__ == "__main__":
