@@ -126,7 +126,7 @@ make start                    # Start development environment
 import scitex_hub
 
 # Version and health
-scitex_hub.__version__        # read from pyproject.toml (e.g. "0.17.0-alpha")
+scitex_hub.__version__        # installed distribution metadata (e.g. "0.22.0a0")
 scitex_hub.get_version()      # Version string
 scitex_hub.health_check()     # Local package info
 scitex_hub.health_check("https://scitex.ai/api/health/")  # Remote endpoint
