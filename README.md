@@ -236,6 +236,8 @@ scitex-hub skills list
 
 Skills are stored in `src/scitex_hub/_skills/scitex-hub/` and cover deployment, development, testing, and more.
 
+For release staging/production, use the [canonical candidate-image runbook](src/scitex_hub/_skills/scitex-hub/12_deployment-production.md). It preserves serving jobs and data while qualifying one immutable app image; the generic rebuild script includes job cancellation.
+
 > **[Skills index](_skills/scitex-hub/SKILL.md)**
 
 </details>
