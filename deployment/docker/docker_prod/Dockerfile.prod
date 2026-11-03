@@ -734,6 +734,13 @@ RUN uv pip install --system --no-cache --upgrade \
     "openalex-local" \
     "crossref-local"
 
+# Cache layers can leave other installed packages with incompatible dependencies.
+# Resolve EVERY retained package with the local Hub in one normal transaction;
+# checking or re-installing Hub alone cannot see unrelated cached requirements.
+RUN python scripts/deploy/installed_runtime_roots.py /opt/scitex-image-contract/runtime-roots.in && \
+    uv pip install --system --no-cache -r /opt/scitex-image-contract/runtime-roots.in ".[all]" && \
+    uv pip check --system
+
 # Bake the complete frontend closure after the final normal Python graph.
 # Source releases match installed versions; only verified wheel-owned SDK/LP
 # providers satisfy local npm peers. No editable Python install occurs here.

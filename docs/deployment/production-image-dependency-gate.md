@@ -1,15 +1,26 @@
 # Production image dependency-floor gate
 
 The production runtime uses the Python dependency graph baked into
-`Dockerfile.prod`. `SCITEX_APPS_PYTHON_MODE=image-only` still permits sibling
-clones for Vite bridge discovery, but forbids `pip install -e` from replacing
-that validated graph at container start. All Hub Python services declare the
-same mode.
+`Dockerfile.prod`. `SCITEX_APPS_PYTHON_MODE=image-only` forbids `pip install -e`
+from replacing that graph at container start. All Hub Python services declare
+the same mode. Production also selects `SCITEX_HUB_FRONTEND_MODE=baked`, which
+verifies the image's complete frontend artifact and copies it after normal
+collectstatic, without startup Git/npm. See [baked frontends](baked-frontends.md).
 
 The final Docker stage runs `scripts/deploy/verify_image_dependency_contract.py`
 after all installs. It checks Hub's declared sibling floors, every installed
 sibling's active `Requires-Dist` relationships, and the explicit import/attribute
 contracts in `preflight_contract.json`.
+
+The earlier install layers are cache inputs, not independent dependency
+solutions. After their final install, `installed_runtime_roots.py` records every
+retained distribution name. One normal `uv pip install` resolves those names
+together with the local Hub's `[all]` extra, followed by `uv pip check`. This
+preserves cached packages while repairing incompatible dependencies left by
+separate install transactions. No dependencies or failed checks are omitted.
+The frontend is baked only after this resolution, so its recorded Python graph
+is the graph actually shipped. The final relationship verifier still runs
+after all installs and frontend preparation.
 
 ## Non-production canary and rollback evidence
 
@@ -42,7 +53,8 @@ package source. An explicit `--apps-volume` conflicts with this mode and is
 refused. A clone path in image-only `PYTHONPATH` is refused too. Floors and real
 imports remain mandatory; a correct mode never turns a failing floor green.
 
-Staging declares its existing `editable` startup mode explicitly. That legacy
+Ordinary staging declares its existing `editable`/`build` modes explicitly;
+candidate-image staging selects `image-only`/`baked`. The legacy editable
 mode derives the actual apps mount from resolved Compose volume names and
 requires all three Python roles to agree. It does not guess a volume from an
 environment-name suffix. A different explicit volume is not the same deployment.
