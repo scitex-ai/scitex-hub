@@ -9828,3 +9828,6 @@ msgstr "scitex-ioライブラリと分野別のSciTeXパッケージは、デー
 #: apps/infra/public_app/templates/public_app/landing_partials/landing_hero.html
 msgid "scitex-hub provides a graphical workspace for users and API endpoints for external agents."
 msgstr "scitex-hubは、ユーザー向けのGUIワークスペースと、外部エージェント向けのAPIエンドポイントを提供します。"
+
+msgid "Watch the demo to see the tools working together."
+msgstr "デモで、ツールが連携して動作する様子をご覧ください。"
