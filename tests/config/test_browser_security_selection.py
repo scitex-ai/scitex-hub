@@ -33,5 +33,11 @@ def test_browser_gate_executes_real_diagram_and_monaco_security_controls():
         assert command.count(relative) == 1 and (ROOT / relative).is_file()
     assert "--browser chromium" in command and "--timeout=120" in command
     before = "\n".join(step.get("run", "") for step in steps[:position])
-    assert "npm install" in before and "npm run build" in before
+    # The canonical baker performs the complete npm/Vite build from verified
+    # public inputs. Requiring raw npm commands would restore the unrelated
+    # moving-develop installer and test a different app cohort from release.
+    assert "python scripts/deploy/bake_frontend.py" in before
+    assert '--app-root "$GITHUB_WORKSPACE"' in before
+    assert '--artifact "$RUNNER_TEMP/frontend"' in before
+    assert "scripts/apps/install_apps.sh" not in before
     assert "playwright install --with-deps chromium" in before
