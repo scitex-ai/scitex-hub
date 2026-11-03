@@ -11,7 +11,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.22.0a3] - 2026-11-03
+
+### Fixed
+
+- Prepare image-owned data, configuration and runtime defaults at build time,
+  after package installation and import checks. Nested private mounts therefore
+  retain an application-accessible parent without runtime ownership repair.
+- Require constructor metadata checks and the complete root bootstrap against
+  synthetic private tmpfs mounts during the image build, without network access.
+  Preserve the runtime guard and private mounted ownership, modes and content.
+
 ## [0.22.0a2] - 2026-11-03
+
+Unpublished candidate; its immutable tag is retained. Publication stopped before
+package build when actual staging cold boot exposed an inaccessible image-owned
+`/app/data` parent with a nested users mount. The build-time constructor correction
+is included in `0.22.0a3`; the runtime privacy guard remains unchanged.
 
 ### Fixed
 

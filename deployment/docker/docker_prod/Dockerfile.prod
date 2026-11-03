@@ -848,8 +848,22 @@ RUN python -c "import scitex.io" && \
 RUN uv pip check --system && \
     python /opt/scitex-image-contract/scripts/deploy/verify_image_dependency_contract.py
 
-# Back to root — root-init.sh handles UID fixup then drops to scitex
+# Finish image-owned mutable defaults AFTER every install/import gate. Docker
+# creates root-owned missing ancestors for nested runtime mounts; precreate the
+# entire bootstrap chain so /app/data/users never creates an inaccessible parent.
+# These are image defaults only: runtime473 never repairs mounted user/config data.
 USER root
+RUN install -d -m 700 -o scitex -g scitex \
+        /app/data /app/data/users /app/data/slurm /app/logs /app/run \
+        /app/.scitex /app/.scitex/logs /app/.scitex/hub \
+        /app/.scitex/hub/runtime /app/.scitex/hub/runtime/logs && \
+    chown -R scitex:scitex /app/data /app/.scitex /app/logs /app/run
+COPY --chmod=644 scripts/deploy/verify_default_bootstrap.py /opt/scitex-image-contract/scripts/deploy/verify_default_bootstrap.py
+RUN --network=none python -I -S /opt/scitex-image-contract/scripts/deploy/verify_default_bootstrap.py --constructor
+# Real root-init entrypoint, synthetic private mount roots and standard-library
+# final command only. Never starts Django, a database, a model, or an app server.
+RUN --network=none --mount=type=tmpfs,target=/app/data/users --mount=type=tmpfs,target=/app/.scitex \
+    python -I -S /opt/scitex-image-contract/scripts/deploy/verify_default_bootstrap.py --full-root-init
 
 # ============================================
 # Runtime Configuration
