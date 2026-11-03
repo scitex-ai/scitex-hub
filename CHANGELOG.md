@@ -40,6 +40,11 @@ Alpha preview; the distribution and tag use the canonical PEP 440 spelling
 
 ### Fixed
 
+- Resolve the retained runtime capabilities into one compiled dependency closure,
+  removing obsolete cache-only helpers while preserving scientific packages and
+  verifying every retained capability before the final image checks.
+- Refuse cyclic plugin home paths consistently on Python 3.13 while preserving
+  owned workspaces that have not been created yet.
 - Replace the shared build's exact Monaco-vendored sanitizer module with an
   isolated patched instance, preserving markdown hover and hook behavior.
 - Keep chat diagrams in inert SVG images and sanitize interactive Clew diagrams

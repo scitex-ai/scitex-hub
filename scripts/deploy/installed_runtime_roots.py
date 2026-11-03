@@ -38,6 +38,7 @@ EXPLICIT_RUNTIME_ROOTS = (
     "scitex-ui",
     "openalex-local",
     "crossref-local",
+    "uv",
     "pip",
     "setuptools",
     "wheel",
