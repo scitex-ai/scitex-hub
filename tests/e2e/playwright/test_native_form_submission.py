@@ -13,15 +13,22 @@ from pathlib import Path
 from urllib.parse import parse_qs, urlencode, urlsplit
 
 import pytest
-from playwright.sync_api import sync_playwright
 
 
 @pytest.fixture(scope="module")
-def native_form_server():
+def native_form_server(browser):
     project = Path(__file__).resolve().parents[3]
-    manifest = Path(os.environ.get("SCITEX_HUB_TEST_VITE_MANIFEST", project / "staticfiles/vite/.vite/manifest.json"))
+    manifest = Path(
+        os.environ.get(
+            "SCITEX_HUB_TEST_VITE_MANIFEST",
+            project / "staticfiles/vite/.vite/manifest.json",
+        )
+    )
     entries = json.loads(manifest.read_text())
-    asset = (manifest.parent.parent / entries["static/shared/ts/utils/form-enter-handler.ts"]["file"]).resolve()
+    asset = (
+        manifest.parent.parent
+        / entries["static/shared/ts/utils/form-enter-handler.ts"]["file"]
+    ).resolve()
     asset.relative_to(manifest.parent.parent.resolve())
     script = asset.read_bytes()
     received = []
@@ -50,11 +57,13 @@ def native_form_server():
                 required = "required" if query["required"][0] == "yes" else ""
                 cancel = str(query["cancel"][0] == "yes").lower()
                 case = query["case"][0]
-                self.reply(f'''<!doctype html><form{attribute} action="/received">
+                self.reply(
+                    f"""<!doctype html><form{attribute} action="/received">
 <input type="hidden" name="case" value="{case}"><input name="q" {required}>
 <button type="submit">Calculate</button></form>
 <script>document.querySelector('form').addEventListener('submit',e=>{{if({cancel})e.preventDefault()}})</script>
-<script type="module" src="/handler.js" onload="window.handlerLoaded=true"></script>'''.encode())
+<script type="module" src="/handler.js" onload="window.handlerLoaded=true"></script>""".encode()
+                )
             else:
                 self.send_error(404)
 
@@ -67,19 +76,15 @@ def native_form_server():
             received.append((query["case"][0], "POST", query.get("q", [""])[0]))
             self.reply(b"<p>Owned POST received</p>")
 
-    with sync_playwright() as runtime:
-        executable = Path(os.environ.get("SCITEX_HUB_TEST_CHROMIUM", runtime.chromium.executable_path))
-        if not executable.is_file():
-            pytest.fail("Native form regression requires the admitted job's installed Chromium")
-        browser = runtime.chromium.launch(executable_path=str(executable), args=["--no-sandbox"])
-        server = ThreadingHTTPServer(("127.0.0.1", 0), Handler)
-        threading.Thread(target=server.serve_forever, daemon=True).start()
-        try:
-            yield browser, f"http://127.0.0.1:{server.server_port}", received
-        finally:
-            server.shutdown()
-            server.server_close()
-            browser.close()
+    # pytest-playwright owns the one browser/runtime for the admitted job.
+    # Starting a nested sync runtime here fails after any earlier page fixture.
+    server = ThreadingHTTPServer(("127.0.0.1", 0), Handler)
+    threading.Thread(target=server.serve_forever, daemon=True).start()
+    try:
+        yield browser, f"http://127.0.0.1:{server.server_port}", received
+    finally:
+        server.shutdown()
+        server.server_close()
 
 
 @pytest.mark.parametrize(
@@ -93,26 +98,49 @@ def native_form_server():
         ("invalid-required", "get", False, False, True, []),
     ],
 )
-def test_native_form_http_contract(native_form_server, name, method, enter, cancel, required, expected):
+def test_native_form_http_contract(
+    native_form_server, name, method, enter, cancel, required, expected
+):
     # Arrange -- only the exact build artifact and owned loopback endpoint exist.
     browser, base, received = native_form_server
-    context = browser.new_context(viewport={"width": 390, "height": 844}, service_workers="block")
-    context.route("**/*", lambda route: route.continue_() if route.request.url.startswith(base + "/") else route.abort("blockedbyclient"))
+    context = browser.new_context(
+        viewport={"width": 390, "height": 844}, service_workers="block"
+    )
+    context.route(
+        "**/*",
+        lambda route: (
+            route.continue_()
+            if route.request.url.startswith(base + "/")
+            else route.abort("blockedbyclient")
+        ),
+    )
     page = context.new_page()
-    query = urlencode({"case": name, "method": method, "cancel": "yes" if cancel else "no", "required": "yes" if required else "no"})
+    query = urlencode(
+        {
+            "case": name,
+            "method": method,
+            "cancel": "yes" if cancel else "no",
+            "required": "yes" if required else "no",
+        }
+    )
     try:
         page.goto(base + "/?" + query, wait_until="domcontentloaded")
         page.wait_for_function("window.handlerLoaded === true", timeout=8000)
         if not required:
             page.locator("input[name=q]").fill("37")
+
         # Act -- actual click/Enter and browser validation, no request substitution.
         def submit():
             if enter:
                 page.locator("input[name=q]").press("Enter")
             else:
                 page.get_by_role("button", name="Calculate", exact=True).click()
+
         if expected:
-            with page.expect_response(lambda response: urlsplit(response.url).path == "/received", timeout=4000):
+            with page.expect_response(
+                lambda response: urlsplit(response.url).path == "/received",
+                timeout=4000,
+            ):
                 submit()
         else:
             submit()

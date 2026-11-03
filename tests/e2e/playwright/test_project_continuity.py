@@ -93,9 +93,11 @@ def _assert_project_metadata(page, app: str, version: str) -> None:
     assert body.get_attribute("data-active-project-key") == PROJECT_KEY
     assert body.get_attribute("data-active-app-version") == version
     assert page.locator('meta[name="stx-project-provider"]').count() == 1
-    assert page.locator('meta[name="stx-project-provider"]').get_attribute(
-        "content"
-    ) == ("/api/project/scope/")
+    provider = urlparse(
+        page.locator('meta[name="stx-project-provider"]').get_attribute("content")
+    )
+    assert provider.path == "/api/project/scope/"
+    assert parse_qs(provider.query)["app"] == [app]
     assert page.locator("[data-stx-project-picker]").count() <= 1
     assert page.locator("[id$='app-header']").count() <= 1
     assert urlparse(page.url).path == f"/apps/{app}/"
@@ -115,7 +117,9 @@ def test_login_launcher_and_project_apps_keep_one_project(continuity_browser):
     )
     assert page.locator(".launcher-active-project").is_visible()
 
-    stats = page.locator('#launcher-grid [data-module="stats"], #launcher-grid [data-planned="stats"]')
+    stats = page.locator(
+        '#launcher-grid [data-module="stats"], #launcher-grid [data-planned="stats"]'
+    )
     assert stats.count() == 1
     stats_href = stats.get_attribute("href")
     apps_to_visit = ["scholar"]
@@ -145,6 +149,29 @@ def test_login_launcher_and_project_apps_keep_one_project(continuity_browser):
             f'#launcher-grid [data-module="{app}"]:not([data-favorite-alias])'
         )
         assert tile.count() == 1
+        # Resource scope does not imply GUI scope capability. Published older
+        # leaves may intentionally expose disabled project choices.
+        listing_response = page.context.request.get(
+            f"{base_url}/api/project/scope/?app={app}"
+        )
+        assert listing_response.status == 200
+        choices = listing_response.json()["projects"]
+        selected = [choice for choice in choices if choice["id"] == PROJECT_KEY]
+        assert len(selected) == 1, "The authorized fixture project must remain visible"
+        if selected[0].get("disabled", False):
+            reason = selected[0].get("disabled_reason")
+            assert reason, "Disabled scope must explain its declared restriction"
+            before = page.context.request.get(f"{base_url}/api/project/scope/").body()
+            refusal = page.context.request.get(
+                f"{base_url}/apps/{app}/?project={PROJECT_KEY}"
+            )
+            assert refusal.status == 403
+            assert refusal.headers.get("content-type", "").startswith("text/html")
+            after = page.context.request.get(f"{base_url}/api/project/scope/").body()
+            assert (
+                before == after
+            ), "Refused GUI scope must not rewrite global preference"
+            continue
         assert tile.get_attribute("data-scope") == "project"
         version = tile.get_attribute("data-version")
         assert version, f"{app} launcher tile did not expose its installed version"
@@ -180,7 +207,9 @@ def test_stats_tile_is_launchable_now_that_calculate_is_verified(
     page = authenticated_desktop_page
     page.goto("/apps/", wait_until="domcontentloaded")
     wait_for_page_ready(page)
-    stats = page.locator('#launcher-grid [data-module="stats"], #launcher-grid [data-planned="stats"]')
+    stats = page.locator(
+        '#launcher-grid [data-module="stats"], #launcher-grid [data-planned="stats"]'
+    )
     assert stats.count() == 1
     assert stats.get_attribute("data-availability") == "available"
 
@@ -190,4 +219,3 @@ def test_browser_evidence_rejects_every_same_origin_server_failure():
 
     with pytest.raises(AssertionError, match="same-origin network failures"):
         evidence.assert_clean()
-
