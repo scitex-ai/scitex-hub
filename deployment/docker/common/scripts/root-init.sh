@@ -67,51 +67,57 @@ if [ -f "/host/etc/passwd" ]; then
 fi
 
 # ============================================
-# Verify critical directories exist
+# Admit data/config mounts without rewriting private descendants
 # ============================================
-mkdir -p /app/data/slurm /app/logs /app/run
-chown -R scitex:scitex /app/data /app/logs /app/run 2>/dev/null || true
-chmod -R 755 /app/data/slurm 2>/dev/null || true
-
-# ============================================
-# Fix scitex config directory permissions (for logging)
-# ============================================
-# Always create .scitex/logs directory (required by scitex package)
-mkdir -p /app/.scitex/logs
-# Always create the FULL LOG_DIR leaf .scitex/hub/runtime/logs (not just
-# runtime/) -- config/settings/settings_logging.py resolves LOG_DIR here via
-# scitex_config's runtime-state-db-layout convention, and the celery_file
-# RotatingFileHandler is configured in the same django.setup() that would
-# otherwise lazily create it. Pre-creating (and chowning, below) the leaf as
-# root BEFORE any Python process starts removes the first-boot dependency on
-# that lazy mkdir: on a volume that has never seen this path (a long-lived
-# prod .scitex volume before the first release carrying the new default), the
-# handler could be configured before the leaf existed -> "Unable to configure
-# handler 'celery_file'" -> crash loop. This mirrors how /app/logs is always
-# pre-created above. See incident hub-prod-outage-celery-log-permission
-# (2026-07-09/10 outage; 2026-07-11 prod first-boot crash on the new default).
-mkdir -p /app/.scitex/hub/runtime/logs
-chown -R scitex:scitex /app/.scitex 2>/dev/null || true
-chmod -R 755 /app/.scitex 2>/dev/null || true
-echo "✅ .scitex directory permissions fixed"
-
-# ============================================
-# Fix user data directory permissions
-# ============================================
-# NAS bind mounts can lose permissions (show as d--------- inside container)
-# This fixes permissions on startup to ensure user directories are accessible
-if [ -d "/app/data/users" ]; then
-    # Check if any user directory has broken permissions
-    BROKEN_PERMS=$(find /app/data/users -maxdepth 2 -type d ! -perm -755 2>/dev/null | head -1)
-    if [ -n "$BROKEN_PERMS" ]; then
-        echo "🔧 Fixing user data directory permissions (NAS bind mount issue)..."
-        chmod -R 755 /app/data/users 2>/dev/null || true
-        chown -R scitex:scitex /app/data/users 2>/dev/null || true
-        echo "✅ User data permissions fixed"
+bootstrap_directory_accessible() {
+    local directory="$1" app_uid="$2" app_gid="$3"
+    if [ "$(id -u)" = "$app_uid" ]; then
+        [ -r "$directory" ] && [ -w "$directory" ] && [ -x "$directory" ]
     else
-        echo "✅ User data permissions OK"
+        gosu "$app_uid:$app_gid" sh -c \
+            'test -r "$1" && test -w "$1" && test -x "$1"' sh "$directory"
     fi
-fi
+}
+
+prepare_bootstrap_directory() {
+    local directory="$1" app_uid="$2" app_gid="$3" first_entry
+    if [ -L "$directory" ] || { [ -e "$directory" ] && [ ! -d "$directory" ]; }; then
+        echo "ERROR: Bootstrap directory must be a real directory: $directory" >&2
+        return 1
+    fi
+    if [ ! -d "$directory" ]; then
+        mkdir -m 700 -- "$directory" || return 1
+        chown -h "$app_uid:$app_gid" -- "$directory" || return 1
+    elif bootstrap_directory_accessible "$directory" "$app_uid" "$app_gid"; then
+        # Existing group/ACL access is valid too; preserve owner and mode.
+        return 0
+    elif [ "$(stat -c '%u' -- "$directory")" = 0 ]; then
+        first_entry=$(find "$directory" -mindepth 1 -maxdepth 1 -print -quit) || return 1
+        if [ -n "$first_entry" ]; then
+            echo "ERROR: Inaccessible existing directory; operator repair required: $directory" >&2
+            return 1
+        fi
+        # Only an empty root-owned fresh bind may be initialized in place.
+        chmod 700 -- "$directory" || return 1
+        chown -h "$app_uid:$app_gid" -- "$directory" || return 1
+    else
+        echo "ERROR: Inaccessible existing directory; operator repair required: $directory" >&2
+        return 1
+    fi
+    bootstrap_directory_accessible "$directory" "$app_uid" "$app_gid"
+}
+
+prepare_bootstrap_directories() {
+    local app_root="$1" app_uid="$2" app_gid="$3" relative
+    [ -d "$app_root" ] && [ ! -L "$app_root" ] || return 1
+    for relative in data data/users data/slurm logs run .scitex .scitex/logs \
+        .scitex/hub .scitex/hub/runtime .scitex/hub/runtime/logs; do
+        prepare_bootstrap_directory "$app_root/$relative" "$app_uid" "$app_gid" || return 1
+    done
+}
+
+prepare_bootstrap_directories /app "$(id -u scitex)" "$(id -g scitex)"
+echo "✅ Data/config directories admitted; existing private metadata preserved"
 
 # ============================================
 # Fix node_modules permissions (built as root in Docker image)
