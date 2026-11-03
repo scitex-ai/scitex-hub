@@ -21,6 +21,7 @@ they measure behaviour rather than the shape of the script.
 from __future__ import annotations
 
 import importlib
+from uuid import uuid4
 
 import pytest
 from django.db import connection
@@ -77,12 +78,39 @@ def _is_unique(name: str) -> bool:
 
 
 @pytest.fixture(autouse=True)
-def _restore_our_indexes():
-    """Leave the database holding the REAL indexes, whatever a test did to it."""
-    yield
-    _exec(f"DROP INDEX IF EXISTS {USERNAME_INDEX}")
-    _exec(f"DROP INDEX IF EXISTS {EMAIL_INDEX}")
-    _run(mod.CREATE_STATEMENTS)
+def _isolated_index_schema(transactional_db):
+    """Exercise real migration SQL without depending on other fixtures' users.
+
+    A deliberately wrong unique email index includes blank addresses, unlike
+    the real index. Unrelated users with blank email must not prevent creating
+    that counterexample. Clone the table structure into an owned schema and
+    leave the original table, rows and indexes untouched.
+    """
+    schema = "test_identity_indexes_" + uuid4().hex
+    quote = connection.ops.quote_name
+    with connection.cursor() as cursor:
+        cursor.execute("SHOW search_path")
+        original_path = cursor.fetchone()[0]
+        cursor.execute("SELECT current_schema()")
+        original_schema = cursor.fetchone()[0]
+        cursor.execute(f"CREATE SCHEMA {quote(schema)}")
+    try:
+        _exec(
+            f"CREATE TABLE {quote(schema)}.auth_user "
+            f"(LIKE {quote(original_schema)}.auth_user "
+            "INCLUDING DEFAULTS INCLUDING CONSTRAINTS)"
+        )
+        with connection.cursor() as cursor:
+            cursor.execute(
+                "SELECT set_config('search_path', %s, false)",
+                [quote(schema) + ", " + original_path],
+            )
+        _run(mod.CREATE_STATEMENTS)
+        yield
+    finally:
+        with connection.cursor() as cursor:
+            cursor.execute("SELECT set_config('search_path', %s, false)", [original_path])
+            cursor.execute(f"DROP SCHEMA {quote(schema)} CASCADE")
 
 
 # ---------------------------------------------------------------------------

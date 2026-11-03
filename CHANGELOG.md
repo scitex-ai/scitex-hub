@@ -11,6 +11,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.22.0a1] - 2026-11-03
+
+### Fixed
+
+- Require Scholar 1.29.1, whose SDK-owned favicon resolves correctly with the
+  production static manifest, and refresh the image dependency-resolution input.
+- Refuse debug mode for image-only baked deployments so native app pages use
+  the qualified frontend instead of development-server scripts.
+- Use the production health endpoint and measured staging readiness grace;
+  document starting the web role before background roles to avoid migration races.
+- Restrict PWA caching to explicitly public static assets and remove the legacy
+  cache, preventing private page/API replies from being replayed across accounts.
+
 ## [0.22.0a0] - 2026-11-03
 
 Alpha preview; the distribution and tag use the canonical PEP 440 spelling

@@ -36,6 +36,24 @@ def test_image_only_does_not_treat_frontend_clones_as_python_overlay():
     assert target == ("image:owned-image:reviewed", None)
 
 
+@pytest.mark.parametrize("debug", ["True", "TRUE", "1", "yes"])
+def test_baked_django_refuses_debug_mode_that_selects_hmr(debug):
+    document = _document()
+    document["services"]["django"]["environment"].update({
+        "SCITEX_HUB_FRONTEND_MODE": "baked", "DEBUG": debug,
+    })
+    with pytest.raises(TargetUnreachable, match="qualified frontend"):
+        environment.parse_context(document)
+
+
+def test_baked_django_accepts_production_frontend_configuration():
+    document = _document()
+    document["services"]["django"]["environment"].update({
+        "SCITEX_HUB_FRONTEND_MODE": "baked", "DEBUG": "False",
+    })
+    assert environment.parse_context(document).mode == "image-only"
+
+
 @pytest.mark.parametrize("read_only", [True, False])
 @pytest.mark.parametrize("target", [
     "/usr/local/lib/python3.11/site-packages/scitex_container",

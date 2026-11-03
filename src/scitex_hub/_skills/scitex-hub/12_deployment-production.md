@@ -98,16 +98,30 @@ bind. Prepare fixtures there and check actual resolved mounts before recreation:
 : "${stage_users:?set an owned isolated staging user directory}"
 export SCITEX_SLURM_USER_DATA_ROOT="$stage_users"
 scripts/deploy/preflight_sibling_floors.sh staging --json
-scripts/deploy/compose.sh staging up -d --no-deps --no-build django celery_worker celery_beat
+scripts/deploy/compose.sh staging up -d --no-deps --no-build --wait --wait-timeout 900 django
+scripts/deploy/compose.sh staging up -d --no-deps --no-build --wait --wait-timeout 900 celery_worker celery_beat
 ```
 
 Staging uses its own env-file, database and named volumes. Verify those identities
-and the selected users bind; a different app name alone is not isolation. Check
-real authorized routes, frontend hashes, worker/beat behavior and relevant tests.
+and the selected users bind; a different app name alone is not isolation.
+
+Set `DEBUG=False` in the canonical staging env-file: image-only/baked Django
+must serve the verified manifest rather than request a Vite development server.
+The preflight refuses that debug-mode mismatch before recreation. An exported
+shell variable does not replace a value supplied through Compose's env-file.
+
+Check real authorized routes, frontend hashes, worker/beat behavior and relevant tests.
+A web-first start completes migrations before the worker and scheduler start.
+The readiness grace covers measured cold static publication; it does not replace
+the authenticated page and asset checks.
 A healthy container or HTTP 200 by itself is insufficient evidence. Audit root
 and linked frontend dependency locks separately, and qualify actual diagram
 rendering boundaries; see [diagram rendering](../../../../docs/security/diagram-rendering.md).
 Do not equate a successful build or root-only npm audit with a clean security graph.
+Also verify the actual public `/sw.js` bytes against the accepted source; its
+collected copy is served separately from the Vite manifest. Check private-cache
+isolation with service workers enabled, as described in
+[the service-worker boundary](../../../../docs/security/service-worker-cache.md).
 
 ## Apply only the qualified production change
 
@@ -117,7 +131,8 @@ clear the staging-only users override and recheck production mount identities:
 ```bash
 unset SCITEX_SLURM_USER_DATA_ROOT
 scripts/deploy/preflight_sibling_floors.sh prod --json
-scripts/deploy/compose.sh prod up -d --no-deps --no-build django celery_worker celery_beat
+scripts/deploy/compose.sh prod up -d --no-deps --no-build --wait --wait-timeout 900 django
+scripts/deploy/compose.sh prod up -d --no-deps --no-build --wait --wait-timeout 900 celery_worker celery_beat
 ```
 
 If production has a reviewed nondefault users root, restore that exact value

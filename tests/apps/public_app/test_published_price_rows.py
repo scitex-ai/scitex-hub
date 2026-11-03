@@ -79,6 +79,17 @@ def compiled_catalogs():
     translation.trans_real._translations.clear()
     yield
 
+
+@pytest.fixture(autouse=True)
+def pricing_language():
+    """Isolate English assertions from the previous worker test's language.
+
+    Explicit Japanese overrides below still apply inside this baseline and
+    restore it afterwards; production language selection is unchanged.
+    """
+    with translation.override("en"):
+        yield
+
 # The SSoT is now ENGLISH-sourced (2026-09-11: landing/pricing English by
 # default, JA only after selection). The exact rendered strings below are the
 # JAPANESE catalog translations, so pin them under translation.override("ja")

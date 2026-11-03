@@ -213,7 +213,7 @@ jobs:
 
       - name: Install dependencies
         env:
-          UV_PYTHON_INSTALL_DIR: ${{ runner.temp }}/hub-managed-python-${{ github.job }}
+          UV_PYTHON_INSTALL_DIR: ${{ runner.temp }}/hub-managed-python-${{ github.run_id }}-${{ github.run_attempt }}-${{ github.job }}
         # No silent degradation: these tests need the FULL dependency set
         # (config/__init__ imports celery; pytest-django provides
         # django.setup() at collection). The old `|| .[dev] || .` fallback
@@ -317,7 +317,7 @@ jobs:
 
       - name: Install dependencies
         env:
-          UV_PYTHON_INSTALL_DIR: ${{ runner.temp }}/hub-managed-python-${{ github.job }}
+          UV_PYTHON_INSTALL_DIR: ${{ runner.temp }}/hub-managed-python-${{ github.run_id }}-${{ github.run_attempt }}-${{ github.job }}
         # Same no-silent-degradation policy as terminal-tests: retry the
         # FULL install and fail loudly rather than run a security gate
         # against a half-installed environment.
