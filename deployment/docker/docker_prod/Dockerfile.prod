@@ -766,6 +766,9 @@ COPY --chmod=755 deployment/docker/common/scripts/root-init.sh /root-init.sh
 COPY --chmod=755 deployment/docker/common/scripts/image-runtime.sh /image-runtime.sh
 COPY --chmod=755 deployment/docker/common/scripts/entrypoint-prod.sh /entrypoint.sh
 RUN chmod 755 /root-init.sh /image-runtime.sh /entrypoint.sh
+# COPY --chmod also affects newly created policy parent directories. Files
+# stay read-only to the application, while its verifier needs directory search.
+RUN find /opt/scitex-image-contract -type d -exec chmod 755 {} +
 
 # --------------------------------------------
 # Smoke test (fail the build early if critical tools are broken)
