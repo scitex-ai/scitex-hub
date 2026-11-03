@@ -86,6 +86,10 @@ from django.conf import settings
 from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
 from django.middleware.csrf import get_token
+
+from apps.workspace.writer_app._origin_policy import (
+    is_cross_origin_write as _is_cross_origin_write,
+)
 from django.shortcuts import redirect
 from django.urls import URLPattern, URLResolver, include, path
 
@@ -169,21 +173,6 @@ def viewer_page(request):
     response = _viewer_view(request)
     from apps.infra.workspace_app.scope_meta import inject_scope_meta
     return inject_scope_meta(response, "writer")
-
-
-_SAFE_METHODS = frozenset({"GET", "HEAD", "OPTIONS", "TRACE"})
-
-
-def _is_cross_origin_write(request):
-    # Browsers always send Origin on a cross-site POST; a missing header means
-    # a non-browser client, which cannot ride the victim's session anyway.
-    if request.method in _SAFE_METHODS:
-        return False
-    origin = request.headers.get("Origin")
-    if origin is None:
-        return False
-    same = f"{request.scheme}://{request.get_host()}"
-    return origin != same and origin not in settings.CSRF_TRUSTED_ORIGINS
 
 
 @login_required

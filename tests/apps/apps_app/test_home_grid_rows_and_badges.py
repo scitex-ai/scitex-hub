@@ -99,7 +99,10 @@ def _register_plugin_tiles() -> list[str]:
             module = plugin_module_config(config)
         except Exception:
             continue
-        if module.name in _PLUGIN_TILE_NAMES and registry.get_module(module.name) is None:
+        if (
+            module.name in _PLUGIN_TILE_NAMES
+            and registry.get_module(module.name) is None
+        ):
             registry.register_module(module)
             added.append(module.name)
     return added
@@ -155,7 +158,9 @@ class HomePagesTest(TestCase):
         # Act
         content = self.client.get(url).content
         # Assert
-        assert b'id="launcher-dots"' in content and b'id="launcher-page-next"' in content
+        assert (
+            b'id="launcher-dots"' in content and b'id="launcher-page-next"' in content
+        )
 
     def _groups(self):
         return self.client.get("/apps/").context["groups"]
@@ -216,8 +221,8 @@ class HomePagesTest(TestCase):
         # Assert
         assert cells == [
             ("scholar", False),
-            ("figrecipe", False),
             ("stats", not stats_is_real),
+            ("figrecipe", False),
             ("writer", False),
             ("chat", False),
             ("create-app", False),
@@ -238,7 +243,7 @@ class HomePagesTest(TestCase):
         # Act
         names = [c.get("name") for c in groups[1]["cells"]]
         # Assert
-        assert names[:4] == ["scholar", "figrecipe", "stats", "writer"]
+        assert names[:4] == ["scholar", "stats", "figrecipe", "writer"]
 
     def test_publication_group_holds_public_projects_and_hides_slides(self):
         # Arrange
@@ -259,7 +264,6 @@ class HomePagesTest(TestCase):
         # still planned is that test's business, not this mount's).
         assert "live-paper" not in planned
         assert "agentic-journal" not in planned
-
 
     def test_system_group_holds_settings_docs_and_app_store(self):
         # Arrange
@@ -316,8 +320,14 @@ class HomePagesTest(TestCase):
         # Arrange
         css = _launcher_css("grid.css")
         # Act
-        light = re.findall(r'^\.launcher-group\[data-group="(\w+)"\]\s*\{\s*--launcher-band', css, re.M)
-        dark = re.findall(r'^\[data-theme="dark"\] \.launcher-group\[data-group="(\w+)"\]\s*\{\s*--launcher-band', css, re.M)
+        light = re.findall(
+            r'^\.launcher-group\[data-group="(\w+)"\]\s*\{\s*--launcher-band', css, re.M
+        )
+        dark = re.findall(
+            r'^\[data-theme="dark"\] \.launcher-group\[data-group="(\w+)"\]\s*\{\s*--launcher-band',
+            css,
+            re.M,
+        )
         # Assert
         assert (sorted(light), sorted(dark)) == (
             ["foundation", "publication", "system", "tools", "work"],
@@ -357,7 +367,9 @@ class HomePagesTest(TestCase):
         # it is taken out of flow.
         css = _launcher_css("grid.css")
         # Act
-        rule = re.search(r"\.launcher-group\[aria-label\]::before\s*\{([^}]*)\}", css).group(1)
+        rule = re.search(
+            r"\.launcher-group\[aria-label\]::before\s*\{([^}]*)\}", css
+        ).group(1)
         # Assert
         assert re.search(r"position:\s*absolute", rule)
 
@@ -365,7 +377,10 @@ class HomePagesTest(TestCase):
         # Arrange
         content = self.client.get("/apps/").content.decode("utf-8")
         # Act
-        labels = re.findall(r'class="launcher-group" role="group" data-group="(\w+)" aria-label="([^"]+)"', content)
+        labels = re.findall(
+            r'class="launcher-group" role="group" data-group="(\w+)" aria-label="([^"]+)"',
+            content,
+        )
         # Assert
         assert dict(labels) == {
             "foundation": "Foundation",
@@ -379,7 +394,9 @@ class HomePagesTest(TestCase):
         # Arrange
         content = self.client.get("/apps/").content.decode("utf-8")
         # Act
-        arrow = re.search(r'<button[^>]*id="launcher-page-next"[^>]*>', content).group(0)
+        arrow = re.search(r'<button[^>]*id="launcher-page-next"[^>]*>', content).group(
+            0
+        )
         # Assert
         assert re.search(r"\shidden(\s|>|$)", arrow)
 
@@ -465,9 +482,9 @@ class TileBadgeTest(TestCase):
 
     def test_badge_css_has_no_outward_offset(self):
         # Arrange
-        css = (
-            _WORKSPACE / "apps_app/static/apps_app/css/launcher/grid.css"
-        ).read_text("utf-8")
+        css = (_WORKSPACE / "apps_app/static/apps_app/css/launcher/grid.css").read_text(
+            "utf-8"
+        )
         # Act
         badge_rules = re.findall(r"\.launcher-badge[^{]*\{[^}]*\}", css)
         # Assert — the old pills were pushed out with translateX(46px)
@@ -530,10 +547,11 @@ class TileBadgeTest(TestCase):
         # Arrange
         tile = self._tile_html("scitex-badge-probe-app")
         # Act
-        badge = re.search(r'launcher-badge-desktop-only"[^>]*aria-label="([^"]+)"', tile)
+        badge = re.search(
+            r'launcher-badge-desktop-only"[^>]*aria-label="([^"]+)"', tile
+        )
         # Assert
         assert badge.group(1) == "Mobile layout coming soon"
-
 
 
 # EOF

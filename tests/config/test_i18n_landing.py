@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 # File: tests/config/test_i18n_landing.py
-"""Japanese landing page: automatic language selection, catalogs, and switcher.
+"""Japanese landing page: explicit language choice, catalogs, and switcher.
 
 WHY THIS FILE EXISTS
 --------------------
@@ -42,7 +42,7 @@ from pathlib import Path
 import pytest
 from django.conf import settings
 from django.template.loader import render_to_string
-from django.test import Client, RequestFactory
+from django.test import RequestFactory
 from django.urls import NoReverseMatch, reverse
 from django.utils import translation
 
@@ -294,15 +294,18 @@ def test_hero_renders_english(hero_context):
     assert expected in html
 
 
-def test_hero_blocktrans_keeps_the_interpolated_version(hero_context):
-    """A blocktrans whose placeholder name drifts drops the value silently."""
-    # Arrange
-    expected_version = "0.1.0"
-    # Act
+def test_hero_alpha_warning_is_translated_without_a_retired_version_placeholder(hero_context):
+    """The current warning is plain translated copy; package versions live elsewhere."""
+    english = "SciTeX® Cloud is in alpha."
+    with translation.override("en"):
+        english_html = render_to_string(HERO_TEMPLATE, hero_context)
     with translation.override("ja"):
-        html = render_to_string(HERO_TEMPLATE, hero_context)
-    # Assert
-    assert expected_version in html
+        japanese = translation.gettext(english)
+        japanese_html = render_to_string(HERO_TEMPLATE, hero_context)
+    assert japanese != english
+    assert english in english_html
+    assert japanese in japanese_html
+    assert english not in japanese_html
 
 
 def test_hero_blocktrans_is_translated(hero_context):
@@ -331,14 +334,13 @@ PARTIAL_CASES = [
     (COMMITMENT_TEMPLATE, "科学への私たちの約束", "Our Commitment to Science"),
     (COMMITMENT_TEMPLATE, "研究者お一人おひとりへ", "To Individual Researchers"),
     (COMMITMENT_TEMPLATE, "利益よりも科学を優先します", "Prioritize science over profit"),
-    # Open-source org + research demo section (owner ask 2026-09-27).
-    (OSS_TEMPLATE, "スタック全体がオープンソース", "The whole stack is open source"),
-    (OSS_TEMPLATE, "研究デモ", "Research demo"),
-    (OSS_TEMPLATE, "その他のデモ動画", "More demo videos"),
-    (OSS_TEMPLATE, "40分で見る研究の一連の流れ", "Watch a full research cycle in 40 minutes"),
-    (OSS_TEMPLATE, "フル版デモ——40分で最初から最後まで", "Full-length demo — 40 minutes, end to end."),
-    # App Store forward-looking line in the SDK section (owner ask 2026-09-27).
-    (MODULES_TEMPLATE, "まだ利用できません", "not yet available"),
+    # The redesigned sections keep source repositories separate from the demo.
+    (OSS_TEMPLATE, "すべての層をオープンソースで", "Open source, throughout the stack"),
+    (MODULES_TEMPLATE, "主張から根拠となるデータまでたどる", "Trace claims back to their sources"),
+    (MODULES_TEMPLATE, "順方向に記録し、逆方向に検証する。", "Record Forward. Verify Backward."),
+    (MODULES_TEMPLATE, "デモで、ツールが連携して動作する様子をご覧ください。", "Watch the demo to see the tools working together."),
+    (MODULES_TEMPLATE, "その他のデモ動画", "More demo videos"),
+    (MODULES_TEMPLATE, "AIエージェント + SciTeX®", "AI Agent + SciTeX®"),
 ]
 
 

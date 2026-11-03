@@ -132,6 +132,8 @@ def _is_user_profile_path(path: str) -> bool:
     # Skip known non-user URL prefixes
     _NON_USER_PREFIXES = {
         "admin",
+        ".well-known",
+        "funding",
         "api",
         "static",
         "media",

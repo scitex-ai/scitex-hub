@@ -20,10 +20,138 @@ hashes are recorded so the page can be re-audited from the repository.
 The 640 and 1280 pixel JPEG/WebP renditions were resized and cropped locally from the
 source photographs with Pillow; no generated imagery was added.
 
-## Actual SciTeX product captures
+## Eleven application capture set: SDK and Hub
 
-The carousel renditions come from tracked in-repository guide screenshots, except
-Stats (see below). They are
+`product-captures-eleven-apps-20261103.json` retains the nine leaf-app captures,
+adds the actual SDK creator view, and reuses the actual Hub launcher from
+`product-captures-20261102.json`. Both earlier manifests and every historical
+asset remain unchanged. It indexes eleven applications and thirty-three responsive
+renditions; image timestamps and filenames use the capture host's observed UTC
+date rather than forcing the manifest task date.
+
+- `sdk-20261102-*`: actual authenticated `/apps/sdk/` default starter catalog
+  and creation form, with four real starter options. The screenshot does not
+  claim that an app was scaffolded or validated. Owner/project controls and
+  target/app/server/token fields were privacy-filtered before any PNG was saved.
+  The recorded original hash identifies that privacy-filtered browser capture;
+  an unmasked private-data image was not persisted.
+
+The SDK capture allowed GET only. No create, scaffold, validate, filesystem/user
+write, dev-install, publish, model call or other POST was executed. No application
+HTML, data or asset response was substituted. The dock was minimized through its
+normal control; only faithful resize/compression followed the privacy filter.
+This records actual interface state, not complete backend feature health or
+production availability.
+
+## Nine leaf application capture set
+
+`product-captures-nine-apps-20261103.json` indexes the nine leaf applications:
+Agent Container, Cards, Storage, Scholar, Stats, FigRecipe, Writer, Live Paper,
+and Agentic Journal. It combines five unchanged earlier captures with four new
+actual development captures. The Hub launcher is excluded from this nine-app set;
+its historical assets and `product-captures-20261102.json` remain unchanged.
+The manifest task date is 2026-11-03; new image filenames and per-image timestamps
+use the capture host's observed UTC date, 2026-11-02, rather than forcing that date.
+
+The new four images are actual authenticated development views at
+<https://compute-03-net.scitex.ai/>, captured at 1440 × 900, device scale 1:
+
+- `agent-container-20261102-*`: cached fleet inventory and controls, with 21
+  roster rows. The visible stale-cache banner is preserved. Liveness badges are
+  cached inventory metadata, not evidence of model activity or goal completion.
+  Non-public agent labels and account/project controls are hidden. No agent
+  conversation, detail/status/tail read, control or goal operation was performed.
+- `cards-20261102-*`: the real dedicated task-board Stats view. Private task
+  content and account/project identifiers are hidden. Activity/status counts are
+  the actual visible UI values; this is not a seeded MNIST task dataset. No DM
+  API or message request was allowed; no tasks were edited or sent.
+- `storage-20261102-*`: the actual MNIST project-scoped Usage iframe after its
+  sunburst finished rendering (36 SVG segments). Path/generation/breadcrumb
+  labels are hidden. No move, delete, duplicate scan or planning operation was
+  performed. The chart is not substituted with a PNG or a different frame.
+- `agentic-journal-20261102-*`: the native author guidance and submission workflow,
+  with an honestly empty user archive. No sample submission, review, publication,
+  model call or fabricated record was created for the screenshot.
+
+For these four operational views, privacy filters were applied before the first
+PNG was persisted. The recorded raw/original hash therefore identifies the
+privacy-filtered browser capture, not an unmasked private-data image. Account and
+project controls, private task text, non-public agent names and relevant path
+labels are masked; exact selectors/styles are recorded in the manifest. The dock
+was minimized using its normal control. No application HTML, data, script or
+stylesheet response was replaced. Only faithful resizing and JPEG/WebP compression
+were applied after capture; no generated imagery was used.
+
+These four captures allow GET only, block DM/control/message/goal endpoints,
+block all POSTs, and disable WebSockets/SSE. The manifest separately preserves
+historical exceptions for the earlier Stats sample computation and Writer Abstract
+preview; neither was repeated for this four-app extension. Captures document
+visible interface state, not complete feature health, independent scientific
+verification or production availability.
+
+## Earlier six-screen development capture group — 2026-11-02 UTC
+
+`product-captures-20261102.json` records the actual capture times, original PNG
+hashes, privacy-masked PNG hashes, responsive rendition hashes and dimensions.
+The six new capture sets were taken from the running development site at
+<https://compute-03-net.scitex.ai/> with a 1440 × 900 viewport and device scale 1.
+The date comes from the capture host's observed UTC clock.
+
+- `hub-20261102-*`: current application launcher. The account/project label is
+  hidden; the actual app tiles and their labels are unchanged. A tile is not
+  evidence that its backend is available.
+- `figrecipe-20261102-*`: existing six-row synthetic worksheet, showing separate
+  X/Y axis-role badges and unchanged column names. This worksheet is not MNIST.
+- `scholar-20261102-*`: the actual MNIST project's four curated references and
+  native metadata reader, after the real library seed and deployed reader UI.
+  The selected OpenML paper has no stored abstract, which is shown honestly.
+  No search, enrichment, download or citation-graph operation was performed.
+  The served reader stylesheet matched SHA-256
+  `623735bc562ea3018760502ab1e368944b9722146b53ac851689ef072e61b3f1`;
+  the visible title measured 241 pixels wide and the close button 44 × 44 pixels.
+- `writer-20261102-*`: actual MNIST example Abstract source and its genuinely
+  compiled one-page section preview. The source explicitly says this is not a
+  research finding and the claims have not been independently verified. Exactly
+  one approved Abstract-preview POST was permitted, pinned to the authorized
+  project, section path and content SHA-256
+  `6933993915a0903e8b14b294756430f88a3b10a44209760c326a5ca79b1f3f2c`.
+  It returned HTTP 200 and the actual PDF SHA-256 was
+  `c60728aa3910c56534be7af09caa453d0274d15e26cf8d103562161288a2d364`.
+  Abstract/Methods/Results, claims, provenance and the existing root PDF hashes
+  stayed unchanged; the full Writer manuscript PDF remained absent. No save or
+  full-manuscript compile was allowed. The root Live Paper PDF was not imported
+  as Writer output.
+- `stats-20261102-*`: built-in two-group sample, showing the actual recommended
+  Welch test and computed result. This sample is not MNIST.
+- `live-paper-20261102-*`: existing MNIST demonstration bundle with its claims
+  and PDF. The document explicitly labels these as example claims, not research
+  findings. No models were trained or downloaded during capture.
+
+These are actual application responses, without replacement HTML, scripts,
+styles or application data. Privacy masking hides account/project controls and
+file-tree/tooltips if present; it does not replace any application content.
+The dock was minimized through its normal control. After masking, only faithful
+resizing and JPEG/WebP compression were applied; no generated imagery was used.
+The original PNGs remain in the private audit capture bundle, rather than exposing
+unmasked account context in public static files.
+
+All non-GET application requests were blocked except the pinned Writer Abstract
+preview described above and the three source-reviewed, stateless Stats sample operations: `api/recommend-test`, `api/run`, and `api/plot`.
+They compute recommendations, a test result, and an in-memory SVG/PNG; project
+save, report-save and FigRecipe import endpoints remained blocked. WebSockets and
+SSE were disabled. No full-manuscript compile, annotation, message, project save,
+recipe write, model call, or Scholar Graph backfill was performed. The approved
+single-section preview operation genuinely compiles an isolated Abstract artifact.
+
+The recorded source checkouts are contextual evidence, not proof that an
+unpublished source preview is an official package release. The captures likewise
+prove the visible state at their recorded time, not complete feature coverage,
+performance, independent scientific verification or production availability.
+
+## Historical product-guide captures
+
+The historical renditions below come from tracked in-repository guide screenshots,
+except the older Stats capture (see below). They are
 real captures of the application; only resize/compression was applied. The captions on
 the page describe only what is visible and do not claim that a static image proves
 feature availability or performance.
@@ -54,9 +182,9 @@ outside the repository; its SHA-256 is recorded in the table above.
 
 Related tracked demo videos remain available at
 `apps/infra/public_app/static/public_app/videos/landing/`: `hub-demo.mp4`,
-`scholar-demo.mp4`, `writer-demo.mp4`, and `visualizer-demo.mp4`. The carousel uses the
-cleaner tracked guide captures rather than frames that expose local paths, third-party
-publisher pages, or unsupported manuscript claims.
+`scholar-demo.mp4`, `writer-demo.mp4`, and `visualizer-demo.mp4`. These legacy
+recordings and guide renditions remain as historical sources. The earlier six-screen group uses the dated actual development captures documented
+above; the separate nine-leaf manifest identifies the expanded set.
 
 ## SciTeX Clew DAG
 

@@ -47,6 +47,7 @@ GATED_PATHS = (
     "/",
     "/apps/",
     "/new/",
+    "/create-app/",  # The legacy SDK entry must not bypass onboarding.
     "/chat/",
     "/console/",
     "/files/",
@@ -882,6 +883,7 @@ class TestThePublicAndLegalPagesAreNotHeldBehindTheGate:
     #: not a username collision wearing its name — the two are different
     #: questions and only the resolver can tell them apart.
     PUBLIC = (
+        ("/funding/", "funding/"),
         ("/about/", "about/"),
         ("/cookies/", "cookies/"),
         ("/docs/web-api/", "docs/web-api/"),

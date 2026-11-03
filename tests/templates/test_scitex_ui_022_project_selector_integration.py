@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Hub consumer contract for scitex-ui 0.22's canonical project selector."""
+"""Hub header ownership plus the retained legacy project-selector contract."""
 
 from __future__ import annotations
 
@@ -30,13 +30,16 @@ def test_writer_standalone_and_partial_use_one_canonical_header_entry() -> None:
     assert all(_text(path).count('writer_app/shared/_app_header.html') == 1 for path in (WRITER_INDEX, WRITER_PARTIAL))
 
 
-def test_writer_header_places_picker_after_identity_before_actions() -> None:
+def test_writer_header_delegates_row_creation_to_the_shared_sdk() -> None:
     text = _text(WRITER_HEADER)
-    assert text.index("stx-app-header__identity") < text.index("stx-app-header__slot--project-selector") < text.index("stx-app-header__actions")
+    assert (text.count("<div data-stx-app-header"), "scitex_sdk/ui/js/app/app-header.js" in text,
+            "stx-app-header__identity" in text, "stx-app-header__actions" in text) == (1, True, False, False)
 
 
-def test_writer_header_renders_exactly_one_shared_picker() -> None:
-    assert _text(WRITER_HEADER).count("{% scitex_project_picker") == 1
+def test_writer_header_delegates_one_picker_and_slot_placement_to_the_leaf() -> None:
+    text = _text(WRITER_HEADER)
+    assert (text.count('{% include "writer/_project_picker.html" %}'),
+            text.count("writer/js/header-picker.js"), "{% scitex_project_picker" in text) == (1, 1, False)
 
 
 def test_writer_has_no_legacy_local_picker_wrapper() -> None:
@@ -54,7 +57,10 @@ def test_writer_ancillary_header_uses_the_same_canonical_slot() -> None:
 
 def test_appmaker_real_header_uses_the_same_canonical_slot() -> None:
     text = _text(APPMAKER)
-    assert text.index("stx-app-header__identity") < text.index("stx-app-header__slot--project-selector") < text.index("appmaker-actions")
+    assert 'data-stx-app-header data-app-title="{{ app_label }}"' in text
+    assert 'class="appmaker-head stx-app-header"' not in text
+    assert text.count("{% scitex_project_picker") == 1
+    assert text.index("data-stx-app-header") < text.index("{% scitex_project_picker") < text.index("appmaker-actions")
 
 
 def test_hub_templates_use_only_the_canonical_picker_tag() -> None:
@@ -81,3 +87,31 @@ def test_responsive_contract_is_inherited_from_scitex_ui() -> None:
     text = re.sub(r"/\*.*?\*/", "", _text(css), flags=re.S)
     phone = text[text.index("@media (max-width: 600px)") :]
     assert all(contract in phone for contract in ("width: 100%", "order: 0", "height: 44px", "min-height: 44px", "max-height:"))
+
+
+def test_writer_header_render_keeps_one_sdk_mount_and_one_leaf_picker():
+    from html.parser import HTMLParser
+    from django.template.loader import render_to_string
+    from django.test import override_settings
+
+    class Elements(HTMLParser):
+        def __init__(self):
+            super().__init__()
+            self.attributes = []
+
+        def handle_starttag(self, _tag, attrs):
+            self.attributes.append(dict(attrs))
+
+    # Arrange: the public provider URL SPI is sufficient for fragment rendering.
+    with override_settings(SCITEX_PROJECT_PROVIDER="", SCITEX_PROJECT_PROVIDER_URL="/owned/projects/"):
+        # Act
+        html = render_to_string("writer_app/shared/_app_header.html", {
+            "writer_label": "SciTeX Writer", "writer_version": "owned-version",
+        })
+    elements = Elements()
+    elements.feed(html)
+    mounts = [a for a in elements.attributes if "data-stx-app-header" in a]
+    pickers = [a for a in elements.attributes if "data-stx-project-picker" in a]
+    # Assert
+    assert (len(mounts), len(pickers), mounts[0].get("data-app-version"),
+            html.count("writer/js/header-picker.js")) == (1, 1, "owned-version", 1)

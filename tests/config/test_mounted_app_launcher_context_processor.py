@@ -73,14 +73,14 @@ def test_public_live_viewer_path_gets_no_launcher():
     assert context == {}
 
 
-def test_full_workspace_path_gets_no_launcher():
-    # Arrange: hub's own full-workspace pages already carry the sidebar's
-    # own navigation, so a second back-link would be redundant.
+def test_scholar_leaf_path_gets_a_launcher():
+    # Scholar is now a registered leaf, so anonymous/embedded views need
+    # the same exit link as other mounted leaves.
     request = RequestFactory().get("/apps/scholar/")
     # Act
     context = mounted_app_launcher(request)
     # Assert
-    assert context == {}
+    assert context["launcher"] == {"url": "/apps/store/", "label": "Back to Store"}
 
 
 def _signed_in(request):
@@ -106,15 +106,15 @@ def test_embedded_cards_page_keeps_its_launcher():
     assert "launcher" in context
 
 
-def test_storage_and_scholar_do_not_collide():
+def test_mounted_storage_and_native_console_do_not_collide():
     # Arrange: two requests, one in scope and one not.
     storage_request = RequestFactory().get("/apps/storage/")
-    scholar_request = RequestFactory().get("/apps/scholar/")
+    console_request = RequestFactory().get("/apps/workspace/console/")
     # Act: a scoping bug could make both branches resolve identically.
     storage_context = mounted_app_launcher(storage_request)
-    scholar_context = mounted_app_launcher(scholar_request)
+    console_context = mounted_app_launcher(console_request)
     # Assert
-    assert storage_context != scholar_context
+    assert storage_context != console_context
 
 
 if __name__ == "__main__":

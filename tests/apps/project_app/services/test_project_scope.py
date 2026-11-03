@@ -3,6 +3,7 @@
 
 import contextlib
 import json
+from html.parser import HTMLParser
 
 import pytest
 from django.contrib.auth.models import User
@@ -26,6 +27,17 @@ from apps.infra.project_app.templatetags.project_scope_tags import (
 )
 
 PASSWORD = "TestPass123!"  # pragma: allowlist secret
+
+
+class _ProjectProviderMeta(HTMLParser):
+    def __init__(self):
+        super().__init__()
+        self.declarations = []
+
+    def handle_starttag(self, tag, attrs):
+        attributes = dict(attrs)
+        if tag == "meta" and attributes.get("name") == "stx-project-provider":
+            self.declarations.append(attributes)
 
 
 class ProjectScopeTest(TestCase):
@@ -208,10 +220,17 @@ class ProjectScopeTest(TestCase):
                 "/apps/figrecipe/old-direct/?project=scope-me/paper"
             )
         # Assert
-        assert (
-            b'<meta name="stx-project-provider" content="/api/project/scope/">'
-            in response.content
-        )
+        meta = _ProjectProviderMeta()
+        meta.feed(response.content.decode())
+        # The SDK advertises its actual scoped protocol as an additional
+        # attribute; formatting and attribute order do not define authority.
+        assert meta.declarations == [
+            {
+                "name": "stx-project-provider",
+                "content": "/api/project/scope/?app=figrecipe",
+                "data-scoped-protocol": "true",
+            }
+        ]
 
     def test_figrecipe_default_project_becomes_last_visited(self):
         # Arrange
@@ -289,9 +308,10 @@ def _figrecipe_old_direct_urls():
     """
     import importlib
 
-    import config.urls as root_urlconf
     from django.test.utils import override_settings
     from django.urls import clear_url_caches
+
+    import config.urls as root_urlconf
 
     gate = override_settings(FIGRECIPE_OLD_DIRECT_ENABLED=True)
     gate.enable()

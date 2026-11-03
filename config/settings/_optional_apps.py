@@ -151,6 +151,45 @@ def _is_production(env) -> bool:
     return str(env.get(HUB_ENV_VAR, "development")).lower() in PRODUCTION_ENV_NAMES
 
 
+def plugin_store_route_bindings(environ: dict | None = None) -> dict:
+    """Bind an optional append-only Cards DM credential without changing the host store.
+
+    The credential must address the same PostgreSQL database as the read store.
+    Values stay in settings and are never included in errors or log messages.
+    """
+    from urllib.parse import urlsplit
+
+    env = os.environ if environ is None else environ
+    writer = env.get("SCITEX_HUB_CARDS_DM_STORE", "").strip()
+    secret_file = env.get("SCITEX_HUB_CARDS_DM_STORE_FILE", "").strip()
+    if not writer and secret_file:
+        try:
+            writer = Path(secret_file).read_text().strip()
+        except OSError:
+            raise RuntimeError("Cards DM credential file is not readable") from None
+    if not writer:
+        return {}
+    reader = env.get(CARDS_STORE_UPSTREAM_ENV) or env.get(CARDS_STORE_HUB_ENV, "")
+    try:
+        source, target = urlsplit(reader), urlsplit(writer)
+        valid = (
+            source.scheme in ("postgres", "postgresql")
+            and target.scheme in ("postgres", "postgresql")
+            and bool(target.hostname)
+            and (source.hostname, source.port or 5432, source.path)
+            == (target.hostname, target.port or 5432, target.path)
+            and source.query == target.query
+            and bool(target.username)
+        )
+    except ValueError:
+        valid = False
+    if not valid:
+        raise RuntimeError(
+            "SCITEX_HUB_CARDS_DM_STORE must address the configured Cards PostgreSQL database"
+        )
+    return {"/apps/cards/": {"dm/": writer}}
+
+
 def publish_cards_store_target(environ: dict | None = None) -> str | None:
     """Hand scitex-cards the store target THIS DEPLOYMENT chose, or the fleet's.
 

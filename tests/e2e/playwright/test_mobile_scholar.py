@@ -6,8 +6,6 @@ Mobile Scholar Tests
 Verify the scholar module results are scrollable on mobile viewport.
 """
 
-import pytest
-
 from tests.e2e.playwright.page_ready import wait_for_page_ready
 
 # WHY THESE TESTS DO NOT WAIT FOR `networkidle`
@@ -42,21 +40,18 @@ class TestMobileScholar:
 
     def test_scholar_results_scrollable(self, authenticated_mobile_page, screenshot):
         """Scholar search results container is vertically scrollable on mobile."""
-        authenticated_mobile_page.goto("/apps/scholar/")
+        response = authenticated_mobile_page.goto("/apps/scholar/")
+        assert response is not None and response.status == 200
         wait_for_page_ready(authenticated_mobile_page)
 
         # Check for a scrollable results container
         # The container should have overflow-y: auto or scroll
+        # The installed Scholar leaf scrolls search controls and result cards
+        # in the same main pane. Empty searches need no external API request.
         results = authenticated_mobile_page.locator(
-            "[data-testid='scholar-results'], "
-            ".scholar-results, "
-            "#scholar-results, "
-            ".results-container, "
-            ".search-results"
-        ).first
-
-        if results.count() == 0:
-            pytest.skip("No scholar results container found on page")
+            '[data-scholar-root] [data-stx-pane="main"]'
+        )
+        assert results.count() == 1, "Scholar's main pane is missing"
 
         overflow_y = results.evaluate("el => window.getComputedStyle(el).overflowY")
         assert overflow_y in (
@@ -68,14 +63,13 @@ class TestMobileScholar:
 
     def test_scholar_no_horizontal_overflow(self, authenticated_mobile_page):
         """Scholar page does not overflow horizontally on mobile."""
-        authenticated_mobile_page.goto("/apps/scholar/")
+        response = authenticated_mobile_page.goto("/apps/scholar/")
+        assert response is not None and response.status == 200
         wait_for_page_ready(authenticated_mobile_page)
 
-        overflow = authenticated_mobile_page.evaluate(
-            """
+        overflow = authenticated_mobile_page.evaluate("""
             () => {
                 return document.documentElement.scrollWidth > document.documentElement.clientWidth;
             }
-        """
-        )
+        """)
         assert not overflow, "Page has horizontal overflow on mobile viewport (390px)"

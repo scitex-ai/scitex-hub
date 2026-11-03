@@ -11,7 +11,10 @@ from pathlib import Path
 
 from scitex_live_paper import (
     BundleContext,
+    BundleError,
+    BundleMissingError,
     BundleNotFound,
+    BundleResolverError,
     BundleSource,
     PaperState,
     RendererOptions,
@@ -22,16 +25,32 @@ from scitex_live_paper import (
 def hub_resolver(request, **url_kwargs) -> BundleContext:
     """Resolve the paper bundle for this request from ``?working_dir=``.
 
-    The manifest declares ``working_dir_param: working_dir``: the deep
-    link carries the bundle file path, resolved server-side against the
-    caller's data jail. Missing/unreadable/out-of-jail paths map to the
-    leaf's documented HTTP statuses (404/403), never a 500.
+    Explicit deep links carry a bundle directory in ``working_dir``.
+    Otherwise use the current authorized project, consistently for the
+    viewer and its API calls. Both paths remain inside the caller's jail.
     """
     from scitex_live_paper import BundleAccessDenied
+    from scitex_sdk.ui.project_scope import ProjectSelection
 
     raw = (request.GET.get("working_dir") or "").strip()
+    view_selection = None
     if not raw:
-        raise BundleNotFound("no paper selected (missing ?working_dir=)")
+        from scitex_sdk.host import AccessError, project_access
+
+        try:
+            # Resource GETs authorize through the host's actual providers without
+            # changing the navigation preference shared with other app tabs.
+            access = project_access(request, remember=False)
+        except AccessError as exc:
+            if exc.status == 404:
+                raise BundleNotFound(
+                    "no paper bundle selected in your projects"
+                ) from exc
+            if exc.status in {401, 403}:
+                raise BundleAccessDenied("paper access is denied") from exc
+            raise BundleResolverError(str(exc)) from exc
+        raw = str(access.root)
+        view_selection = ProjectSelection("project", access.id)
     candidate = Path(raw)
     if not candidate.is_absolute():
         raise BundleNotFound(f"paper path is not absolute: {raw!r}")
@@ -39,21 +58,67 @@ def hub_resolver(request, **url_kwargs) -> BundleContext:
         resolved = candidate.resolve()
     except OSError as exc:
         raise BundleNotFound(f"paper path does not resolve: {raw!r}") from exc
-    if not resolved.is_file():
-        raise BundleNotFound(f"paper not found: {raw!r}")
+    if not resolved.is_dir():
+        raise BundleNotFound(f"paper bundle directory not found: {raw!r}")
     if not _inside_user_jail(request, resolved):
         raise BundleAccessDenied("paper is outside your workspace")
+    # Presentation follows this authorized resource, not a different tab's
+    # globally remembered project. Keep it even when the bundle is absent.
+    request.live_paper_view_selection = view_selection or ProjectSelection("user", None)
 
     def _load():
         from scitex_live_paper.bundle import load
 
+        # Bundle members are opened by the leaf after resolution. Refuse
+        # symlink-bearing bundles so a nested manuscript/claims/figz link
+        # cannot cross the user's jail through an otherwise safe directory.
+        if not _inside_user_jail(request, resolved):
+            raise BundleAccessDenied("paper is outside your workspace")
+        # A project may also contain unrelated source/runtime links. Check
+        # only members the renderer reads, not the entire project tree.
+        for name in (
+            "manuscript.pdf",
+            "manuscript.tex",
+            "claims.json",
+            "dag.mmd",
+            "provenance.yaml",
+            "state.yaml",
+            "figz",
+        ):
+            member = resolved / name
+            if (member.exists() or member.is_symlink()) and not _inside_user_jail(
+                request, member
+            ):
+                raise BundleAccessDenied(
+                    "paper bundle member is outside your workspace"
+                )
+        figures = resolved / "figz"
+        if figures.is_dir() and any(
+            member.is_symlink() for member in figures.rglob("*")
+        ):
+            raise BundleAccessDenied("paper figures must not contain symbolic links")
         return load(resolved)
 
+    from django.urls import reverse
+
+    api_ping = reverse("live_paper:api_dispatch", kwargs={"endpoint": "api/ping"})
+    # A jailed project directory need not be a LivePaper bundle. Let the
+    # leaf's parser decide once, before rendering a shell that would start
+    # failing every lazy API request. Preserve malformed-content failures.
+    try:
+        bundle = _load()
+    except BundleMissingError as exc:
+        raise BundleNotFound(
+            "No LivePaper bundle in the selected directory. Open a bundle "
+            "containing manuscript.pdf or manuscript.tex and claims.json."
+        ) from exc
+    except BundleError as exc:
+        raise BundleResolverError(f"Invalid LivePaper bundle: {exc}") from exc
     return BundleContext(
-        source=BundleSource.from_resolver(_load),
+        source=BundleSource.from_bundle(bundle),
         paper_state=PaperState(),
-        api_base=request.path.rsplit("/", 1)[0] + "/",
-        options=RendererOptions(embed_mode=True),
+        api_base=api_ping.removesuffix("ping"),
+        options=RendererOptions(embed_mode=False),
     )
 
 

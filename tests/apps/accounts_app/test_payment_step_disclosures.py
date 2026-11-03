@@ -19,7 +19,8 @@ The template tests need no database; the route tests are gated for CI.
 from __future__ import annotations
 
 import re
-from datetime import datetime, timedelta, timezone as tz
+from datetime import datetime
+from datetime import timezone as tz
 from pathlib import Path
 
 import pytest
@@ -44,8 +45,12 @@ NOW = datetime(2026, 9, 17, 9, 0, tzinfo=tz.utc)
 
 
 def _disclosures(**overrides):
-    kwargs = dict(plan_label="Academic Cloud", monthly_usd=20.0,
-                  trial_end=TRIAL_END, now=NOW)
+    kwargs = {
+        "plan_label": "Academic Cloud",
+        "monthly_usd": 20.0,
+        "trial_end": TRIAL_END,
+        "now": NOW,
+    }
     kwargs.update(overrides)
     return payment_disclosures(**kwargs)
 
@@ -62,8 +67,16 @@ def _text(html: str) -> str:
 def test_every_required_disclosure_is_present():
     context = _disclosures().as_context()
 
-    for field in ("plan_label", "price_per_month", "due_today", "trial_ends_on",
-                  "first_charge_on", "renewal", "cancellation", "tax"):
+    for field in (
+        "plan_label",
+        "price_per_month",
+        "due_today",
+        "trial_ends_on",
+        "first_charge_on",
+        "renewal",
+        "cancellation",
+        "tax",
+    ):
         assert context.get(field), f"missing disclosure: {field}"
 
 
@@ -71,9 +84,9 @@ def test_nothing_is_due_today_and_the_first_charge_is_the_trial_end():
     context = _disclosures().as_context()
 
     assert context["due_today"] == "$0.00", context["due_today"]
-    assert context["first_charge_on"] == context["trial_ends_on"], (
-        "the first charge must be the day the trial ends, not a different date"
-    )
+    assert (
+        context["first_charge_on"] == context["trial_ends_on"]
+    ), "the first charge must be the day the trial ends, not a different date"
     assert context["trial_ends_on"] == "17 October 2026"
     assert "20.00" in context["price_per_month"]
 
@@ -95,8 +108,9 @@ def test_the_renewal_and_tax_lines_say_what_they_do():
 
 def test_without_a_trial_window_no_date_is_invented():
     """A plausible-looking date is worse than none: people plan around dates."""
-    context = payment_disclosures(plan_label="Academic Cloud", monthly_usd=20.0,
-                                  trial_end=None).as_context()
+    context = payment_disclosures(
+        plan_label="Academic Cloud", monthly_usd=20.0, trial_end=None
+    ).as_context()
 
     assert context["trial_ends_on"] == ""
     assert context["first_charge_on"] == ""
@@ -117,7 +131,9 @@ def test_the_step_state_follows_the_account_facts():
     # Card stored, provider has not confirmed yet: say so, do not claim success.
     assert trial_state(has_usable_card=True) == PROCESSING
     assert trial_state(has_usable_card=False) == PENDING
-    assert trial_state(has_usable_card=False, returned_from_setup=True) == SETUP_CANCELLED
+    assert (
+        trial_state(has_usable_card=False, returned_from_setup=True) == SETUP_CANCELLED
+    )
     assert trial_state(has_usable_card=False, setup_failed=True) == SETUP_FAILED
     # A cancelled attempt the user has since retried is no longer cancelled.
     assert (
@@ -161,9 +177,19 @@ def test_the_surface_shows_all_six_facts_to_the_reader():
     html = _render()
 
     assert 'data-payment-step="true"' in html
-    for marker in ("plan", "price", "due-today", "trial-end", "first-charge",
-                   "renewal", "cancellation", "tax"):
-        assert f'data-payment-disclosure="{marker}"' in html, f"missing {marker} in the page"
+    for marker in (
+        "plan",
+        "price",
+        "due-today",
+        "trial-end",
+        "first-charge",
+        "renewal",
+        "cancellation",
+        "tax",
+    ):
+        assert (
+            f'data-payment-disclosure="{marker}"' in html
+        ), f"missing {marker} in the page"
 
     text = _text(html)
     assert "Academic Cloud" in text
@@ -174,26 +200,47 @@ def test_the_surface_shows_all_six_facts_to_the_reader():
 def test_the_only_action_is_an_explicit_continue_to_the_provider():
     html = _render()
 
-    form = re.search(r"<form[^>]*action=\"([^\"]+)\"[^>]*>(.*?)</form>", html, re.S)
-    assert form, "no continue form"
-    assert form.group(1) == "/billing/start-setup/", form.group(1)
-    assert 'data-payment-action="continue"' in form.group(0)
-    assert "Continue to secure Stripe" in form.group(0)
-    # A guarded submit: the UI half of the duplicate-session blocker.
-    assert 'data-submit-guard="true"' in form.group(0)
+    # The shared shell includes unrelated language/search forms; select the payment action,
+    # not whichever form happens to appear first in the page shell.
+    forms = [
+        form
+        for form in re.findall(
+            r'<form[^>]*action="([^"]+)"[^>]*>(.*?)</form>', html, re.S
+        )
+        if 'data-payment-action="continue"' in form[1]
+    ]
+    assert len(forms) == 1, "exactly one payment continuation is required"
+    action, body = forms[0]
+    assert action == "/billing/start-setup/", action
+    assert "Continue to secure Stripe" in body
+    payment_forms = [
+        form
+        for form in re.findall(r"<form\b[^>]*>.*?</form>", html, re.S)
+        if 'data-payment-action="continue"' in form
+    ]
+    assert 'method="post"' in payment_forms[0]
+    assert 'data-submit-guard="true"' in payment_forms[0]
 
 
 def test_the_page_never_asks_for_card_details():
     """Card data is entered on the provider's page, never here."""
     html = _render()
 
-    for forbidden in ('name="card', 'name="cvc', 'name="number"', 'name="expiry',
-                      "autocomplete=\"cc-number\"", "autocomplete=\"cc-csc\""):
-        assert forbidden not in html, f"the payment step renders a card field: {forbidden}"
+    for forbidden in (
+        'name="card',
+        'name="cvc',
+        'name="number"',
+        'name="expiry',
+        'autocomplete="cc-number"',
+        'autocomplete="cc-csc"',
+    ):
+        assert (
+            forbidden not in html
+        ), f"the payment step renders a card field: {forbidden}"
 
-    assert "never sees or stores them" in _text(html), (
-        "the page does not say who holds the card details"
-    )
+    assert "never sees or stores them" in _text(
+        html
+    ), "the page does not say who holds the card details"
 
 
 def test_a_cancelled_setup_says_nothing_was_charged():
@@ -218,9 +265,9 @@ def test_a_user_with_a_saved_card_is_not_asked_again_while_the_trial_activates()
     html = _render(state=PROCESSING)
 
     assert 'data-payment-state="processing"' in html
-    assert 'data-payment-action="continue"' not in html, (
-        "someone whose card is already stored must not be pushed at the card page again"
-    )
+    assert (
+        'data-payment-action="continue"' not in html
+    ), "someone whose card is already stored must not be pushed at the card page again"
     assert "confirm" in _text(html).lower()
 
 
@@ -300,9 +347,11 @@ class TestPaymentStepRoute:
             username=username, email=f"{username}@example.com", password="TestPass123!"
         )
         if in_funnel:
-            from apps.infra.auth_app.onboarding import begin_social_signup
+            from apps.infra.auth_app.onboarding import mark_verified
 
-            begin_social_signup(user, "email")
+            # This fixture exercises the verified email funnel before a plan
+            # has been selected. Social signup intentionally chooses Free.
+            mark_verified(user, source="email")
         return user
 
     def test_the_step_requires_a_signed_in_user(self):
@@ -387,8 +436,28 @@ class TestPaymentStepRoute:
         assert response.status_code == 200
         assert b'data-payment-step="true"' in response.content
         assert b'data-payment-state="not_open"' in response.content
-        assert b'data-payment-action="continue"' not in response.content, (
-            "a step with no provider must not offer the card action"
+        assert (
+            b'data-payment-action="continue"' not in response.content
+        ), "a step with no provider must not offer the card action"
+
+    def test_social_free_default_does_not_offer_or_require_a_card(self):
+        from django.test import Client
+
+        from apps.infra.auth_app.models import OnboardingState
+        from apps.infra.auth_app.onboarding import begin_social_signup
+
+        user = self._user("payment-social-free", in_funnel=False)
+        begin_social_signup(user, "google")
+        client = Client()
+        client.force_login(user)
+
+        response = client.get("/accounts/settings/payment/")
+
+        authority = OnboardingState.objects.get(user=user)
+        assert (response.status_code, authority.step, authority.pricing_id) == (
+            302,
+            OnboardingState.Step.PRODUCT,
+            "subscription-free",
         )
 
     def test_the_post_signup_redirect_is_the_same_in_every_provider_state(self):
@@ -405,7 +474,9 @@ class TestPaymentStepRoute:
         ordinary post-login destination rather than being enrolled by a redirect.
         """
         from apps.infra.auth_app.onboarding import begin_social_signup, mark_activated
-        from apps.infra.public_app.services.billing_provider import post_signup_redirect_url
+        from apps.infra.public_app.services.billing_provider import (
+            post_signup_redirect_url,
+        )
 
         in_funnel = self._user("payment-redirect")
         target = post_signup_redirect_url(in_funnel)
@@ -423,7 +494,7 @@ class TestPaymentStepRoute:
         assert begin_social_signup(established, "email") is not None
 
     def test_an_established_account_is_not_offered_the_signup_step(self):
-        """"Any existing user can enter the supposed signup payment flow" (blocker 1).
+        """ "Any existing user can enter the supposed signup payment flow" (blocker 1).
 
         The step is for accounts the authority puts in the funnel; everyone else
         manages cards and plans from billing settings.
@@ -474,7 +545,9 @@ class TestSignupPlanIsDeterminedNeverArbitrary:
         assert chosen is not None
         assert chosen["amount"] == 19
 
-        reordered = select_signup_plan(list(reversed(self.ROWS)), "subscription-student")
+        reordered = select_signup_plan(
+            list(reversed(self.ROWS)), "subscription-student"
+        )
         assert reordered == chosen
 
     def test_an_unknown_explicit_id_refuses_rather_than_falling_back(self):
@@ -492,9 +565,14 @@ class TestSignupPlanIsDeterminedNeverArbitrary:
 
     def test_exactly_one_chargeable_plan_is_determined(self):
         """The plan a deployment can actually charge for is a decision, not file order."""
-        assert select_signup_plan(self.ROWS, chargeable_ids={"subscription-general"}) == self.ROWS[1]
         assert (
-            select_signup_plan(list(reversed(self.ROWS)), chargeable_ids={"subscription-general"})
+            select_signup_plan(self.ROWS, chargeable_ids={"subscription-general"})
+            == self.ROWS[1]
+        )
+        assert (
+            select_signup_plan(
+                list(reversed(self.ROWS)), chargeable_ids={"subscription-general"}
+            )
             == self.ROWS[1]
         )
 
@@ -503,10 +581,15 @@ class TestSignupPlanIsDeterminedNeverArbitrary:
         both = {"subscription-student", "subscription-general"}
 
         assert select_signup_plan(self.ROWS, chargeable_ids=both) is None
-        assert select_signup_plan(list(reversed(self.ROWS)), chargeable_ids=both) is None
+        assert (
+            select_signup_plan(list(reversed(self.ROWS)), chargeable_ids=both) is None
+        )
 
     def test_a_chargeable_id_matching_no_catalog_row_refuses(self):
-        assert select_signup_plan(self.ROWS, chargeable_ids={"subscription-legacy"}) is None
+        assert (
+            select_signup_plan(self.ROWS, chargeable_ids={"subscription-legacy"})
+            is None
+        )
 
     def test_a_catalog_marker_outside_the_chargeable_set_refuses(self):
         """A marked plan nobody can pay for is a catalog bug, not a selection.
@@ -530,14 +613,18 @@ class TestSignupPlanIsDeterminedNeverArbitrary:
         """
         assert (
             select_signup_plan(
-                self.ROWS, explicit_id="subscription-student", chargeable_ids={"subscription-general"}
+                self.ROWS,
+                explicit_id="subscription-student",
+                chargeable_ids={"subscription-general"},
             )
             is None
         )
         # The same id IS accepted once the deployment can actually charge it.
         assert (
             select_signup_plan(
-                self.ROWS, explicit_id="subscription-student", chargeable_ids={"subscription-student"}
+                self.ROWS,
+                explicit_id="subscription-student",
+                chargeable_ids={"subscription-student"},
             )
             == self.ROWS[0]
         )
@@ -554,7 +641,9 @@ class TestSignupPlanIsDeterminedNeverArbitrary:
         """
         from django.conf import settings
 
-        from apps.infra.public_app.services.billing_provider import subscription_pricing_rows
+        from apps.infra.public_app.services.billing_provider import (
+            subscription_pricing_rows,
+        )
 
         rows = subscription_pricing_rows()
         selection = select_signup_plan(rows)
@@ -567,9 +656,9 @@ class TestSignupPlanIsDeterminedNeverArbitrary:
 
         live = select_signup_plan(rows, chargeable_ids=set(settings.STRIPE_PRICE_IDS))
         if live is not None:
-            assert live["id"] in set(settings.STRIPE_PRICE_IDS), (
-                "quoted a plan this deployment has no configured price for"
-            )
+            assert live["id"] in set(
+                settings.STRIPE_PRICE_IDS
+            ), "quoted a plan this deployment has no configured price for"
             assert live is not rows[0], "file order decided the plan"
 
 
@@ -589,7 +678,11 @@ class TestStepCopyStatesTheTruth:
         src = self.SOURCE.read_text()
         start = src.index(f"state == '{state}'")
         rest = src[start:]
-        ends = [i for i in (rest.find("{% elif"), rest.find("{% else"), rest.find("{% endif")) if i != -1]
+        ends = [
+            i
+            for i in (rest.find("{% elif"), rest.find("{% else"), rest.find("{% endif"))
+            if i != -1
+        ]
         return rest[: min(ends)]
 
     def test_not_open_never_claims_a_running_trial(self):
@@ -599,9 +692,9 @@ class TestStepCopyStatesTheTruth:
         assert "not started" in branch or "has not started" in branch
 
     def test_not_open_offers_no_app_or_billing_bypass(self):
-        assert "{% url" not in self._branch("not_open"), (
-            "an unavailable provider must not link users into the app or billing"
-        )
+        assert "{% url" not in self._branch(
+            "not_open"
+        ), "an unavailable provider must not link users into the app or billing"
 
     def test_not_open_says_the_retry_is_automatic(self):
         branch = self._branch("not_open").lower()
@@ -612,7 +705,12 @@ class TestStepCopyStatesTheTruth:
     def test_the_plan_unset_branch_quotes_no_price_or_dates(self):
         branch = self._branch("plan_unset")
 
-        for field in ("price_per_month", "due_today", "first_charge_on", "trial_ends_on"):
+        for field in (
+            "price_per_month",
+            "due_today",
+            "first_charge_on",
+            "trial_ends_on",
+        ):
             assert field not in branch, f"{field} shown for a plan nobody has chosen"
 
 

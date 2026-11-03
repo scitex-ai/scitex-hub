@@ -203,11 +203,11 @@ def test_auth_modal_leaves_no_untranslated_english():
 
 
 # ---------------------------------------------------------------------------
-# The landing SDK section renders in the selected language
+# The current provenance section renders in the selected language
 # ---------------------------------------------------------------------------
-def test_modules_sdk_renders_japanese():
+def test_modules_provenance_renders_japanese():
     # Arrange
-    expected = "SDKで独自アプリを作る。"
+    expected = "主張から根拠となるデータまでたどる"
     # Act
     with translation.override("ja"):
         html = render_to_string(MODULES_TEMPLATE, {})
@@ -215,10 +215,10 @@ def test_modules_sdk_renders_japanese():
     assert expected in html
 
 
-def test_modules_sdk_renders_english():
+def test_modules_provenance_renders_english():
     """Control: the same partial, the other language."""
     # Arrange
-    expected = "Create your own app with the SDK."
+    expected = "Trace claims back to their sources"
     # Act
     with translation.override("en"):
         html = render_to_string(MODULES_TEMPLATE, {})

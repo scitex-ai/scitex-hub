@@ -127,19 +127,19 @@ def test_the_20260818_import_is_classified_as_unguarded(real_repo_scan):
     assert guarded is False
 
 
-def test_a_try_except_importerror_import_is_classified_as_guarded(real_repo_scan):
-    """The other pole of the classifier. ``scitex_live_paper`` is deliberately
-    guarded and deliberately absent in prod today; treating it as fatal would make
-    the gate red on every deploy for a condition hub already handles."""
+def test_a_try_except_importerror_import_is_classified_as_guarded(preflight_declarations, tmp_path):
+    """Use a real known guarded AST, rather than assuming a changing peer stays optional."""
     # Arrange
-    found, _files_scanned = real_repo_scan
-    modules = {item.module: item for item in found}
-
+    folder = tmp_path / "apps"
+    folder.mkdir()
+    (folder / "owned_guard.py").write_text(
+        "try:\n    import demosib_guarded\nexcept ImportError:\n    pass\n",
+    )
+    contract = {"scan_dirs": ["apps"], "sibling_import_root_prefixes": ["demosib_"]}
     # Act
-    guarded = modules["scitex_live_paper"].guarded
-
+    found, _ = preflight_declarations.module_scope_sibling_imports(tmp_path, contract)
     # Assert
-    assert guarded is True
+    assert [(item.module, item.guarded) for item in found] == [("demosib_guarded", True)]
 
 
 def test_hub_is_not_asked_about_its_own_packages(real_repo_scan):

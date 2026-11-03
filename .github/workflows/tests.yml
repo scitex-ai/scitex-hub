@@ -95,12 +95,21 @@ jobs:
           # a constraint CI did not state. A second, lower floor that is only
           # ever right by accident is the kind of disagreement that surfaces
           # the day someone pins for an unrelated reason.
-          uv pip install --python .venv/bin/python "scitex-ui>=0.21.0"
+          uv pip install --python .venv/bin/python "scitex-ui>=0.21.0" "scitex-sdk[gui]>=0.3.19"
           # install_apps.sh shells `pip`/`python` itself, so put the venv
           # ahead of anything the shared runner has on PATH.
           echo "$PWD/.venv/bin" >> "$GITHUB_PATH"
           export PATH="$PWD/.venv/bin:$PATH"
-          bash scripts/apps/install_apps.sh
+          # The installed SDK owns these exports. Pooled runners can retain an
+          # unrelated sibling checkout; it must not shadow the admitted wheel.
+          sdk_root=$(python3 -c "from importlib.util import find_spec; from pathlib import Path; p=Path(find_spec('scitex_sdk').origin).parent; assert (p/'package.json').is_file(); print(p)")
+          printf 'SCITEX_SDK_ROOT=%s\n' "$sdk_root" >> "$GITHUB_ENV"
+          # This job compiles frontend sources, not editable Python leaves.
+          # Keep the interpreter above isolated; the installer otherwise tries
+          # its Docker-oriented --system transaction on pooled runner Python.
+          export GIT_CONFIG_GLOBAL="$RUNNER_TEMP/hub-frontend-gitconfig"
+          export GIT_CONFIG_NOSYSTEM=1
+          SCITEX_APPS_PYTHON_MODE=image-only bash scripts/apps/install_apps.sh
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -203,6 +212,8 @@ jobs:
           cache-dependency-glob: pyproject.toml
 
       - name: Install dependencies
+        env:
+          UV_PYTHON_INSTALL_DIR: ${{ runner.temp }}/hub-managed-python-${{ github.job }}
         # No silent degradation: these tests need the FULL dependency set
         # (config/__init__ imports celery; pytest-django provides
         # django.setup() at collection). The old `|| .[dev] || .` fallback
@@ -217,7 +228,10 @@ jobs:
         # would never run. uv venv (not bare pip) because the pool's
         # toolcache Python is uv-managed and refuses pip under PEP 668.
         run: |
-          uv venv --python 3.11 .venv
+          # Never select a runner-host Python whose libraries are absent in
+          # this job container. UV owns this fresh, job-scoped runtime.
+          uv venv --managed-python --python 3.11 .venv
+          .venv/bin/python -c "import sysconfig; sysconfig.get_config_vars(); print('managed Python sysconfig OK')"
           echo "$PWD/.venv/bin" >> "$GITHUB_PATH"
           for attempt in 1 2 3; do
             if uv pip install --python .venv/bin/python -e ".[all,dev]"; then
@@ -302,12 +316,17 @@ jobs:
           cache-dependency-glob: pyproject.toml
 
       - name: Install dependencies
+        env:
+          UV_PYTHON_INSTALL_DIR: ${{ runner.temp }}/hub-managed-python-${{ github.job }}
         # Same no-silent-degradation policy as terminal-tests: retry the
         # FULL install and fail loudly rather than run a security gate
         # against a half-installed environment.
         # GITHUB_PATH before the loop — the loop `exit 0`s the step.
         run: |
-          uv venv --python 3.11 .venv
+          # Never select a runner-host Python whose libraries are absent in
+          # this job container. UV owns this fresh, job-scoped runtime.
+          uv venv --managed-python --python 3.11 .venv
+          .venv/bin/python -c "import sysconfig; sysconfig.get_config_vars(); print('managed Python sysconfig OK')"
           echo "$PWD/.venv/bin" >> "$GITHUB_PATH"
           for attempt in 1 2 3; do
             if uv pip install --python .venv/bin/python -e ".[all,dev]"; then

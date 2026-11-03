@@ -42,10 +42,81 @@ function trustedNavigation(frame: HTMLIFrameElement): MessageEvent {
 describe("floating Chat parent-navigation recovery", () => {
   beforeEach(() => {
     sessionStorage.clear();
+    window.history.replaceState(null, "", "/");
+    document.title = "";
     vi.stubGlobal(
       "matchMedia",
       vi.fn(() => ({ matches: false, addEventListener: vi.fn() })),
     );
+  });
+
+  it("loads canonical embedded Chat lazily with the current page and theme", () => {
+    // Arrange
+    window.history.replaceState(null, "", "/apps/writer/?project=example");
+    document.title = "Current manuscript";
+    document.documentElement.dataset.theme = "dark";
+    const ui = mountPanel();
+    initChatPanel(ui.dock, { navigate: vi.fn() });
+    const before = ui.frame.getAttribute("src");
+    // Act
+    ui.toggle.click();
+    const loaded = new URL(ui.frame.src);
+    // Assert
+    expect([before, loaded.pathname, Object.fromEntries(loaded.searchParams)]).toEqual([
+      null, "/chat/", { embed: "1", ctx_path: "/apps/writer/",
+        ctx_title: "Current manuscript", theme: "dark" },
+    ]);
+  });
+
+  it.each(["minimize", "escape"])("%s discards the frame and reopens fresh Chat", (action) => {
+    // Arrange
+    const ui = mountPanel();
+    initChatPanel(ui.dock, { navigate: vi.fn() });
+    ui.toggle.click();
+    ui.frame.src = SETTINGS;
+    // Act
+    if (action === "minimize") {
+      ui.panel.querySelector<HTMLButtonElement>("[data-dock-chat-minimize]")!.click();
+    } else {
+      ui.panel.dispatchEvent(new KeyboardEvent("keydown", { key: "Escape", bubbles: true }));
+    }
+    const closed = [ui.panel.hidden, ui.frame.hasAttribute("src")];
+    ui.toggle.click();
+    // Assert
+    expect([closed, ui.panel.hidden, new URL(ui.frame.src).pathname]).toEqual([
+      [true, false], false, "/chat/",
+    ]);
+  });
+
+  it("restores a remembered open panel with a real canonical frame", () => {
+    // Arrange
+    sessionStorage.setItem("stx-site-dock-chat-open", "1");
+    const ui = mountPanel();
+    // Act
+    initChatPanel(ui.dock, { navigate: vi.fn() });
+    // Assert
+    expect([ui.panel.hidden, new URL(ui.frame.src).pathname,
+      new URL(ui.frame.src).searchParams.get("embed")]).toEqual([false, "/chat/", "1"]);
+  });
+
+  it("rejects untrusted frame navigation while keeping Chat open", () => {
+    // Arrange
+    const ui = mountPanel();
+    const navigate = vi.fn();
+    initChatPanel(ui.dock, { navigate });
+    ui.toggle.click();
+    // Act
+    for (const message of [
+      { origin: "https://other.example", source: ui.frame.contentWindow, href: SETTINGS },
+      { origin: window.location.origin, source: window, href: SETTINGS },
+      { origin: window.location.origin, source: ui.frame.contentWindow, href: "/unrelated/" },
+    ]) window.dispatchEvent(new MessageEvent("message", {
+      origin: message.origin, source: message.source,
+      data: { type: EMBED_PARENT_NAVIGATION, href: message.href },
+    }));
+    // Assert
+    expect([navigate.mock.calls.length, ui.panel.hidden, new URL(ui.frame.src).pathname])
+      .toEqual([0, false, "/chat/"]);
   });
 
   it("closes and resets before navigating, and coalesces repeated clicks", () => {

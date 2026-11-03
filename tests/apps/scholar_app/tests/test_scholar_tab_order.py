@@ -57,7 +57,7 @@ SCHOLAR_URL = "/apps/scholar/old-direct/"
 # act on with no prior state, and it is how anything gets INTO the Library.
 FIRST_TAB = "search"
 EXPECTED_TABS = ["search", "library", "graph"]
-SEARCH_LABEL = "Search databases"
+SEARCH_LABEL = "Search from DBs"
 
 _NAV_RE = re.compile(
     r'<nav[^>]*class="[^"]*scholar-tabs[^"]*"[^>]*>(.*?)</nav>',
@@ -227,9 +227,9 @@ class TestTheRenderedScholarPageLeadsWithSearch:
         # Act
         view = _view_for(SCHOLAR_URL)
         # Assert
-        assert view is scholar_unified, (
-            f"{SCHOLAR_URL} resolves to {view!r}, not the hub scholar page."
-        )
+        assert (
+            view is scholar_unified
+        ), f"{SCHOLAR_URL} resolves to {view!r}, not the hub scholar page."
 
     def test_the_url_resolves_to_a_view_that_renders_a_template(self):
         # Without this the assertions below could pass vacuously on an empty

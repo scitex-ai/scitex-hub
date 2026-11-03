@@ -65,7 +65,7 @@ jobs:
           node-version: '20'
 
       - name: Install Python dependencies
-        run: pip install -e ".[all,dev]" || pip install -e ".[dev]" || pip install -e .
+        run: pip install -e ".[all,dev]"
 
       - name: Install sibling workspace apps (scitex-ui, figrecipe)
         # package.json declares file:../scitex-ui and
@@ -297,6 +297,9 @@ jobs:
             tests/e2e/playwright/test_mobile_writer.py \
             tests/e2e/playwright/test_mobile_app_store_controls_are_reachable.py \
             tests/e2e/playwright/test_project_continuity.py \
+            tests/e2e/playwright/test_native_form_submission.py \
+            tests/e2e/playwright/test_workspace_sidebar_ownership.py \
+            tests/e2e/playwright/test_page_readiness_contract.py \
             --browser chromium \
             -v -rs --tb=short \
             --screenshot=only-on-failure \
@@ -361,4 +364,6 @@ jobs:
           path: |
             GITIGNORED/e2e_screenshots/
             test-results/
+            ${{ runner.temp }}/server.log
+            ${{ runner.temp }}/e2e-mobile.xml
           retention-days: 7

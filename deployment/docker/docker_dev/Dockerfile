@@ -4,7 +4,23 @@
 # ============================================
 # Optimized for cache efficiency and fast rebuilds
 
+# Storage's non-apt duplicate engine. Official upstream musl artifact, pinned
+# by version and SHA; do not feed fclones to the apt dependency federation.
+FROM alpine:3.22 AS storage-tools-builder
+RUN apk add --no-cache ca-certificates curl \
+    && test "$(uname -m)" = x86_64 \
+    && curl --fail --location --retry 3 \
+      https://github.com/pkolaczk/fclones/releases/download/v0.35.0/fclones-0.35.0-linux-musl-x86_64.tar.gz \
+      -o /tmp/fclones.tar.gz \
+    && echo "9eae0466e5b78871cf25822e503ee9efbfa28dc36cc167060c4a4920306389ac  /tmp/fclones.tar.gz" | sha256sum -c - \
+    && tar -xzf /tmp/fclones.tar.gz -C /tmp \
+    && mkdir /out \
+    && cp /tmp/target/x86_64-unknown-linux-musl/release/fclones /out/fclones \
+    && chmod 755 /out/fclones \
+    && /out/fclones --version
+
 FROM python:3.11-slim
+COPY --from=storage-tools-builder /out/fclones /usr/local/bin/fclones
 
 LABEL maintainer="ywatanabe@scitex.ai"
 LABEL description="SciTeX Hub - Development Environment"
@@ -46,6 +62,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     nano \
     # Fast file finder (Storage page scan needs fd or fdfind on PATH)
     fd-find \
+    rsync \
     # Database (rarely change)
     libpq-dev \
     # LaTeX suite (large, rarely change - install early for caching)

@@ -31,7 +31,7 @@ services:
       args:
         BUILDKIT_INLINE_CACHE: 1
         SCITEX_HUB_DEPENDENCY_RESOLUTION: ${SCITEX_HUB_DEPENDENCY_RESOLUTION:?set by protected rebuild}
-    image: scitex-hub-prod-django:latest
+    image: ${SCITEX_HUB_RESOLVED_APP_IMAGE:-scitex-hub-prod-django:latest}
     # tini FIRST, for the same reason every other service here does it: an
     # `entrypoint:` override REPLACES the image's ENTRYPOINT wholesale, so it
     # silently drops the tini that Dockerfile.prod installs as PID 1. django
@@ -280,7 +280,7 @@ services:
 
   # Celery Worker (Async Task Processing)
   celery_worker:
-    image: scitex-hub-prod-django:latest
+    image: ${SCITEX_HUB_RESOLVED_APP_IMAGE:-scitex-hub-prod-django:latest}
     # autoheal=true: the #382 liveness healthcheck marks this worker unhealthy
     # when its queue beacon goes stale (the prefork pool is known to wedge on
     # this host — see the POOL=THREADS note below), and the autoheal service
@@ -469,7 +469,7 @@ services:
 
   # Celery Beat (Periodic Task Scheduler)
   celery_beat:
-    image: scitex-hub-prod-django:latest
+    image: ${SCITEX_HUB_RESOLVED_APP_IMAGE:-scitex-hub-prod-django:latest}
     labels:
       - autoheal=true
     # tini — same reason as the workers above (the compose entrypoint override

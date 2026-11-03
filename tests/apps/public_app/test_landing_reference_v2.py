@@ -22,6 +22,7 @@ STATIC_DIR = ROOT / "apps/infra/public_app/static/public_app"
 LANDING = TEMPLATE_DIR / "landing.html"
 HERO = TEMPLATE_DIR / "landing_partials/landing_hero.html"
 MODULES = TEMPLATE_DIR / "landing_partials/landing_modules.html"
+GALLERY = TEMPLATE_DIR / "landing_partials/landing_app_gallery.html"
 CSS = STATIC_DIR / "css/landing-reference-v2.css"
 TS = STATIC_DIR / "ts/landing/reference-v2.ts"
 ASSETS = STATIC_DIR / "images/landing-v2"
@@ -95,7 +96,7 @@ def test_landing_uses_the_minimal_shell_without_workspace_js():
         assert kept in html, kept
 
 
-def test_hero_keeps_real_entry_contracts_and_research_photography():
+def test_hero_keeps_real_entry_contracts_without_stock_photography():
     source = _text(HERO)
     assert all(
         marker in source
@@ -103,42 +104,42 @@ def test_hero_keeps_real_entry_contracts_and_research_photography():
             "{% url 'auth_app:signup' %}",
             "{% url 'auth_app:signin' %}",
             "#pricing",
-            "research-collaboration-640.webp",
-            "research-collaboration-1280.webp",
-            'fetchpriority="high"',
-            "Edward Jenner",
-            "https://www.pexels.com/license/",
-            "not SciTeX customers, employees, or endorsers",
         )
     )
+    # Keep provenance in the asset record without covering the hero photograph
+    # with attribution or promotional text.
+    assert "research-collaboration-" not in source
+    assert "landing_app_gallery.html" in source
+    assert "<figcaption>" not in source
+    provenance = _text(ASSETS / "PROVENANCE.md")
+    assert "Edward Jenner" in provenance
+    assert "https://www.pexels.com/license/" in provenance
 
 
-def test_v2_explains_one_context_builtins_and_extension_contract():
-    source = _text(MODULES)
+def test_v2_connects_app_previews_to_the_toolkit_workflow():
+    source = (_text(MODULES) + _text(GALLERY))
     expected = (
-        "SciTeX Cloud",
-        "one project context",
+        "Actual SciTeX® Cloud Screenshots",
+        "AI Agent + SciTeX®",
         *BUILT_IN_APPS,
-        "Custom Apps",
-        "same contract",
-        "Phone",
-        "Laptop",
-        "HPC",
+        "MCP tools",
+        "Trace claims back to their sources",
     )
     assert all(label in source for label in expected)
 
 
 def test_v2_uses_real_product_captures_and_clew_dag_with_provenance():
-    source = _text(MODULES)
+    source = (_text(MODULES) + _text(GALLERY))
     provenance = _text(ASSETS / "PROVENANCE.md")
     assert all(
         marker in source
         for marker in (
-            "hub-1200.webp",
-            "scholar-1200.webp",
-            "figrecipe-1200.webp",
-            "writer-1200.webp",
-            "short-clip-v2.mp4",
+            "scholar-20261102-1200.webp",
+            "figrecipe-20261102-1200.webp",
+            "writer-20261102-1200.webp",
+            "stats-20261102-1200.webp",
+            "live-paper-20261102-1200.webp",
+            "clew-dag-640.webp",
             "Claim",
             "Output",
             "Processing",
@@ -164,14 +165,14 @@ def test_v2_uses_real_product_captures_and_clew_dag_with_provenance():
 
 
 def test_carousel_markup_is_semantic_manual_and_lazy():
-    source = _text(MODULES)
+    source = (_text(MODULES) + _text(GALLERY))
     assert all(
         marker in source
         for marker in (
             'role="region"',
             'aria-roledescription="carousel"',
-            "aria-label=\"{% trans 'Previous product screen' %}\"",
-            "aria-label=\"{% trans 'Next product screen' %}\"",
+            "aria-label=\"{% trans 'Previous screenshot' %}\"",
+            "aria-label=\"{% trans 'Next screenshot' %}\"",
             'role="tablist"',
             'aria-live="polite"',
             'loading="lazy"',
@@ -182,7 +183,7 @@ def test_carousel_markup_is_semantic_manual_and_lazy():
 
 
 def test_every_content_image_has_dimensions_and_nonempty_alt():
-    source = _text(HERO) + _text(MODULES)
+    source = _text(HERO) + (_text(MODULES) + _text(GALLERY))
     tags = re.findall(r"<img\b[^>]*>", source, flags=re.S)
     assert tags
     assert all(re.search(r'\bwidth="\d+"', tag) for tag in tags)
@@ -191,7 +192,7 @@ def test_every_content_image_has_dimensions_and_nonempty_alt():
 
 
 def test_no_synthetic_ui_or_large_inline_payload_returns():
-    combined = "\n".join((_text(HERO), _text(MODULES), _text(LANDING), _text(TS)))
+    combined = "\n".join((_text(HERO), (_text(MODULES) + _text(GALLERY)), _text(LANDING), _text(TS)))
     forbidden = (
         "Signal response over time",
         "illustrative product-design walkthrough",
@@ -201,7 +202,7 @@ def test_no_synthetic_ui_or_large_inline_payload_returns():
     )
     assert all(term.lower() not in combined.lower() for term in forbidden)
     assert len(_text(HERO).encode()) < 20_000
-    assert len(_text(MODULES).encode()) < 35_000
+    assert len((_text(MODULES) + _text(GALLERY)).encode()) < 35_000
     assert len(_text(CSS).encode()) < 45_000
     assert len(_text(TS).encode()) < 12_000
 
@@ -224,25 +225,23 @@ def test_styles_keep_brand_contrast_touch_targets_and_reduced_motion():
     assert ":focus-visible" in css
 
 
-def test_mobile_japanese_hero_keeps_words_on_semantic_lines():
+def test_mobile_japanese_hero_allows_the_full_heading_to_wrap():
     # Arrange
     hero = _text(HERO)
     css = re.sub(r"\s+", " ", _text(CSS))
     # Act
     contracts = {
-        "line_one": '<span>{% trans "Where Research Happens" %}</span>' in hero,
-        "line_two": True,
+        "headline": '<span>{% trans "Hub for Scientists" %}</span>' in hero,
         "ja_size": ".landing-v2-hero h1:lang(ja)" in css,
         "narrow_fit": "font-size: clamp(1.65rem, 8vw, 4rem)" in css,
-        "no_word_split": "h1:lang(ja) span { white-space: nowrap;" in css,
+        "wrap_translation": "h1:lang(ja) span { white-space: normal;" in css,
     }
     # Assert
     assert contracts == {
-        "line_one": True,
-        "line_two": True,
+        "headline": True,
         "ja_size": True,
         "narrow_fit": True,
-        "no_word_split": True,
+        "wrap_translation": True,
     }
 
 
@@ -267,27 +266,27 @@ def test_carousel_script_is_manual_keyboard_and_swipe_only():
     [
         (
             "public_app/landing_partials/landing_hero.html",
-            "研究が進む場所",
-            "Where Research Happens",
+            "科学者のためのハブ",
+            "Hub for Scientists",
         ),
         (
             "public_app/landing_partials/landing_modules.html",
-            "ひとつのプロジェクトコンテキスト",
-            "one project context",
+            "AIエージェント + SciTeX®",
+            "AI Agent + SciTeX®",
         ),
         (
-            "public_app/landing_partials/landing_modules.html",
-            "実際の SciTeX Cloud 画面",
-            "Actual SciTeX Cloud screens",
+            "public_app/landing_partials/landing_app_gallery.html",
+            "実際のSciTeX® Cloudスクリーンショット",
+            "Actual SciTeX® Cloud Screenshots",
         ),
         (
-            "public_app/landing_partials/landing_modules.html",
-            "5枚中5枚目",
-            "5 of 5: Stats",
+            "public_app/landing_partials/landing_app_gallery.html",
+            "11枚中11枚目",
+            "11 of 11: Agentic Journal",
         ),
         (
-            "public_app/landing_partials/landing_modules.html",
-            "サンプル2群データの推奨検定",
+            "public_app/landing_partials/landing_app_gallery.html",
+            "サンプル2群データ",
             "Sample two-group analysis",
         ),
     ],
@@ -304,37 +303,48 @@ def test_v2_copy_switches_cleanly_between_english_and_japanese(
     assert en_needle in en_html and ja_needle not in en_html
 
 
-def test_carousel_has_five_slides():
-    assert _text(MODULES).count("data-carousel-slide") == 5
+def test_carousel_has_eleven_current_application_slides():
+    assert (_text(MODULES) + _text(GALLERY)).count("data-carousel-slide") == 11
 
 
-def test_carousel_has_five_dots_ending_in_stats():
-    assert re.findall(r'data-carousel-dot="(\d)"', _text(MODULES)) == [
+def test_carousel_has_eleven_dots_ending_in_agentic_journal():
+    assert re.findall(r'data-carousel-dot="(\d+)"', (_text(MODULES) + _text(GALLERY))) == [
         "0",
         "1",
         "2",
         "3",
         "4",
+        "5",
+        "6",
+        "7",
+        "8",
+        "9",
+        "10",
     ]
 
 
-def test_carousel_status_starts_at_one_of_five():
-    assert ">1 / 5<" in _text(MODULES)
+def test_carousel_status_starts_at_one_of_eleven():
+    assert ">1 / 11<" in (_text(MODULES) + _text(GALLERY))
 
 
-def test_stats_slide_closes_the_five_slide_arc():
-    assert "5 of 5: Stats" in _text(MODULES)
+def test_stats_and_live_paper_have_distinct_sample_and_mnist_captures():
+    assert "7 of 11: Stats" in (_text(MODULES) + _text(GALLERY))
+    assert "10 of 11: Live Paper" in (_text(MODULES) + _text(GALLERY))
+    assert "not research findings" in (_text(MODULES) + _text(GALLERY))
 
 
 def test_stats_slide_uses_dedicated_renditions():
     assert all(
         (ASSETS / name).exists()
-        for name in ("stats-768.webp", "stats-1200.webp", "stats-1200.jpg")
+        for name in (
+            "stats-20261102-768.webp",
+            "stats-20261102-1200.webp",
+            "stats-20261102-1200.jpg",
+        )
     )
 
 
-def test_stats_provenance_records_the_dev_capture_hash():
-    assert (
-        "4b8a0c4a348100999d834ec962b6e23c5eacc8ad3f09d4db9eefd146616a4678"
-        in _text(ASSETS / "PROVENANCE.md")
+def test_historical_stats_capture_hash_remains_in_provenance():
+    assert "4b8a0c4a348100999d834ec962b6e23c5eacc8ad3f09d4db9eefd146616a4678" in _text(
+        ASSETS / "PROVENANCE.md"
     )

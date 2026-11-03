@@ -29,7 +29,11 @@ def test_plugin_replaces_hand_written_figrecipe_entry():
     # Act
     merged = with_plugin_apps(["scitex_ui", "figrecipe._django"], plugins)
     # Assert
-    assert merged == ["scitex_ui", "figrecipe._django.apps.FigRecipeEditorConfig"]
+    assert merged == [
+        "scitex_ui",
+        "figrecipe._django.apps.FigRecipeEditorConfig",
+        "figrecipe._django.apps.ScitexAppChatConfig",
+    ]
 
 
 def test_plugin_with_missing_module_is_skipped():

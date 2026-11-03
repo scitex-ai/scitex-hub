@@ -1,199 +1,13 @@
 {% load static i18n %}
 
-<section class="landing-v2-section landing-v2-context" id="context" aria-labelledby="landing-v2-context-title">
-    <div class="container landing-v2-shell">
-        <div class="landing-v2-intro">
-            <div>
-                <p class="landing-v2-eyebrow">{% trans "One project, every place" %}</p>
-                <h2 id="landing-v2-context-title">{% trans "The same context, from phone to compute node." %}</h2>
-            </div>
-            <p>{% trans "Move between a quick mobile review, focused browser work, and HPC over SSH without rebuilding the project around each device." %}</p>
-        </div>
-        <ol class="landing-v2-context-grid">
-            <li>
-                <span class="landing-v2-context-number" aria-hidden="true">01</span>
-                <h3>{% trans "Phone" %}</h3>
-                <p>{% trans "Review a result, save a paper, or capture the next step." %}</p>
-            </li>
-            <li>
-                <span class="landing-v2-context-number" aria-hidden="true">02</span>
-                <h3>{% trans "Laptop" %}</h3>
-                <p>{% trans "Use the browser for daily analysis, figures, and writing." %}</p>
-            </li>
-            <li>
-                <span class="landing-v2-context-number" aria-hidden="true">03</span>
-                <h3>{% trans "HPC + SSH" %}</h3>
-                <p>{% trans "Run near the scheduler and data while the project stays connected." %}</p>
-            </li>
-            <li class="landing-v2-context-custom">
-                <span class="landing-v2-context-number" aria-hidden="true">04</span>
-                <h3>{% trans "Custom Apps" %}</h3>
-                <p>{% trans "Extend the same project and command contract for your lab." %}</p>
-            </li>
-        </ol>
-    </div>
-</section>
-
-<section class="landing-v2-section landing-v2-apps" id="apps" aria-labelledby="landing-v2-apps-title">
-    <div class="container landing-v2-shell">
-        <div class="landing-v2-intro">
-            <div>
-                <p class="landing-v2-eyebrow">{% trans "Built in, connected by design" %}</p>
-                <h2 id="landing-v2-apps-title">{% trans "SciTeX Hub — one project context" %}</h2>
-            </div>
-            <p>{% trans "Each built-in app specializes. Hub keeps project, files, identity, and commands connected. Custom Apps sit outside the built-ins and extend the same contract." %}</p>
-        </div>
-        <div class="landing-v2-app-map"
-             role="img"
-             aria-label="{% trans 'SciTeX Hub provides one project context connecting Scholar, Storage, Stats, FigRecipe, Writer, Agents and Chat, Cards, and Custom Apps.' %}">
-            <span class="landing-v2-map-lines" aria-hidden="true"></span>
-            <article class="landing-v2-app-node">
-                <h3>Scholar</h3>
-                <p>{% trans "Literature and library" %}</p>
-            </article>
-            <article class="landing-v2-app-node">
-                <h3>{% trans "Storage" %}</h3>
-                <p>{% trans "Files and data" %}</p>
-            </article>
-            <article class="landing-v2-app-node">
-                <h3>{% trans "Stats" %}</h3>
-                <p>{% trans "Analysis and reports" %}</p>
-            </article>
-            <article class="landing-v2-app-node">
-                <h3>{% trans "Agents + Chat" %}</h3>
-                <p>{% trans "Commands and conversations" %}</p>
-            </article>
-            <article class="landing-v2-app-node landing-v2-app-hub">
-                <h3>SciTeX Hub</h3>
-                <p>{% trans "one project context" %}</p>
-            </article>
-            <article class="landing-v2-app-node">
-                <h3>{% trans "Cards" %}</h3>
-                <p>{% trans "Tasks and evidence" %}</p>
-            </article>
-            <article class="landing-v2-app-node">
-                <h3>FigRecipe</h3>
-                <p>{% trans "Figures and source" %}</p>
-            </article>
-            <article class="landing-v2-app-node">
-                <h3>Writer</h3>
-                <p>{% trans "Manuscript and PDF" %}</p>
-            </article>
-            <article class="landing-v2-app-node landing-v2-app-custom">
-                <h3>{% trans "Custom Apps" %}</h3>
-                <p>{% trans "Extend the same contract" %}</p>
-            </article>
-        </div>
-
-        <div class="landing-v2-carousel"
-             role="region"
-             aria-roledescription="carousel"
-             aria-labelledby="landing-v2-carousel-title"
-             data-landing-carousel
-             tabindex="0">
-            <div class="landing-v2-carousel-head">
-                <div>
-                    <p class="landing-v2-eyebrow">{% trans "Actual product screens" %}</p>
-                    <h3 id="landing-v2-carousel-title">{% trans "Actual SciTeX Cloud screens" %}</h3>
-                </div>
-                <div class="landing-v2-carousel-controls">
-                    <button type="button"
-                            data-carousel-prev
-                            aria-label="{% trans 'Previous product screen' %}">←</button>
-                    <span data-carousel-status aria-live="polite">1 / 4</span>
-                    <button type="button"
-                            data-carousel-next
-                            aria-label="{% trans 'Next product screen' %}">→</button>
-                </div>
-            </div>
-            <div class="landing-v2-carousel-track" data-carousel-track>
-                <figure data-carousel-slide
-                        role="group"
-                        aria-roledescription="slide"
-                        aria-label="{% trans '1 of 4: Hub' %}">
-                    <picture>
-                        <source type="image/webp"
-                                srcset="{% static 'public_app/images/landing-v2/hub-768.webp' %} 768w, {% static 'public_app/images/landing-v2/hub-1200.webp' %} 1200w"
-                                sizes="(max-width: 820px) 100vw, 1100px" />
-                        <img src="{% static 'public_app/images/landing-v2/hub-1200.jpg' %}"
-                             width="1200"
-                             height="750"
-                             loading="lazy"
-                             alt="{% trans 'SciTeX Hub app launcher showing built-in research applications.' %}" />
-                    </picture>
-                    <figcaption><strong>SciTeX Hub</strong> — {% trans "App launcher from the tracked in-repository product guide." %}</figcaption>
-                </figure>
-                <figure data-carousel-slide
-                        role="group"
-                        aria-roledescription="slide"
-                        aria-label="{% trans '2 of 4: Scholar' %}"
-                        hidden>
-                    <picture>
-                        <source type="image/webp"
-                                srcset="{% static 'public_app/images/landing-v2/scholar-768.webp' %} 768w, {% static 'public_app/images/landing-v2/scholar-1200.webp' %} 1200w"
-                                sizes="(max-width: 820px) 100vw, 1100px" />
-                        <img src="{% static 'public_app/images/landing-v2/scholar-1200.jpg' %}"
-                             width="1200"
-                             height="750"
-                             loading="lazy"
-                             alt="{% trans 'SciTeX Scholar search workspace with source, sorter, and filter panels.' %}" />
-                    </picture>
-                    <figcaption><strong>Scholar</strong> — {% trans "Search workspace from the tracked in-repository product guide." %}</figcaption>
-                </figure>
-                <figure data-carousel-slide
-                        role="group"
-                        aria-roledescription="slide"
-                        aria-label="{% trans '3 of 4: FigRecipe' %}"
-                        hidden>
-                    <picture>
-                        <source type="image/webp"
-                                srcset="{% static 'public_app/images/landing-v2/figrecipe-768.webp' %} 768w, {% static 'public_app/images/landing-v2/figrecipe-1200.webp' %} 1200w"
-                                sizes="(max-width: 820px) 100vw, 1100px" />
-                        <img src="{% static 'public_app/images/landing-v2/figrecipe-1200.jpg' %}"
-                             width="1200"
-                             height="750"
-                             loading="lazy"
-                             alt="{% trans 'SciTeX FigRecipe interface with line, fill, and stack figure templates.' %}" />
-                    </picture>
-                    <figcaption><strong>FigRecipe</strong> — {% trans "Template picker from the tracked in-repository product guide." %}</figcaption>
-                </figure>
-                <figure data-carousel-slide
-                        role="group"
-                        aria-roledescription="slide"
-                        aria-label="{% trans '4 of 4: Writer' %}"
-                        hidden>
-                    <picture>
-                        <source type="image/webp"
-                                srcset="{% static 'public_app/images/landing-v2/writer-768.webp' %} 768w, {% static 'public_app/images/landing-v2/writer-1200.webp' %} 1200w"
-                                sizes="(max-width: 820px) 100vw, 1100px" />
-                        <img src="{% static 'public_app/images/landing-v2/writer-1200.jpg' %}"
-                             width="1200"
-                             height="750"
-                             loading="lazy"
-                             alt="{% trans 'SciTeX Writer workspace with LaTeX source and compiled document preview.' %}" />
-                    </picture>
-                    <figcaption><strong>Writer</strong> — {% trans "Source and preview workspace from the tracked in-repository product guide." %}</figcaption>
-                </figure>
-            </div>
-            <div class="landing-v2-carousel-dots" role="tablist" aria-label="{% trans 'Choose a product screen' %}">
-                <button type="button" role="tab" data-carousel-dot="0" aria-selected="true">Hub</button>
-                <button type="button" role="tab" data-carousel-dot="1" aria-selected="false" tabindex="-1">Scholar</button>
-                <button type="button" role="tab" data-carousel-dot="2" aria-selected="false" tabindex="-1">FigRecipe</button>
-                <button type="button" role="tab" data-carousel-dot="3" aria-selected="false" tabindex="-1">Writer</button>
-            </div>
-            <p class="landing-v2-provenance-note">
-                {% trans "Unedited interface captures from tracked product-guide screenshots; resize and compression only." %}
-            </p>
-        </div>
-    </div>
-</section>
-
-<section class="landing-v2-section landing-v2-clew" id="clew" aria-labelledby="landing-v2-clew-title">
+<section class="landing-v2-section landing-v2-clew" id="provenance" aria-labelledby="landing-v2-clew-title">
+    <span id="clew" class="landing-section-alias" aria-hidden="true"></span>
     <div class="container landing-v2-shell landing-v2-clew-grid">
         <div class="landing-v2-clew-copy">
-            <p class="landing-v2-eyebrow">{% trans "Verifiable provenance" %}</p>
-            <h2 id="landing-v2-clew-title">{% trans "Follow a claim back to its source." %}</h2>
-            <p>{% trans "SciTeX Clew records relationships between research artifacts in a directed acyclic graph. The public example connects a manuscript claim to output, processing, and raw data." %}</p>
+            <p class="landing-v2-eyebrow"><a class="landing-v2-section-label" href="#provenance"><i class="fa-solid fa-link" aria-hidden="true"></i> {% trans "Provenance" %}</a></p>
+            <h2 id="landing-v2-clew-title">{% trans "Trace claims back to their sources" %}</h2>
+            <p class="landing-v2-clew-tagline"><strong>{% trans "Record Forward. Verify Backward." %}</strong></p>
+            <p>{% trans "SciTeX® Clew records the connections between source data, code, and research outputs as work progresses. Starting from a manuscript claim, it traces those connections backward to identify the data and code behind the result." %}</p>
             <ol class="landing-v2-chain" aria-label="{% trans 'Claim to raw data provenance chain' %}">
                 <li>{% trans "Claim" %}</li>
                 <li>{% trans "Output" %}</li>
@@ -221,41 +35,16 @@
     </div>
 </section>
 
-<section class="landing-v2-section landing-v2-open" id="open" aria-labelledby="landing-v2-open-title">
-    <div class="container landing-v2-shell landing-v2-open-grid">
-        <figure class="landing-v2-photo landing-v2-open-photo">
-            <picture>
-                <source type="image/webp"
-                        srcset="{% static 'public_app/images/landing-v2/research-computer-640.webp' %} 640w, {% static 'public_app/images/landing-v2/research-computer-1280.webp' %} 1280w"
-                        sizes="(max-width: 820px) 100vw, 46vw" />
-                <img src="{% static 'public_app/images/landing-v2/research-computer-1280.jpg' %}"
-                     width="1280"
-                     height="853"
-                     loading="lazy"
-                     alt="{% trans 'A laboratory researcher works at a desktop computer beside scientific equipment.' %}" />
-            </picture>
-            <figcaption>
-                {% trans "Illustrative stock photography:" %}
-                <a href="https://www.pexels.com/photo/medical-professional-using-computer-9574502/"
-                   target="_blank"
-                   rel="noopener noreferrer">Tima Miroshnichenko / Pexels</a>.
-                {% trans "No customer or product endorsement is implied." %}
-            </figcaption>
-        </figure>
-        <div class="landing-v2-open-copy">
-            <p class="landing-v2-eyebrow">{% trans "Open by design" %}</p>
-            <h2 id="landing-v2-open-title">{% trans "Your research. Your infrastructure." %}</h2>
-            <p>{% trans "Use SciTeX Cloud or self-host. Keep human judgment at the center and choose the environment, compute, and integrations that fit the work." %}</p>
-            <ul>
-                <li>{% trans "Cloud for a managed browser workspace" %}</li>
-                <li>{% trans "Self-hosting for your own environment" %}</li>
-                <li>{% trans "Custom Apps for field-specific workflows" %}</li>
-            </ul>
-            <p class="landing-v2-small">{% trans "Available deployment options and integrations depend on the selected setup." %}</p>
-            <a class="landing-v2-button landing-v2-button-primary" href="#pricing">{% trans "Compare current plans" %}</a>
+<section class="landing-v2-section landing-v2-demo" id="demo" aria-labelledby="landing-v2-demo-title">
+    <div class="container landing-v2-shell landing-v2-demo-grid">
+        <div class="landing-v2-demo-copy">
+            <p class="landing-v2-eyebrow"><a class="landing-v2-section-label" href="#demo"><i class="fa-solid fa-link" aria-hidden="true"></i> {% trans "Demo" %}</a></p>
+            <h2 id="landing-v2-demo-title">{% trans "AI Agent + SciTeX®" %}</h2>
+            <p>{% trans "Watch the demo to see the tools working together." %}</p>
+            <p>{% trans "An AI-agent research workflow with the SciTeX Python toolkit and MCP tools: literature search, experiments, analysis, figures, and manuscript writing." %}</p>
+        </div>
+        <div class="landing-v2-demo-media">
+            {% include "public_app/landing_partials/landing_research_demo.html" %}
         </div>
     </div>
 </section>
-
-</section>
-

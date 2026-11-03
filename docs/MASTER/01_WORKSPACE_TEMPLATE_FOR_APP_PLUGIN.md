@@ -432,3 +432,34 @@ Significant HTML elements MUST include `data-ai-hint="..."` for AI agent navigat
 | 7 | Licensing details documented in Docs app (`/docs/?section=licensing`) | Available |
 
 <!-- EOF -->
+
+### Optional request-scoped backend credentials
+
+The generic mount guard accepts the server setting `PLUGIN_STORE_ROUTE_SECRET_BINDINGS`,
+a mapping of mounted app prefixes to relative route-directory prefixes and store
+credentials. It applies a binding to the leaf-declared `tenant_attribute` only
+after login and the leaf audience checks; route matching preserves directory
+boundaries. Client query parameters and bodies never select the credential, and
+existing writable-route allowlists and CSRF checks still run.
+
+For Cards, `SCITEX_HUB_CARDS_DM_STORE` (or the private file named by
+`SCITEX_HUB_CARDS_DM_STORE_FILE`) binds only `/apps/cards/dm/`. Its PostgreSQL
+host, port, database and connection query must match the configured Cards read
+store. Use the existing append-only `scitex_cards_dm` role: its DM/notification
+INSERT grants do not permit task writes or UPDATE/DELETE. The ambient
+`SCITEX_STORE_DSN` remains unchanged. Development Compose can mount a mode-0600
+host secret via `SCITEX_HUB_CARDS_DM_SECRET_FILE`; only Django receives that
+mount and the corresponding `_FILE` setting. The default `/dev/null` supplies no
+writer. After configuring the file, recreate Django to apply the mount; no
+worker/scheduler recreation or database GRANT is required.
+
+
+### Persistent user homes
+
+A leaf needing user-level state can resolve the trusted Django setting
+`SCITEX_USER_HOME_PROVIDER` with `import_string` and call it with the authenticated
+request. The Hub provider `plugin_volumes.user_home` returns the canonical,
+persistent user data root, independent of the selected project. It returns no
+home for anonymous requests and rejects path traversal and user-home symlink
+aliases. Leaves append their own state directory, such as `.scitex/scholar/library`,
+and must fail closed when a configured provider cannot resolve the user.

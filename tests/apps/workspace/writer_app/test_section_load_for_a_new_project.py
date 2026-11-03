@@ -27,8 +27,11 @@ import contextlib
 import json
 import shutil
 
+from pathlib import Path
+from tempfile import TemporaryDirectory
+
 from django.contrib.auth.models import User
-from django.test import Client, TestCase
+from django.test import Client, TestCase, override_settings
 
 from apps.infra.project_app.models import Project
 from apps.infra.project_app.services.project_filesystem import (
@@ -42,6 +45,16 @@ PASSWORD = "TestPass123!"  # pragma: allowlist secret
 
 
 class SectionLoadForANewProjectTest(TestCase):
+    @classmethod
+    def setUpClass(cls):
+        # Database workers are isolated; their real project directories must be too.
+        directory = TemporaryDirectory(prefix="writer-owned-workspace-")
+        cls.addClassCleanup(directory.cleanup)
+        settings_override = override_settings(BASE_DIR=Path(directory.name).resolve())
+        settings_override.enable()
+        cls.addClassCleanup(settings_override.disable)
+        super().setUpClass()
+
     @classmethod
     def setUpTestData(cls):
         cls.owner = User.objects.create_user(username="new-proj-owner", password=PASSWORD)
@@ -183,6 +196,7 @@ class SectionLoadForANewProjectTest(TestCase):
         payload = json.loads(fetched.content)
         assert payload["success"] is True, payload
         assert "Hello from the round trip." in payload["content"], payload
+        assert payload["file_path"] == "01_manuscript/contents/title.tex", payload
 
     # --- the fix must not turn real errors into 200s, or open the door -------
 

@@ -5867,12 +5867,6 @@ msgstr "メニュー"
 msgid "Toggle dark mode"
 msgstr "ダークモード切り替え"
 
-msgid "Switch to dark mode"
-msgstr "ダークモードに切り替える"
-
-msgid "Switch to light mode"
-msgstr "ライトモードに切り替える"
-
 msgid "SciTeX Inc"
 msgstr "株式会社SciTeX"
 
@@ -9223,3 +9217,621 @@ msgstr "4枚中4枚目：Writer"
 #: apps/infra/public_app/templates/public_app/landing_partials/landing_modules.html
 msgid "Unedited interface captures from tracked product-guide screenshots; resize and compression only."
 msgstr "管理対象の製品ガイド画像を使用した未編集の画面です。サイズ変更と圧縮のみを行っています。"
+
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_modules.html
+msgid "1 of 6: Hub"
+msgstr "6枚中1枚目：Hub"
+
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_modules.html
+msgid "2 of 6: Scholar"
+msgstr "6枚中2枚目：Scholar"
+
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_modules.html
+msgid "3 of 6: FigRecipe"
+msgstr "6枚中3枚目：FigRecipe"
+
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_modules.html
+msgid "4 of 6: Writer"
+msgstr "6枚中4枚目：Writer"
+
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_modules.html
+msgid "5 of 6: Stats"
+msgstr "6枚中5枚目：Stats"
+
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_modules.html
+msgid "6 of 6: Live Paper"
+msgstr "6枚中6枚目：Live Paper"
+
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_modules.html
+msgid "Current SciTeX Hub application launcher."
+msgstr "現在の SciTeX Hub アプリランチャー。"
+
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_modules.html
+msgid "SciTeX Scholar MNIST reference library with the native paper metadata reader."
+msgstr "論文メタデータの閲覧パネルを開いた SciTeX Scholar の MNIST 参考文献ライブラリ。"
+
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_modules.html
+msgid "SciTeX FigRecipe sample worksheet with separate X axis and Y axis badges."
+msgstr "X軸・Y軸バッジを区別して表示する SciTeX FigRecipe のサンプルワークシート。"
+
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_modules.html
+msgid "SciTeX Writer MNIST example Abstract source and genuine compiled section preview."
+msgstr "MNIST サンプルの要旨ソースと実際にコンパイルしたセクションプレビューを表示する SciTeX Writer。"
+
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_modules.html
+msgid "SciTeX Stats built-in two-group sample with the recommended Welch test and actual results."
+msgstr "組み込みの2群サンプル、推奨 Welch 検定と実際の結果を表示する SciTeX Stats。"
+
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_modules.html
+msgid "SciTeX Live Paper computed MNIST demonstration claims and example PDF."
+msgstr "計算済み MNIST デモの主張とサンプル PDF を表示する SciTeX Live Paper。"
+
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_modules.html
+msgid "Current application launcher; development capture, 2026-11-02."
+msgstr "現在のアプリランチャー。2026年11月2日の開発環境の画面。"
+
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_modules.html
+msgid "MNIST reference library and native metadata reader; development capture, 2026-11-02."
+msgstr "MNIST 参考文献ライブラリとメタデータ閲覧パネル。2026年11月2日の開発環境の画面。"
+
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_modules.html
+msgid "Six-row sample worksheet with distinct axis-role badges; development capture, 2026-11-02."
+msgstr "軸の役割を区別するバッジを備えた6行のサンプルワークシート。2026年11月2日の開発環境の画面。"
+
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_modules.html
+msgid "MNIST example Abstract source and compiled section preview; development capture, 2026-11-02."
+msgstr "MNIST サンプルの要旨ソースとコンパイル済みセクションプレビュー。2026年11月2日の開発環境の画面。"
+
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_modules.html
+msgid "Sample two-group analysis with recommended test and actual results; development capture, 2026-11-02."
+msgstr "サンプル2群データの推奨検定と実際の結果。2026年11月2日の開発環境の画面。"
+
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_modules.html
+msgid "Computed MNIST demonstration claims and PDF, not research findings; development capture, 2026-11-02."
+msgstr "研究成果ではない計算済み MNIST デモの主張と PDF。2026年11月2日の開発環境の画面。"
+
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_modules.html
+msgid "Actual development captures with account/project controls hidden for privacy, then resized and compressed. Example data is labeled; screenshots do not prove complete feature coverage or production availability."
+msgstr "開発環境の実際の画面です。プライバシー保護のためアカウント・プロジェクト操作部を隠し、サイズ変更と圧縮を行っています。サンプルデータであることを明示しています。画面画像は全機能の検証や本番環境での提供状況を証明するものではありません。"
+#: templates/global_base_partials/global_header.html apps/infra/public_app/templates/public_app/landing_partials/landing_section_nav.html
+msgid "SciTeX® Cloud is in alpha. Features may change. Keep separate backups of important work."
+msgstr "SciTeX® Cloud はアルファ版です。機能は変更される場合があります。重要な作業のバックアップは別に保管してください。"
+
+#: templates/global_base_partials/global_header.html apps/infra/public_app/templates/public_app/landing_partials/landing_section_nav.html
+msgid "Alpha"
+msgstr "アルファ版"
+
+#: templates/global_base_partials/global_header.html apps/infra/public_app/templates/public_app/landing_partials/landing_section_nav.html
+msgid "Features may change. Keep backups."
+msgstr "機能は変更される場合があります。バックアップを保管してください。"
+
+#: templates/global_base_partials/global_header.html apps/infra/public_app/templates/public_app/landing_partials/landing_section_nav.html
+msgid "SciTeX® Cloud is in alpha."
+msgstr "SciTeX® Cloud はアルファ版です。"
+
+#: templates/global_base_partials/global_header.html apps/infra/public_app/templates/public_app/landing_partials/landing_section_nav.html
+msgid "Features and APIs may change, and interruptions or data loss are possible. Keep separate backups of important work. For production workflows, use the local Python toolkit."
+msgstr "機能や API は変更される場合があり、中断やデータ損失の可能性があります。重要な作業のバックアップは別に保管してください。本番の研究ワークフローにはローカルの Python ツールキットをご利用ください。"
+
+#: templates/global_base_partials/global_header.html apps/infra/public_app/templates/public_app/landing_partials/landing_section_nav.html
+msgid "Feedback and contributions are welcome:"
+msgstr "ご意見や開発へのご参加を歓迎します："
+
+#: templates/global_base_partials/global_header.html apps/infra/public_app/templates/public_app/landing_partials/landing_section_nav.html
+msgid "Explore SciTeX"
+msgstr "SciTeX を知る"
+
+#: templates/global_base_partials/global_header.html apps/infra/public_app/templates/public_app/landing_partials/landing_section_nav.html
+msgid "One project: literature, data, analysis, figures, and writing."
+msgstr "ひとつのプロジェクトで、文献・データ・解析・図・執筆をつなぐ。"
+
+#: templates/global_base_partials/global_header.html apps/infra/public_app/templates/public_app/landing_partials/landing_section_nav.html
+msgid "Workflow"
+msgstr "ワークフロー"
+
+#: templates/global_base_partials/global_header.html apps/infra/public_app/templates/public_app/landing_partials/landing_section_nav.html
+msgid "Provenance"
+msgstr "来歴"
+
+#: templates/global_base_partials/global_header.html apps/infra/public_app/templates/public_app/landing_partials/landing_section_nav.html
+msgid "Deployment"
+msgstr "利用環境"
+
+#: apps/infra/public_app/templates/public_app/landing_partials
+msgid "One project, connected research tools"
+msgstr "ひとつのプロジェクトでつながる研究ツール"
+
+#: apps/infra/public_app/templates/public_app/landing_partials
+msgid "Work from your phone, laptop, or HPC"
+msgstr "スマートフォン、ノートPC、HPCで研究を進める"
+
+#: apps/infra/public_app/templates/public_app/landing_partials
+msgid "Trace claims back to their sources"
+msgstr "主張から根拠となるデータまでたどる"
+
+#: apps/infra/public_app/templates/public_app/landing_partials
+msgid "Build apps your research needs"
+msgstr "研究に必要なアプリをつくる"
+
+#: apps/infra/public_app/templates/public_app/landing_partials
+msgid "Your projects. Your infrastructure"
+msgstr "あなたのプロジェクトを、あなたの環境で"
+
+#: apps/infra/public_app/templates/public_app/landing_partials
+msgid "Open source, throughout the stack"
+msgstr "すべての層をオープンソースで"
+
+#: apps/infra/public_app/templates/public_app/landing_partials
+msgid "Pricing (expected from beta)"
+msgstr "料金（ベータ版から適用予定）"
+
+#: apps/infra/public_app/templates/public_app/landing_partials
+msgid "Research needs tools that fit the experiment. Build your own app with the SciTeX SDK, using the platform's project context and shared interface components."
+msgstr "研究には実験に合った道具が必要です。SciTeX SDKなら、プラットフォームのプロジェクト情報と共通のUI部品を使って独自のアプリを構築できます。"
+
+#: apps/infra/public_app/templates/public_app/landing_partials
+msgid "Work with structured records."
+msgstr "構造化されたレコードを扱います。"
+
+#: apps/infra/public_app/templates/public_app/landing_partials
+msgid "Store files in your app’s namespace."
+msgstr "アプリ専用の名前空間にファイルを保存します。"
+
+#: apps/infra/public_app/templates/public_app/landing_partials
+msgid "Submit background work through the shared job interface."
+msgstr "共通のジョブインターフェースからバックグラウンド処理を実行します。"
+
+#: apps/infra/public_app/templates/public_app/landing_partials
+msgid "Explore the SDK"
+msgstr "SDKを使ってみる"
+
+#: apps/infra/public_app/templates/public_app/landing_partials
+msgid "Self-hosted"
+msgstr "セルフホスト"
+
+#: apps/infra/public_app/templates/public_app/landing_partials
+msgid "Local tools"
+msgstr "ローカルツール"
+
+#: apps/infra/public_app/templates/public_app/landing_partials
+msgid "Use the managed browser workspace for projects and collaboration."
+msgstr "管理されたブラウザ上のワークスペースでプロジェクトや共同作業を進めます。"
+
+#: apps/infra/public_app/templates/public_app/landing_partials
+msgid "Run the platform on infrastructure you manage."
+msgstr "自分で管理するインフラ上でプラットフォームを実行します。"
+
+#: apps/infra/public_app/templates/public_app/landing_partials
+msgid "Use the Python packages and command-line tools on your own machine."
+msgstr "手元のマシンでPythonパッケージやコマンドラインツールを使います。"
+
+#: apps/infra/public_app/templates/public_app/landing_partials
+msgid "SciTeX — Where Research Happens"
+msgstr "SciTeX — 研究が進む場所"
+
+#: apps/infra/public_app/templates/public_app/landing_partials
+msgid "Explore the platform, research apps, and shared tools in their public source repositories. Inspect the code, review each license, and contribute."
+msgstr "プラットフォーム、研究アプリ、共通ツールの公開リポジトリを紹介します。ソースコードや各ライセンスを確認し、開発に参加できます。"
+
+#: apps/infra/public_app/templates/public_app/landing_partials
+msgid "GitHub counts checked:"
+msgstr "GitHubの集計日時："
+
+#: apps/infra/public_app/templates/public_app/landing_partials
+msgid "GitHub counts are unavailable."
+msgstr "GitHubの件数を取得できません。"
+
+#: apps/infra/public_app/templates/public_app/landing_partials
+msgid "Counts are a snapshot, not live updates."
+msgstr "件数は取得時点の値で、リアルタイムの更新ではありません。"
+
+#: apps/infra/public_app/templates/public_app/landing_partials
+msgid "Platform"
+msgstr "プラットフォーム"
+
+#: apps/infra/public_app/templates/public_app/landing_partials
+msgid "Research apps"
+msgstr "研究アプリ"
+
+#: apps/infra/public_app/templates/public_app/landing_partials
+msgid "Shared foundations"
+msgstr "共通基盤"
+
+#: apps/infra/public_app/templates/public_app/landing_partials
+msgid "forks"
+msgstr "フォーク"
+
+#: apps/infra/public_app/templates/public_app/landing_partials
+msgid "Counts unavailable"
+msgstr "件数を取得できません"
+
+#: apps/infra/public_app/templates/public_app/landing_partials
+msgid "Watch the full workflow"
+msgstr "研究ワークフロー全体を見る"
+
+#: apps/infra/public_app/templates/public_app/landing_partials
+msgid "An end-to-end research workflow using SciTeX tools."
+msgstr "SciTeXのツールを使った一連の研究ワークフローです。"
+
+#: apps/infra/public_app/templates/public_app/landing_partials
+msgid "Full-length demo — about 40 minutes, end to end."
+msgstr "全編デモ：約40分で最初から最後まで紹介します。"
+
+#: apps/infra/public_app/templates/public_app/landing_partials
+msgid "Agent overview with cached runtime inventory; development capture."
+msgstr "キャッシュされた実行情報を含むエージェント一覧。開発環境の画面です。"
+
+#: apps/infra/public_app/templates/public_app/landing_partials
+msgid "Read-only board statistics; private task content hidden."
+msgstr "ボード統計の閲覧画面。非公開のタスク内容は表示していません。"
+
+#: apps/infra/public_app/templates/public_app/landing_partials
+msgid "MNIST project usage and interactive disk breakdown; development capture."
+msgstr "MNISTプロジェクトの使用量と対話的なディスク内訳。開発環境の画面です。"
+
+#: apps/infra/public_app/templates/public_app/landing_partials
+msgid "MNIST reference library and native metadata reader; development capture."
+msgstr "MNISTの参考文献ライブラリと論文情報の閲覧画面。開発環境の画面です。"
+
+#: apps/infra/public_app/templates/public_app/landing_partials
+msgid "Sample two-group analysis with a real Welch test result; not MNIST data."
+msgstr "サンプル2群データの分析と実際のWelch検定結果。MNISTのデータではありません。"
+
+#: apps/infra/public_app/templates/public_app/landing_partials
+msgid "Six-row sample worksheet with distinct axis-role badges; development capture."
+msgstr "軸の役割を明示した6行のサンプル表。開発環境の画面です。"
+
+#: apps/infra/public_app/templates/public_app/landing_partials
+msgid "MNIST example Abstract and genuine compiled preview; not research findings."
+msgstr "MNIST例の要旨と実際にコンパイルしたプレビュー。研究成果の報告ではありません。"
+
+#: apps/infra/public_app/templates/public_app/landing_partials
+msgid "MNIST worked example and registered claims; not independently verified findings."
+msgstr "MNISTの実例と登録済みの主張。独立に検証された研究成果ではありません。"
+
+#: apps/infra/public_app/templates/public_app/landing_partials
+msgid "Author guidance and publication workflow; no submissions shown."
+msgstr "著者向け案内と出版ワークフロー。投稿済みの原稿は表示していません。"
+
+#: apps/infra/public_app/templates/public_app/landing_partials
+msgid "Agent overview and runtime inventory."
+msgstr "エージェント一覧と実行情報。"
+
+#: apps/infra/public_app/templates/public_app/landing_partials
+msgid "Tasks, boards, and conversations."
+msgstr "タスク、ボード、会話。"
+
+#: apps/infra/public_app/templates/public_app/landing_partials
+msgid "Inspect disk usage and plan data operations."
+msgstr "ディスク使用量の確認とデータ操作の計画。"
+
+#: apps/infra/public_app/templates/public_app/landing_partials
+msgid "Search papers and organize references."
+msgstr "論文検索と参考文献の整理。"
+
+#: apps/infra/public_app/templates/public_app/landing_partials
+msgid "Choose tests and inspect analysis results."
+msgstr "検定の選択と分析結果の確認。"
+
+#: apps/infra/public_app/templates/public_app/landing_partials
+msgid "Create figures from data and recipes."
+msgstr "データとレシピからの図の作成。"
+
+#: apps/infra/public_app/templates/public_app/landing_partials
+msgid "Edit manuscript sections and preview PDFs."
+msgstr "原稿セクションの編集とPDFプレビュー。"
+
+#: apps/infra/public_app/templates/public_app/landing_partials
+msgid "Read papers alongside claims and provenance."
+msgstr "主張や来歴とともに論文を読む。"
+
+#: apps/infra/public_app/templates/public_app/landing_partials
+msgid "Explore the author and publication workflow."
+msgstr "著者向けの案内と出版ワークフロー。"
+
+#: apps/infra/public_app/templates/public_app/landing_partials
+msgid "1 of 9: Agent Container"
+msgstr "9枚中1枚目：Agent Container"
+
+#: apps/infra/public_app/templates/public_app/landing_partials
+msgid "2 of 9: Cards"
+msgstr "9枚中2枚目：Cards"
+
+#: apps/infra/public_app/templates/public_app/landing_partials
+msgid "3 of 9: Storage"
+msgstr "9枚中3枚目：Storage"
+
+#: apps/infra/public_app/templates/public_app/landing_partials
+msgid "4 of 9: Scholar"
+msgstr "9枚中4枚目：Scholar"
+
+#: apps/infra/public_app/templates/public_app/landing_partials
+msgid "5 of 9: Stats"
+msgstr "9枚中5枚目：Stats"
+
+#: apps/infra/public_app/templates/public_app/landing_partials
+msgid "6 of 9: FigRecipe"
+msgstr "9枚中6枚目：FigRecipe"
+
+#: apps/infra/public_app/templates/public_app/landing_partials
+msgid "7 of 9: Writer"
+msgstr "9枚中7枚目：Writer"
+
+#: apps/infra/public_app/templates/public_app/landing_partials
+msgid "8 of 9: Live Paper"
+msgstr "9枚中8枚目：Live Paper"
+
+#: apps/infra/public_app/templates/public_app/landing_partials
+msgid "9 of 9: Agentic Journal"
+msgstr "9枚中9枚目：Agentic Journal"
+
+#: apps/infra/public_app/templates/public_app/landing_partials
+msgid "Agent Container — Agent overview with cached runtime inventory; development capture."
+msgstr "Agent Container — キャッシュされた実行情報を含むエージェント一覧。開発環境の画面です。"
+
+#: apps/infra/public_app/templates/public_app/landing_partials
+msgid "Agent overview with cached runtime inventory; development capture. 2026-11-02."
+msgstr "キャッシュされた実行情報を含むエージェント一覧。開発環境の画面です。 2026-11-02."
+
+#: apps/infra/public_app/templates/public_app/landing_partials
+msgid "Cards — Read-only board statistics; private task content hidden."
+msgstr "Cards — ボード統計の閲覧画面。非公開のタスク内容は表示していません。"
+
+#: apps/infra/public_app/templates/public_app/landing_partials
+msgid "Read-only board statistics; private task content hidden. 2026-11-02."
+msgstr "ボード統計の閲覧画面。非公開のタスク内容は表示していません。 2026-11-02."
+
+#: apps/infra/public_app/templates/public_app/landing_partials
+msgid "Storage — MNIST project usage and interactive disk breakdown; development capture."
+msgstr "Storage — MNISTプロジェクトの使用量と対話的なディスク内訳。開発環境の画面です。"
+
+#: apps/infra/public_app/templates/public_app/landing_partials
+msgid "MNIST project usage and interactive disk breakdown; development capture. 2026-11-02."
+msgstr "MNISTプロジェクトの使用量と対話的なディスク内訳。開発環境の画面です。 2026-11-02."
+
+#: apps/infra/public_app/templates/public_app/landing_partials
+msgid "Scholar — MNIST reference library and native metadata reader; development capture."
+msgstr "Scholar — MNISTの参考文献ライブラリと論文情報の閲覧画面。開発環境の画面です。"
+
+#: apps/infra/public_app/templates/public_app/landing_partials
+msgid "MNIST reference library and native metadata reader; development capture. 2026-11-02."
+msgstr "MNISTの参考文献ライブラリと論文情報の閲覧画面。開発環境の画面です。 2026-11-02."
+
+#: apps/infra/public_app/templates/public_app/landing_partials
+msgid "Stats — Sample two-group analysis with a real Welch test result; not MNIST data."
+msgstr "Stats — サンプル2群データの分析と実際のWelch検定結果。MNISTのデータではありません。"
+
+#: apps/infra/public_app/templates/public_app/landing_partials
+msgid "Sample two-group analysis with a real Welch test result; not MNIST data. 2026-11-02."
+msgstr "サンプル2群データの分析と実際のWelch検定結果。MNISTのデータではありません。 2026-11-02."
+
+#: apps/infra/public_app/templates/public_app/landing_partials
+msgid "FigRecipe — Six-row sample worksheet with distinct axis-role badges; development capture."
+msgstr "FigRecipe — 軸の役割を明示した6行のサンプル表。開発環境の画面です。"
+
+#: apps/infra/public_app/templates/public_app/landing_partials
+msgid "Six-row sample worksheet with distinct axis-role badges; development capture. 2026-11-02."
+msgstr "軸の役割を明示した6行のサンプル表。開発環境の画面です。 2026-11-02."
+
+#: apps/infra/public_app/templates/public_app/landing_partials
+msgid "Writer — MNIST example Abstract and genuine compiled preview; not research findings."
+msgstr "Writer — MNIST例の要旨と実際にコンパイルしたプレビュー。研究成果の報告ではありません。"
+
+#: apps/infra/public_app/templates/public_app/landing_partials
+msgid "MNIST example Abstract and genuine compiled preview; not research findings. 2026-11-02."
+msgstr "MNIST例の要旨と実際にコンパイルしたプレビュー。研究成果の報告ではありません。 2026-11-02."
+
+#: apps/infra/public_app/templates/public_app/landing_partials
+msgid "Live Paper — MNIST worked example and registered claims; not independently verified findings."
+msgstr "Live Paper — MNISTの実例と登録済みの主張。独立に検証された研究成果ではありません。"
+
+#: apps/infra/public_app/templates/public_app/landing_partials
+msgid "MNIST worked example and registered claims; not independently verified findings. 2026-11-02."
+msgstr "MNISTの実例と登録済みの主張。独立に検証された研究成果ではありません。 2026-11-02."
+
+#: apps/infra/public_app/templates/public_app/landing_partials
+msgid "Agentic Journal — Author guidance and publication workflow; no submissions shown."
+msgstr "Agentic Journal — 著者向け案内と出版ワークフロー。投稿済みの原稿は表示していません。"
+
+#: apps/infra/public_app/templates/public_app/landing_partials
+msgid "Author guidance and publication workflow; no submissions shown. 2026-11-02."
+msgstr "著者向け案内と出版ワークフロー。投稿済みの原稿は表示していません。 2026-11-02."
+
+#: apps/infra/public_app/templates/public_app/landing_partials
+msgid "Demo"
+msgstr "デモ"
+
+#: apps/infra/public_app/templates/public_app/landing_partials
+msgid "The Python toolkit in action"
+msgstr "Pythonツールキットによる研究の実例"
+
+#: apps/infra/public_app/templates/public_app/landing_partials
+msgid "An AI-agent research workflow with the SciTeX Python toolkit and MCP tools: literature search, experiments, analysis, figures, and manuscript writing."
+msgstr "SciTeXのPythonツールキットとMCPツールを使い、AIエージェントが文献検索、実験、分析、図の作成、原稿執筆を進める研究ワークフローです。"
+
+#: apps/infra/public_app/templates/public_app/landing_partials
+msgid "Recorded with SciTeX v2.10. The current app interfaces are shown in Overview."
+msgstr "SciTeX v2.10で収録したデモです。現在のアプリ画面は「概要」で紹介しています。"
+
+#: apps/infra/public_app/templates/public_app/landing_partials
+msgid "Actual SciTeX® Cloud Screenshots"
+msgstr "実際のSciTeX® Cloudスクリーンショット"
+
+#: apps/infra/public_app/templates/public_app/landing_partials
+msgid "Previous screenshot"
+msgstr "前のスクリーンショット"
+
+#: apps/infra/public_app/templates/public_app/landing_partials
+msgid "Next screenshot"
+msgstr "次のスクリーンショット"
+
+#: apps/infra/public_app/templates/public_app/landing_partials
+msgid "Choose a screenshot"
+msgstr "スクリーンショットを選択"
+
+#: apps/infra/public_app/templates/public_app/landing_partials
+msgid "Infrastructure"
+msgstr "基盤"
+
+#: apps/infra/public_app/templates/public_app/landing_partials
+msgid "Research"
+msgstr "研究"
+
+#: apps/infra/public_app/templates/public_app/landing_partials
+msgid "1 of 11: Hub"
+msgstr "11枚中1枚目：Hub"
+
+#: apps/infra/public_app/templates/public_app/landing_partials
+msgid "2 of 11: SDK"
+msgstr "11枚中2枚目：SDK"
+
+#: apps/infra/public_app/templates/public_app/landing_partials
+msgid "3 of 11: Agent Container"
+msgstr "11枚中3枚目：Agent Container"
+
+#: apps/infra/public_app/templates/public_app/landing_partials
+msgid "4 of 11: Cards"
+msgstr "11枚中4枚目：Cards"
+
+#: apps/infra/public_app/templates/public_app/landing_partials
+msgid "5 of 11: Storage"
+msgstr "11枚中5枚目：Storage"
+
+#: apps/infra/public_app/templates/public_app/landing_partials
+msgid "6 of 11: Scholar"
+msgstr "11枚中6枚目：Scholar"
+
+#: apps/infra/public_app/templates/public_app/landing_partials
+msgid "7 of 11: Stats"
+msgstr "11枚中7枚目：Stats"
+
+#: apps/infra/public_app/templates/public_app/landing_partials
+msgid "8 of 11: FigRecipe"
+msgstr "11枚中8枚目：FigRecipe"
+
+#: apps/infra/public_app/templates/public_app/landing_partials
+msgid "9 of 11: Writer"
+msgstr "11枚中9枚目：Writer"
+
+#: apps/infra/public_app/templates/public_app/landing_partials
+msgid "10 of 11: Live Paper"
+msgstr "11枚中10枚目：Live Paper"
+
+#: apps/infra/public_app/templates/public_app/landing_partials
+msgid "11 of 11: Agentic Journal"
+msgstr "11枚中11枚目：Agentic Journal"
+
+#: apps/infra/public_app/templates/public_app/landing_partials
+msgid "Application launcher and research workspace; development capture."
+msgstr "アプリランチャーと研究ワークスペース。開発環境の画面です。"
+
+#: apps/infra/public_app/templates/public_app/landing_partials
+msgid "App creation workspace with four starter templates; development capture."
+msgstr "4種類のスターターを備えたアプリ作成画面。開発環境の画面です。"
+
+#: apps/infra/public_app/templates/public_app/landing_partials
+msgid "Hub — Application launcher and research workspace; development capture."
+msgstr "Hub — アプリランチャーと研究ワークスペース。開発環境の画面です。"
+
+#: apps/infra/public_app/templates/public_app/landing_partials
+msgid "Application launcher and research workspace; development capture. 2026-11-02."
+msgstr "アプリランチャーと研究ワークスペース。開発環境の画面です。 2026-11-02."
+
+#: apps/infra/public_app/templates/public_app/landing_partials
+msgid "SDK — App creation workspace with four starter templates; development capture."
+msgstr "SDK — 4種類のスターターを備えたアプリ作成画面。開発環境の画面です。"
+
+#: apps/infra/public_app/templates/public_app/landing_partials
+msgid "App creation workspace with four starter templates; development capture. 2026-11-02."
+msgstr "4種類のスターターを備えたアプリ作成画面。開発環境の画面です。 2026-11-02."
+
+#: templates/global_base_partials/global_header.html
+msgid "Alpha — Features may change. Keep backups."
+msgstr "アルファ版 — 仕様変更に備え、バックアップを保管してください。"
+
+#: templates/global_base_partials/global_header.html
+msgid "Features and APIs may change, and interruptions or data loss are possible. Keep separate backups of important work."
+msgstr "機能やAPIは変更される場合があり、サービスの中断やデータの損失も起こり得ます。重要な作業は別途バックアップを保管してください。"
+
+#: templates/global_base_partials/global_header.html
+msgid "The backend packages are more stable."
+msgstr "バックエンドのパッケージは、より安定しています。"
+
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_pricing.html
+msgid "COUPON CODE"
+msgstr "クーポンコード"
+
+#: apps/infra/public_app/templates/public_app/landing_partials
+msgid "A hub for research projects, apps, and collaborators"
+msgstr "研究プロジェクト、アプリ、共同研究者をつなぐハブ"
+
+#: apps/infra/public_app/templates/public_app/landing_partials
+msgid "SciTeX — A hub for research projects, apps, and collaborators"
+msgstr "SciTeX — 研究プロジェクト、アプリ、共同研究者をつなぐハブ"
+
+#: apps/infra/public_app/templates/public_app/landing_partials
+msgid "AI Agent + SciTeX®"
+msgstr "AIエージェント + SciTeX®"
+
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_modules.html
+msgid "Record Forward. Verify Backward."
+msgstr "順方向に記録し、逆方向に検証する。"
+
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_modules.html
+msgid "SciTeX® Clew is the foundation of the SciTeX® ecosystem."
+msgstr "SciTeX® Clewは、SciTeX®エコシステムの基盤です。"
+
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_modules.html
+msgid "The scitex-io library and specialized SciTeX® packages are designed to capture provenance during data reads and writes, linking source data, code, and research outputs. Clew follows these links backward from manuscript claims to identify the data and code behind the final manuscript."
+msgstr "scitex-ioライブラリと分野別のSciTeX®パッケージは、データの読み書きに合わせて来歴を記録するよう設計されており、元データ、コード、研究成果を結び付けます。Clewはそのつながりを原稿の主張から逆にたどり、最終原稿を支えるデータとコードを特定します。"
+
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_modules.html
+msgid "SciTeX® Hub provides a graphical workspace for users and API endpoints for agents outside the ecosystem."
+msgstr "SciTeX® Hubは、ユーザー向けのGUIワークスペースと、エコシステム外のエージェント向けAPIエンドポイントを提供します。"
+
+#: apps/infra/public_app/templates/public_app/landing_partials
+msgid "SciTeX® Clew is the foundation of the ecosystem. The scitex-io library and specialized SciTeX® packages are designed to capture provenance during data reads and writes. SciTeX® Hub provides a graphical workspace for users and API endpoints for external agents."
+msgstr "SciTeX® Clewは、このエコシステムの基盤です。scitex-ioライブラリと分野別のSciTeX®パッケージは、データの読み書きに合わせて来歴を記録するよう設計されています。SciTeX® Hubは、ユーザー向けのGUIワークスペースと、外部エージェント向けのAPIエンドポイントを提供します。"
+
+#: apps/infra/public_app/templates/public_app/landing_partials
+msgid "SciTeX® Clew records the connections between source data, code, and research outputs as work progresses. Starting from a manuscript claim, it traces those connections backward to identify the data and code behind the result."
+msgstr "SciTeX® Clewは、研究の進行に合わせて元データ、コード、研究成果のつながりを記録します。原稿の主張を出発点に、そのつながりを逆にたどり、結果を支えるデータとコードを特定します。"
+
+#: apps/infra/public_app/templates/public_app/landing_partials
+msgid "Hub for Scientists"
+msgstr "科学者のためのハブ"
+
+#: apps/infra/public_app/templates/public_app/landing_partials
+msgid "SciTeX — Hub for Scientists"
+msgstr "SciTeX — 科学者のためのハブ"
+
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_hero.html
+msgid "SciTeX® Clew is the foundation of the ecosystem."
+msgstr "SciTeX® Clewは、このエコシステムの基盤です。"
+
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_hero.html
+msgid "The scitex-io library and specialized SciTeX® packages are designed to capture provenance during data reads and writes."
+msgstr "scitex-ioライブラリと分野別のSciTeX®パッケージは、データの読み書きに合わせて来歴を記録するよう設計されています。"
+
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_hero.html
+msgid "SciTeX® Hub provides a graphical workspace for users and API endpoints for external agents."
+msgstr "SciTeX® Hubは、ユーザー向けのGUIワークスペースと、外部エージェント向けのAPIエンドポイントを提供します。"
+
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_hero.html
+msgid "scitex-clew is the foundation of the ecosystem."
+msgstr "scitex-clewは、このエコシステムの基盤です。"
+
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_hero.html
+msgid "The scitex-io library and specialized SciTeX packages are designed to capture provenance during data reads and writes."
+msgstr "scitex-ioライブラリと分野別のSciTeXパッケージは、データの読み書きに合わせて来歴を記録するよう設計されています。"
+
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_hero.html
+msgid "scitex-hub provides a graphical workspace for users and API endpoints for external agents."
+msgstr "scitex-hubは、ユーザー向けのGUIワークスペースと、外部エージェント向けのAPIエンドポイントを提供します。"
+
+msgid "Watch the demo to see the tools working together."
+msgstr "デモで、ツールが連携して動作する様子をご覧ください。"
+
+#: apps/infra/auth_app/templates/auth_app/signup.html
+msgid "Academic email recognized — eligible for SciTeX Cloud Academic pricing."
+msgstr "学術機関のメールアドレスとして認識されました。SciTeX Cloud Academicの学術料金の対象です。"

@@ -236,6 +236,8 @@ scitex-hub skills list
 
 Skills are stored in `src/scitex_hub/_skills/scitex-hub/` and cover deployment, development, testing, and more.
 
+For release staging/production, use the [canonical candidate-image runbook](src/scitex_hub/_skills/scitex-hub/12_deployment-production.md). It preserves serving jobs and data while qualifying one immutable app image; the generic rebuild script includes job cancellation.
+
 > **[Skills index](_skills/scitex-hub/SKILL.md)**
 
 </details>
@@ -354,7 +356,20 @@ curl https://a2a.scitex.ai/v1/agents/ | jq '.agents | length'
 
 SciTeX Hub is in **alpha**. Core functionality is working and under active development. Data formats may change between releases — back up important work.
 
+The shared Cloud header keeps an **Alpha** badge visible on desktop and mobile.
+The landing page explains that features and APIs may change and that separate
+backups are needed. These notices describe product maturity independently of
+the deployed version number.
+
+The landing page's section navigator summarizes the connected research workflow
+and links directly to the app overview, provenance, deployment choices, open
+source, research demo, and pricing. It uses native anchors and remains available
+while scrolling. Photography source and licence records are kept in the asset
+directory's `PROVENANCE.md`.
+
 ## Contributing
+
+Existing MNIST projects have an explicit, guarded [Writer showcase plan/apply](docs/project-samples/mnist-writer.md). It derives example-only sections from the existing computed bundle, preserves authored files, and never seeds or compiles during a page GET.
 
 We welcome contributions! See [CONTRIBUTING.md](CONTRIBUTING.md).
 

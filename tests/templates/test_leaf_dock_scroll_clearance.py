@@ -23,18 +23,19 @@ def test_leaf_scroll_container_has_dock_scroll_clearance():
 
 def test_clearance_adds_no_layout_space():
     css = _css(str(CSS))
-    # No padding-bottom / height reservation on the scrolled page itself.
-    # The ::after spacer is scroll travel, not layout: it lives at the end of
-    # the scroll container, never widens the resting document.
-    for m in re.finditer(
+    # Pseudo-elements are real layout children, including inside a flex frame.
+    rules = re.findall(
         r"body:has\([^)]*nav\.site-dock[^)]*\)([^{]*)\{([^}]*)\}", css
-    ):
-        selectors, body = m.group(1), m.group(2)
-        if "::after" in selectors:
-            assert "height" in body
-            continue
-        assert "scroll-padding-bottom" in body
-        assert not re.search(r"(?<!scroll-)padding-bottom", body), m.group(0)[:80]
+    )
+    observation = [
+        (
+            "::after" in selectors or "::before" in selectors,
+            "scroll-padding-bottom" in body,
+            bool(re.search(r"(?<!scroll-)padding-bottom|(?:^|;)\s*height\s*:", body)),
+        )
+        for selectors, body in rules
+    ]
+    assert observation and all(row == (False, True, False) for row in observation)
 
 
 def test_overlay_contract_still_holds():

@@ -141,32 +141,32 @@
 }
 
 /* ── Force panels visible (override scitex-ui collapsed states) ── */
-.workspace-pane .stx-shell-sidebar[aria-hidden="true"] {
+.workspace-pane :is(.ws-ai-pane, .ws-worktree-pane, .ws-viewer-pane) > .stx-shell-sidebar[aria-hidden="true"] {
   display: flex !important;
   width: 100% !important;
 }
 
-.workspace-pane .stx-shell-sidebar.collapsed {
+.workspace-pane :is(.ws-ai-pane, .ws-worktree-pane, .ws-viewer-pane) > .stx-shell-sidebar.collapsed {
   width: 100% !important;
   overflow: visible !important;
 }
 
 /* Hide old panel toggle buttons (no collapse in single-pane layout) */
-.workspace-pane .panel-toggle-btn {
+.workspace-pane :is(.ws-ai-pane, .ws-worktree-pane, .ws-viewer-pane) > .stx-shell-sidebar .panel-toggle-btn {
   display: none !important;
 }
 
 /* Hide old collapsed title (show full content always) */
-.workspace-pane .stx-shell-sidebar__title {
+.workspace-pane :is(.ws-ai-pane, .ws-worktree-pane, .ws-viewer-pane) > .stx-shell-sidebar .stx-shell-sidebar__title {
   display: none !important;
 }
 
-.workspace-pane .stx-shell-sidebar__title-full {
+.workspace-pane :is(.ws-ai-pane, .ws-worktree-pane, .ws-viewer-pane) > .stx-shell-sidebar .stx-shell-sidebar__title-full {
   display: inline !important;
 }
 
 /* Ensure sidebar content fills height */
-.workspace-pane .stx-shell-sidebar__content {
+.workspace-pane :is(.ws-ai-pane, .ws-worktree-pane, .ws-viewer-pane) > .stx-shell-sidebar .stx-shell-sidebar__content {
   flex: 1;
   min-height: 0;
   overflow: auto;

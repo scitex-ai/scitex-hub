@@ -1,168 +1,129 @@
 ---
 description: |
   [TOPIC] Deploy to Production
-  [DETAILS] Deploy SciTeX Hub to production — zero-downtime build, swap, verify..
+  [DETAILS] Build a bounded candidate, qualify one immutable staging artifact, and deploy targeted app roles while preserving rollback state.
 tags: [scitex-hub-deployment-production]
 ---
 
-# Deploy to Production
+# Deploy one qualified image to staging and production
 
-**WARNING: This affects the live site (scitex.ai). Confirm with user before proceeding.**
+The source authorities are `scripts/deploy/compose_env.sh`,
+`deployment/docker/docker_prod/docker-compose.yml`,
+`deployment/docker/docker-compose.staging.yml` and the sibling/image dependency
+checks. Use the canonical wrapper; never substitute a bare Compose invocation
+that omits its reviewed env-file and overlays. Keep resolved environment JSON
+and credentials private. Existing authorization governs the deployment scope.
 
-## CRITICAL: Build Rules
+## Preserve serving state before building
 
-**NEVER run `docker build` directly on NAS.** ALWAYS use:
-```bash
-ssh nas 'cd ~/proj/scitex-hub && make ENV=prod YES=1 rebuild'
-```
+Record the accepted source, all running image/container identities, process
+births and persisted mounts. Preserve the current writable-layer repairs as
+private rollback images when present; an old image tag cannot capture them.
+Take a consistent database dump, restore it into an owned isolated database,
+and preserve user/media/static/config/frontend mount data where startup writes.
+A live file archive is not a quiescent cross-resource snapshot. Retain the old
+hashed static chunks. Never publish private rollback images or database dumps.
 
-`make rebuild` calls `scripts/deploy/rebuild.sh` which has:
-- `nice -n 10` — lowers build priority so SSH stays responsive
-- `systemd-run --slice` — isolates build in its own cgroup
-- `DOCKER_BUILDKIT=1` — uses BuildKit (not legacy builder)
-- Proper `docker compose down` before build
+`rebuild.sh` is NOT the preserve-jobs route: it cancels SLURM jobs after building
+and then swaps services. It has no build-only option. Its current build command
+uses `nice`, but does not create a systemd build scope or take the stack down
+before building. `make build` has no swap, but does not enforce worker limits.
+Do not stop unrelated services or delete Redis, jobs or mounted data to deploy.
 
-Running raw `docker build` bypasses ALL these protections and **will crash the NAS** (Intel N100, 4 cores — builds saturate all CPUs and starve sshd).
+## Build a candidate without changing production's latest tag
 
-## Prerequisites
-- Staging MUST be deployed and verified first (see `deployment-staging.md`)
-- All changes committed and pushed to `origin/develop`
-- CI passes on develop
-- Dependency packages (scitex-ui, figrecipe, etc.) published to PyPI
-- Dockerfile version pins updated: `deployment/docker/docker_prod/Dockerfile.prod`
+Prepare a task-private `DOCKER_CONFIG` and an owned named `docker-container`
+Buildx worker, leaving existing builders and credentials untouched. Verify its
+actual kernel CPU/memory caps and configured `max-parallelism`; lowering the
+Docker CLI's priority does not limit daemon-side build workers. For example,
+a reviewed worker can have a two-CPU quota, 12 GiB memory/swap total and two
+parallel operations. These are bounds, not a hardware or completion guarantee.
+Check the installed Compose/Buildx versions before choosing driver options;
+Compose 2.26.1 embeds Buildx 0.13.1 and does not understand `default-load`, while
+its single-platform build already requests Docker image loading.
 
-## Step 1: Sync NAS repo
-```bash
-ssh nas 'cd ~/proj/scitex-hub && git pull origin develop'
-```
-
-## Step 2: Build prod in screen (survives SSH disconnect)
-```bash
-TIMESTAMP=$(date +%Y%m%d-%H%M%S)
-ssh nas "screen -dmS rebuild-$TIMESTAMP bash -c 'cd ~/proj/scitex-hub && make ENV=prod YES=1 rebuild 2>&1 | tee /tmp/scitex-rebuild-$TIMESTAMP.log'"
-```
-
-Before rebuild — stop non-essential containers to free memory for npm install:
-```bash
-ssh nas 'docker stop ai-ielts-nas-django-1 ai-ielts-nas-nginx-1 ai-ielts-nas-redis-1 ai-ielts-nas-cloudflared-1 2>/dev/null'
-```
-
-## Step 3: Monitor build
-```bash
-ssh nas "tail -20 /tmp/scitex-rebuild-$TIMESTAMP.log"
-ssh nas "screen -ls"
-```
-
-## Step 4: Verify Production — ALWAYS READ LOGS
-
-**DO NOT just poll HTTP status codes.** Always read actual container logs.
+From the accepted repository, with `DOCKER_CONFIG` and `builder_name` set to
+that prepared task-private worker:
 
 ```bash
-# 1. Check container health
-ssh nas 'docker ps --format "{{.Names}}: {{.Status}}" | grep scitex-hub'
-
-# 2. READ Django logs — this is where real errors show
-ssh nas 'docker logs scitex-hub-prod-django-1 --tail 50'
-
-# 3. READ Celery worker logs — stale task names cause KeyError
-ssh nas 'docker logs scitex-hub-prod-celery_worker-1 --tail 30'
-
-# 4. Check site HTTP
-curl -sL -o /dev/null -w "%{http_code}" https://scitex.ai/
+: "${DOCKER_CONFIG:?set the prepared private Docker configuration}"
+: "${builder_name:?set the reviewed owned Buildx worker name}"
+export SCITEX_HUB_APP_IMAGE="scitex-hub-candidate:alpha-$(git rev-parse --short=12 HEAD)-$(date -u +%Y%m%dT%H%M%SZ)"
+export SCITEX_HUB_DEPENDENCY_RESOLUTION="$(scripts/deploy/resolve_dependency_resolution.sh prod)"
+DOCKER_BUILDKIT=1 nice -n 10 ionice -c 2 -n 7 \
+  scripts/deploy/compose.sh prod build --builder "$builder_name" django
+release_image="$(docker image inspect "$SCITEX_HUB_APP_IMAGE" --format '{{.Id}}')"
 ```
 
-## Known Issues & Lessons
+`SCITEX_HUB_APP_IMAGE` selects the same image for Django, worker and beat.
+Unset defaults remain the existing environment-specific `:latest` references;
+use a unique tag for building, then an immutable identity for admission/swap.
+The canonical resolver rejects empty/malformed overrides without printing the
+value. Resolver-owned image/mode values prevent dotenv files from silently
+selecting an unvalidated candidate. With a candidate override, staging is derived as `image-only` for all
+three roles; ordinary staging remains editable. Production is always image-only.
+An ambient mode variable cannot change this policy. Development's direct-bind
+installer does not support this image override.
 
-### When to Use --no-cache
-- `--no-cache` forces full rebuild (~25 min) — **usually NOT needed**
-- Dockerfile version pin changes automatically invalidate cache at that layer
-- Only use when: PyPI package republished with same version, or build cache corrupted
-- Default: `docker compose build` (with cache) — much faster (~5 min)
+## Qualify once, stage the same artifact
 
-### NAS Resource Protection (systemd cgroup limits)
+Use the resulting full `sha256:` local image ID on the same Docker engine, or
+a verified repository `@sha256:` digest when transferring through a registry.
+Do not rebuild or re-resolve dependencies between staging and production.
 
-**Layer 1 — containerd** (`/etc/systemd/system/containerd.service.d/resource-limit.conf`):
-- `CPUQuota=80%`, `MemoryMax=85%`, `MemoryHigh=80%`, `IOWeight=50`
-
-**Layer 2 — docker** (`/etc/systemd/system/docker.service.d/resource-limit.conf`):
-- `CPUQuota=90%`, `MemoryMax=90%`
-
-**Layer 3 — sshd** (`/etc/systemd/system/ssh.service.d/protect.conf`):
-- `OOMScoreAdjust=-900`, `CPUWeight=1000`, `IOWeight=1000`, `MemoryLow=256M`
-
-Verify: `cat /sys/fs/cgroup/system.slice/containerd.service/cpu.max` (should show `80000 100000`)
-
-Re-apply after NAS firmware update (may reset systemd overrides):
 ```bash
-NAS_PASS=$(decrypt.sh -t ugreen.ssl)
-sshpass -p "$NAS_PASS" ssh nas "echo '$NAS_PASS' | sudo -S systemctl daemon-reload && sudo -S systemctl restart containerd docker"
+: "${release_image:?set the qualified immutable image identity}"
+export SCITEX_HUB_APP_IMAGE="$release_image"
+scripts/deploy/preflight_sibling_floors.sh prod --json
 ```
 
-### Docker DNS Resolution Failure in Build
-- Symptom: `wget: bad address 'github.com'`
-- Fix: Pre-download binaries on host and `COPY` into Docker image
-- Pre-downloaded binaries: `deployment/docker/docker_prod/bin/` (git-ignored)
-- daemon.json DNS: `{"dns": ["8.8.8.8", "8.8.4.4", "1.1.1.1"]}`
+Also qualify the image's real installed dependency graph, import contract,
+namespace/static manifests and migration behavior against an isolated restored
+database. Image-only disables editable Python replacement; it does NOT suppress
+migrations or frontend clone preparation. The source verifier is
+`scripts/deploy/verify_image_dependency_contract.py`. Source/runtime/fixture
+proof is not permission to use an unqualified image or waive a failing floor.
 
-### Celery Stale Task Names
-- After renaming apps, old task names persist in Redis
-- Fix: `docker exec scitex-hub-prod-redis-1 redis-cli FLUSHALL`
+For staging, use an explicitly owned test-user root, never the production users
+bind. Prepare fixtures there and check actual resolved mounts before recreation:
 
-### Dockerfile Intentional Double Install (Cache Strategy)
-- **Layer C0** (pinned): `uv pip install --system "scitex-ui==X.Y.Z"` — sets cache baseline
-- **Layer C1** (latest): `uv pip install --system --upgrade "scitex-ui"` — only downloads delta
-- **Always update C0 version pin** when bumping package versions
-
-### Django Startup Slow on NAS
-- Full startup: migrations + collectstatic + pip install apps = 3-5 min
-- **Do not restart Django repeatedly** — each restart resets the timer
-
-### Cloudflare Tunnel
-- 503 = tunnel up but Django not ready
-- 520 = Django returning unexpected response
-
-### Common Log Patterns
-- `pip install -e ...` hanging = slow NAS hardware, wait 3-5 min
-- `KeyError: 'apps.public_app.tasks...'` = stale Celery task names in Redis
-- `health: starting` for 2-3 min = normal cold start
-- `unhealthy` after 5+ min = read `docker logs` for actual error
-
-### Broken pyproject.toml in Ecosystem Packages (Common Root Cause)
-- **Symptom:** Empty page / Django entrypoint crash / `uv pip install` fails
-- **Root cause:** `pyproject.toml` in an ecosystem package (e.g. scitex-ui, figrecipe) is malformed or missing a field
-- **Fix:** Repair the `pyproject.toml`, then run a full rebuild:
-  ```bash
-  ssh nas 'cd ~/proj/scitex-hub && make env=prod rebuild YES=1'
-  ```
-- **Verify after rebuild:**
-  ```bash
-  ssh nas 'docker ps --format "{{.Names}} {{.Status}}" | grep scitex-hub'
-  ```
-
-### Missing Imports in Visitor Pool (Critical Silent Failure)
-- **Symptom:** Visitors see "pool full" but pool has free slots; visitor allocation silently fails
-- **Root cause:** `decorators.py` used `timezone.now()` without `from django.utils import timezone`
-- **Impact:** ALL 16 visitor slot allocations fail, making the site appear broken for anonymous users
-- **Why it was hard to find:** The middleware caught `Exception` and only logged `str(e)`, hiding the traceback
-- **Fix:** Add missing import; also log full `traceback.format_exc()` not just `str(e)`
-- **Lesson:** Follow no-fallbacks — never silently swallow errors. Log full tracebacks.
-
-### Bulk sed Breaks pyproject.toml (Ecosystem-Wide)
-- **Symptom:** Dev container fails to start; `uv pip install` errors during editable install
-- **Root cause:** Bulk sed/replace operations strip closing `]` from TOML arrays
-- **Affected:** scitex-stats, scitex-audio (found 2026-03-26)
-- **Prevention:** After ANY bulk rename/replace, validate ALL pyproject.toml files:
-  ```bash
-  for f in ~/proj/scitex-*/pyproject.toml; do
-    python3 -c "import tomllib; tomllib.load(open('$f', 'rb'))" && echo "OK: $f" || echo "FAIL: $f"
-  done
-  ```
-
-### Screen Session with Timestamps (Preferred for Monitoring)
-Use named screen sessions with dates so you can find and re-attach them:
 ```bash
-ssh nas "screen -S deploy-$(date +%Y%m%d)"
-# Or inline:
-TIMESTAMP=$(date +%Y%m%d-%H%M%S)
-ssh nas "screen -dmS deploy-$TIMESTAMP bash -c 'cd ~/proj/scitex-hub && make env=prod rebuild YES=1 2>&1 | tee /tmp/scitex-rebuild-$TIMESTAMP.log'"
+: "${stage_users:?set an owned isolated staging user directory}"
+export SCITEX_SLURM_USER_DATA_ROOT="$stage_users"
+scripts/deploy/preflight_sibling_floors.sh staging --json
+scripts/deploy/compose.sh staging up -d --no-deps --no-build django celery_worker celery_beat
 ```
+
+Staging uses its own env-file, database and named volumes. Verify those identities
+and the selected users bind; a different app name alone is not isolation. Check
+real authorized routes, frontend hashes, worker/beat behavior and relevant tests.
+A healthy container or HTTP 200 by itself is insufficient evidence.
+
+## Apply only the qualified production change
+
+After source/cohort, staging, backup freshness and migration/rollback gates pass,
+clear the staging-only users override and recheck production mount identities:
+
+```bash
+unset SCITEX_SLURM_USER_DATA_ROOT
+scripts/deploy/preflight_sibling_floors.sh prod --json
+scripts/deploy/compose.sh prod up -d --no-deps --no-build django celery_worker celery_beat
+```
+
+If production has a reviewed nondefault users root, restore that exact value
+instead of unsetting it. Preserve existing named, bind and anonymous volumes;
+do not request volume renewal, broad `down`, orphan removal or job cancellation.
+Database, Redis, Gitea, nginx and tunnel services stay outside this targeted swap.
+Recheck current jobs and any admission constraints at the actual swap time.
+Read bounded sanitized logs and exercise real routes/static assets after boot.
+Image-only startup still performs mandatory dependency and migration checks.
+
+## Rollback is a separate qualified state
+
+Preserve the exact old source/config, per-role private snapshots and mounted data.
+Historical roles may have different image IDs and package graphs; they are not a
+new same-image candidate, and do not establish compliance with the new contract.
+Rehearse their reviewed restoration procedure separately. A successful logical
+DB restore is useful evidence but not a complete application rollback rehearsal.
+Image rollback does not reverse schema/data migrations or restore overwritten
+static files. No floor waiver or skip-gate flag is provided by this runbook.

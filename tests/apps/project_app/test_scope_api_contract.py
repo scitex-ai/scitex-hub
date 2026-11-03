@@ -1,88 +1,62 @@
-#!/usr/bin/env python3
-"""Hub project-scope API serves the SDK tagged-scope contract — live-server verified.
-
-Card ui-project-selector-user-scope-option-20260918.
-Runs against the container dev server (DB-backed pytest cannot create a
-test database here: role lacks CREATEDB). Uses test-user; leaves the
-committed selection on a scratch project, restored afterwards.
-"""
+"""Exercise the real tagged-scope HTTP adapter using only owned test records."""
 
 from __future__ import annotations
 
 import json
-import urllib.request
 
-BASE = "http://127.0.0.1:8001"
+import pytest
+from django.contrib.auth.models import User
+from django.test import RequestFactory
 
-_probe = json.dumps({"probe": 1}).encode()
-
-
-def _login():
-    import http.cookiejar
-    import os
-    import re
-
-    cj = http.cookiejar.CookieJar()
-    opener = urllib.request.build_opener(urllib.request.HTTPCookieProcessor(cj))
-    page = opener.open(BASE + "/auth/signin/", timeout=10).read().decode()
-    token = re.search(r'name="csrfmiddlewaretoken" value="([^"]+)"', page).group(1)
-    data = urllib.parse.urlencode(
-        {
-            "csrfmiddlewaretoken": token,
-            "username": "test-user",
-            "password": os.environ["SCITEX_HUB_TEST_USER_PASSWORD"],
-        }
-    ).encode()
-    opener.open(
-        urllib.request.Request(
-            BASE + "/auth/signin/", data=data, headers={"Referer": BASE + "/auth/signin/"}
-        ),
-        timeout=15,
-    )
-    return opener
+from apps.infra.project_app.models import Project
+from apps.infra.project_app.views.projects.scope_api import api_project_scope
 
 
-import urllib.parse  # noqa: E402  (kept after helper for readability)
+@pytest.mark.django_db
+def test_scope_contract():
+    user = User.objects.create_user(username="scope-contract-user")
+    project = Project.objects.create(owner=user, slug="paper", name="Paper")
+    identifier = f"{user.username}/{project.slug}"
+    factory = RequestFactory()
 
-
-def test_scope_contract_live():
-    opener = _login()
+    def request(method, payload=None):
+        if method == "GET":
+            value = factory.get("/api/project/scope/")
+        else:
+            value = factory.post(
+                "/api/project/scope/", json.dumps(payload), content_type="application/json"
+            )
+        value.user = User.objects.get(pk=user.pk)
+        value.session = {}
+        return api_project_scope(value)
 
     def get():
-        response = opener.open(BASE + "/api/project/scope/", timeout=15)
-        assert response.status == 200
-        return json.loads(response.read())
+        response = request("GET")
+        assert response.status_code == 200
+        return json.loads(response.content)
 
     def post(payload, want):
-        request = urllib.request.Request(
-            BASE + "/api/project/scope/",
-            data=json.dumps(payload).encode(),
-            headers={"Content-Type": "application/json"},
-            method="POST",
-        )
-        try:
-            with opener.open(request, timeout=15) as response:
-                body = json.loads(response.read())
-                status = response.status
-        except urllib.error.HTTPError as exc:
-            body = json.loads(exc.read())
-            status = exc.code
-        assert status == want, (payload, status, body)
+        response = request("POST", payload)
+        body = json.loads(response.content)
+        assert response.status_code == want, (payload, response.status_code, body)
         return body
 
     body = get()
     assert body["allow_user_scope"] is True
     assert set(body) >= {"projects", "current", "allow_user_scope"}
+    assert identifier in {entry["id"] for entry in body["projects"]}
 
     body = post({"scope": "user", "id": None}, 200)
     assert body == {"current": None, "current_scope": "user"}
 
-    body = post({"scope": "project", "id": "test-user/dotfiles"}, 200)
+    body = post({"scope": "project", "id": identifier}, 200)
     assert body["current_scope"] == "project"
     assert get()["current_scope"] == "project"
 
-    body = post({"id": "test-user/dotfiles"}, 200)
-    assert body["current"] == "test-user/dotfiles"
+    body = post({"id": identifier}, 200)
+    assert body["current"] == identifier
+    user.profile.refresh_from_db()
+    assert user.profile.last_active_repository_id == project.pk
 
     post({"scope": "org", "id": "x"}, 403)
     post({"scope": "project", "id": "nobody/ghost"}, 403)

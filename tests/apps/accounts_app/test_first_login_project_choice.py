@@ -205,7 +205,11 @@ class TestNewVerifiedUserOwnsNothingYet(TestCase):
         from apps.infra.project_app.models import Project
 
         user = self._verified_user("first-login-dotfiles")
+        # Automatic seeding was deliberately removed. Exercise the retained
+        # explicit provisioning operation, rather than require a signup side effect.
+        from apps.infra.accounts_app.signals import ensure_home_project
 
+        ensure_home_project(user)
         user.profile.refresh_from_db()
         assert Project.objects.filter(owner=user, is_home=True).exists(), (
             "precondition: the dotfiles project is provisioned"

@@ -120,6 +120,20 @@ def existing_social_account(db):
     return sociallogin, user
 
 
+
+def _provider_redirect_state(request):
+    """Round-trip the real provider's redirect state without OAuth/network I/O."""
+    from allauth.socialaccount.models import SocialApp
+    from allauth.socialaccount.providers.google.provider import GoogleProvider
+    from django.contrib.sessions.backends.signed_cookies import SessionStore
+
+    request.session = SessionStore()
+    provider = GoogleProvider(request, app=SocialApp(provider="google"))
+    arguments = provider.get_redirect_from_request_kwargs(request)
+    state_id = provider.stash_redirect_state(request, **arguments)
+    return provider.unstash_redirect_state(request, state_id)
+
+
 def _login_via_allauth(sociallogin):
     """Sign an EXISTING account in through allauth's own login flow."""
     request = _request()
@@ -236,7 +250,7 @@ class TestANewAccountCannotChooseItsOwnLanding:
     wins outright: a real new-account Google probe carrying
     ``next=/bypass-target/`` landed on ``/bypass-target/``, past the step every
     new account is subject to. External ``next`` values never reach the state
-    (``state_from_request`` validates with ``is_safe_url``), so the hole is
+    (the provider request builder validates redirect URLs), so the hole is
     LOCAL paths — which is the dangerous shape, because a local path can be any
     app route.
 
@@ -269,20 +283,18 @@ class TestANewAccountCannotChooseItsOwnLanding:
 
     def test_the_state_builder_stores_no_external_next(self, settings):
         # Why the external case cannot arise through the real path — while
-        # ALLOWED_HOSTS is meaningful: the state is built by state_from_request,
-        # which validates with is_safe_url. Pinned here, because THIS
+        # ALLOWED_HOSTS is meaningful: the actual provider request builder
+        # validates the redirect before stashing it in the session. Pinned here, because THIS
         # DEVELOPMENT ENVIRONMENT has "*" in ALLOWED_HOSTS (measured), which
         # makes is_safe_url accept any host at all. That is the reason the
         # refusal for a new account lives in post_login — a rule that does not
         # depend on how permissive the host allowlist happens to be.
         # Arrange
-        from allauth.socialaccount.models import SocialLogin
-
         settings.ALLOWED_HOSTS = ["testserver"]
         request = RequestFactory().get("/?next=https://bypass.example/target/")
         # Act
         with allauth_context.request_context(request):
-            state = SocialLogin.state_from_request(request)
+            state = _provider_redirect_state(request)
         # Assert
         assert "next" not in state
 
@@ -290,13 +302,11 @@ class TestANewAccountCannotChooseItsOwnLanding:
         # The local case IS storable — which is exactly why the redirect, not the
         # state, has to be the thing that refuses for a new account.
         # Arrange
-        from allauth.socialaccount.models import SocialLogin
-
         settings.ALLOWED_HOSTS = ["testserver"]
         request = RequestFactory().get("/?next=/bypass-target/")
         # Act
         with allauth_context.request_context(request):
-            state = SocialLogin.state_from_request(request)
+            state = _provider_redirect_state(request)
         # Assert
         assert state["next"] == "/bypass-target/"
 

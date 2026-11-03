@@ -72,18 +72,20 @@ jobs:
       - uses: astral-sh/setup-uv@v7
         with:
           cache-dependency-glob: pyproject.toml
-      - name: Install (best-effort fallback chain)
+      - name: Install full declared environment
+        env:
+          UV_PYTHON_INSTALL_DIR: ${{ runner.temp }}/hub-managed-python-${{ github.run_id }}-${{ github.run_attempt }}-${{ github.job }}-${{ matrix.python-version }}
         # uv venv, not bare pip: the pool's toolcache Python is uv-managed and
         # refuses pip under PEP 668, and these runners are org-pooled so the
         # shared interpreter must not be mutated. --seed so the venv carries a
         # real pip for anything downstream that shells it.
         run: |
-          uv venv --seed --python ${{ matrix.python-version }} .venv
+          uv venv --seed --managed-python --python ${{ matrix.python-version }} .venv
+          .venv/bin/python -c "import sysconfig; sysconfig.get_config_vars(); print('managed Python sysconfig OK')"
           echo "$PWD/.venv/bin" >> "$GITHUB_PATH"
           P=.venv/bin/python
-          uv pip install --python $P -e ".[all,dev]" \
-            || uv pip install --python $P -e ".[dev]" \
-            || uv pip install --python $P -e .
+          # A failed declared install must stop before tests and publishing.
+          uv pip install --python $P -e ".[all,dev]"
       - name: Run pytest
         # Django settings hard-fail (ValueError, per "no silent fallback")
         # if SCITEX_HUB_DJANGO_SECRET_KEY is unset. CI doesn't need a real
@@ -100,6 +102,8 @@ jobs:
           SCITEX_HUB_DB_PASSWORD_DEV: scitex_test_pass  # pragma: allowlist secret
           SCITEX_HUB_DB_HOST_DEV: localhost
           SCITEX_HUB_DB_PORT_DEV: "5432"
+          # Explicit job-local status ledger; no implicit fleet connection.
+          SCITEX_STORE_DSN: postgresql://scitex:scitex_test_pass@localhost:5432/scitex_test?connect_timeout=5  # pragma: allowlist secret
           # No Redis broker in this job; run Celery tasks inline.
           SCITEX_HUB_TEST_MODE: "1"
         run: |
@@ -133,9 +137,12 @@ jobs:
         with:
           cache-dependency-glob: pyproject.toml
       - name: Install build tools
+        env:
+          UV_PYTHON_INSTALL_DIR: ${{ runner.temp }}/hub-managed-python-${{ github.run_id }}-${{ github.run_attempt }}-${{ github.job }}-3.12
         # See `test` above for why this is uv-in-a-venv and not bare pip.
         run: |
-          uv venv --seed --python 3.12 .venv
+          uv venv --seed --managed-python --python 3.12 .venv
+          .venv/bin/python -c "import sysconfig; sysconfig.get_config_vars(); print('managed Python sysconfig OK')"
           echo "$PWD/.venv/bin" >> "$GITHUB_PATH"
           uv pip install --python .venv/bin/python build
       - name: Build distribution

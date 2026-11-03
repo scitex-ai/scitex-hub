@@ -22,10 +22,20 @@ def test_dock_chat_item_carries_the_float_toggle_hook():
     # Act
     html = render_to_string(
         "global_base_partials/site_dock.html",
-        {"site_dock_items": [item], "site_dock_capacity": 5},
+        {"site_dock_enabled": True, "site_dock_items": [item], "site_dock_capacity": 5},
     )
     # Assert
     assert "data-dock-chat-toggle" in html
+
+
+def test_disabled_dock_does_not_render_the_chat_toggle():
+    item = DockItem(key="chat", label="Chat", icon="fas fa-comment", url="/chat/")
+    html = render_to_string(
+        "global_base_partials/site_dock.html",
+        {"site_dock_enabled": False, "site_dock_items": [item], "site_dock_capacity": 5},
+    )
+    assert "data-dock-chat-toggle" not in html
+    assert "data-site-dock" not in html
 
 
 def test_embed_request_renders_no_dock():

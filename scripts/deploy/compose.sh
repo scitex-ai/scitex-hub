@@ -48,6 +48,10 @@ fi
 # script becomes the documented way around the gate.
 for arg in "$@"; do
     if [ "$arg" = "up" ]; then
+        if [ "$1" != "up" ]; then
+            echo "[compose.sh] DEPLOY REFUSED: pre-up global Compose overrides are not modelled by the dependency preflight. Declare them in compose_env.sh so config and recreate use the same contract." >&2
+            exit 2
+        fi
         echo "[compose.sh] running the sibling floor + import preflight before 'up'" >&2
         "$SCRIPT_DIR/preflight_sibling_floors.sh" "$ENV"
         break

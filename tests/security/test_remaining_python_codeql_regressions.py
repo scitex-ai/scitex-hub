@@ -109,17 +109,17 @@ def test_dev_file_failure_is_generic_and_logged(monkeypatch):
     assert json.loads(response.content)["error"] == "Unable to read file."
 
 
-def test_auth_log_field_cannot_add_a_physical_log_line(caplog):
+def test_anonymous_auth_refusal_does_not_log_untrusted_project_id(caplog):
     from apps.workspace.writer_app.views.editor.auth_utils import get_user_for_request
 
     request = SimpleNamespace(
         user=SimpleNamespace(is_authenticated=False),
         session={},
     )
-    get_user_for_request(request, "project\nFORGED")
+    result = get_user_for_request(request, "project\nFORGED")
 
-    assert "project\\nFORGED" in caplog.text
-    assert "project\nFORGED" not in caplog.text
+    assert result == (None, False)
+    assert "FORGED" not in caplog.text
 
 
 def test_status_issues_do_not_expose_probe_exceptions():

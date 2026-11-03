@@ -1,0 +1,49 @@
+{% load i18n %}
+{% comment %}Recorded backend workflow, included by the dedicated Demo section. Media URLs come from the public landing view.{% endcomment %}
+<details class="landing-oss-demo" id="research-demo" open>
+    <summary id="landing-oss-demo-title">{% trans "Watch the full workflow" %}</summary>
+    <p>{% trans "Recorded with SciTeX v2.10. The current app interfaces are shown in Overview." %}</p>
+    <div class="landing-oss-video-wrapper">
+        <video controls playsinline preload="none" class="landing-oss-video"
+               poster="{{ research_demo_poster_url }}">
+            <source src="{{ research_demo_url }}" type="video/mp4" />
+            {% trans "Your browser does not support the video tag." %}
+        </video>
+    </div>
+    <p class="landing-v2-small">{% trans "Full-length demo — about 40 minutes, end to end." %}</p>
+    <p class="landing-oss-more">
+        <a href="{% url 'public_app:demos' %}">{% trans "More demo videos" %}<span aria-hidden="true">→</span></a>
+    </p>
+</details>
+<style>
+    .landing-oss-demo {
+        border-top: 1px solid var(--border-default);
+        padding-top: 2.5rem;
+    }
+    .landing-oss-demo summary {
+        font-size: 1.5rem;
+        margin: 0 0 1rem;
+    }
+    .landing-oss-video-wrapper {
+        position: relative;
+        width: 100%;
+        max-width: 1100px;
+        padding-bottom: 56.25%;
+        overflow: hidden;
+        border-radius: 8px;
+        margin: 1.5rem 0;
+    }
+    .landing-oss-video {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        border-radius: 8px;
+    }
+    .landing-oss-more {
+        margin: 1rem 0;
+        font-size: 1.05rem;
+    }
+
+</style>

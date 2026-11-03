@@ -139,15 +139,10 @@ Hub inline user profile — returned by /hub/api/user-profile/?username=X
                             {% trans "Projects" %}
                         {% endif %}
                     </h3>
-                    <div class="hub-repo-filter-wrap">
-                        <i class="fas fa-filter hub-repo-filter-icon"></i>
-                        <input type="text"
-                               id="hub-repo-filter"
-                               class="hub-repo-filter-input"
-                               placeholder="Filter..."
-                               autocomplete="off" />
-                        <kbd class="hub-repo-filter-kbd">⌃K</kbd>
-                    </div>
+                    <div class="hub-repo-filter-wrap"
+                         data-stx-filter-field
+                         data-filter-subject="projects"
+                         data-filter-id="hub-repo-filter"></div>
                     {% if is_own_projects %}
                         <a href="/new/" class="hub-new-project-btn" data-ai-hint="Create new project">
                             <i class="fas fa-plus"></i> New
