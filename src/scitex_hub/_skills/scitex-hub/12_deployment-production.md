@@ -118,6 +118,10 @@ A healthy container or HTTP 200 by itself is insufficient evidence. Audit root
 and linked frontend dependency locks separately, and qualify actual diagram
 rendering boundaries; see [diagram rendering](../../../../docs/security/diagram-rendering.md).
 Do not equate a successful build or root-only npm audit with a clean security graph.
+Also verify the actual public `/sw.js` bytes against the accepted source; its
+collected copy is served separately from the Vite manifest. Check private-cache
+isolation with service workers enabled, as described in
+[the service-worker boundary](../../../../docs/security/service-worker-cache.md).
 
 ## Apply only the qualified production change
 

@@ -2,10 +2,12 @@
  * SciTeX Service Worker — Minimal PWA registration
  *
  * Enables "Add to Home Screen" standalone mode on iOS/Android.
- * Network-first strategy: always fetch from server, fall back to cache.
+ * Cache only public same-origin static assets. Private pages and API replies
+ * must never survive logout or be replayed for another account.
  */
 
-const CACHE_NAME = "scitex-v1";
+const CACHE_NAME = "scitex-public-static-v2";
+const LEGACY_PRIVATE_CACHE = "scitex-v1";
 
 // A standalone PWA has no reload button, so a gateway error page would strand the user.
 const RETRY_PAGE = `<!doctype html><html><head><meta charset="utf-8">
@@ -27,34 +29,80 @@ function retryPage() {
   });
 }
 
+function explicitlyPublic(policy) {
+  // Extension values may contain commas or the word "public" inside quotes.
+  let directive = "";
+  let quoted = false;
+  let escaped = false;
+  for (const character of policy + ",") {
+    if (character === "," && !quoted) {
+      if (directive.trim().toLowerCase() === "public") return true;
+      directive = "";
+    } else {
+      directive += character;
+      if (escaped) escaped = false;
+      else if (quoted && character === "\\") escaped = true;
+      else if (character === '"') quoted = !quoted;
+    }
+  }
+  return false;
+}
+
 self.addEventListener("install", (event) => {
   self.skipWaiting();
 });
 
 self.addEventListener("activate", (event) => {
-  event.waitUntil(clients.claim());
+  // The old worker cached private responses, including no-store API replies.
+  // Remove only that known legacy cache; other applications own their caches.
+  event.waitUntil(caches.delete(LEGACY_PRIVATE_CACHE).then(() => clients.claim()));
 });
 
 self.addEventListener("fetch", (event) => {
-  const isPage = event.request.mode === "navigate";
-  // Network-first: try server, fall back to cache
+  const request = event.request;
+  const url = new URL(request.url);
+  if (
+    request.method !== "GET" || url.origin !== self.location.origin ||
+    request.headers.has("Authorization")
+  ) return;
+  const isPage = request.mode === "navigate";
+  const isStatic = url.pathname.startsWith("/static/");
+  const isEventStream = (request.headers.get("Accept") || "")
+    .toLowerCase().includes("text/event-stream");
+  // APIs, event streams, downloads and media use the browser's normal request
+  // lifecycle. In particular, never retain a cloned live API response stream.
+  if ((!isPage && !isStatic) || isEventStream) return;
   event.respondWith(
-    fetch(event.request)
+    fetch(request)
       .then((response) => {
         if (isPage && response.status >= 502 && response.status <= 504) {
           return retryPage();
         }
-        // Cache successful GET responses for offline fallback
-        if (event.request.method === "GET" && response.status === 200) {
+        const policy = response.headers.get("Cache-Control") || "";
+        const contentType = (response.headers.get("Content-Type") || "").toLowerCase();
+        const vary = response.headers.get("Vary") || "";
+        const finalURL = response.url ? new URL(response.url) : null;
+        if (
+          !isPage && response.status === 200 &&
+          !response.redirected && finalURL?.origin === self.location.origin &&
+          finalURL.pathname.startsWith("/static/") && explicitlyPublic(policy) &&
+          !/no-store|private/i.test(policy) &&
+          !contentType.includes("text/event-stream") &&
+          !contentType.includes("text/html") &&
+          !response.headers.has("Set-Cookie") &&
+          !/(?:^|,)\s*(?:\*|cookie|authorization)\s*(?:,|$)/i.test(vary)
+        ) {
           const clone = response.clone();
-          caches
-            .open(CACHE_NAME)
-            .then((cache) => cache.put(event.request, clone));
+          event.waitUntil(
+            caches.open(CACHE_NAME).then((cache) => cache.put(request, clone)).catch(() => {}),
+          );
         }
         return response;
       })
-      .catch(() =>
-        caches.match(event.request).then((cached) => cached || (isPage ? retryPage() : Response.error())),
-      ),
+      .catch(async () => {
+        if (isPage) return retryPage();
+        const cache = await caches.open(CACHE_NAME);
+        return (await cache.match(request)) || Response.error();
+      }),
   );
 });

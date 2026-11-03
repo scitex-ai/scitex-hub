@@ -21,6 +21,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   the qualified frontend instead of development-server scripts.
 - Use the production health endpoint and measured staging readiness grace;
   document starting the web role before background roles to avoid migration races.
+- Restrict PWA caching to explicitly public static assets and remove the legacy
+  cache, preventing private page/API replies from being replayed across accounts.
 
 ## [0.22.0a0] - 2026-11-03
 
