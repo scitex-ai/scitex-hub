@@ -79,8 +79,13 @@ scripts/deploy/preflight_sibling_floors.sh prod --json
 
 Also qualify the image's real installed dependency graph, import contract,
 namespace/static manifests and migration behavior against an isolated restored
-database. Image-only disables editable Python replacement; it does NOT suppress
-migrations or frontend clone preparation. The source verifier is
+database. Image-only disables editable Python replacement and does not suppress
+mandatory migrations. Production images explicitly select `SCITEX_HUB_FRONTEND_MODE=baked`:
+their verified frontend artifact is built into the same image, and startup does
+not clone repositories or run npm/Vite. Legacy `build` mode retains runtime
+frontend preparation; it is not the production artifact qualification path. See
+[the baked frontend contract](../../../../docs/deployment/baked-frontends.md).
+The source verifier is
 `scripts/deploy/verify_image_dependency_contract.py`. Source/runtime/fixture
 proof is not permission to use an unqualified image or waive a failing floor.
 

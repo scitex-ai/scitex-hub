@@ -27,6 +27,9 @@ Alpha preview; the distribution and tag use the canonical PEP 440 spelling
   distribution metadata in both development and production.
 - Declare the native GUI plugin dependency closure, including SDK 0.3.19,
   Cards 0.56.22, and FigRecipe 0.44.1; check the final image dependency graph.
+- Bake the production frontend from installed-release Git tags and verified
+  public SDK wheel inputs. Verify and publish the complete Vite closure after
+  collectstatic without startup Git/npm activity or deleting older hashed chunks.
 - Align mounted application headers, scope capabilities, theme controls, and
   viewport frames through shared SDK contracts.
 - Show Cloud alpha status and a research-workflow landing page with installation
