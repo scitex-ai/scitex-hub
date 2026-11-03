@@ -72,6 +72,24 @@ def parse_context(document):
         if not isinstance(image, str) or not re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9._:/@-]{0,1023}", image):
             _refuse("a Python role has no valid resolved image")
         if mode == "image-only":
+            # A read-only host checkout still replaces the qualified Python
+            # bytes. Refuse runtime-code overlays before probing a bare image.
+            protected = ("/usr/local/lib", "/usr/local/bin",
+                         "/opt/scitex-image-contract", "/opt/scitex-frontend",
+                         "/opt/scitex-frontend-tools", "/root-init.sh",
+                         "/image-runtime.sh", "/entrypoint.sh")
+            mounts = service.get("volumes", [])
+            if not isinstance(mounts, list):
+                _refuse("image-only volumes are not resolved")
+            for mount in mounts:
+                target = mount.get("target") if isinstance(mount, dict) else None
+                if not isinstance(target, str) or not target.startswith("/"):
+                    _refuse("image-only mount target is not resolved")
+                target = posixpath.normpath(target)
+                if any(target == root or target.startswith(root + "/")
+                       or root.startswith(target.rstrip("/") + "/")
+                       for root in protected):
+                    _refuse("image-only mounts cannot replace qualified runtime code")
             entrypoint = service.get("entrypoint") or []
             entrypoint = [entrypoint] if isinstance(entrypoint, str) else entrypoint
             if not isinstance(entrypoint, list):
