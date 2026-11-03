@@ -31,8 +31,15 @@ def git(root: Path | None, *arguments: str) -> str:
 def installed_release(name: str) -> str:
     """Reject editable/source-directory fallbacks in the production input graph."""
     dist = metadata.distribution(name)
-    direct = dist.read_text("direct_url.json")
-    if direct and "dir_info" in json.loads(direct):
+    # An editable install also exposes source .egg-info. Depending on sys.path,
+    # it can shadow the .dist-info carrying the PEP 610 direct URL record.
+    records = list(metadata.distributions(name=name))
+    source_install = any(
+        "dir_info" in json.loads(direct)
+        for record in records
+        if (direct := record.read_text("direct_url.json"))
+    )
+    if source_install or dist.read_text("WHEEL") is None:
         raise ValueError(
             "Baked frontend inputs require installed wheels, not source installs"
         )

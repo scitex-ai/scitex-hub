@@ -204,13 +204,35 @@ def test_existing_checkout_is_never_overwritten(release_repo):
     assert (repo / "pyproject.toml").read_bytes() == before
 
 
-def test_actual_editable_hub_is_not_a_frontend_wheel_fallback():
-    # Standard contributor/CI setup installs THIS repository with -e .[dev].
-    assert json.loads(metadata.distribution("scitex-hub").read_text("direct_url.json"))[
-        "dir_info"
-    ]["editable"]
+@pytest.mark.parametrize("source_first", [True, False])
+def test_editable_origin_cannot_hide_behind_source_or_wheel_metadata(
+    tmp_path, monkeypatch, source_first
+):
+    # Reproduce the actual PEP 660 dual-record discovery with real stdlib
+    # metadata, independently of how the test runner installed Hub itself.
+    source = tmp_path / "source"
+    installed = tmp_path / "installed"
+    source.mkdir()
+    installed.mkdir()
+    package = "owned_frontend"
+    contents = "Metadata-Version: 2.1\nName: owned-frontend\nVersion: 1.2.3\n"
+    egg = source / f"{package}.egg-info"
+    egg.mkdir()
+    (egg / "PKG-INFO").write_text(contents)
+    wheel = installed / f"{package}-1.2.3.dist-info"
+    wheel.mkdir()
+    (wheel / "METADATA").write_text(contents)
+    (wheel / "WHEEL").write_text("Wheel-Version: 1.0\nTag: py3-none-any\n")
+    (wheel / "direct_url.json").write_text(
+        json.dumps({"url": source.as_uri(), "dir_info": {"editable": True}})
+    )
+    for path in (installed, source) if source_first else (source, installed):
+        monkeypatch.syspath_prepend(str(path))
+    selected = metadata.distribution("owned-frontend")
+    assert bool(selected.read_text("WHEEL")) is not source_first
+    assert len(list(metadata.distributions(name="owned-frontend"))) == 2
     with pytest.raises(ValueError, match="installed wheels"):
-        SOURCES.installed_release("scitex-hub")
+        SOURCES.installed_release("owned-frontend")
 
 
 def test_file_dependencies_bind_to_the_actual_wheel_provider(tmp_path):
