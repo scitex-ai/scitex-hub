@@ -42,7 +42,7 @@ from pathlib import Path
 import pytest
 from django.conf import settings
 from django.template.loader import render_to_string
-from django.test import Client, RequestFactory
+from django.test import RequestFactory
 from django.urls import NoReverseMatch, reverse
 from django.utils import translation
 
@@ -294,15 +294,18 @@ def test_hero_renders_english(hero_context):
     assert expected in html
 
 
-def test_hero_blocktrans_keeps_the_interpolated_version(hero_context):
-    """A blocktrans whose placeholder name drifts drops the value silently."""
-    # Arrange
-    expected_version = "0.1.0"
-    # Act
+def test_hero_alpha_warning_is_translated_without_a_retired_version_placeholder(hero_context):
+    """The current warning is plain translated copy; package versions live elsewhere."""
+    english = "SciTeX® Cloud is in alpha."
+    with translation.override("en"):
+        english_html = render_to_string(HERO_TEMPLATE, hero_context)
     with translation.override("ja"):
-        html = render_to_string(HERO_TEMPLATE, hero_context)
-    # Assert
-    assert expected_version in html
+        japanese = translation.gettext(english)
+        japanese_html = render_to_string(HERO_TEMPLATE, hero_context)
+    assert japanese != english
+    assert english in english_html
+    assert japanese in japanese_html
+    assert english not in japanese_html
 
 
 def test_hero_blocktrans_is_translated(hero_context):
