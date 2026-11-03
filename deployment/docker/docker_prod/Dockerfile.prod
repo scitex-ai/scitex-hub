@@ -580,6 +580,9 @@ LABEL org.scitex-hub.dependency-resolution=${SCITEX_HUB_DEPENDENCY_RESOLUTION}
 # /apps/docs/python/ resolves this generated tree from installed package data.
 RUN python -c "from importlib.resources import files; p = files('scitex_hub').joinpath('_sphinx_html/index.html'); assert p.is_file() and '<html' in p.read_text(encoding='utf-8').lower()"
 
+# Skills are installed package interfaces, not expendable documentation.
+RUN python -c "from importlib.resources import files; p = files('scitex_hub').joinpath('_skills'); assert p.joinpath('scitex-hub/SKILL.md').is_file(); assert p.joinpath('scitex-hub/12_deployment-production.md').is_file(); assert p.joinpath('scitex-hub-project/SKILL.md').is_file()"
+
 # --- Layer C0: Anchor — cache ecosystem packages (bump rarely) ---
 # Pinned versions to cache the dependency tree. Only update when
 # you want to reset the cache baseline.
