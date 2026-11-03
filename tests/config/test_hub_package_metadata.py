@@ -49,16 +49,23 @@ class HeaderIdentity(HTMLParser):
 
 
 @pytest.mark.parametrize("environment", ["dev", "prod"])
-def test_real_header_fragment_reads_metadata_and_escapes_attributes(installed_hub, environment):
+def test_real_header_fragment_reads_metadata_and_escapes_attributes(
+    installed_hub, environment
+):
     request = RequestFactory().get("/landing/")
     request.user = AnonymousUser()
     request.session = {}
     with override_settings(SCITEX_ENV=environment, SCITEX_HUB_VERSION="stale-setting"):
-        html = render_to_string("global_base_partials/global_header.html", {
-            "request": request, "user": request.user,
-            "SCITEX_HUB_VERSION": "stale-context", "SCITEX_FAVICON": "favicon.svg",
-            "SCITEX_FAVICON_DARK": "favicon.svg",
-        })
+        html = render_to_string(
+            "global_base_partials/global_header.html",
+            {
+                "request": request,
+                "user": request.user,
+                "SCITEX_HUB_VERSION": "stale-context",
+                "SCITEX_FAVICON": "favicon.svg",
+                "SCITEX_FAVICON_DARK": "favicon.svg",
+            },
+        )
     parser = HeaderIdentity()
     parser.feed(html)
     assert len(parser.identities) == 1
@@ -77,5 +84,7 @@ def test_missing_distribution_never_claims_a_checkout_release(monkeypatch):
 
     monkeypatch.setattr("config.package_metadata.metadata", missing)
     assert get_hub_package_metadata() == {
-        "name": "scitex-hub", "version": "unknown", "description": "",
+        "name": "scitex-hub",
+        "version": "unknown",
+        "description": "",
     }
