@@ -299,6 +299,7 @@ jobs:
             tests/e2e/playwright/test_project_continuity.py \
             tests/e2e/playwright/test_native_form_submission.py \
             tests/e2e/playwright/test_workspace_sidebar_ownership.py \
+            tests/e2e/playwright/test_page_readiness_contract.py \
             --browser chromium \
             -v -rs --tb=short \
             --screenshot=only-on-failure \
@@ -363,4 +364,6 @@ jobs:
           path: |
             GITIGNORED/e2e_screenshots/
             test-results/
+            ${{ runner.temp }}/server.log
+            ${{ runner.temp }}/e2e-mobile.xml
           retention-days: 7
