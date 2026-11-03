@@ -1,6 +1,6 @@
 [project]
 name = "scitex-hub"
-version = "0.22.0a0"
+version = "0.22.0a1"
 description = "A browser workspace connecting research projects, apps, and collaborators"
 readme = "README.md"
 license = "AGPL-3.0-only"
@@ -96,7 +96,8 @@ dependencies = [
     # by scholar from a throwaway venv against PyPI 1.10.0.
     # 1.12.0 supplies the optional graph capability report consumed by Hub.
     # 1.13.0 supplies storage.master_* (leaf owns MASTER writes; hub thin).
-    "scitex-scholar>=1.13.0",
+    # 1.29.1 uses SDK branding without a missing production static-manifest asset.
+    "scitex-scholar>=1.29.1",
     # 0.2.16 supplies the shared SDK header/viewer integration in the
     # currently supported application cohort.
     # Live-paper mount (hub #1108): apps/workspace/live_paper_app/mount.py
