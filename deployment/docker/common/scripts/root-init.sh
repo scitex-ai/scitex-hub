@@ -74,7 +74,7 @@ bootstrap_directory_accessible() {
     if [ "$(id -u)" = "$app_uid" ]; then
         [ -r "$directory" ] && [ -w "$directory" ] && [ -x "$directory" ]
     else
-        gosu "$app_uid:$app_gid" sh -c \
+        gosu "$app_uid" sh -c \
             'test -r "$1" && test -w "$1" && test -x "$1"' sh "$directory"
     fi
 }

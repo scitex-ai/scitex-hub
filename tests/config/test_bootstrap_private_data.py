@@ -127,6 +127,8 @@ def test_actual_startup_admits_only_explicit_directory_metadata():
     )
     assert (
         unsafe,
+        'gosu "$app_uid" sh -c' in source,
+        'gosu "$app_uid:$app_gid"' in source,
         'prepare_bootstrap_directories /app "$(id -u scitex)" "$(id -g scitex)"'
         in source,
-    ) == (None, True)
+    ) == (None, True, False, True)
