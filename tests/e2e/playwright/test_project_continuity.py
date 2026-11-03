@@ -10,6 +10,7 @@ Stats is the truthful unmounted gap: its coming-soon tile must not invent a URL.
 from __future__ import annotations
 
 from dataclasses import dataclass
+from pathlib import PurePosixPath
 from urllib.parse import parse_qs, urlparse
 
 import pytest
@@ -90,12 +91,42 @@ def continuity_browser(request, pw_base_url):
 
 def _assert_project_metadata(page, app: str, version: str) -> None:
     body = page.locator("body")
-    assert body.get_attribute("data-active-project-key") == PROJECT_KEY
-    assert body.get_attribute("data-active-app-version") == version
-    assert page.locator('meta[name="stx-project-provider"]').count() == 1
-    provider = urlparse(
-        page.locator('meta[name="stx-project-provider"]').get_attribute("content")
-    )
+    if app == "writer":
+        # Published Writer owns an SDK standalone document, not Hub body attrs.
+        assert (
+            page.locator('meta[name="scitex-app-version"]').get_attribute("content")
+            == f"writer@{version}"
+        )
+        header = page.locator("[data-stx-app-header][data-stx-app-header-mounted]")
+        assert header.count() == 1
+        assert header.get_attribute("data-app-version") == version
+        picker = page.locator("[data-stx-project-picker]")
+        assert picker.count() == 1
+        assert picker.get_attribute("data-current") == PROJECT_KEY
+        writer = page.locator(".writer-app")
+        assert writer.count() == 1
+        assert writer.get_attribute("data-project-id") == PROJECT_KEY
+        workspace = PurePosixPath(writer.get_attribute("data-project-dir") or "")
+        assert workspace.is_absolute()
+        assert workspace.parts[-5:] == (
+            USERNAME,
+            "proj",
+            PROJECT_SLUG,
+            ".scitex",
+            "writer",
+        )
+    else:
+        assert body.get_attribute("data-active-project-key") == PROJECT_KEY
+        assert body.get_attribute("data-active-app-version") == version
+    if app == "writer":
+        provider_url = picker.get_attribute("data-provider-url")
+    else:
+        assert page.locator('meta[name="stx-project-provider"]').count() == 1
+        provider_url = page.locator('meta[name="stx-project-provider"]').get_attribute(
+            "content"
+        )
+    assert provider_url, "The owning shell must expose its real project provider"
+    provider = urlparse(provider_url)
     assert provider.path == "/api/project/scope/"
     assert parse_qs(provider.query)["app"] == [app]
     assert page.locator("[data-stx-project-picker]").count() <= 1
@@ -112,6 +143,7 @@ def test_login_launcher_and_project_apps_keep_one_project(continuity_browser):
     assert launcher is not None and launcher.status == 200
     wait_for_page_ready(page)
     assert page.locator("body").get_attribute("data-session-role") == "user"
+    assert page.locator("body").get_attribute("data-current-username") == USERNAME
     assert page.locator("#app-launcher").get_attribute("data-active-project-key") == (
         PROJECT_KEY
     )
@@ -141,8 +173,7 @@ def test_login_launcher_and_project_apps_keep_one_project(continuity_browser):
             page.goto("/apps/", wait_until="domcontentloaded")
             wait_for_page_ready(page)
     apps_to_visit.append("figrecipe")
-    if viewport == "desktop":
-        apps_to_visit.append("writer")
+    apps_to_visit.append("writer")
 
     for app in apps_to_visit:
         tile = page.locator(
@@ -195,6 +226,8 @@ def test_login_launcher_and_project_apps_keep_one_project(continuity_browser):
             page.locator("#app-launcher").get_attribute("data-active-project-key")
             == PROJECT_KEY
         )
+        assert page.locator("body").get_attribute("data-session-role") == "user"
+        assert page.locator("body").get_attribute("data-current-username") == USERNAME
 
     evidence.assert_clean()
     assert viewport in {"desktop", "mobile"}
