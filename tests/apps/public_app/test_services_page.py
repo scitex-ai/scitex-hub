@@ -20,7 +20,9 @@ from django.utils import translation
 
 from apps.infra.public_app.models import ServiceInquiry
 
-PROJECT_ROOT = Path(__file__).resolve().parents[3]  # tests/apps/public_app/ -> repo root
+PROJECT_ROOT = (
+    Path(__file__).resolve().parents[3]
+)  # tests/apps/public_app/ -> repo root
 
 
 @pytest.fixture(scope="module", autouse=True)
@@ -35,8 +37,10 @@ def compiled_catalogs():
     """
     script = PROJECT_ROOT / "scripts" / "i18n" / "compile_catalogs.py"
     result = subprocess.run(
-        [sys.executable, str(script)], cwd=PROJECT_ROOT,
-        capture_output=True, text=True,
+        [sys.executable, str(script)],
+        cwd=PROJECT_ROOT,
+        capture_output=True,
+        text=True,
     )
     assert result.returncode == 0, (
         f"catalog compilation failed ({result.returncode}):\n"
@@ -137,11 +141,15 @@ class TestServicesGet:
         # here — the ``client.get()`` middleware chain (LocaleMiddleware) resets
         # the language to the request's, so a test-process override would be
         # discarded and the page would render EN.
-        response = client.get(
-            services_url, HTTP_COOKIE="django_language=ja"
-        )
+        response = client.get(services_url, HTTP_COOKIE="django_language=ja")
         content = response.content.decode()
-        for needle in ("研究に集中できる環境", "料金の目安", "問い合わせはこちら", "SciTeX クラウド", "近日提供"):
+        for needle in (
+            "研究に集中できる環境",
+            "料金の目安",
+            "問い合わせはこちら",
+            "SciTeX クラウド",
+            "近日提供",
+        ):
             assert needle in content, f"{needle!r} missing from the Japanese /services/"
 
     def test_get_prices_the_same_catalogue_as_tokushoho(self, client, services_url):
@@ -158,7 +166,7 @@ class TestServicesGet:
         asserted below.
         """
         # Arrange
-        from apps.infra.public_app.pricing import published_price_rows
+        from apps.infra.public_app.pricing import published_price_rows, tier_rows
 
         def assert_catalogue_on_page(content, lang):
             # price / price_note / included items are language-dependent — the
@@ -170,19 +178,29 @@ class TestServicesGet:
             # impossible. The price is the row's identity.
             with translation.override(lang):
                 rows = published_price_rows()
-            assert rows, "Control: an empty catalogue would satisfy the loop below vacuously."
+                included_ids = {
+                    row["id"]
+                    for tier in tier_rows()
+                    if tier["id"] == "cloud"
+                    for row in tier["rows"]
+                }
+            assert (
+                rows
+            ), "Control: an empty catalogue would satisfy the loop below vacuously."
             for row in rows:
-                assert row["price"] in content, (
-                    f"price {row['price']!r} (tier {row['label']!r}) not on the {lang} /services/ page"
-                )
+                assert (
+                    row["price"] in content
+                ), f"price {row['price']!r} (tier {row['label']!r}) not on the {lang} /services/ page"
                 if row["price_note"]:
-                    assert row["price_note"] in content, (
-                        f"{row['label']}: {row['price_note']!r} not on /services/ ({lang})"
-                    )
-                for item in row["included"]:
-                    assert item in content, (
-                        f"{row['label']}: included item {item!r} not on /services/ ({lang})"
-                    )
+                    assert (
+                        row["price_note"] in content
+                    ), f"{row['label']}: {row['price_note']!r} not on /services/ ({lang})"
+                # Services advertises included features for the cited Cloud
+                # tiers; the full price table still includes every published row.
+                for item in row["included"] if row["id"] in included_ids else []:
+                    assert (
+                        item in content
+                    ), f"{row['label']}: included item {item!r} not on /services/ ({lang})"
 
         # Act/Assert — EN default (no cookie)
         en_content = client.get(services_url).content.decode()
@@ -190,7 +208,9 @@ class TestServicesGet:
         assert "All displayed prices include tax" in en_content
 
         # Act/Assert — JA (cookie-selected)
-        ja_content = client.get(services_url, HTTP_COOKIE="django_language=ja").content.decode()
+        ja_content = client.get(
+            services_url, HTTP_COOKIE="django_language=ja"
+        ).content.decode()
         assert_catalogue_on_page(ja_content, "ja")
         assert "税込" in ja_content
 
@@ -212,12 +232,19 @@ class TestServicesGet:
             assert needle not in content, f"retired {needle!r} is back on /services/"
         # The grid container is class="svc-plan-cards" and shares the prefix;
         # count the tier articles, not every class that starts that way.
-        assert content.count('<article class="svc-plan-card') == 3, "exactly three tiers"
+        assert (
+            content.count('<article class="svc-plan-card') == 3
+        ), "exactly three tiers"
 
     def test_get_shows_the_three_tiers_business_wrote(self, client, services_url):
         # Arrange (EN source — the SSOT tier names since 2026-09-11; the
         # quote_only tier shows "By request", each tier links "Inquire here").
-        expected = ("SciTeX Cloud", "SciTeX Self-Hosted", "Professional services", "Inquire here")
+        expected = (
+            "SciTeX Cloud",
+            "SciTeX Self-Hosted",
+            "Professional services",
+            "Inquire here",
+        )
         # Act
         content = client.get(services_url).content.decode()
         # Assert
@@ -301,8 +328,7 @@ if __name__ == "__main__":
 
 
 _SERVICES_CSS = (
-    Path(__file__).resolve().parents[3]
-    / "apps/infra/public_app/static/public_app/css"
+    Path(__file__).resolve().parents[3] / "apps/infra/public_app/static/public_app/css"
 )
 
 
@@ -341,7 +367,11 @@ def test_the_tier_cards_are_not_hidden_by_any_stylesheet_the_page_loads():
         css = (_SERVICES_CSS / name).read_text(encoding="utf-8")
         for block in _rules_for(".svc-plan-cards", css):
             seen += 1
-            if re.search(r"display\s*:\s*none", block) or re.search(r"visibility\s*:\s*hidden", block):
+            if re.search(r"display\s*:\s*none", block) or re.search(
+                r"visibility\s*:\s*hidden", block
+            ):
                 hides.append((name, block.strip()))
-    assert seen >= 1, "Control: no rule for .svc-plan-cards was parsed at all, so the assertion below is vacuous."
+    assert (
+        seen >= 1
+    ), "Control: no rule for .svc-plan-cards was parsed at all, so the assertion below is vacuous."
     assert not hides, f"the tier-card container is hidden by: {hides}"
