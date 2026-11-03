@@ -1,7 +1,6 @@
 """Real Monaco hover/markdown, isolated hooks and compiled-module ownership."""
 
 import json
-import os
 import subprocess
 from functools import partial
 from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
@@ -9,13 +8,12 @@ from pathlib import Path
 from threading import Thread
 
 import pytest
-from playwright.sync_api import sync_playwright
 
 ROOT = Path(__file__).resolve().parents[3]
 
 
 @pytest.fixture(scope="module")
-def monaco_browser(tmp_path_factory):
+def monaco_browser(tmp_path_factory, browser):
     output = tmp_path_factory.mktemp("monaco-browser")
     # Load the SAME resolver plugin used by the production Vite configuration.
     build = """
@@ -60,11 +58,11 @@ fs.writeFileSync(process.argv[1]+'/modules.json',JSON.stringify(modules));
     )
     thread = Thread(target=server.serve_forever, daemon=True)
     thread.start()
-    with sync_playwright() as runtime:
-        browser = runtime.chromium.launch(
-            headless=True, executable_path=os.environ.get("SCITEX_HUB_TEST_CHROMIUM")
-        )
-        page = browser.new_page()
+    # Reuse pytest-playwright's session runtime; own only this fixture context.
+    context = None
+    try:
+        context = browser.new_context()
+        page = context.new_page()
         origin = f"http://127.0.0.1:{server.server_port}"
         blocked = []
 
@@ -79,10 +77,12 @@ fs.writeFileSync(process.argv[1]+'/modules.json',JSON.stringify(modules));
         page.goto(origin, wait_until="domcontentloaded")
         page.wait_for_function("!!window.monacoHarness")
         yield page, blocked, modules
-        browser.close()
-    server.shutdown()
-    server.server_close()
-    thread.join(timeout=5)
+    finally:
+        if context is not None:
+            context.close()
+        server.shutdown()
+        server.server_close()
+        thread.join(timeout=5)
 
 
 def test_actual_compiled_modules_exclude_vendor_and_include_patched_adapter(
