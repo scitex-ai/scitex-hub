@@ -327,3 +327,65 @@ def test_app_like_sibling_and_bridge_layout_resolves_only_verified_providers(tmp
         target = (app / value.removeprefix("file:")).resolve()
         assert target == providers[name].resolve()
         assert json.loads((target / "package.json").read_text())["name"] == name
+
+
+def test_real_npm_stale_local_link_is_replaced_by_admitted_provider(tmp_path):
+    old = tmp_path / "old-provider"
+    new = tmp_path / "verified-provider"
+    package = tmp_path / "app"
+    for path, value in ((old, "old"), (new, "admitted")):
+        path.mkdir()
+        (path / "package.json").write_text(
+            '{"name":"owned-port","version":"1.0.0","main":"index.js"}'
+        )
+        (path / "index.js").write_text("module.exports=" + json.dumps(value))
+    package.mkdir()
+    manifest = package / "package.json"
+    manifest.write_text(
+        '{"name":"owned-consumer","version":"1.0.0","dependencies":{"owned-port":"file:../old-provider"}}'
+    )
+    env = {
+        "PATH": "/usr/local/bin:/usr/bin:/bin",
+        "HOME": str(tmp_path),
+        "NPM_CONFIG_CACHE": str(tmp_path / "cache"),
+        "NPM_CONFIG_USERCONFIG": str(tmp_path / "npmrc"),
+    }
+    (tmp_path / "npmrc").touch()
+    command = [
+        "npm",
+        "install",
+        "--package-lock-only",
+        "--offline",
+        "--no-audit",
+        "--no-fund",
+    ]
+    subprocess.run(
+        command, cwd=package, env=env, check=True, capture_output=True, timeout=30
+    )
+    before = (package / "package-lock.json").read_bytes()
+    old.rename(tmp_path / "removed-provider")
+    witness = SOURCES.bind_file_dependencies(manifest, {"owned-port": new})
+    assert witness["original_lock_sha256"] == hashlib.sha256(before).hexdigest()
+    assert not (package / "package-lock.json").exists()
+    subprocess.run(
+        command, cwd=package, env=env, check=True, capture_output=True, timeout=30
+    )
+    subprocess.run(
+        ["npm", "ci", "--offline", "--no-audit", "--no-fund"],
+        cwd=package,
+        env=env,
+        check=True,
+        capture_output=True,
+        timeout=30,
+    )
+    result = subprocess.run(
+        ["node", "-e", "process.stdout.write(require('owned-port'))"],
+        cwd=package,
+        env=env,
+        check=True,
+        capture_output=True,
+        text=True,
+        timeout=10,
+    )
+    assert result.stdout == "admitted"
+    assert "old-provider" not in (package / "package-lock.json").read_text()
