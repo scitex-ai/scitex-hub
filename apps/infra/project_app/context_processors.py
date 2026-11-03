@@ -1,16 +1,15 @@
 """Template context shared by project pages."""
 
-from django.conf import settings
 from django.urls import Resolver404, resolve
 
 from apps.infra.project_app.models import Project
 
 
 def version_context(request):
-    """Add the SciTeX Hub version to every template."""
-    return {
-        "SCITEX_HUB_VERSION": getattr(settings, "SCITEX_HUB_VERSION", "0.1.0-alpha"),
-    }
+    """Compatibility adapter for the shared installed-package context."""
+    from config.context_processors import scitex_version
+
+    return scitex_version(request)
 
 
 def project_context(request):
