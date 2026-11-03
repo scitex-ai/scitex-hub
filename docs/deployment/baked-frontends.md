@@ -21,6 +21,9 @@ npm package name; the receipt records the original and resolved declarations.
 SDK and Live Paper npm providers come from their installed wheel namespaces.
 The SDK namespace must match the exact-version public PyPI wheel byte for byte.
 
+For manifests with local dependency bindings, the original tagged lock digest is
+recorded and that lock is regenerated: npm otherwise can preserve a stale local
+link target after updating the manifest. Other package locks remain inputs.
 The installer creates lockfiles from these pinned local providers and runs normal
 `npm ci` for every declared root/bridge frontend package, followed by the full Hub
 `npm run build`. No Python reinstall, reduced npm install, ignored frontend error,

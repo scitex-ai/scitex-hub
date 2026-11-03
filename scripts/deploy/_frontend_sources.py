@@ -300,7 +300,18 @@ def bind_file_dependencies(package_json: Path, providers: dict[str, Path]) -> di
             package[group][name] = replacement
     if bindings:
         package_json.write_text(json.dumps(package, indent=2) + "\n")
+    # npm can retain a tagged lock's stale local-link resolved path even after
+    # package-lock-only updates the root dependency. Regenerate only manifests
+    # with admitted local providers; preserve the original lock identity first.
+    lock = package_json.with_name("package-lock.json")
+    original_lock = None
+    if bindings and (lock.exists() or lock.is_symlink()):
+        if lock.is_symlink() or not lock.is_file():
+            raise ValueError("Local dependency lock is not a regular owned build file")
+        original_lock = sha256(lock)
+        lock.unlink()
     return {
+        "original_lock_sha256": original_lock,
         "package_json": str(package_json),
         "before_sha256": before,
         "after_sha256": sha256(package_json),
