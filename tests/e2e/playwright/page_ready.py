@@ -18,13 +18,17 @@ WHAT IS USED INSTEAD, in order:
 1. ``load`` for ordinary callers. Screenshot capture deliberately skips this:
    it starts its hard checks after the main response is committed, because a
    large or stalled subresource graph is not product readiness.
-2. ``body.app-ready`` — the product's OWN hydration signal, added by
+2. The owning shell's hydration signal. Hub global pages use
+   ``body.app-ready``, added by
    ``main.ts initApp()`` and guaranteed within 3 s by the safety-net script
    in ``templates/global_base.html`` even when the Vite bundle fails. This
    is a REAL gate: it raises if the page never becomes ready, which is
    exactly the "photographed an empty shell" failure the capture cares
    about. ``tests/e2e/playwright/conftest.py``'s login fixture already
    waits on this same class for the same reason.
+   SDK standalone pages instead require their direct SDK shell, a visible
+   nonempty module and the actual SDK JavaScript-mounted app header. A missing
+   bundle or an empty shell cannot satisfy that branch.
 3. A short fixed settle, for renders that paint just after hydration.
    Measured 2026-08-16: reading a page mid-hydration produced four false
    "this is broken" reports in one session.
@@ -44,9 +48,17 @@ APP_READY_TIMEOUT_MS = int(os.getenv("SCITEX_E2E_APP_READY_MS", "15000"))
 #: Quiet time after hydration, for anything that paints a beat later.
 SETTLE_MS = int(os.getenv("SCITEX_E2E_SETTLE_MS", "1500"))
 
-APP_READY_JS = (
-    "() => !!(document.body && document.body.classList.contains('app-ready'))"
-)
+APP_READY_JS = """() => {
+    if (document.body?.classList.contains('app-ready')) return true;
+    // SDK standalone owns this direct root, not global_base's lifecycle.
+    const shell = document.querySelector('body > #workspace-three-col');
+    if (!shell) return false;
+    const module = shell.querySelector('.ws-module-pane');
+    const header = shell.querySelector('[data-stx-app-header][data-stx-app-header-mounted]');
+    if (!module || !header || !module.getClientRects().length || !header.getClientRects().length) return false;
+    const content = (module.innerText || '').replace(header.innerText || '', '').trim();
+    return content.length > 0;
+}"""
 
 
 def wait_for_page_ready(
@@ -56,23 +68,19 @@ def wait_for_page_ready(
 
     Args:
         page: the Playwright page.
-        hydration_signal: whether this page emits ``body.app-ready``. Pass
-            ``False`` ONLY for a route whose response does not extend
-            ``templates/global_base.html`` — the class is emitted by that
-            template, so waiting for it on a standalone page waits for
-            something that will never arrive. The caller must name such
-            routes in one declared place (see
-            ``test_capture_screenshots.ROUTES_WITHOUT_GLOBAL_BASE``), never
-            decide per call site, because "this page is different" is how a
-            check quietly becomes optional everywhere.
+        hydration_signal: require the owning Hub or SDK shell's in-band
+            readiness signal. False is reserved for explicitly declared
+            responses with neither shell (for example a restricted placeholder
+            in test_capture_screenshots.ROUTES_WITHOUT_GLOBAL_BASE). Native SDK
+            pages use the default True; they require the mounted header and
+            visible module content rather than skipping readiness.
         wait_for_load: whether to wait for the browser's global ``load`` event.
             Screenshot capture passes ``False`` because it separately requires
             the product hydration signal and checks rendered content and images;
             an unrelated slow subresource must not block those checks.
 
     Raises:
-        playwright TimeoutError: if a global_base page never reaches
-            ``app-ready``. That is a genuine failure — the page did not
+        playwright TimeoutError: if the owning shell never becomes ready. That is a genuine failure — the page did not
             finish booting — and it must stop the capture rather than yield
             a PNG of a loading spinner.
     """

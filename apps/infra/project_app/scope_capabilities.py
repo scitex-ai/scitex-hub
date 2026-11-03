@@ -4,9 +4,8 @@ import re
 from urllib.parse import parse_qsl, urlencode, urlsplit, urlunsplit
 
 from django.conf import settings
-from django.core.exceptions import ImproperlyConfigured
+from django.core.exceptions import ImproperlyConfigured, PermissionDenied
 from scitex_sdk.ui.project_scope import ProjectEntry
-
 
 _APP_PATH = re.compile(r"^/apps/([a-z][a-z0-9-]*)(?:/|$)")
 
@@ -16,6 +15,7 @@ def request_scope_app(request):
     path = getattr(request, "path_info", "")
     if path.startswith("/apps/workspace/"):
         from django.urls import Resolver404, resolve
+
         from apps.infra.workspace_app.registry import get_module
 
         try:
@@ -40,9 +40,9 @@ def scope_policy(request):
         # It does not grant access to an app or authorize resource operations.
         return {"user": True, "project": True}
     from django.apps import apps
+    from django.urls import Resolver404, resolve
     from scitex_sdk.app.embed import ScitexAppConfig
     from scitex_sdk.app.plugins import mount_route
-    from django.urls import Resolver404, resolve
 
     try:
         callback = resolve(f"/apps/{app}/").func
@@ -147,8 +147,16 @@ class ScopeCapabilityProjectProvider:
         return selection
 
     def remember(self, request, project_id):
-        allowed = {p.id for p in self.list_projects(request) if not p.disabled}
-        if project_id not in allowed:
+        entries = self.list_projects(request)
+        selected = next((entry for entry in entries if entry.id == project_id), None)
+        # Legacy SDK callers can resolve a listed disabled ID before reaching
+        # this write boundary. Refuse it as HTTP403, never a server error or
+        # a preference write. Unknown/unauthorized IDs keep their SPI error.
+        if selected is not None and selected.disabled:
+            raise PermissionDenied(
+                selected.disabled_reason or "Project scope unavailable."
+            )
+        if selected is None:
             raise ValueError("project not accessible")
         self.provider.remember(request, project_id)
 
