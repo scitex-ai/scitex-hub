@@ -15,9 +15,7 @@ name: scitex-sdk-ui-lint
 # and scholar/docs/pricing carry !importants their lanes still own.
 # Widen the TARGET list as each lane clears its rows.
 #
-# TEMPORARY PIN: the 108..111 rules live in SDK PR #70 (unmerged), so the
-# gate installs the SDK from that branch ref. The moment #70 is released,
-# replace the ref with `scitex-sdk>=<release>` carrying scitex_sdk.ui._linter.
+# Use the published SDK artifact that provides the enforced drift rules.
 
 on:
   push:
@@ -33,6 +31,10 @@ on:
       - "static/**"
       - "templates/**"
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
 jobs:
   ui-lint:
     runs-on: ubuntu-latest
@@ -42,7 +44,7 @@ jobs:
         with:
           python-version: "3.12"
       - name: Install scitex-sdk (drift-pack rules source)
-        run: pip install "git+https://github.com/scitex-ai/scitex-sdk.git@main"
+        run: pip install "scitex-sdk==0.3.18"
       - name: Lint fixed trees (UI108/109/110/111 enforced)
         run: |
           scitex-sdk ui lint --json apps/workspace/writer_app > ui-violations.jsonl || true
