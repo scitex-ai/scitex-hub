@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 # File: tests/config/test_i18n_landing.py
-"""Japanese landing page: automatic language selection, catalogs, and switcher.
+"""Japanese landing page: explicit language choice, catalogs, and switcher.
 
 WHY THIS FILE EXISTS
 --------------------
@@ -331,14 +331,13 @@ PARTIAL_CASES = [
     (COMMITMENT_TEMPLATE, "科学への私たちの約束", "Our Commitment to Science"),
     (COMMITMENT_TEMPLATE, "研究者お一人おひとりへ", "To Individual Researchers"),
     (COMMITMENT_TEMPLATE, "利益よりも科学を優先します", "Prioritize science over profit"),
-    # Open-source org + research demo section (owner ask 2026-09-27).
-    (OSS_TEMPLATE, "スタック全体がオープンソース", "The whole stack is open source"),
-    (OSS_TEMPLATE, "研究デモ", "Research demo"),
-    (OSS_TEMPLATE, "その他のデモ動画", "More demo videos"),
-    (OSS_TEMPLATE, "40分で見る研究の一連の流れ", "Watch a full research cycle in 40 minutes"),
-    (OSS_TEMPLATE, "フル版デモ——40分で最初から最後まで", "Full-length demo — 40 minutes, end to end."),
-    # App Store forward-looking line in the SDK section (owner ask 2026-09-27).
-    (MODULES_TEMPLATE, "まだ利用できません", "not yet available"),
+    # The redesigned sections keep source repositories separate from the demo.
+    (OSS_TEMPLATE, "すべての層をオープンソースで", "Open source, throughout the stack"),
+    (MODULES_TEMPLATE, "主張から根拠となるデータまでたどる", "Trace claims back to their sources"),
+    (MODULES_TEMPLATE, "順方向に記録し、逆方向に検証する。", "Record Forward. Verify Backward."),
+    (MODULES_TEMPLATE, "デモで、ツールが連携して動作する様子をご覧ください。", "Watch the demo to see the tools working together."),
+    (MODULES_TEMPLATE, "その他のデモ動画", "More demo videos"),
+    (MODULES_TEMPLATE, "AIエージェント + SciTeX®", "AI Agent + SciTeX®"),
 ]
 
 

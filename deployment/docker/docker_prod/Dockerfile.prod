@@ -28,10 +28,10 @@
 # version pin would invalidate SLURM/Apptainer builds too (~10 min wasted).
 # As separate stages, they build in parallel and cache independently.
 #
-# Multi-stage builds: each # Storage's non-apt duplicate engine. Official upstream musl artifact, pinned
-# by version and SHA; do not feed fclones to the apt dependency federation.
-# Storage's non-apt duplicate engine. Official upstream musl artifact, pinned
-# by version and SHA; do not feed fclones to the apt dependency federation.
+# Multi-stage builds each start a fresh cache chain. The final runtime
+# cherry-picks artifacts from each builder via COPY --from=.
+# Storage's official upstream musl artifact is pinned by version and SHA;
+# do not feed fclones to the apt dependency federation.
 FROM alpine:3.22 AS storage-tools-builder
 RUN apk add --no-cache ca-certificates curl \
     && test "$(uname -m)" = x86_64 \
@@ -45,21 +45,6 @@ RUN apk add --no-cache ca-certificates curl \
     && chmod 755 /out/fclones \
     && /out/fclones --version
 
-FROM alpine:3.22 AS storage-tools-builder
-RUN apk add --no-cache ca-certificates curl \
-    && test "$(uname -m)" = x86_64 \
-    && curl --fail --location --retry 3 \
-      https://github.com/pkolaczk/fclones/releases/download/v0.35.0/fclones-0.35.0-linux-musl-x86_64.tar.gz \
-      -o /tmp/fclones.tar.gz \
-    && echo "9eae0466e5b78871cf25822e503ee9efbfa28dc36cc167060c4a4920306389ac  /tmp/fclones.tar.gz" | sha256sum -c - \
-    && tar -xzf /tmp/fclones.tar.gz -C /tmp \
-    && mkdir /out \
-    && cp /tmp/target/x86_64-unknown-linux-musl/release/fclones /out/fclones \
-    && chmod 755 /out/fclones \
-    && /out/fclones --version
-
-FROM starts a fresh cache chain. The final runtime
-# stage cherry-picks artifacts from each builder via COPY --from=.
 
 # ============================================
 # Stage 1: SLURM Client (from source)
@@ -363,7 +348,6 @@ RUN --mount=type=cache,target=/root/.cache/ms-playwright \
 
 FROM python:3.11-slim-bookworm AS runtime
 COPY --from=storage-tools-builder /out/fclones /usr/local/bin/fclones
-COPY --from=storage-tools-builder /out/fclones /usr/local/bin/fclones
 
 LABEL maintainer="ywatanabe@scitex.ai"
 LABEL description="SciTeX Hub - NAS"
@@ -666,7 +650,8 @@ RUN uv pip install --system --no-cache \
     # templates/figrecipe/{workspace,workspace_partial}.html. The previous
     # ==0.34.8 pin predates that surface, so any image built on it can only
     # ever serve the hub fallback. Pin stays exact per this file's convention.
-    "figrecipe==0.36.0" \
+    # 0.44.1 publishes the explicit native SDK project-jail capabilities.
+    "figrecipe==0.44.1" \
     "scitex-io==0.2.3" \
     "scitex-stats==0.2.6" \
     "scitex-plt==0.24.0" \
@@ -703,7 +688,8 @@ RUN uv pip install --system --no-cache \
     # ensure_workspace + manuscript compile produced a 5-page PDF.
     # 2.43.6 (2026-09-17): PDF provenance names the code that ran and both
     # stamp writers share one template.
-    "scitex-writer==2.43.6" \
+    # 2.43.19 is the current qualified public plugin/section implementation.
+    "scitex-writer==2.43.19" \
     # 0.7.1 (2026-09-03): clone_scitex_minimal returns CloneOutcome.failed(reason=...)
     # instead of a bare False, so a failed visitor reset records WHY it failed
     # (prod 2026-08-31: "the template reported NO reason"). Verified against the
@@ -840,7 +826,8 @@ RUN python -c "import scitex.io" && \
 # Authoritative relationship gate. This runs after every runtime-stage install
 # and inspects installed versions, Requires-Dist edges, and import contracts in
 # the environment that is actually shipped.
-RUN python /opt/scitex-image-contract/scripts/deploy/verify_image_dependency_contract.py
+RUN uv pip check --system && \
+    python /opt/scitex-image-contract/scripts/deploy/verify_image_dependency_contract.py
 
 # Back to root — root-init.sh handles UID fixup then drops to scitex
 USER root

@@ -4,8 +4,10 @@
 import importlib.util
 import json
 import os
+import re
 import sys
 import sysconfig
+import tomllib
 from pathlib import Path
 
 import yaml
@@ -18,8 +20,8 @@ DOCKERFILE = REPO / "deployment/docker/docker_prod/Dockerfile.prod"
 ROOT_INIT = REPO / "deployment/docker/common/scripts/root-init.sh"
 IMAGE_RUNTIME = REPO / "deployment/docker/common/scripts/image-runtime.sh"
 VERIFIER = REPO / "scripts/deploy/verify_image_dependency_contract.py"
-IMAGE_SERVICES = ("django", "celery_worker", "celery_worker_vis", "celery_beat")
-WORKER_SERVICES = ("celery_worker", "celery_worker_vis", "celery_beat")
+IMAGE_SERVICES = ("django", "celery_worker", "celery_beat")
+WORKER_SERVICES = ("celery_worker", "celery_beat")
 
 
 def _verifier_module():
@@ -66,20 +68,35 @@ def test_image_only_services_do_not_overlay_verified_site_packages():
 
 def test_image_only_mode_skips_editable_installs():
     text = INSTALLER.read_text()
-    assert 'SCITEX_APPS_PYTHON_MODE' in text
+    assert "SCITEX_APPS_PYTHON_MODE" in text
     assert '"$PYTHON_MODE" == "image-only"' in text
 
 
 def test_actual_runtime_image_runs_relationship_verifier_after_all_installs():
-    text = DOCKERFILE.read_text()
-    verifier_run = "RUN python /opt/scitex-image-contract/scripts/deploy/verify_image_dependency_contract.py"
-    assert verifier_run in text
-    assert text.index(verifier_run) > text.rindex('"crossref-local"')
+    text = DOCKERFILE.read_text().replace("\\\n", " ")
+    runs = list(re.finditer(r"(?m)^RUN\s+[^\n]+", text))
+    verifier = "python /opt/scitex-image-contract/scripts/deploy/verify_image_dependency_contract.py"
+    relationship_checks = [run for run in runs if verifier in run.group()]
+    assert len(relationship_checks) == 1
+    final = relationship_checks[0]
+    assert "uv pip check --system" in final.group()
+    assert all(
+        run.start() < final.start() for run in runs if "uv pip install" in run.group()
+    )
 
 
 def test_verifier_exists_and_cards_floor_is_release_target():
     assert VERIFIER.is_file()
-    assert '"scitex-cards>=0.53.1"' in (REPO / "pyproject.toml").read_text()
+    project = tomllib.loads((REPO / "pyproject.toml").read_text())["project"]
+    for extra in ("all", "dev"):
+        requirements = [
+            Requirement(raw) for raw in project["optional-dependencies"][extra]
+        ]
+        cards = [req for req in requirements if req.name == "scitex-cards"]
+        assert len(cards) == 1
+        assert "web" in cards[0].extras
+        assert cards[0].specifier.contains("0.56.22")
+        assert not cards[0].specifier.contains("0.56.21")
 
 
 def test_verifier_applies_requirements_for_activated_distribution_extras():
@@ -130,7 +147,9 @@ def test_immutable_tree_rejects_symlink_to_writable_external_target(tmp_path):
 
     errors = verifier.immutable_tree_errors(verified, required_uid=os.getuid())
 
-    assert any(str(outside) in error and "group/other-writable" in error for error in errors)
+    assert any(
+        str(outside) in error and "group/other-writable" in error for error in errors
+    )
 
 
 def test_immutable_tree_checks_descendants_of_external_directory_symlink(tmp_path):
@@ -169,15 +188,28 @@ def test_runtime_immutability_checks_python_packages_and_console_scripts(monkeyp
 def test_image_only_runtime_does_not_grant_package_write_access_to_scitex():
     dockerfile = DOCKERFILE.read_text()
     root_init = ROOT_INIT.read_text()
-    verifier = "/opt/scitex-image-contract/scripts/deploy/verify_image_dependency_contract.py"
-
-    assert "COPY --from=python-builder --chown=1000:1000 /usr/local/lib/python3.11/site-packages" not in dockerfile
-    assert "find /usr/local/lib/python3.11/site-packages ! -user scitex" not in dockerfile
-    assert 'if [ "${SCITEX_APPS_PYTHON_MODE:-editable}" = "image-only" ]; then' in root_init
-    assert f"COPY scripts/deploy/verify_image_dependency_contract.py {verifier}" in dockerfile
-    assert dockerfile.index(f"COPY scripts/deploy/verify_image_dependency_contract.py {verifier}") > dockerfile.index(
-        "COPY --chown=scitex:scitex . ."
+    verifier = (
+        "/opt/scitex-image-contract/scripts/deploy/verify_image_dependency_contract.py"
     )
+
+    assert (
+        "COPY --from=python-builder --chown=1000:1000 /usr/local/lib/python3.11/site-packages"
+        not in dockerfile
+    )
+    assert (
+        "find /usr/local/lib/python3.11/site-packages ! -user scitex" not in dockerfile
+    )
+    assert (
+        'if [ "${SCITEX_APPS_PYTHON_MODE:-editable}" = "image-only" ]; then'
+        in root_init
+    )
+    assert (
+        f"COPY scripts/deploy/verify_image_dependency_contract.py {verifier}"
+        in dockerfile
+    )
+    assert dockerfile.index(
+        f"COPY scripts/deploy/verify_image_dependency_contract.py {verifier}"
+    ) > dockerfile.index("COPY --chown=scitex:scitex . .")
     assert f"gosu scitex python {verifier}" in root_init
     assert "python scripts/deploy/verify_image_dependency_contract.py" not in root_init
 
@@ -193,6 +225,8 @@ def test_image_only_workers_verify_then_drop_privileges_before_entrypoint():
     }
 
     launcher = IMAGE_RUNTIME.read_text()
-    verifier = "/opt/scitex-image-contract/scripts/deploy/verify_image_dependency_contract.py"
+    verifier = (
+        "/opt/scitex-image-contract/scripts/deploy/verify_image_dependency_contract.py"
+    )
     assert f"gosu scitex python {verifier}" in launcher
     assert 'exec gosu scitex "$@"' in launcher

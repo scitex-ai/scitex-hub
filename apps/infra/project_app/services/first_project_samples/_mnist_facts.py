@@ -114,7 +114,13 @@ def load_facts(root):
                 )
 
         claims = json.loads(claims_bytes, object_pairs_hook=unique_pairs)
-        provenance = yaml.load(provenance_bytes, Loader=UniqueLoader)
+        # Use the SafeLoader instance directly so the safe constructor boundary
+        # is explicit while retaining duplicate-key rejection at every depth.
+        loader = UniqueLoader(provenance_bytes)
+        try:
+            provenance = loader.get_single_data()
+        finally:
+            loader.dispose()
         if (
             claims["schema"] != "scitex-clew.claims/v1"
             or provenance["schema"] != "scitex-clew.provenance/v1"

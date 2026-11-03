@@ -155,6 +155,7 @@ services:
       - .env
 
     environment:
+      - SCITEX_APPS_PYTHON_MODE=editable
       - SCITEX_HUB_CARDS_DM_STORE_FILE=/run/secrets/scitex-cards-dm-store
       - SCITEX_HUB_DJANGO_SETTINGS_MODULE=config.settings.settings_dev
       - DEBUG=True
@@ -361,6 +362,7 @@ services:
       - .env
 
     environment:
+      - SCITEX_APPS_PYTHON_MODE=editable
       - SCITEX_HUB_DJANGO_SETTINGS_MODULE=config.settings.settings_dev
       - PYTHONUNBUFFERED=1
       - PYTHONDONTWRITEBYTECODE=1
@@ -492,6 +494,7 @@ services:
       - .env
 
     environment:
+      - SCITEX_APPS_PYTHON_MODE=editable
       - SCITEX_HUB_DJANGO_SETTINGS_MODULE=config.settings.settings_dev
       - PYTHONUNBUFFERED=1
       - PYTHONDONTWRITEBYTECODE=1

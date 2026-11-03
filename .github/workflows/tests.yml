@@ -203,6 +203,8 @@ jobs:
           cache-dependency-glob: pyproject.toml
 
       - name: Install dependencies
+        env:
+          UV_PYTHON_INSTALL_DIR: ${{ runner.temp }}/hub-managed-python-${{ github.job }}
         # No silent degradation: these tests need the FULL dependency set
         # (config/__init__ imports celery; pytest-django provides
         # django.setup() at collection). The old `|| .[dev] || .` fallback
@@ -217,7 +219,10 @@ jobs:
         # would never run. uv venv (not bare pip) because the pool's
         # toolcache Python is uv-managed and refuses pip under PEP 668.
         run: |
-          uv venv --python 3.11 .venv
+          # Never select a runner-host Python whose libraries are absent in
+          # this job container. UV owns this fresh, job-scoped runtime.
+          uv venv --managed-python --python 3.11 .venv
+          .venv/bin/python -c "import sysconfig; sysconfig.get_config_vars(); print('managed Python sysconfig OK')"
           echo "$PWD/.venv/bin" >> "$GITHUB_PATH"
           for attempt in 1 2 3; do
             if uv pip install --python .venv/bin/python -e ".[all,dev]"; then
@@ -302,12 +307,17 @@ jobs:
           cache-dependency-glob: pyproject.toml
 
       - name: Install dependencies
+        env:
+          UV_PYTHON_INSTALL_DIR: ${{ runner.temp }}/hub-managed-python-${{ github.job }}
         # Same no-silent-degradation policy as terminal-tests: retry the
         # FULL install and fail loudly rather than run a security gate
         # against a half-installed environment.
         # GITHUB_PATH before the loop — the loop `exit 0`s the step.
         run: |
-          uv venv --python 3.11 .venv
+          # Never select a runner-host Python whose libraries are absent in
+          # this job container. UV owns this fresh, job-scoped runtime.
+          uv venv --managed-python --python 3.11 .venv
+          .venv/bin/python -c "import sysconfig; sysconfig.get_config_vars(); print('managed Python sysconfig OK')"
           echo "$PWD/.venv/bin" >> "$GITHUB_PATH"
           for attempt in 1 2 3; do
             if uv pip install --python .venv/bin/python -e ".[all,dev]"; then

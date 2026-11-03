@@ -38,26 +38,7 @@ class TestVideoCatalogStructure:
 
     def test_og_base_url_is_https(self):
         """OG_BASE_URL should use HTTPS for production."""
-        # Direct import from pages_data (bypassing views/__init__.py)
-        import importlib.util
-
-        spec = importlib.util.spec_from_file_location(
-            "pages_data",
-            os.path.join(
-                os.path.dirname(__file__),
-                "../../../../apps/infra/public_app/views/pages_data.py",
-            ),
-        )
-        # We need to mock the pages_shortcuts import
-        import sys
-
-        sys.modules["apps.infra.public_app.views.pages_shortcuts"] = type(sys)(
-            "pages_shortcuts"
-        )
-        sys.modules[
-            "apps.infra.public_app.views.pages_shortcuts"
-        ].KEYBOARD_SHORTCUTS_DATA = []
-
+        # Parse owning source without replacing global modules.
         # Now manually parse the file to extract OG_BASE_URL
         pages_data_path = os.path.join(
             os.path.dirname(__file__),
@@ -114,8 +95,8 @@ class TestVideoCatalogStructure:
         for pattern in required_patterns:
             assert re.search(pattern, content), f"Missing pattern: {pattern}"
 
-    def test_thumbnails_are_png(self):
-        """Thumbnails should be PNG files."""
+    def test_thumbnails_use_supported_raster_formats(self):
+        """The shipped PNG demos and JPEG Clew poster are web raster images."""
         pages_data_path = os.path.join(
             os.path.dirname(__file__),
             "../../../../apps/infra/public_app/views/pages_data.py",
@@ -129,8 +110,11 @@ class TestVideoCatalogStructure:
 
         # Find all thumbnail definitions that are not None
         thumbnails = re.findall(r'"thumbnail":\s*"([^"]+)"', content)
+        assert thumbnails, "The catalog must contain real poster references"
         for thumb in thumbnails:
-            assert thumb.endswith(".png"), f"Thumbnail should be PNG: {thumb}"
+            assert thumb.endswith(
+                (".png", ".jpg", ".jpeg", ".webp")
+            ), f"Unsupported poster format: {thumb}"
             assert thumb.startswith("/"), f"Thumbnail should be absolute path: {thumb}"
 
 

@@ -61,7 +61,7 @@ import pytest
 from django.conf import settings
 from django.contrib.auth.models import AnonymousUser
 from django.http import HttpResponse
-from django.test import RequestFactory
+from django.test import RequestFactory, override_settings
 
 from apps.infra.project_app.services.working_dir_resolver import (
     WorkingDirScopedView,
@@ -381,8 +381,8 @@ def test_figrecipe_editor_page_anonymous_is_redirected():
 # DELETED: /apps/storage/ is a pure plugin mount behind the
 # manifest-declared login boundary. What the exploit needed — an
 # unauthenticated free-form ``?path=`` scan — no longer exists anywhere on
-# the host path: the leaf index browses volume-keyed directories
-# (``?volume=&dir=``; escapes raise ``OutsideVolume``) and the leaf
+# the host path: Usage scans a server-authorized volume and ignores the
+# retired ``?dir=`` selector; the leaf
 # project-file API takes project-RELATIVE ``?path=`` contained to the
 # project root (absolute reads are denied before any filesystem access).
 #
@@ -421,9 +421,7 @@ def test_storage_project_api_absolute_path_is_denied(tmp_path):
     # to a recursive scan. The leaf project API roots every read at the
     # project dir; an absolute ?path= resolves outside it.
     views = _leaf_storage_views()
-    request = _storage_request(
-        "/apps/storage/api/list", {"path": "/etc"}
-    )
+    request = _storage_request("/apps/storage/api/list", {"path": "/etc"})
     # Act
     with _leaf_project_scope(tmp_path):
         response = views.project_list(request)
@@ -435,9 +433,7 @@ def test_storage_project_api_absolute_path_is_denied(tmp_path):
 def test_storage_project_api_traversal_is_denied(tmp_path):
     # Arrange
     views = _leaf_storage_views()
-    request = _storage_request(
-        "/apps/storage/api/list", {"path": "../../etc"}
-    )
+    request = _storage_request("/apps/storage/api/list", {"path": "../../etc"})
     # Act
     with _leaf_project_scope(tmp_path):
         response = views.project_list(request)
@@ -477,21 +473,39 @@ def test_storage_unknown_volume_is_refused():
     assert response.status_code == 403
 
 
-def test_storage_escaping_dir_is_refused():
-    # Arrange
-    views = _leaf_storage_views()
-    request = _storage_request(
-        "/apps/storage/", {"volume": "workspace", "dir": "../../.."}
-    )
-    # Act
-    from apps.workspace.console_app.models import ComputeIdentity
+def _test_storage_volumes(request):
+    """Use the leaf's normal host-provider setting with owned test volumes."""
+    return request.test_storage_volumes
 
-    manager = mock.Mock()
-    manager.filter.return_value.first.return_value = None
-    with mock.patch.object(ComputeIdentity, "objects", manager):
+
+@pytest.mark.parametrize("directory", ["", "../../..", ATTACKER_DIR])
+def test_storage_usage_never_passes_legacy_dir_to_scanner(tmp_path, directory):
+    # Usage replaced the legacy directory browser. Exercise its real scan
+    # adapter and host-provider port; rendering is outside this DB-free test.
+    import scitex_storage
+    from scitex_storage._django import organize, volumes
+
+    views = _leaf_storage_views()
+    volume = volumes.Volume("workspace", "Workspace", tmp_path, "owned-test")
+    request = _storage_request(
+        "/apps/storage/", {"volume": "workspace", "dir": directory}
+    )
+    request.test_storage_volumes = [volume]
+    with (
+        override_settings(
+            SCITEX_STORAGE_VOLUMES_PROVIDER=f"{__name__}._test_storage_volumes"
+        ),
+        mock.patch.object(scitex_storage, "scan", wraps=scitex_storage.scan) as scan,
+        mock.patch.object(organize, "render", return_value=HttpResponse("rendered")),
+    ):
         response = views.index(request)
-    # Assert
-    assert response.status_code == 403
+    # Both legitimate and hostile legacy input still reach only the actual
+    # authorized-root scanner. Path traversal on the current project API is
+    # tested separately above, including its positive in-jail read.
+    assert (response.status_code, [call.args[0] for call in scan.call_args_list]) == (
+        200,
+        [tmp_path],
+    )
 
 
 def test_storage_anonymous_is_redirected():
@@ -521,9 +535,7 @@ def test_storage_in_jail_browsing_still_lists(tmp_path):
     # leaf index + listing + render are all real.
     views = _leaf_storage_views()
     (tmp_path / "report.csv").write_text("a,b\n")
-    request = _storage_request(
-        "/apps/storage/", {"volume": "workspace", "dir": ""}
-    )
+    request = _storage_request("/apps/storage/", {"volume": "workspace", "dir": ""})
     fake_volumes = [
         {
             "key": "workspace",

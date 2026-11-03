@@ -8,12 +8,48 @@ block. No mocks — real Django test DB + test client. One assertion per test
 (STX-TQ007).
 """
 
+from html.parser import HTMLParser
+from urllib.parse import urlsplit
+
 from django.test import TestCase
 
 from apps.infra.public_app.views.landing import (
     RESEARCH_DEMO_POSTER_URL,
     RESEARCH_DEMO_VIDEO_URL,
 )
+
+
+def _linked_hosts(content):
+    """Inspect actual hyperlink hostnames rather than URL-shaped substrings."""
+
+    class Links(HTMLParser):
+        def __init__(self):
+            super().__init__()
+            self.hosts = set()
+
+        def handle_starttag(self, tag, attrs):
+            if tag == "a":
+                url = urlsplit(dict(attrs).get("href") or "")
+                if url.scheme in {"http", "https"} and url.hostname:
+                    self.hosts.add(url.hostname)
+
+    links = Links()
+    links.feed(content.decode())
+    return links.hosts
+
+
+def test_link_host_inspection_distinguishes_actual_hosts_from_substrings():
+    content = (
+        b'<a href="https://github.com/scitex-ai">GitHub</a>'
+        b'<a href="https://github.com.evil.example/apps.apple.com">Other</a>'
+        b'<a href="https://example.org/?next=https://play.google.com/store">Query</a>'
+        b"<span>https://apps.apple.com</span>"
+    )
+    assert _linked_hosts(content) == {
+        "github.com",
+        "github.com.evil.example",
+        "example.org",
+    }
 
 
 class LandingOpenSourceSectionTest(TestCase):
@@ -184,12 +220,22 @@ class LandingResearchDemoBlockTest(TestCase):
 class LandingAppStoreNoteTest(TestCase):
     """The App Store section notes future native mobile stores as planned."""
 
-    def test_native_mobile_stores_noted_as_planned(self):
+    def test_open_source_section_links_repositories_without_claiming_native_stores(
+        self,
+    ):
         # Arrange: an anonymous visitor
         # Act
         resp = self.client.get("/landing/")
-        # Assert — forward-looking line, not a promise of availability
-        assert b"not yet available" in resp.content
+        section = resp.content.split(b'id="open-source"', 1)[1].split(b"</section>", 1)[
+            0
+        ]
+        # Assert — the current source section promises inspectable repositories.
+        hosts = _linked_hosts(section)
+        assert (
+            "github.com" in hosts,
+            "apps.apple.com" in hosts,
+            "play.google.com" in hosts,
+        ) == (True, False, False)
 
 
 if __name__ == "__main__":

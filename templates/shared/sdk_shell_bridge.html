@@ -1,5 +1,5 @@
 {% extends "scitex_sdk/app/app_shell.html" %}
-{# ---------------------------------------------------------------------------
+{% comment %} ---------------------------------------------------------------------------
  # Hub → SDK shell bridge (card hub-sdk-ui-shell-bridge-20261007).
  #
  # Adapter mapping the Hub leaf block vocabulary onto the SDK shell:
@@ -13,7 +13,7 @@
  # mount context (mount marker, theme boot, picker) comes from the SDK
  # shell; views must merge scitex_sdk.ui.mount.mount_context() +
  # scitex_sdk.ui.branding.shell_context() — see the bridge test.
- # ------------------------------------------------------------------------- #}
+ # ------------------------------------------------------------------------- {% endcomment %}
 {% block app_content %}
 {% block hub_leaf_content %}{% endblock %}
 {% endblock %}

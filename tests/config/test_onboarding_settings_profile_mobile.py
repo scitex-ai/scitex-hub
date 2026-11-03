@@ -35,7 +35,7 @@ from types import SimpleNamespace
 import pytest
 from django.conf import settings
 from django.template import Context, Template
-from django.test import Client, RequestFactory
+from django.test import Client, RequestFactory, override_settings
 from django.urls import reverse
 from django.utils import translation
 
@@ -50,16 +50,20 @@ _WS = re.compile(r"\s+")
 # Words that are the same in both languages: product and service names,
 # protocols, file formats, and example values shown as data.
 _SAME_IN_BOTH = re.compile(
-    r"\b(SciTeX|Minimal|Full|GitHub|GitLab|Gitea|Google|ORCID|HPC|SSH|SSHFS|TRIP|"
+    r"(?<![A-Za-z])(SciTeX|Minimal|Full|GitHub|GitLab|Gitea|Google|ORCID|HPC|SSH|SSHFS|TRIP|"
     r"HTTPS|URL|JSON|YAML|Font Awesome|FA|Git|Writer|Scholar|Code|Viz|App Maker|"
     r"AGPL|GPL|MIT|Apache|BSD|MPL|Proprietary|Clause|TensorBoard|Jupyter|CLI|"
-    r"Cloud|Academic|pip|Python|scitex\.ai|username|OEM)\b"
+    r"Cloud|Academic|pip|Python|scitex\.ai|username|OEM)(?![A-Za-z])"
 )
 _LATIN_WORD = re.compile(r"[A-Za-z]{2,}")
 
-CREATE_CSS = PROJECT_ROOT / "apps/infra/project_app/static/project_app/css/create_mobile.css"
+CREATE_CSS = (
+    PROJECT_ROOT / "apps/infra/project_app/static/project_app/css/create_mobile.css"
+)
 SETTINGS_CSS = PROJECT_ROOT / "static/shared/css/layouts/settings-layout.css"
-PROFILE_CSS = PROJECT_ROOT / "apps/infra/accounts_app/static/accounts_app/css/profile.css"
+PROFILE_CSS = (
+    PROJECT_ROOT / "apps/infra/accounts_app/static/accounts_app/css/profile.css"
+)
 
 
 @pytest.fixture(scope="module", autouse=True)
@@ -77,7 +81,9 @@ def compiled_catalogs():
 @pytest.fixture
 def new_user(django_user_model):
     return django_user_model.objects.create_user(
-        username="first-run-user", email="first-run@example.org", password="x-Pass-12345"
+        username="first-run-user",
+        email="first-run@example.org",
+        password="x-Pass-12345",
     )
 
 
@@ -139,7 +145,9 @@ def _cascade_selected(html):
     """Selected option text per cascade select: {"section": ..., "group": ..., "page": ...}."""
     found = {}
     for match in re.finditer(
-        r'<select[^>]*id="settings-cascade-(section|group|page)"[^>]*>(.*?)</select>', html, re.S
+        r'<select[^>]*id="settings-cascade-(section|group|page)"[^>]*>(.*?)</select>',
+        html,
+        re.S,
     ):
         options = re.findall(r"<option[^>]*>(.*?)</option>", match.group(2), re.S)
         selected = re.findall(
@@ -168,7 +176,9 @@ def test_new_project_offers_a_compact_type_picker_under_english(signed_in_client
     # Act
     html = _get(signed_in_client, path, "en")
     # Assert
-    assert re.search(r'<select[^>]*id="create-type-select"', html), "no phone type picker"
+    assert re.search(
+        r'<select[^>]*id="create-type-select"', html
+    ), "no phone type picker"
 
 
 @pytest.mark.django_db
@@ -178,7 +188,9 @@ def test_new_project_type_picker_label_under_japanese(signed_in_client):
     # Act
     html = _get(signed_in_client, path, "ja")
     # Assert
-    assert re.search(r'<label[^>]*for="create-type-select"[^>]*>\s*プロジェクトの種類', html)
+    assert re.search(
+        r'<label[^>]*for="create-type-select"[^>]*>\s*プロジェクトの種類', html
+    )
 
 
 @pytest.mark.django_db
@@ -207,16 +219,22 @@ def test_new_project_css_stacks_to_one_full_width_column_on_phones():
     # Act
     phone = re.search(r"@media \(max-width: 768px\) \{(.*?)\n\}", css, re.S)
     # Assert
-    assert phone and re.search(
-        r"\.create-two-col\s*\{[^}]*flex-direction:\s*column", phone.group(1)
-    ) and re.search(r"min-height:\s*44px", phone.group(1)), "no phone single-column rule"
+    assert (
+        phone
+        and re.search(
+            r"\.create-two-col\s*\{[^}]*flex-direction:\s*column", phone.group(1)
+        )
+        and re.search(r"min-height:\s*44px", phone.group(1))
+    ), "no phone single-column rule"
 
 
 # ---------------------------------------------------------------------------
 # D7 -- settings content first on a phone
 # ---------------------------------------------------------------------------
 @pytest.mark.django_db
-def test_settings_cascade_selects_section_group_and_page_under_english(signed_in_client):
+def test_settings_cascade_selects_section_group_and_page_under_english(
+    signed_in_client,
+):
     # Arrange
     path = reverse("accounts_app:ssh_keys")
     # Act
@@ -234,7 +252,9 @@ def test_settings_cascade_selects_section_group_and_page_under_english(signed_in
 
 
 @pytest.mark.django_db
-def test_settings_cascade_selects_section_group_and_page_under_japanese(signed_in_client):
+def test_settings_cascade_selects_section_group_and_page_under_japanese(
+    signed_in_client,
+):
     # Arrange
     path = reverse("accounts_app:ssh_keys")
     # Act
@@ -255,7 +275,9 @@ def test_settings_cascade_has_no_accordion_duplication(signed_in_client):
     # Assert -- the phone disclosure is gone and the sidebar tree renders once.
     assert "settings-nav-compact" not in html
     assert "<details" not in _region(html, r'<aside class="settings-nav">', "</aside>")
-    assert len(re.findall(r'class="settings-nav-section"', html)) == 6, html.count("settings-nav-section")
+    assert len(re.findall(r'class="settings-nav-section"', html)) == 6, html.count(
+        "settings-nav-section"
+    )
 
 
 def test_settings_css_hides_the_full_nav_list_on_phones():
@@ -292,12 +314,16 @@ def test_profile_shows_the_email_value(signed_in_client):
     html = _get(signed_in_client, path, "en")
     # Assert
     assert re.search(
-        r'data-profile-field="email".*?<div class="profile-value">\s*first-run@example.org', html, re.S
+        r'data-profile-field="email".*?<div class="profile-value">\s*first-run@example.org',
+        html,
+        re.S,
     )
 
 
 @pytest.mark.django_db
-def test_profile_hides_the_email_row_when_there_is_no_email(signed_in_client_without_email):
+def test_profile_hides_the_email_row_when_there_is_no_email(
+    signed_in_client_without_email,
+):
     # Arrange
     path = reverse("accounts_app:profile")
     # Act
@@ -312,7 +338,9 @@ def test_profile_heading_colour_comes_from_a_theme_token():
     # Act
     rule = re.search(r"\.profile-header h1\s*\{([^}]*)\}", css)
     # Assert
-    assert rule and re.search(r"color:\s*var\(--text-primary\)", rule.group(1)), "heading colour not tokenised"
+    assert rule and re.search(
+        r"color:\s*var\(--text-primary\)", rule.group(1)
+    ), "heading colour not tokenised"
 
 
 def test_profile_banner_background_is_not_the_fixed_light_blue():
@@ -321,7 +349,9 @@ def test_profile_banner_background_is_not_the_fixed_light_blue():
     # Act
     rule = re.search(r"\.profile-header\s*\{([^}]*)\}", css)
     # Assert
-    assert rule and "--scitex-color-07" not in rule.group(1), rule.group(1) if rule else css
+    assert rule and "--scitex-color-07" not in rule.group(1), (
+        rule.group(1) if rule else css
+    )
 
 
 # ---------------------------------------------------------------------------
@@ -337,7 +367,11 @@ def test_signin_form_under_japanese_has_no_english():
     # Act
     text = _visible_text(_auth_form(_get(Client(), path, "ja")))
     # Assert
-    assert "Username or Email" in english and _JAPANESE.search(text) and not _english_words(text), _english_words(text)
+    assert (
+        "Username or Email" in english
+        and _JAPANESE.search(text)
+        and not _english_words(text)
+    ), _english_words(text)
 
 
 @pytest.mark.django_db
@@ -349,8 +383,10 @@ def test_signup_form_under_japanese_has_no_english():
     text = _visible_text(_auth_form(_get(Client(), path, "ja")))
     # Assert
     assert (
-        "Create Account" in english and "Terms of Use" in english
-        and _JAPANESE.search(text) and not _english_words(text)
+        "Create Account" in english
+        and "Terms of Use" in english
+        and _JAPANESE.search(text)
+        and not _english_words(text)
     ), _english_words(text)
 
 
@@ -362,7 +398,11 @@ def test_new_project_page_under_japanese_has_no_english(signed_in_client):
     # Act
     text = _visible_text(_create_page(_get(signed_in_client, path, "ja")))
     # Assert
-    assert "Create new project" in english and _JAPANESE.search(text) and not _english_words(text), _english_words(text)
+    assert (
+        "Create new project" in english
+        and _JAPANESE.search(text)
+        and not _english_words(text)
+    ), _english_words(text)
 
 
 @pytest.mark.django_db
@@ -374,7 +414,11 @@ def test_profile_page_under_japanese_has_no_english(signed_in_client):
     page = _visible_text(_profile_page(_get(signed_in_client, path, "ja")))
     text = page.replace("first-run@example.org", " ").replace("first-run-user", " ")
     # Assert
-    assert "Profile Information" in english and _JAPANESE.search(text) and not _english_words(text), _english_words(text)
+    assert (
+        "Profile Information" in english
+        and _JAPANESE.search(text)
+        and not _english_words(text)
+    ), _english_words(text)
 
 
 # ---------------------------------------------------------------------------
@@ -387,12 +431,21 @@ def test_profile_settings_fetches_cities_from_the_shared_static_path(signed_in_c
     # Act
     html = _get(signed_in_client, path, "en")
     # Assert
-    assert "/static/shared/data/cities_timezones.json" in html and "/static/data/cities_timezones.json" not in html
+    assert (
+        "/static/shared/data/cities_timezones.json" in html
+        and "/static/data/cities_timezones.json" not in html
+    )
 
 
 @pytest.mark.parametrize(
     "path",
-    ["/accounts/profile/", "/accounts/settings/ssh-keys/", "/new/", "/console/", "/apps/workspace/console/"],
+    [
+        "/accounts/profile/",
+        "/accounts/settings/ssh-keys/",
+        "/new/",
+        "/console/",
+        "/apps/workspace/console/",
+    ],
 )
 def test_non_project_pages_do_not_name_the_last_project_in_the_tab(path):
     # Arrange -- the same context on a project app DOES name the project, so
@@ -402,7 +455,10 @@ def test_non_project_pages_do_not_name_the_last_project_in_the_tab(path):
     # Act
     title = _title_for(path, current_project=last_project)
     # Assert
-    assert "dotfiles" in project_app_title and "dotfiles" not in title, (project_app_title, title)
+    assert "dotfiles" in project_app_title and "dotfiles" not in title, (
+        project_app_title,
+        title,
+    )
 
 
 @pytest.mark.parametrize(
@@ -414,10 +470,22 @@ def test_non_project_pages_do_not_name_the_last_project_in_the_tab(path):
         ("/apps/workspace/console/", "Console"),
     ],
 )
-def test_non_project_pages_name_themselves_in_the_tab(path, label):
+@pytest.mark.parametrize(
+    ("environment", "suffix"), [("production", ""), ("development", " (dev)")]
+)
+def test_non_project_pages_name_themselves_in_the_tab(path, label, environment, suffix):
     # Arrange
     last_project = SimpleNamespace(name="dotfiles", slug="dotfiles")
     # Act
-    title = _title_for(path, current_project=last_project)
+    with override_settings(SCITEX_ENV=environment):
+        title = _title_for(path, current_project=last_project)
     # Assert
-    assert title.startswith(label + " — SciTeX"), title
+    assert title == label + suffix, title
+
+
+def test_japanese_particles_do_not_turn_product_names_into_untranslated_prose():
+    assert _english_words("SciTeX Cloud Academicの料金") == []
+
+
+def test_product_names_do_not_hide_untranslated_billing_prose():
+    assert _english_words("SciTeX Cloud Academic pricing") == ["pricing"]

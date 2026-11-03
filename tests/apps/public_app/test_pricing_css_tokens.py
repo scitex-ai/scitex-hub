@@ -68,6 +68,8 @@ def _defined_tokens() -> set[str]:
 
     for css in LANDING_CSS_DIR.glob("*.css"):
         scan(css)
+    # This parent stylesheet is explicitly loaded by public_app/landing.html.
+    scan(LANDING_CSS_DIR.parent / "landing-reference-v2.css")
     scan(PRIMITIVES)
     # bootstrap-override layout/typography can define layout tokens
     override_dir = PROJECT_ROOT / "static" / "shared" / "css" / "base" / "bootstrap-override"
@@ -140,3 +142,13 @@ def test_pricing_grid_anchors_cta_and_equalizes_rows() -> None:
     assert "display: flex" in card and "flex-direction: column" in card, (
         ".pricing-card must be a flex column for the CTA anchor to work"
     )
+
+
+def test_parent_landing_token_stylesheet_is_in_the_actual_entry_template():
+    # Arrange
+    template = PROJECT_ROOT / "apps/infra/public_app/templates/public_app/landing.html"
+    parent = LANDING_CSS_DIR.parent / "landing-reference-v2.css"
+    # Act
+    entry = template.read_text(encoding="utf-8")
+    # Assert
+    assert parent.is_file() and "{% app_static 'public_app/css/landing-reference-v2.css' %}" in entry

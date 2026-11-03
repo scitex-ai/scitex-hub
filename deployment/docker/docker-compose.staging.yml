@@ -24,7 +24,7 @@ services:
       args:
         BUILDKIT_INLINE_CACHE: 1
         SCITEX_HUB_DEPENDENCY_RESOLUTION: ${SCITEX_HUB_DEPENDENCY_RESOLUTION:?set by protected rebuild}
-    image: scitex-hub-staging-django:latest
+    image: ${SCITEX_HUB_RESOLVED_APP_IMAGE:-scitex-hub-staging-django:latest}
     # tini FIRST — an `entrypoint:` override REPLACES the image's ENTRYPOINT
     # wholesale, silently dropping the tini Dockerfile.prod installs as PID 1.
     # Measured on the running container 2026-08-03: PID 1 was `daphne`.
@@ -74,6 +74,7 @@ services:
     env_file:
       - ./envs/.env.staging
     environment:
+      SCITEX_APPS_PYTHON_MODE: ${SCITEX_HUB_RESOLVED_PYTHON_MODE:-editable}
       DJANGO_SETTINGS_MODULE: config.settings.settings_staging
       SCITEX_HUB_DJANGO_SETTINGS_MODULE: config.settings.settings_staging
       SCITEX_HUB_ENV: staging
@@ -150,7 +151,7 @@ services:
   # Celery Worker (Staging)
   # ============================================
   celery_worker:
-    image: scitex-hub-staging-django:latest
+    image: ${SCITEX_HUB_RESOLVED_APP_IMAGE:-scitex-hub-staging-django:latest}
     # tini FIRST — see the django service above. Measured 2026-08-03: PID 1 was
     # `celery`, while the equivalent PROD worker correctly ran tini.
     entrypoint: ["/usr/bin/tini", "--", "/entrypoint.sh"]
@@ -202,6 +203,7 @@ services:
     env_file:
       - ./envs/.env.staging
     environment:
+      SCITEX_APPS_PYTHON_MODE: ${SCITEX_HUB_RESOLVED_PYTHON_MODE:-editable}
       DJANGO_SETTINGS_MODULE: config.settings.settings_staging
       SCITEX_HUB_DJANGO_SETTINGS_MODULE: config.settings.settings_staging
       SCITEX_HUB_ENV: staging
@@ -246,7 +248,7 @@ services:
   # Celery Beat (Staging)
   # ============================================
   celery_beat:
-    image: scitex-hub-staging-django:latest
+    image: ${SCITEX_HUB_RESOLVED_APP_IMAGE:-scitex-hub-staging-django:latest}
     # tini FIRST — see the django service above. Measured 2026-08-03: PID 1 was
     # `celery`, while the equivalent PROD beat correctly ran tini.
     entrypoint: ["/usr/bin/tini", "--", "/entrypoint.sh"]
@@ -259,6 +261,7 @@ services:
     env_file:
       - ./envs/.env.staging
     environment:
+      SCITEX_APPS_PYTHON_MODE: ${SCITEX_HUB_RESOLVED_PYTHON_MODE:-editable}
       DJANGO_SETTINGS_MODULE: config.settings.settings_staging
       SCITEX_HUB_DJANGO_SETTINGS_MODULE: config.settings.settings_staging
       SCITEX_HUB_ENV: staging
