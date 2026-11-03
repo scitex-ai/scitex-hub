@@ -12,7 +12,6 @@
   "license": "AGPL-3.0",
   "keyboard_shortcut": "J",
   "order": 30,
-  "accent_color": "journal",
   "body_class": "journal-page",
   "builtin": true,
   "renders_ui": false,
