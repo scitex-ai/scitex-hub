@@ -6,13 +6,14 @@ Dry-run is the default. --apply adds missing fixture rows, never updates rows.
 SCITEX_STORE_DSN must explicitly name the authorized store. Use the normal
 human CLI credential/pgpass; never borrow a web reader or native agent identity.
 """
+
 from __future__ import annotations
 
 import argparse
-import pwd
 import hashlib
 import json
 import os
+import pwd
 from pathlib import Path
 
 MARKER = "scitex-mnist-board-showcase-20261103"
@@ -30,13 +31,25 @@ ROWS = (
 
 
 def fixture_rows(owner: str) -> list[dict]:
-    return [dict(
-        id=f"demo-mnist-showcase-20261103-{key}", title=title, status=status,
-        kind="status", project=f"{owner}/example-project-mnist", scope=MARKER,
-        created_by=owner, assignee=owner, agent=owner, note=NOTE,
-        blocker=blocker, collaborators=[], subscribers=[],
-        notify={"events": {"created": []}, "mute": [owner]},
-    ) for key, title, status, blocker in ROWS]
+    return [
+        {
+            "id": f"demo-mnist-showcase-20261103-{key}",
+            "title": title,
+            "status": status,
+            "kind": "status",
+            "project": f"{owner}/example-project-mnist",
+            "scope": MARKER,
+            "created_by": owner,
+            "assignee": owner,
+            "agent": owner,
+            "note": NOTE,
+            "blocker": blocker,
+            "collaborators": [],
+            "subscribers": [],
+            "notify": {"events": {"created": []}, "mute": [owner]},
+        }
+        for key, title, status, blocker in ROWS
+    ]
 
 
 def signature(row: dict, expected: dict) -> bool:
@@ -49,7 +62,9 @@ def main() -> int:
     action.add_argument("--apply", action="store_true")
     action.add_argument("--cleanup", action="store_true")
     parser.add_argument("--receipt", type=Path)
-    parser.add_argument("--seed-receipt", type=Path, help="original apply receipt required for cleanup")
+    parser.add_argument(
+        "--seed-receipt", type=Path, help="original apply receipt required for cleanup"
+    )
     args = parser.parse_args()
     store = os.environ.get("SCITEX_STORE_DSN", "")
     if not store:
@@ -58,6 +73,7 @@ def main() -> int:
     # Direct read-only SQL is only a health/target attestation; all mutations
     # below go through public Cards functions with their normal validators.
     import psycopg
+
     with psycopg.connect(store, connect_timeout=10) as connection:
         connection.execute("SET TRANSACTION READ ONLY")
         database, role, readonly = connection.execute(
@@ -89,12 +105,19 @@ def main() -> int:
         existing[row["id"]] = actual
     result = {
         "backend_health": {"database": database, "role": role, "read_only": readonly},
-        "fixture": MARKER, "project": plans[0]["project"],
-        "human_owner": owner, "mode": "cleanup" if args.cleanup else "apply" if args.apply else "dry-run",
-        "fixture_ids": [r["id"] for r in plans], "created": [], "existing": sorted(existing),
-        "external_dispatch_handlers": 0, "created_notification_recipients": 0,
-        "runnable_fixture_rows": 0, "removed": [],
-        "cards_module": str(Path(cards.__file__).resolve()), "cards_version": cards.__version__,
+        "fixture": MARKER,
+        "project": plans[0]["project"],
+        "human_owner": owner,
+        "mode": "cleanup" if args.cleanup else "apply" if args.apply else "dry-run",
+        "fixture_ids": [r["id"] for r in plans],
+        "created": [],
+        "existing": sorted(existing),
+        "external_dispatch_handlers": 0,
+        "created_notification_recipients": 0,
+        "runnable_fixture_rows": 0,
+        "removed": [],
+        "cards_module": str(Path(cards.__file__).resolve()),
+        "cards_version": cards.__version__,
         "note": "kind=status is descriptive; non-runnable states/blockers are checked separately. Builtin notifications are muted separately from external plugin dispatch.",
     }
     if args.cleanup:
@@ -104,13 +127,21 @@ def main() -> int:
         if original.get("fixture") != MARKER or original.get("human_owner") != owner:
             raise ValueError("cleanup receipt identity differs")
         for key, row in existing.items():
-            digest = hashlib.sha256(json.dumps(row, sort_keys=True, default=str).encode()).hexdigest()
+            digest = hashlib.sha256(
+                json.dumps(row, sort_keys=True, default=str).encode()
+            ).hexdigest()
             if original.get("persisted_fixture_row_sha256", {}).get(key) != digest:
-                raise RuntimeError("a fixture was changed since creation; cleanup refused")
+                raise RuntimeError(
+                    "a fixture was changed since creation; cleanup refused"
+                )
         all_rows = cards.list_tasks(store=store, scope="")
         fixture_ids = set(result["fixture_ids"])
         for row in all_rows:
-            refs = set(row.get("depends_on") or ()) | set(row.get("blocks") or ()) | {row.get("parent")}
+            refs = (
+                set(row.get("depends_on") or ())
+                | set(row.get("blocks") or ())
+                | {row.get("parent")}
+            )
             if row.get("id") not in fixture_ids and refs & fixture_ids:
                 raise RuntimeError("other tasks refer to fixture rows; cleanup refused")
         for row in plans:
@@ -126,10 +157,19 @@ def main() -> int:
                 raise RuntimeError("saved fixture differs from plan")
             result["created"].append(row["id"])
         actual = [cards.get_task(store=store, task_id=row["id"]) for row in plans]
-        if runnable_tasks(actual).tasks or any(resolve_recipients({"type": "created"}, row, store=store) for row in actual):
+        if runnable_tasks(actual).tasks or any(
+            resolve_recipients({"type": "created"}, row, store=store) for row in actual
+        ):
             raise RuntimeError("persisted fixture violated admission controls")
-        result["persisted_fixture_row_sha256"] = {row["id"]: hashlib.sha256(json.dumps(row, sort_keys=True, default=str).encode()).hexdigest() for row in actual}
-        result["persisted_fixture_sha256"] = hashlib.sha256(json.dumps(actual, sort_keys=True, default=str).encode()).hexdigest()
+        result["persisted_fixture_row_sha256"] = {
+            row["id"]: hashlib.sha256(
+                json.dumps(row, sort_keys=True, default=str).encode()
+            ).hexdigest()
+            for row in actual
+        }
+        result["persisted_fixture_sha256"] = hashlib.sha256(
+            json.dumps(actual, sort_keys=True, default=str).encode()
+        ).hexdigest()
     if args.receipt:
         args.receipt.parent.mkdir(parents=True, exist_ok=True)
         fd = os.open(args.receipt, os.O_WRONLY | os.O_CREAT | os.O_TRUNC, 0o600)
@@ -146,4 +186,4 @@ if __name__ == "__main__":
     except Exception as exc:
         # Store errors can contain a connection string. Keep values private.
         print(json.dumps({"pass": False, "error_type": type(exc).__name__}))
-        raise SystemExit(1)
+        raise SystemExit(1) from None
