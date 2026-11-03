@@ -391,7 +391,7 @@ def test_concurrent_case_variant_signup_requests_are_uniform_and_create_one_iden
     OTP "usable" merely because is_verified was False. Each of those made the test
     weaker than its own name. Now it asserts:
 
-      * four variants, released simultaneously from a threading.Barrier;
+      * four variants, released simultaneously and classified before any insert;
       * uniform STATUS, LOCATION and MESSAGES across all four callers;
       * exactly one User, one PendingSignup marker, one delivery side effect;
       * and the surviving OTP is genuinely USABLE — unexpired, zero failed
@@ -407,6 +407,20 @@ def test_concurrent_case_variant_signup_requests_are_uniform_and_create_one_iden
         ("rAcEuSeR", "race@example.com"),
     ]
     barrier = threading.Barrier(len(variants))
+    classified = threading.Barrier(len(variants), timeout=15)
+    real_classify = ps.classify_and_reclaim
+
+    def classify_before_concurrent_inserts(email, username):
+        # A barrier before Client.post does not guarantee concurrent INSERTs:
+        # a late caller can legitimately see PENDING_LIVE and request a resend.
+        # Exercise the insert race deterministically after every real database
+        # classification has observed the initially unclaimed identity.
+        result = real_classify(email, username)
+        assert result == (ps.SignupCollision.NONE, None)
+        classified.wait()
+        return result
+
+    monkeypatch.setattr(ps, "classify_and_reclaim", classify_before_concurrent_inserts)
     sent: list[dict] = []
     responses: list[tuple[int, str]] = []
     recorded: dict[int, list] = {}
