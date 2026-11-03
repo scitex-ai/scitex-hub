@@ -3,7 +3,7 @@ import { defineConfig, Plugin } from "vite";
 import { resolve } from "path";
 import * as path from "path";
 import * as fs from "fs";
-import { execSync } from "child_process";
+import { execSync, execFileSync } from "child_process";
 import { createRequire } from "module";
 import { getEntryPoints } from "./vite.entries";
 
@@ -43,7 +43,7 @@ function discoverScitexUiStatic(): string | null {
 const SCITEX_UI_STATIC = discoverScitexUiStatic();
 
 /**
- * Discover the scitex-sdk npm package root (sibling checkout file layout).
+ * Discover the scitex-sdk npm exports in checkouts or the installed wheel.
  * Same pattern as discoverScitexUiStatic — supports a Docker/CI `.apps/`
  * layout, the standard sibling checkout, and an explicit env override.
  */
@@ -59,6 +59,18 @@ function discoverScitexSdkRoot(): string | null {
   ];
   for (const candidate of candidates) {
     if (fs.existsSync(resolve(candidate, "package.json"))) return candidate;
+  }
+  // Production installs the SDK wheel; a sibling checkout is optional.
+  // Read the installed provider's own npm exports, just as for editable roots.
+  try {
+    const installed = execFileSync("python3", ["-c",
+      "from importlib.util import find_spec; from pathlib import Path; s=find_spec('scitex_sdk'); print(Path(s.origin).parent if s and s.origin else '')",
+    ], { encoding: "utf-8", timeout: 5000 }).trim();
+    if (installed && fs.existsSync(resolve(installed, "package.json"))) {
+      return installed;
+    }
+  } catch {
+    // A missing provider is reported by the normal unresolved-import build gate.
   }
   return null;
 }
