@@ -297,6 +297,19 @@ def test_duplicate_input_keys_are_not_silently_reinterpreted(project, member, co
         plan_mnist_writer_demo(project)
 
 
+@pytest.mark.parametrize("tag", ["!!python/object/apply:os.system", "!!python/object/new:os.system"])
+def test_python_yaml_constructors_are_refused_without_execution(project, tmp_path, tag):
+    marker = tmp_path / "must-not-exist"
+    (project / "provenance.yaml").write_text(f"{tag} ['touch {marker}']\n")
+    before = snapshot(project)
+    try:
+        with pytest.raises(DemoSeedRefused, match="malformed"):
+            plan_mnist_writer_demo(project)
+    finally:
+        assert not marker.exists()
+        assert snapshot(project) == before
+
+
 def test_malformed_yaml_fails_with_typed_refusal(project):
     (project / "provenance.yaml").write_text("schema: [unterminated")
     with pytest.raises(DemoSeedRefused, match="malformed"):
