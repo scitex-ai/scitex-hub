@@ -31,7 +31,8 @@ run; it must never carry real user data.
 
 That guarantee is enforced twice: ``screenshot_test_page`` proves the
 synthetic account at setup, and every page below re-reads
-``body[data-session-role]`` after navigating. A logged-out response also
+``body[data-session-role]`` on Hub pages, or the same-cookie warm-up route
+for declared SDK standalone pages. A logged-out response also
 returns 200 and renders text, so HTTP status and non-blank checks alone do
 not prove the artifact is exercising the authenticated product.
 
@@ -40,6 +41,10 @@ fixture, so a long page is captured whole rather than cropped at the fold.
 """
 
 from __future__ import annotations
+
+import os
+from importlib.metadata import version
+from urllib.parse import urlparse
 
 import pytest
 
@@ -66,7 +71,8 @@ from tests.e2e.playwright.session_role_check import (
 )
 
 # Routes whose response does NOT extend templates/global_base.html, and so
-# carry neither `body.app-ready` nor `body[data-session-role]`.
+# carry neither `body.app-ready` nor `body[data-session-role]`. SDK pages
+# prove their own mounted-header readiness instead of the global body class.
 #
 # /apps/cards/ stays listed: for non-audience users it answers 403 with the
 # generic restricted placeholder (templates/plugin_apps/restricted.html),
@@ -79,7 +85,15 @@ from tests.e2e.playwright.session_role_check import (
 # after the page has been visited in the same context (see
 # test_page_uses_synthetic_registered_account). A route added here still has to
 # prove the session; it just proves it one navigation later.
-ROUTES_WITHOUT_GLOBAL_BASE = frozenset({"/apps/cards/"})
+SDK_STANDALONE_PAGES = {
+    # Both published leaf templates explicitly extend SDK standalone_shell.
+    "/apps/writer/": ("scitex-writer", ".writer-app"),
+    "/apps/scholar/": ("scitex-scholar", "[data-scholar-root]"),
+}
+ROUTES_WITHOUT_GLOBAL_BASE = frozenset({"/apps/cards/", *SDK_STANDALONE_PAGES})
+# Writer and Scholar own SDK standalone shells and must prove JavaScript
+# readiness. Only the restricted bare placeholder has no hydration lifecycle.
+ROUTES_WITHOUT_HYDRATION = frozenset({"/apps/cards/"})
 
 # (route, slug, what a human would call it)
 #
@@ -183,7 +197,7 @@ def measured_content(screenshot_test_page, content_report):
             navigate_product_page(page, route)
             wait_for_page_ready(
                 page,
-                hydration_signal=route not in ROUTES_WITHOUT_GLOBAL_BASE,
+                hydration_signal=route not in ROUTES_WITHOUT_HYDRATION,
                 wait_for_load=False,
             )
             page.evaluate(FORCE_LIGHT)
@@ -233,10 +247,21 @@ class TestProductScreenshots:
         # Arrange
         page = screenshot_test_page
         carries_marker = route not in ROUTES_WITHOUT_GLOBAL_BASE
-        navigate_product_page(page, route)
+        response = navigate_product_page(page, route)
+        assert response is not None and response.status == 200
         wait_for_page_ready(
-            page, hydration_signal=carries_marker, wait_for_load=False
+            page,
+            hydration_signal=route not in ROUTES_WITHOUT_HYDRATION,
+            wait_for_load=False,
         )
+        if route in SDK_STANDALONE_PAGES:
+            package, leaf_root = SDK_STANDALONE_PAGES[route]
+            assert urlparse(page.url).path == route
+            assert page.locator("body > #workspace-three-col").count() == 1
+            assert page.locator(leaf_root).count() == 1
+            header = page.locator("[data-stx-app-header][data-stx-app-header-mounted]")
+            assert header.count() == 1
+            assert header.get_attribute("data-app-version") == version(package)
         if not carries_marker:
             navigate_product_page(page, AUTHENTICATED_WARMUP_ROUTE)
             wait_for_page_ready(page, wait_for_load=False)
@@ -246,6 +271,9 @@ class TestProductScreenshots:
 
         # Assert
         assert role == REQUIRED_ROLE, wrong_role_message(role, f"{title} ({route})")
+        assert page.locator("body").get_attribute("data-current-username") == (
+            os.getenv("SCITEX_E2E_TEST_USER", "test-user")
+        ), "The same browser session must still belong to the synthetic account"
 
     def test_page_renders_and_is_captured(
         self, screenshot_test_page, screenshot, route, slug, title
@@ -263,7 +291,7 @@ class TestProductScreenshots:
         # 31955719803: 30s timeout, 33 errors, nothing actually broken).
         wait_for_page_ready(
             page,
-            hydration_signal=route not in ROUTES_WITHOUT_GLOBAL_BASE,
+            hydration_signal=route not in ROUTES_WITHOUT_HYDRATION,
             wait_for_load=False,
         )
         page.evaluate(FORCE_LIGHT)
