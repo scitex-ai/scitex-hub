@@ -90,10 +90,12 @@ resolve_compose_env() {
     esac
     export SCITEX_HUB_RESOLVED_APP_IMAGE
     SCITEX_HUB_RESOLVED_PYTHON_MODE=editable
+    SCITEX_HUB_RESOLVED_FRONTEND_MODE=build
     if [ "$env" = prod ] || [ "${SCITEX_HUB_APP_IMAGE+x}" = x ]; then
         SCITEX_HUB_RESOLVED_PYTHON_MODE=image-only
+        SCITEX_HUB_RESOLVED_FRONTEND_MODE=baked
     fi
-    export SCITEX_HUB_RESOLVED_PYTHON_MODE
+    export SCITEX_HUB_RESOLVED_PYTHON_MODE SCITEX_HUB_RESOLVED_FRONTEND_MODE
 
     if [ ! -d "$DOCKER_DIR" ]; then
         echo "resolve_compose_env: docker directory not found: $DOCKER_DIR" >&2

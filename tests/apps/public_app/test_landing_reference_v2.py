@@ -117,9 +117,9 @@ def test_hero_keeps_real_entry_contracts_without_stock_photography():
 
 
 def test_v2_connects_app_previews_to_the_toolkit_workflow():
-    source = (_text(MODULES) + _text(GALLERY))
+    source = _text(MODULES) + _text(GALLERY)
     expected = (
-        "Actual SciTeX® Cloud Screenshots",
+        "Screenshots of SciTeX® Cloud",
         "AI Agent + SciTeX®",
         *BUILT_IN_APPS,
         "MCP tools",
@@ -129,22 +129,22 @@ def test_v2_connects_app_previews_to_the_toolkit_workflow():
 
 
 def test_v2_uses_real_product_captures_and_clew_dag_with_provenance():
-    source = (_text(MODULES) + _text(GALLERY))
+    source = _text(MODULES) + _text(GALLERY)
     provenance = _text(ASSETS / "PROVENANCE.md")
     assert all(
         marker in source
         for marker in (
             "scholar-20261102-1200.webp",
-            "figrecipe-20261102-1200.webp",
+            "figrecipe-20261103-scene-1200.webp",
             "writer-20261102-1200.webp",
             "stats-20261102-1200.webp",
             "live-paper-20261102-1200.webp",
             "clew-dag-640.webp",
-            "Claim",
-            "Output",
-            "Processing",
-            "Raw data",
-            "https://github.com/scitex-ai/scitex-clew",
+            "Forward",
+            "Backward",
+            "Source data → inputs–executable–outputs steps",
+            "Claims → outputs–executable–inputs steps → source data",
+            "https://scitex.ai/ywatanabe/paper-scitex-clew/",
         )
     )
     assert all(
@@ -164,8 +164,8 @@ def test_v2_uses_real_product_captures_and_clew_dag_with_provenance():
     )
 
 
-def test_carousel_markup_is_semantic_manual_and_lazy():
-    source = (_text(MODULES) + _text(GALLERY))
+def test_carousel_markup_keeps_manual_controls_and_quiet_automatic_updates():
+    source = _text(MODULES) + _text(GALLERY)
     assert all(
         marker in source
         for marker in (
@@ -174,7 +174,8 @@ def test_carousel_markup_is_semantic_manual_and_lazy():
             "aria-label=\"{% trans 'Previous screenshot' %}\"",
             "aria-label=\"{% trans 'Next screenshot' %}\"",
             'role="tablist"',
-            'aria-live="polite"',
+            'aria-live="off"',
+            "data-carousel-rotation",
             'loading="lazy"',
         )
     )
@@ -192,7 +193,9 @@ def test_every_content_image_has_dimensions_and_nonempty_alt():
 
 
 def test_no_synthetic_ui_or_large_inline_payload_returns():
-    combined = "\n".join((_text(HERO), (_text(MODULES) + _text(GALLERY)), _text(LANDING), _text(TS)))
+    combined = "\n".join(
+        (_text(HERO), (_text(MODULES) + _text(GALLERY)), _text(LANDING), _text(TS))
+    )
     forbidden = (
         "Signal response over time",
         "illustrative product-design walkthrough",
@@ -231,7 +234,8 @@ def test_mobile_japanese_hero_allows_the_full_heading_to_wrap():
     css = re.sub(r"\s+", " ", _text(CSS))
     # Act
     contracts = {
-        "headline": '<span>{% trans "Hub for Scientists" %}</span>' in hero,
+        "headline": '<span>{% trans "Open-source Ecosystem for Scientific Research" %}</span>'
+        in hero,
         "ja_size": ".landing-v2-hero h1:lang(ja)" in css,
         "narrow_fit": "font-size: clamp(1.65rem, 8vw, 4rem)" in css,
         "wrap_translation": "h1:lang(ja) span { white-space: normal;" in css,
@@ -245,7 +249,7 @@ def test_mobile_japanese_hero_allows_the_full_heading_to_wrap():
     }
 
 
-def test_carousel_script_is_manual_keyboard_and_swipe_only():
+def test_carousel_keeps_manual_controls_and_respects_motion_preferences():
     source = _text(TS)
     assert all(
         marker in source
@@ -257,8 +261,9 @@ def test_carousel_script_is_manual_keyboard_and_swipe_only():
             "aria-selected",
         )
     )
-    assert "setInterval" not in source
-    assert "autoplay" not in source.lower()
+    assert "ROTATION_INTERVAL = 6000" in source
+    assert "prefers-reduced-motion: reduce" in source
+    assert "visibilitychange" in source
 
 
 @pytest.mark.parametrize(
@@ -266,8 +271,8 @@ def test_carousel_script_is_manual_keyboard_and_swipe_only():
     [
         (
             "public_app/landing_partials/landing_hero.html",
-            "科学者のためのハブ",
-            "Hub for Scientists",
+            "科学研究のためのオープンソース・エコシステム",
+            "Open-source Ecosystem for Scientific Research",
         ),
         (
             "public_app/landing_partials/landing_modules.html",
@@ -276,8 +281,8 @@ def test_carousel_script_is_manual_keyboard_and_swipe_only():
         ),
         (
             "public_app/landing_partials/landing_app_gallery.html",
-            "実際のSciTeX® Cloudスクリーンショット",
-            "Actual SciTeX® Cloud Screenshots",
+            "SciTeX® Cloudのスクリーンショット",
+            "Screenshots of SciTeX® Cloud",
         ),
         (
             "public_app/landing_partials/landing_app_gallery.html",
@@ -308,7 +313,14 @@ def test_carousel_has_eleven_current_application_slides():
 
 
 def test_carousel_has_eleven_dots_ending_in_agentic_journal():
-    assert re.findall(r'data-carousel-dot="(\d+)"', (_text(MODULES) + _text(GALLERY))) == [
+    from apps.infra.public_app.templatetags.landing_capture_tabs import (
+        capture_tab_groups,
+    )
+
+    assert 'data-carousel-dot="{{ app.index }}"' in _text(GALLERY)
+    assert [
+        str(app["index"]) for group in capture_tab_groups() for app in group["apps"]
+    ] == [
         "0",
         "1",
         "2",

@@ -12,7 +12,7 @@ name: release
 #   2. build         — wheel + sdist, uploaded as workflow artifact.
 #   3. publish       — PyPI via OIDC trusted publisher.
 #   4. release       — GitHub Release with CHANGELOG notes + artifacts.
-#   5. sync-main     — open a develop→main PR (admin-merge) so main
+#   5. sync-main     — open a develop→main PR for ordinary review so main
 #                      always equals the latest released commit. Skipped
 #                      if main already matches.
 #
@@ -69,10 +69,19 @@ jobs:
         with:
           ref: ${{ steps.ver.outputs.version }}
           fetch-depth: 0
+      - name: Verify tag and package version
+        id: release_metadata
+        env:
+          RELEASE_TAG: ${{ steps.ver.outputs.version }}
+        run: python3 .github/ci/check_release_version.py --tag "$RELEASE_TAG"
+      - name: Setup Node.js for the real offline npm regression
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
       - uses: astral-sh/setup-uv@v7
         with:
           cache-dependency-glob: pyproject.toml
-      - name: Install full declared environment
+      - name: Install full declared test dependencies
         env:
           UV_PYTHON_INSTALL_DIR: ${{ runner.temp }}/hub-managed-python-${{ github.run_id }}-${{ github.run_attempt }}-${{ github.job }}-${{ matrix.python-version }}
         # uv venv, not bare pip: the pool's toolcache Python is uv-managed and
@@ -107,11 +116,8 @@ jobs:
           # No Redis broker in this job; run Celery tasks inline.
           SCITEX_HUB_TEST_MODE: "1"
         run: |
-          if [ -d tests ]; then
-            pytest tests/ -x
-          else
-            echo "no tests/ directory — skipping pytest"
-          fi
+          test -d tests
+          pytest tests/ -x
 
   build:
     needs: test
@@ -119,6 +125,7 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       version: ${{ steps.ver.outputs.version }}
+      prerelease: ${{ steps.release_metadata.outputs.prerelease }}
     steps:
       - name: Resolve version
         id: ver
@@ -133,6 +140,11 @@ jobs:
         with:
           ref: ${{ steps.ver.outputs.version }}
           fetch-depth: 0
+      - name: Verify tag and package version
+        id: release_metadata
+        env:
+          RELEASE_TAG: ${{ steps.ver.outputs.version }}
+        run: python3 .github/ci/check_release_version.py --tag "$RELEASE_TAG"
       - uses: astral-sh/setup-uv@v7
         with:
           cache-dependency-glob: pyproject.toml
@@ -195,16 +207,21 @@ jobs:
       - name: Create GitHub Release
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          RELEASE_PRERELEASE: ${{ needs.build.outputs.prerelease }}
         run: |
-          gh release create "${{ needs.build.outputs.version }}" \
+          flags=()
+          if [ "$RELEASE_PRERELEASE" = true ]; then
+            flags+=(--prerelease)
+          fi
+          gh release create "${{ needs.build.outputs.version }}" "${flags[@]}" \
             --title "${{ needs.build.outputs.version }}" \
             --notes-file release-notes.md \
             dist/*
 
   sync-main:
     # Open develop→main PR so main always equals the latest released
-    # commit. Branch-protected mains require PR review; this job tries
-    # admin-merge but leaves the PR open if that isn't allowed.
+    # commit. Branch protection and ordinary review remain authoritative;
+    # publication never grants permission to merge a branch.
     needs: publish
     runs-on: ubuntu-latest
     permissions:
@@ -236,5 +253,4 @@ jobs:
           else
             echo "Reusing existing PR #${EXISTING}"
           fi
-          gh pr merge "$EXISTING" --merge --admin \
-            || echo "Admin merge unavailable; PR left open for manual merge."
+          echo "PR #${EXISTING} remains open for normal review and CI."

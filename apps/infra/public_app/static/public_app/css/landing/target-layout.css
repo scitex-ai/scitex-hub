@@ -151,54 +151,45 @@
 
 
 
-/* Layout only; selected underline and focus styles belong to scitex-sdk. */
+/* Layout only; both tab rows use the SDK underline/focus contract. */
 .landing-v2-carousel-tabs {
-  flex-direction: column;
-  flex-wrap: nowrap;
   margin-top: 1rem;
-  overflow: visible;
-}
-
-
-.landing-v2-carousel-category {
-  display: grid;
-  grid-template-columns: 90px minmax(0, 1fr);
-  align-items: center;
-  gap: 4px;
-}
-
-.landing-v2-carousel-category-label {
-  font-size: 11px;
-  font-weight: 600;
-  color: var(--text-secondary);
-}
-
-.landing-v2-carousel-category-items {
-  display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: var(--spacing-xs, 4px);
   min-width: 0;
 }
-
-.landing-v2-hero-gallery .landing-v2-carousel-controls {
-  flex-wrap: nowrap;
-  flex-shrink: 0;
+.landing-v2-carousel-category-tabs,
+.landing-v2-carousel-app-tabs {
+  display: flex;
+  min-width: 0;
 }
-
-
-/* Equal cells across all category rows; selection remains SDK-owned. */
-.landing-v2-carousel-category-items .stx-content-tabs__tab {
+.landing-v2-carousel-category-tabs .stx-content-tabs__tab,
+.landing-v2-carousel-app-tabs .stx-content-tabs__tab {
+  flex: 1 1 0;
   min-width: 0;
   padding-inline: 6px;
   white-space: normal;
 }
-
-@media (max-width: 768px) {
-  .landing-v2-carousel-category-items {
+.landing-v2-carousel-app-tabs .stx-content-tabs__tab {
+  flex-direction: column;
+  gap: 2px;
+}
+.landing-v2-app-version {
+  font-size: 0.8em;
+  font-weight: 400;
+  color: var(--text-secondary);
+}
+.landing-v2-carousel-category-panel[hidden] {
+  display: none;
+}
+.landing-v2-hero-gallery .landing-v2-carousel-controls {
+  flex-wrap: nowrap;
+  flex-shrink: 0;
+}
+@media (max-width: 600px) {
+  .landing-v2-carousel-category-tabs {
+    display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
-
 
 .landing-v2-clew-copy .landing-v2-clew-tagline {
   margin-top: 1.5rem;
@@ -252,3 +243,57 @@
 .landing-v2-clew-grid {
   align-items: start;
 }
+
+
+.landing-v2-carousel-rotation {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
+  padding-inline: 0.4rem;
+}
+
+
+.landing-v2-clew-directions {
+  display: grid;
+  gap: 0.75rem;
+  margin: 1.5rem 0;
+}
+
+.landing-v2-clew-directions > div {
+  display: grid;
+  grid-template-columns: 76px minmax(0, 1fr);
+  gap: 0.75rem;
+}
+
+.landing-v2-clew-directions dt {
+  font-weight: 600;
+}
+
+.landing-v2-clew-directions dd {
+  margin: 0;
+  overflow-wrap: anywhere;
+  line-height: 1.6;
+}
+
+/* Setup examples keep their own horizontal scroll on small screens. */
+.landing-v2-demo-setup {
+  margin: 1.5rem 0 0;
+  padding-left: 1.25rem;
+  display: grid;
+  gap: 1rem;
+}
+.landing-v2-demo-setup li { min-width: 0; }
+.landing-v2-demo-setup pre {
+  margin: 0.5rem 0;
+  padding: 0.75rem;
+  max-width: 100%;
+  overflow-x: auto;
+  border: 1px solid var(--border-default);
+  border-radius: var(--landing-radius);
+  background: var(--bg-secondary);
+  color: var(--text-primary);
+  font-size: 0.8rem;
+  line-height: 1.5;
+}
+.landing-v2-demo-setup code { color: inherit; }

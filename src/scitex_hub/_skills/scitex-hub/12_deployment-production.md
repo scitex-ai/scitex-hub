@@ -61,7 +61,9 @@ use a unique tag for building, then an immutable identity for admission/swap.
 The canonical resolver rejects empty/malformed overrides without printing the
 value. Resolver-owned image/mode values prevent dotenv files from silently
 selecting an unvalidated candidate. With a candidate override, staging is derived as `image-only` for all
-three roles; ordinary staging remains editable. Production is always image-only.
+three roles with baked frontend publication; ordinary staging remains editable
+with runtime frontend build mode. Both modes are derived by the canonical
+resolver, not caller overrides. Production is always image-only/baked.
 An ambient mode variable cannot change this policy. Development's direct-bind
 installer does not support this image override.
 
@@ -79,8 +81,13 @@ scripts/deploy/preflight_sibling_floors.sh prod --json
 
 Also qualify the image's real installed dependency graph, import contract,
 namespace/static manifests and migration behavior against an isolated restored
-database. Image-only disables editable Python replacement; it does NOT suppress
-migrations or frontend clone preparation. The source verifier is
+database. Image-only disables editable Python replacement and does not suppress
+mandatory migrations. Production images explicitly select `SCITEX_HUB_FRONTEND_MODE=baked`:
+their verified frontend artifact is built into the same image, and startup does
+not clone repositories or run npm/Vite. Legacy `build` mode retains runtime
+frontend preparation; it is not the production artifact qualification path. See
+[the baked frontend contract](../../../../docs/deployment/baked-frontends.md).
+The source verifier is
 `scripts/deploy/verify_image_dependency_contract.py`. Source/runtime/fixture
 proof is not permission to use an unqualified image or waive a failing floor.
 
@@ -97,7 +104,10 @@ scripts/deploy/compose.sh staging up -d --no-deps --no-build django celery_worke
 Staging uses its own env-file, database and named volumes. Verify those identities
 and the selected users bind; a different app name alone is not isolation. Check
 real authorized routes, frontend hashes, worker/beat behavior and relevant tests.
-A healthy container or HTTP 200 by itself is insufficient evidence.
+A healthy container or HTTP 200 by itself is insufficient evidence. Audit root
+and linked frontend dependency locks separately, and qualify actual diagram
+rendering boundaries; see [diagram rendering](../../../../docs/security/diagram-rendering.md).
+Do not equate a successful build or root-only npm audit with a clean security graph.
 
 ## Apply only the qualified production change
 

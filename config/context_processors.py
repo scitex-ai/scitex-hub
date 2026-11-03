@@ -101,20 +101,21 @@ def debug_mode(request):
 
 
 def scitex_version(request):
-    """
-    Expose SciTeX Hub version to all templates.
-    Single source of truth: settings.SCITEX_HUB_VERSION
-    """
-    return {"SCITEX_HUB_VERSION": get_scitex_hub_version()}
+    """Expose the installed distribution identity to all templates."""
+    from config.package_metadata import get_hub_package_metadata
+
+    package = get_hub_package_metadata()
+    return {
+        "SCITEX_HUB_VERSION": package["version"],
+        "SCITEX_HUB_DESCRIPTION": package["description"],
+    }
 
 
 def get_scitex_hub_version():
-    """
-    Get version from Django settings (single source of truth).
-    settings.SCITEX_HUB_VERSION is the scitex-hub web app version,
-    separate from pyproject.toml which is for the pypi package.
-    """
-    return getattr(settings, "SCITEX_HUB_VERSION", "0.0.0")
+    """Return the installed package version, including in editable deployments."""
+    from config.package_metadata import get_hub_package_metadata
+
+    return get_hub_package_metadata()["version"]
 
 
 def umami_analytics(request):

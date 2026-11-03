@@ -68,7 +68,7 @@ def test_required_matrix_owns_a_fresh_seeded_managed_runtime_per_attempt():
     [
         (
             "test",
-            "Install full declared environment",
+            "Install full declared test dependencies",
             "${{ matrix.python-version }}",
             'uv pip install --python $P -e ".[all,dev]"',
         ),

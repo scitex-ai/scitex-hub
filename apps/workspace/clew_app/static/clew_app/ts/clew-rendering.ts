@@ -3,6 +3,7 @@
  */
 
 import mermaid from "mermaid";
+import { interactiveSvg } from "@/utils/diagram-svg";
 
 // Initialize mermaid once at module load
 mermaid.initialize({
@@ -10,8 +11,9 @@ mermaid.initialize({
   theme: document.documentElement.classList.contains("dark-mode")
     ? "dark"
     : "default",
-  securityLevel: "loose",
-  flowchart: { curve: "basis" },
+  securityLevel: "strict",
+  htmlLabels: false,
+  flowchart: { curve: "basis", htmlLabels: false },
 });
 
 export async function renderMermaidContent(
@@ -27,17 +29,21 @@ export async function renderMermaidContent(
   const containerId = "mermaid-dag-" + Date.now();
   const wrapper = document.createElement("div");
   wrapper.className = "dag-mermaid-wrapper";
-  wrapper.innerHTML = `<div class="mermaid" id="${containerId}">${trimmed}</div>`;
-  dagArea.innerHTML = "";
+  wrapper.textContent = "Rendering diagram…";
+  dagArea.replaceChildren();
   dagArea.appendChild(wrapper);
 
   try {
-    await mermaid.run({ nodes: [wrapper.querySelector(".mermaid")!] });
+    const { svg } = await mermaid.render(containerId, trimmed);
+    wrapper.replaceChildren(interactiveSvg(svg));
     setupDagNodeClickHandlers(wrapper);
     return true;
   } catch (err) {
     console.error("[Clew] Mermaid render error:", err);
-    wrapper.innerHTML = `<pre class="dag-mermaid-code">${trimmed}</pre>`;
+    const fallback = document.createElement("pre");
+    fallback.className = "dag-mermaid-code";
+    fallback.textContent = trimmed;
+    wrapper.replaceChildren(fallback);
     return false;
   }
 }
@@ -47,12 +53,17 @@ export function renderImageFile(
   filePath: string,
   projectId: string | null,
 ) {
-  const url = `/api/workspace/file-content/${encodeURIComponent(filePath)}?project_id=${projectId}`;
-  dagArea.innerHTML = `
-    <div class="dag-mermaid-wrapper">
-      <img src="${url}" alt="Clew DAG" style="max-width:100%;height:auto;" />
-    </div>
-  `;
+  const url = new URL(`/api/workspace/file-content/${encodeURIComponent(filePath)}`, location.origin);
+  if (projectId !== null) url.searchParams.set("project_id", projectId);
+  const wrapper = document.createElement("div");
+  wrapper.className = "dag-mermaid-wrapper";
+  const image = document.createElement("img");
+  image.src = url.href;
+  image.alt = "Clew DAG";
+  image.style.maxWidth = "100%";
+  image.style.height = "auto";
+  wrapper.append(image);
+  dagArea.replaceChildren(wrapper);
 }
 
 export async function fetchFileContent(
@@ -77,13 +88,16 @@ export function showPlaceholder(
   title: string,
   message: string,
 ) {
-  dagArea.innerHTML = `
-    <div class="dag-placeholder">
-      <i class="fas ${icon} fa-3x"></i>
-      <h3>${title}</h3>
-      <p>${message}</p>
-    </div>
-  `;
+  const wrapper = document.createElement("div");
+  wrapper.className = "dag-placeholder";
+  const symbol = document.createElement("i");
+  symbol.className = `fas ${icon} fa-3x`;
+  const heading = document.createElement("h3");
+  heading.textContent = title;
+  const description = document.createElement("p");
+  description.textContent = message;
+  wrapper.append(symbol, heading, description);
+  dagArea.replaceChildren(wrapper);
 }
 
 export function showLoading(dagArea: HTMLElement) {
@@ -97,13 +111,7 @@ export function showLoading(dagArea: HTMLElement) {
 }
 
 export function showError(dagArea: HTMLElement, message: string) {
-  dagArea.innerHTML = `
-    <div class="dag-placeholder">
-      <i class="fas fa-exclamation-triangle fa-3x"></i>
-      <h3>Error</h3>
-      <p>${message}</p>
-    </div>
-  `;
+  showPlaceholder(dagArea, "fa-exclamation-triangle", "Error", message);
 }
 
 export function getStatusBadge(status: string): string {
@@ -121,7 +129,8 @@ function setupDagNodeClickHandlers(wrapper: HTMLElement) {
   nodes.forEach((node) => {
     (node as HTMLElement).style.cursor = "pointer";
     node.addEventListener("click", () => {
-      const label = node.querySelector(".nodeLabel")?.textContent?.trim();
+      const label = (node.querySelector(".nodeLabel") ?? node.querySelector(".label"))
+        ?.textContent?.trim();
       if (label) {
         document.dispatchEvent(
           new CustomEvent("fileSelected", { detail: { path: label } }),

@@ -204,11 +204,11 @@ def test_image_only_runtime_does_not_grant_package_write_access_to_scitex():
         in root_init
     )
     assert (
-        f"COPY scripts/deploy/verify_image_dependency_contract.py {verifier}"
+        f"COPY --chmod=644 scripts/deploy/verify_image_dependency_contract.py {verifier}"
         in dockerfile
     )
     assert dockerfile.index(
-        f"COPY scripts/deploy/verify_image_dependency_contract.py {verifier}"
+        f"COPY --chmod=644 scripts/deploy/verify_image_dependency_contract.py {verifier}"
     ) > dockerfile.index("COPY --chown=scitex:scitex . .")
     assert f"gosu scitex python {verifier}" in root_init
     assert "python scripts/deploy/verify_image_dependency_contract.py" not in root_init
@@ -230,3 +230,26 @@ def test_image_only_workers_verify_then_drop_privileges_before_entrypoint():
     )
     assert f"gosu scitex python {verifier}" in launcher
     assert 'exec gosu scitex "$@"' in launcher
+
+
+def test_runtime_gate_rejects_writable_boot_scripts_and_policy(tmp_path, monkeypatch):
+    verifier = _verifier_module()
+    site = tmp_path / "site"
+    binary = tmp_path / "bin"
+    policy = tmp_path / "policy"
+    for directory in (site, binary, policy):
+        directory.mkdir(mode=0o755)
+    script = binary / "root-init.sh"
+    script.write_text("#!/bin/sh\n")
+    script.chmod(0o777)
+    contract = policy / "pyproject.toml"
+    contract.write_text('[project]\nname="owned-fixture"\n')
+    contract.chmod(0o666)
+    monkeypatch.setattr(verifier.sysconfig, "get_paths", lambda: {"purelib": str(site)})
+    monkeypatch.setattr(verifier.sys, "executable", str(binary / "python"))
+    errors = verifier.runtime_immutability_errors((policy,), required_uid=os.getuid())
+    assert any(str(script) in error and "writable" in error for error in errors)
+    assert any(str(contract) in error and "writable" in error for error in errors)
+    script.chmod(0o755)
+    contract.chmod(0o644)
+    assert verifier.runtime_immutability_errors((policy,), required_uid=os.getuid()) == []

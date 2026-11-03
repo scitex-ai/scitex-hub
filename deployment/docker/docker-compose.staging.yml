@@ -64,8 +64,6 @@ services:
       # Local databases (read-only)
       - ${CROSSREF_LOCAL_DB:-/home/ywatanabe/proj/crossref-local/data/crossref.db}:/data/crossref/crossref.db:ro
       - ${OPENALEX_LOCAL_DB:-/home/ywatanabe/proj/openalex-local/data/openalex.db}:/data/openalex/openalex.db:ro
-      # scitex-container (host-mounted, not on PyPI)
-      - /home/ywatanabe/proj/scitex-container/src/scitex_container:/usr/local/lib/python3.11/site-packages/scitex_container:ro
       # TypeScript output
       - /app/.jsbuild
     ports:
@@ -75,6 +73,7 @@ services:
       - ./envs/.env.staging
     environment:
       SCITEX_APPS_PYTHON_MODE: ${SCITEX_HUB_RESOLVED_PYTHON_MODE:-editable}
+      SCITEX_HUB_FRONTEND_MODE: ${SCITEX_HUB_RESOLVED_FRONTEND_MODE:-build}
       DJANGO_SETTINGS_MODULE: config.settings.settings_staging
       SCITEX_HUB_DJANGO_SETTINGS_MODULE: config.settings.settings_staging
       SCITEX_HUB_ENV: staging
@@ -151,6 +150,7 @@ services:
   # Celery Worker (Staging)
   # ============================================
   celery_worker:
+    user: scitex
     image: ${SCITEX_HUB_RESOLVED_APP_IMAGE:-scitex-hub-staging-django:latest}
     # tini FIRST — see the django service above. Measured 2026-08-03: PID 1 was
     # `celery`, while the equivalent PROD worker correctly ran tini.
@@ -198,12 +198,11 @@ services:
       # Local databases (read-only)
       - ${CROSSREF_LOCAL_DB:-/home/ywatanabe/proj/crossref-local/data/crossref.db}:/data/crossref/crossref.db:ro
       - ${OPENALEX_LOCAL_DB:-/home/ywatanabe/proj/openalex-local/data/openalex.db}:/data/openalex/openalex.db:ro
-      # scitex-container (host-mounted, not on PyPI)
-      - /home/ywatanabe/proj/scitex-container/src/scitex_container:/usr/local/lib/python3.11/site-packages/scitex_container:ro
     env_file:
       - ./envs/.env.staging
     environment:
       SCITEX_APPS_PYTHON_MODE: ${SCITEX_HUB_RESOLVED_PYTHON_MODE:-editable}
+      SCITEX_HUB_FRONTEND_MODE: ${SCITEX_HUB_RESOLVED_FRONTEND_MODE:-build}
       DJANGO_SETTINGS_MODULE: config.settings.settings_staging
       SCITEX_HUB_DJANGO_SETTINGS_MODULE: config.settings.settings_staging
       SCITEX_HUB_ENV: staging
@@ -248,6 +247,7 @@ services:
   # Celery Beat (Staging)
   # ============================================
   celery_beat:
+    user: scitex
     image: ${SCITEX_HUB_RESOLVED_APP_IMAGE:-scitex-hub-staging-django:latest}
     # tini FIRST — see the django service above. Measured 2026-08-03: PID 1 was
     # `celery`, while the equivalent PROD beat correctly ran tini.
@@ -262,6 +262,7 @@ services:
       - ./envs/.env.staging
     environment:
       SCITEX_APPS_PYTHON_MODE: ${SCITEX_HUB_RESOLVED_PYTHON_MODE:-editable}
+      SCITEX_HUB_FRONTEND_MODE: ${SCITEX_HUB_RESOLVED_FRONTEND_MODE:-build}
       DJANGO_SETTINGS_MODULE: config.settings.settings_staging
       SCITEX_HUB_DJANGO_SETTINGS_MODULE: config.settings.settings_staging
       SCITEX_HUB_ENV: staging

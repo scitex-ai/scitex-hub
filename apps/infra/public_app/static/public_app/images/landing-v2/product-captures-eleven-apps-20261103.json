@@ -48,48 +48,75 @@
         }
       ],
       "cached_inventory": true,
-      "visible_roster_rows": 21
+      "visible_roster_rows": 21,
+      "gallery_category": "infrastructure",
+      "gallery_label": "Agent Container",
+      "gallery_slide_index": 2,
+      "capture_version": "0.38.6",
+      "capture_version_basis": "visible_capture_header",
+      "source_declared_version": "0.38.6",
+      "capture_version_note": "Captured header v0.38.6; recorded source declares v0.38.6 at 58a7fc189d82."
     },
     {
       "app": "cards",
-      "captured_at_utc": "2026-11-02T21:11:23Z",
+      "captured_at_utc": "2026-11-03T01:51:47Z",
       "path": "/apps/cards/board-v3",
-      "raw_sha256": "39b2558c985ecacbb47cb7f74b213ecad9879944c9461ee95bcb87bab49b667b",
-      "privacy_masked_png_sha256": "39b2558c985ecacbb47cb7f74b213ecad9879944c9461ee95bcb87bab49b667b",
+      "raw_sha256": "8b517e1ab7c3f579ff87e11ea22fbe6a7690c21a0002d3ae1b77e3d1165c23c3",
+      "privacy_masked_png_sha256": "8b517e1ab7c3f579ff87e11ea22fbe6a7690c21a0002d3ae1b77e3d1165c23c3",
       "privacy_filtered_original_only": true,
       "unmasked_operational_capture_persisted": false,
-      "privacy_mask_selectors": ".stx-app-header__project,.stx-app-project-selector,.project-scope-selector,#site-project-selector,.site-header__user,.user-menu,.account-menu,[data-user-menu],[role=tooltip],#filterbar-chips,.detail-backdrop,.d-comment,.d-desc,.tl-card-title,.mx-card__title,.card-title,.card-ctx-title,.stale-title,.stale-id,.hidden-list-title,.filt-chip-value",
-      "privacy_additional_styles": "#columns,#columns *{color:transparent!important;text-shadow:none!important}#columns text{visibility:hidden!important}",
+      "privacy_mask_selectors": ".stx-app-header__project,.stx-app-project-selector,.project-scope-selector,#site-project-selector,.site-header__user,.user-menu,.account-menu,[data-user-menu],[role=tooltip],.ww-lane-title,.ww-lane-header,.card-agent,.card-assignee,.tl-lane-label,#filterbar-chips,.site-header .username,.sw-island-title,.tl-card-meta",
+      "privacy_additional_styles": "",
       "privacy_iframe_selectors": "",
-      "short_description": "Task-board activity statistics; private task content hidden.",
-      "sample_description": "Actual dedicated board-v3 Stats view. Task content and account/project identifiers hidden before any image persistence. No DM thread/API/message opened, no tasks edited or sent. This is an operational board view, not a seeded MNIST task dataset.",
+      "short_description": "Four synthetic MNIST workflow examples in the actual Board.",
+      "sample_description": "Actual dedicated Board Timeline Simple view filtered to the MNIST example project, with Show done enabled. Four clearly labelled Demo status cards illustrate workflow stages; they are not verified research progress. Human-owned fixtures have no runnable tasks or notification recipients. Native read-only browser controls, no DM/model actions, no asset substitution, and unchanged account project preferences.",
       "source_checkout_observed": "bfebb541a36cf0d8438b92ca86904a7ca0c426b6",
       "actual_browser_status": 200,
       "javascript_errors": 0,
       "new_capture_post_requests_allowed": false,
       "renditions": [
         {
-          "file": "cards-20261102-768.webp",
+          "file": "cards-board-mnist-20261103-768.webp",
           "width": 768,
           "height": 480,
-          "bytes": 11184,
-          "sha256": "3489e8d0d65c23773806ff7b3c1e65d5e912988db3afb4877526b74c90cfdfeb"
+          "bytes": 10844,
+          "sha256": "84f50265116bdda7092e5697b5fc5f5a7b75bf6882c503171384504bfe90c2e8"
         },
         {
-          "file": "cards-20261102-1200.webp",
+          "file": "cards-board-mnist-20261103-1200.webp",
           "width": 1200,
           "height": 750,
-          "bytes": 21186,
-          "sha256": "19b477634b03b5cc4069a933d77b435e54da4faf4bf6efdc8169d18db8202ed9"
+          "bytes": 22122,
+          "sha256": "2b34472980d99821fa4af99addc01e5ec567c4bbd09e58aac5d012f431575482"
         },
         {
-          "file": "cards-20261102-1200.jpg",
+          "file": "cards-board-mnist-20261103-1200.jpg",
           "width": 1200,
           "height": 750,
-          "bytes": 53152,
-          "sha256": "be38f56046bfafd1d99edb55c7d0e852ae41e2fafcab71a5177b1546ca5ada8e"
+          "bytes": 57716,
+          "sha256": "8afc9f7fb00f775150faac0021066ac2c714f5134fe4f9a99e9d848ca3264930"
         }
-      ]
+      ],
+      "gallery_category": "infrastructure",
+      "gallery_label": "Cards",
+      "gallery_slide_index": 3,
+      "capture_version": "0.56.22",
+      "capture_version_basis": "visible_capture_header",
+      "source_declared_version": "0.56.22",
+      "capture_version_note": "Captured header v0.56.22; unchanged Cards source declares v0.56.22 at bfebb541a36c. Hub sidebar ownership fix enables the native Board; fixture seed is separately documented.",
+      "synthetic_example": true,
+      "visible_fixture_cards": 4,
+      "hub_sidebar_owner_fix": "fc46fb5782ef114bae90ae5d30e391c0f071831b",
+      "viewport": [
+        1440,
+        875
+      ],
+      "natural_app_crop": {
+        "x": 67,
+        "y": 65,
+        "width": 1296,
+        "height": 810
+      }
     },
     {
       "app": "storage",
@@ -131,7 +158,14 @@
           "sha256": "9674de1ef8008319f26710ff19f1f75259439b5a88e93576e5f6cbf0f0fc7fe4"
         }
       ],
-      "rendered_svg_segments": 36
+      "rendered_svg_segments": 36,
+      "gallery_category": "infrastructure",
+      "gallery_label": "Storage",
+      "gallery_slide_index": 4,
+      "capture_version": "0.6.16",
+      "capture_version_basis": "visible_capture_header",
+      "source_declared_version": "0.6.16",
+      "capture_version_note": "Captured header v0.6.16; recorded source declares v0.6.16 at 310ffb6c41d4."
     },
     {
       "app": "scholar",
@@ -179,7 +213,14 @@
           "bytes": 104655,
           "sha256": "3cef4cbca353d8fb1d0fc7d9879e607db60096698b939f1671106c10671b0aa9"
         }
-      ]
+      ],
+      "gallery_category": "research",
+      "gallery_label": "Scholar",
+      "gallery_slide_index": 5,
+      "capture_version": "1.29.1",
+      "capture_version_basis": "visible_capture_header",
+      "source_declared_version": "1.29.1",
+      "capture_version_note": "Captured header v1.29.1; recorded source declares v1.29.1 at ca410ea9f344."
     },
     {
       "app": "stats",
@@ -212,38 +253,158 @@
           "bytes": 90441,
           "sha256": "16c46919c7af4813a101afbd5fdb7d8ec03007017aa529765d8383dc6ecb95ea"
         }
-      ]
+      ],
+      "gallery_category": "research",
+      "gallery_label": "Stats",
+      "gallery_slide_index": 6,
+      "capture_version": "1.0.0",
+      "capture_version_basis": "captured_source_declaration_only",
+      "source_declared_version": "1.0.0",
+      "capture_version_note": "No app-version badge is visible in the screenshot. Version v1.0.0 comes only from recorded source 6d47e5eb4654, not observed installed runtime metadata."
     },
     {
       "app": "figrecipe",
-      "captured_at_utc": "2026-11-02T15:38:21Z",
+      "captured_at_utc": "2026-11-02T23:01:41Z",
       "path": "/apps/figrecipe/",
-      "raw_sha256": "31d29763941cbfe7011b9604736c61b4bda7a1bbe96a3fcb501fcdcb3b7f6bf5",
-      "privacy_masked_png_sha256": "c244b69630f4b856b5fc6c55975abc9ab43e3332cc23d34f118d4add9212b382",
+      "raw_sha256": "b19331b0dd2c527b6d71aa8a220da25f19c245354c4099e3d344073347e635e1",
+      "privacy_masked_png_sha256": "b19331b0dd2c527b6d71aa8a220da25f19c245354c4099e3d344073347e635e1",
       "privacy_mask_selectors": ".stx-app-header__project,.stx-app-project-selector,.project-scope-selector,#site-project-selector,.site-header__user,.user-menu,.account-menu,[data-user-menu],.project-files-panel,.file-tree,[role=tooltip]",
-      "sample_description": "Existing six-row synthetic worksheet; X/Y axis-role badges. Not MNIST data.",
+      "sample_description": "Actual FigRecipe Figure view with three synthetic example recipes in its native Figure/Panel/Data hierarchy. Training line selected with eight-point Details. One figure canvas is visible at a time; Figure1/2/3 navigation and Objects tree remain visible. Synthetic values are interface examples, not MNIST findings.",
       "source_checkout_observed": "8c808b6969f0f6f4c8bfe001722d17bd27026185",
       "renditions": [
         {
-          "file": "figrecipe-20261102-768.webp",
+          "file": "figrecipe-20261103-scene-768.webp",
           "width": 768,
           "height": 480,
-          "bytes": 14592,
-          "sha256": "70bd1cb20e3d6d84726aa7bd797e1247f97f10998db601509a1ad2fb8417b47f"
+          "bytes": 18752,
+          "sha256": "facaf1d6e74b12b5d9342b7cde91b937cddc623ec3661002cd30bde537ccf0b3"
         },
         {
-          "file": "figrecipe-20261102-1200.webp",
+          "file": "figrecipe-20261103-scene-1200.webp",
           "width": 1200,
           "height": 750,
-          "bytes": 27244,
-          "sha256": "126aa286531803c8e21647c35ec1b8114672ec641f445044c2b71ee74ad4c0bb"
+          "bytes": 36786,
+          "sha256": "dc9520b3ac8a85aa7eec1c415dda9364124b628ca3d20d9c624ea426e6a04a26"
         },
         {
-          "file": "figrecipe-20261102-1200.jpg",
+          "file": "figrecipe-20261103-scene-1200.jpg",
           "width": 1200,
           "height": 750,
-          "bytes": 57091,
-          "sha256": "d84d595e48a1e1c3f163d8963766aa9898f804b5299cabe534058b1767410461"
+          "bytes": 99221,
+          "sha256": "98bff44fff17fecf15074240915e03dda5dbf9a73b120feeaf5795555b2e1a44"
+        }
+      ],
+      "privacy_filtered_original_only": true,
+      "unmasked_operational_capture_persisted": false,
+      "short_description": "Figure editing with three synthetic examples and a selected line.",
+      "actual_browser_status": 200,
+      "javascript_errors": 0,
+      "synthetic_interface_example": true,
+      "synthetic_example_note": "Invented illustrative curves; not MNIST results or research findings.",
+      "visible_figures_navigation": 3,
+      "visible_object_tree_entries": 3,
+      "visible_canvas_count": 1,
+      "selected_element": "ax0_line0",
+      "new_capture_post_requests_allowed": true,
+      "capture_post_boundary": {
+        "endpoint": "/apps/figrecipe/api/switch",
+        "purpose": "Native existing-recipe render action only, scoped to three uniquely named synthetic fixture recipes; save/autosave/project edits/model calls blocked.",
+        "requests": [
+          {
+            "path": "/apps/figrecipe/api/switch",
+            "synthetic_recipe": "02_synthetic_group_comparison.yaml"
+          },
+          {
+            "path": "/apps/figrecipe/api/switch",
+            "synthetic_recipe": "03_synthetic_response_curve.yaml"
+          }
+        ]
+      },
+      "fixture_root": "figures/landing-figrecipe-demo-20261103",
+      "native_view_actions": [
+        "Load existing recipes with shipped addFigure action",
+        "Select Figure1",
+        "Fit to screen then native zoomOut three times",
+        "Select Training line through native SVG click handler",
+        "Minimize dock"
+      ],
+      "gallery_category": "research",
+      "gallery_label": "FigRecipe",
+      "gallery_slide_index": 7,
+      "capture_version": "0.44.0",
+      "capture_version_basis": "visible_capture_header",
+      "source_declared_version": "0.44.1",
+      "capture_version_note": "Captured header v0.44.0; recorded source declares v0.44.1 at 8c808b6969f0. Header/source mismatch: this development screenshot uses a source overlay; do not describe the capture as an unmodified 0.44.0 release.",
+      "synthetic_fixture_files": [
+        {
+          "path": "01_synthetic_learning_curve.png",
+          "bytes": 78887,
+          "sha256": "a59b0f02a3132c8bb7813b2ed341a55c2610160a809fc1d97df8d7b5f5fda1f8"
+        },
+        {
+          "path": "01_synthetic_learning_curve.yaml",
+          "bytes": 7332,
+          "sha256": "50211d51c3f510392cff2da15a2ddd12f52b589bddcae7ac20aaca66f5302769"
+        },
+        {
+          "path": "01_synthetic_learning_curve_data/plot_000_x.csv",
+          "bytes": 24,
+          "sha256": "3c04196a0c3c647a6a2f2e8e8e640a233650cd6e4237de8d3be8c6d9d4d07635"
+        },
+        {
+          "path": "01_synthetic_learning_curve_data/plot_000_y.csv",
+          "bytes": 48,
+          "sha256": "d9c632a4c9457814e7737479d2b5c991a5579f2c90dde21e8700ec437e1fcf17"
+        },
+        {
+          "path": "01_synthetic_learning_curve_data/plot_001_x.csv",
+          "bytes": 24,
+          "sha256": "3c04196a0c3c647a6a2f2e8e8e640a233650cd6e4237de8d3be8c6d9d4d07635"
+        },
+        {
+          "path": "01_synthetic_learning_curve_data/plot_001_y.csv",
+          "bytes": 46,
+          "sha256": "c82960bda32feaee3983193e3ac04477885870f70ee97fb2cdf4a58aeb79a82c"
+        },
+        {
+          "path": "02_synthetic_group_comparison.png",
+          "bytes": 41959,
+          "sha256": "009384de46c0723a29eb20bc16fbbdeba485035f96277a263226d34d53ed69ac"
+        },
+        {
+          "path": "02_synthetic_group_comparison.yaml",
+          "bytes": 6638,
+          "sha256": "2db321fbab901bcae8bd792506f488d9ce46291c09d65fda514b1e375441af23"
+        },
+        {
+          "path": "02_synthetic_group_comparison_data/bar_000_height.csv",
+          "bytes": 18,
+          "sha256": "5d0b6904327d6775741932d1561b82657859cbccc44baa0c7c224bbdeeb8cdae"
+        },
+        {
+          "path": "03_synthetic_response_curve.png",
+          "bytes": 70372,
+          "sha256": "d9aa3f75ce2f0bac3b7560fa510af46882afd679a0ff215e88201e8d080efb0c"
+        },
+        {
+          "path": "03_synthetic_response_curve.yaml",
+          "bytes": 6583,
+          "sha256": "581011fd81f41bd1c4f06a3e01971d7e6afe1012b64fd68e68b0f8e57cea2a57"
+        },
+        {
+          "path": "03_synthetic_response_curve_data/plot_000_x.csv",
+          "bytes": 18,
+          "sha256": "cf8ad1d080b9016be5316199f8fb3567197fc86c8f7375aeed9f49eb3abab1eb"
+        },
+        {
+          "path": "03_synthetic_response_curve_data/plot_000_y.csv",
+          "bytes": 32,
+          "sha256": "b68c25300cfff323da200849ac406d4d953cd02eaef64fda27ed631ddb774120"
+        },
+        {
+          "path": "README-EXAMPLE.txt",
+          "bytes": 212,
+          "sha256": "292d64be75439fd6701190801cb19488e84a89ae53bf6100e5c301c0a6888a15"
         }
       ]
     },
@@ -282,7 +443,14 @@
           "bytes": 65446,
           "sha256": "491a80c7fefaf5fccc4322635c0bd60762d6f0fa5c8e99a2058d47cbcdade72d"
         }
-      ]
+      ],
+      "gallery_category": "research",
+      "gallery_label": "Writer",
+      "gallery_slide_index": 8,
+      "capture_version": "2.43.19",
+      "capture_version_basis": "visible_capture_header",
+      "source_declared_version": "2.43.19",
+      "capture_version_note": "Captured header v2.43.19; recorded source declares v2.43.19 at 6b9795b5de02."
     },
     {
       "app": "live-paper",
@@ -315,7 +483,14 @@
           "bytes": 62091,
           "sha256": "df170f478f4a4680be67ed6437a64a3256f1275c006ddbc33f92dba85c45ce94"
         }
-      ]
+      ],
+      "gallery_category": "publication",
+      "gallery_label": "Live Paper",
+      "gallery_slide_index": 9,
+      "capture_version": "0.2.20",
+      "capture_version_basis": "visible_capture_header",
+      "source_declared_version": "0.2.20",
+      "capture_version_note": "Captured header v0.2.20; recorded source declares v0.2.20 at 51378eb2f31e."
     },
     {
       "app": "agentic-journal",
@@ -356,7 +531,14 @@
           "bytes": 86256,
           "sha256": "8ed147ec5986ebe3958635b5d47c3000ee9ded2241674b5cdc230e4a5225ac6b"
         }
-      ]
+      ],
+      "gallery_category": "publication",
+      "gallery_label": "Agentic Journal",
+      "gallery_slide_index": 10,
+      "capture_version": "0.1.0a4",
+      "capture_version_basis": "visible_capture_header",
+      "source_declared_version": "0.1.0a4",
+      "capture_version_note": "Captured header v0.1.0a4; recorded source declares v0.1.0a4 at f0491346e861."
     },
     {
       "app": "sdk",
@@ -397,7 +579,14 @@
           "bytes": 61601,
           "sha256": "392729f602dfbfbf1635226301f18e6b5c2f87f299c54ad20e40ae7e7c7a1bb4"
         }
-      ]
+      ],
+      "gallery_category": "platform",
+      "gallery_label": "SDK",
+      "gallery_slide_index": 1,
+      "capture_version": "0.3.18",
+      "capture_version_basis": "visible_capture_header",
+      "source_declared_version": "0.3.18",
+      "capture_version_note": "Captured header v0.3.18; recorded source declares v0.3.18 at 88d2b7facbc2."
     },
     {
       "app": "hub",
@@ -430,13 +619,21 @@
           "bytes": 47462,
           "sha256": "2a3341e86ca6166d21e16b75df9db65d10ba2b90a6daf3ce0e7f0187f1742ee4"
         }
-      ]
+      ],
+      "gallery_category": "platform",
+      "gallery_label": "Hub",
+      "gallery_slide_index": 0,
+      "capture_version": "0.21.0",
+      "capture_version_basis": "visible_capture_header",
+      "source_declared_version": "0.21.0",
+      "capture_version_note": "Captured header v0.21.0; recorded source declares v0.21.0 at 4a2babbdb115. This is the platform Cloud header shown above the Hub launcher."
     }
   ],
   "allowed_stateless_post_exceptions": [
     "/apps/stats/api/recommend-test",
     "/apps/stats/api/run",
-    "/apps/stats/api/plot"
+    "/apps/stats/api/plot",
+    "/apps/figrecipe/api/switch"
   ],
   "prohibited_actions": "No project save, recipe write, full manuscript compile, annotation, message, model call, graph backfill, or application response substitution. One pinned Abstract preview compilation is explicitly recorded separately.",
   "allowed_scoped_preview_exception": {

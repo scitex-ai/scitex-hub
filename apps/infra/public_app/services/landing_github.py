@@ -13,7 +13,7 @@ from pathlib import Path
 SNAPSHOT = Path(__file__).resolve().parents[1] / "data/landing_github.json"
 API_ROOT = "https://api.github.com/repos/scitex-ai/"
 REPOSITORY_GROUPS = (
-    ("Platform", ("scitex-python", "scitex-hub", "scitex-sdk", "scitex-dev")),
+    ("Platform", ("scitex-python", "scitex-hub", "scitex-sdk")),
     (
         "Research apps",
         (
@@ -33,6 +33,7 @@ REPOSITORY_GROUPS = (
         (
             "scitex-clew",
             "scitex-io",
+            "scitex-dev",
             "openalex-local",
             "crossref-local",
         ),

@@ -1,13 +1,15 @@
 /**
  * Markdown Renderer for AI Chat Messages
- * Uses marked.js (CDN-loaded) + DOMPurify for safe HTML rendering.
+ * Uses marked.js (CDN-loaded) + bundled DOMPurify for safe HTML rendering.
  */
+
+import DOMPurify from "dompurify";
+import { appendSvgImage } from "@/utils/diagram-svg";
 
 declare const marked: {
   parse: (src: string) => string;
   use: (opts: Record<string, unknown>) => void;
 };
-declare const DOMPurify: { sanitize: (html: string, cfg?: object) => string };
 
 let _markedConfigured = false;
 
@@ -108,7 +110,8 @@ export function renderMarkdown(text: string): string {
 }
 
 /** Highlight code blocks after inserting markdown HTML into DOM */
-export function highlightCodeBlocks(container: HTMLElement): void {
+export async function highlightCodeBlocks(container: HTMLElement): Promise<void> {
+  const renders: Promise<void>[] = [];
   const hljs = (window as any).hljs;
   container.querySelectorAll<HTMLElement>("pre code").forEach((block) => {
     // Render mermaid code blocks as diagrams
@@ -116,7 +119,7 @@ export function highlightCodeBlocks(container: HTMLElement): void {
       block.classList.contains("language-mermaid") ||
       block.classList.contains("mermaid")
     ) {
-      renderMermaidBlock(block);
+      renders.push(renderMermaidBlock(block));
       return;
     }
     // Render graphviz/dot code blocks as diagrams
@@ -124,11 +127,12 @@ export function highlightCodeBlocks(container: HTMLElement): void {
       block.classList.contains("language-dot") ||
       block.classList.contains("language-graphviz")
     ) {
-      renderGraphvizBlock(block);
+      renders.push(renderGraphvizBlock(block));
       return;
     }
     if (hljs) hljs.highlightElement(block);
   });
+  await Promise.all(renders);
 }
 
 /** Render a mermaid code block as an SVG diagram inline */
@@ -145,14 +149,14 @@ async function renderMermaidBlock(block: HTMLElement): Promise<void> {
         document.documentElement.getAttribute("data-theme") === "dark"
           ? "dark"
           : "default",
-      securityLevel: "loose",
+      securityLevel: "strict",
     });
     const id = `mmd-chat-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`;
     const wrapper = document.createElement("div");
     wrapper.className = "stx-shell-ai-mermaid-diagram";
-    wrapper.innerHTML = `<div class="mermaid" id="${id}">${code}</div>`;
+    const { svg } = await mermaid.render(id, code);
+    appendSvgImage(wrapper, svg, "Mermaid diagram");
     pre.replaceWith(wrapper);
-    await mermaid.run({ nodes: [wrapper.querySelector(".mermaid")!] });
   } catch (err) {
     console.error("[MermaidRender]", err);
   }
@@ -170,7 +174,7 @@ async function renderGraphvizBlock(block: HTMLElement): Promise<void> {
     const svg = graphviz.dot(code);
     const wrapper = document.createElement("div");
     wrapper.className = "stx-shell-ai-mermaid-diagram";
-    wrapper.innerHTML = svg;
+    appendSvgImage(wrapper, svg, "Graphviz diagram");
     pre.replaceWith(wrapper);
   } catch (err) {
     console.error("[GraphvizRender]", err);

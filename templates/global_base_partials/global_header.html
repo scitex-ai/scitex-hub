@@ -1,6 +1,7 @@
 {% load i18n landing_i18n %}
 {% load static scitex_static %}
-{% load module_icons %}
+{% load module_icons branding_tags %}
+{% hub_package_metadata as hub_package %}
 <link rel="stylesheet" href="{% app_static 'shared/css/components/cloud-alpha-notice.css' %}" />
 
 <!-- hook-bypass: inline-style -->
@@ -44,7 +45,11 @@
                      class="header-logo-icon header-logo-icon--dark" />
             </a>
             <span class="header-build-meta header-build-meta--alpha">
-                <span class="header-hub-version" title="SciTeX Hub version"><span class="header-hub-product">SciTeX® Cloud </span>v{{ SCITEX_HUB_VERSION }}</span>
+                <span class="header-hub-version"
+                      data-package="{{ hub_package.name }}"
+                      data-package-version="{{ hub_package.version }}"
+                      data-package-description="{{ hub_package.description }}"
+                      title="{{ hub_package.name }} v{{ hub_package.version }}{% if hub_package.description %}: {{ hub_package.description }}{% endif %}"><span class="header-hub-product">SciTeX® Cloud </span>v{{ hub_package.version }}</span>
                 <time id="header-local-clock" class="header-local-clock" aria-label="Local time"></time>
                 <span class="header-alpha-notice" role="note" aria-label="{% trans 'SciTeX® Cloud is in alpha. Features may change. Keep separate backups of important work.' %}">
                     <span class="header-alpha-line">{% trans "Alpha — Features may change. Keep backups." %}</span>

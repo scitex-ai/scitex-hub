@@ -23,6 +23,14 @@ from config import branding
 register = template.Library()
 
 
+@register.simple_tag
+def hub_package_metadata():
+    """Keep standalone header fragments tied to installed package metadata too."""
+    from config.package_metadata import get_hub_package_metadata
+
+    return get_hub_package_metadata()
+
+
 def _detail_from_context(context, path=""):
     """Extract the page-level detail (project name / username), or None.
 

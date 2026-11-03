@@ -1,4 +1,5 @@
 import react from "@vitejs/plugin-react";
+import { monacoSanitizerBoundary } from "./vite.monaco-sanitizer";
 import { defineConfig, Plugin } from "vite";
 import { resolve } from "path";
 import * as path from "path";
@@ -328,6 +329,7 @@ function resolveBridgedBareImports(): Plugin {
 
 export default defineConfig(({ command }) => ({
   plugins: [
+    monacoSanitizerBoundary(__dirname),
     react({
       // Exclude external app sources from Fast Refresh (avoids preamble error).
       // esbuild still handles JSX via tsconfig "jsx": "react-jsx".
@@ -505,7 +507,7 @@ export default defineConfig(({ command }) => ({
   },
 
   optimizeDeps: {
-    include: ["fabric", "react", "react-dom", "mermaid"],
+    include: ["react", "react-dom", "mermaid"],
     // Exclude auto-discovered app editor aliases from pre-bundling
     exclude: Object.keys(APP_BRIDGES.aliases),
   },

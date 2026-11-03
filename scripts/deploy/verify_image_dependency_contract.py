@@ -100,13 +100,18 @@ def immutable_tree_errors(root: Path, required_uid: int = 0) -> list[str]:
     return errors
 
 
-def runtime_immutability_errors() -> list[str]:
+def runtime_immutability_errors(extra_roots=(), *, required_uid: int = 0) -> list[str]:
     """Verify Python packages and console scripts remain root-controlled."""
     roots = (
         Path(sysconfig.get_paths()["purelib"]),
         Path(sys.executable).resolve().parent,
+        *extra_roots,
     )
-    return [error for root in roots for error in immutable_tree_errors(root)]
+    return [
+        error
+        for root in roots
+        for error in immutable_tree_errors(root, required_uid=required_uid)
+    ]
 
 
 def verify() -> list[str]:
@@ -166,7 +171,18 @@ def verify() -> list[str]:
                 obj = getattr(obj, attr)
         except Exception as exc:
             errors.append(f"import contract {label} failed: {type(exc).__name__}: {exc}")
-    errors.extend(runtime_immutability_errors())
+    errors.extend(
+        runtime_immutability_errors(
+            (
+                ROOT,
+                Path("/root-init.sh"),
+                Path("/image-runtime.sh"),
+                Path("/entrypoint.sh"),
+                Path("/opt/scitex-frontend"),
+                Path("/opt/scitex-frontend-tools"),
+            )
+        )
+    )
     return errors
 
 

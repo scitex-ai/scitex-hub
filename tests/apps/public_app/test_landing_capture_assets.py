@@ -3,6 +3,7 @@
 import hashlib
 import json
 import re
+from datetime import datetime
 from pathlib import Path
 
 from PIL import Image
@@ -41,9 +42,8 @@ def test_all_eleven_carousel_pictures_reference_the_current_capture_manifest():
     assert len(files) == 33
     assert region.count("<picture>") == 11
     assert "-20261102-" in region
-    assert all("-20261102-" in name for name in files)
     for capture in captures:
-        assert capture["captured_at_utc"].startswith("2026-11-02T")
+        assert datetime.fromisoformat(capture["captured_at_utc"]).tzinfo is not None
         assert (
             len(capture["raw_sha256"])
             == len(capture["privacy_masked_png_sha256"])
@@ -64,7 +64,7 @@ def test_actual_capture_disclosure_does_not_claim_unedited_or_uniform_mnist_inpu
     assert "Unedited interface captures" not in source
     assert "hidden for privacy" in source
     assert "Sample two-group analysis" in source
-    assert "Six-row sample worksheet" in source
+    assert "Three synthetic figures with a selected line" in source
     assert "not research findings" in source
     assert "MNIST reference library" in source
     manifest = json.loads((ASSETS / "product-captures-eleven-apps-20261103.json").read_text())
@@ -73,6 +73,7 @@ def test_actual_capture_disclosure_does_not_claim_unedited_or_uniform_mnist_inpu
         "/apps/stats/api/recommend-test",
         "/apps/stats/api/run",
         "/apps/stats/api/plot",
+        "/apps/figrecipe/api/switch",
     ]
     assert (
         sum(

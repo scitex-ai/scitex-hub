@@ -1,15 +1,49 @@
 # Production image dependency-floor gate
 
 The production runtime uses the Python dependency graph baked into
-`Dockerfile.prod`. `SCITEX_APPS_PYTHON_MODE=image-only` still permits sibling
-clones for Vite bridge discovery, but forbids `pip install -e` from replacing
-that validated graph at container start. All Hub Python services declare the
-same mode.
+`Dockerfile.prod`. `SCITEX_APPS_PYTHON_MODE=image-only` forbids `pip install -e`
+from replacing that graph at container start. All Hub Python services declare
+the same mode. Production also selects `SCITEX_HUB_FRONTEND_MODE=baked`, which
+verifies the image's complete frontend artifact and copies it after normal
+collectstatic, without startup Git/npm. See [baked frontends](baked-frontends.md).
 
 The final Docker stage runs `scripts/deploy/verify_image_dependency_contract.py`
 after all installs. It checks Hub's declared sibling floors, every installed
 sibling's active `Requires-Dist` relationships, and the explicit import/attribute
 contracts in `preflight_contract.json`.
+
+The earlier anchor, C0 and C1 installs are cache inputs, not independent final
+solutions or final version floors. After their last install,
+`installed_runtime_roots.py` derives a capability root set from installed
+metadata: every SciTeX distribution (including FigRecipe), each currently
+installed dependency directly declared by those owners, and the explicit
+Docker runtime capability names and Python packaging tools. For example, the
+old Daphne cache pin does not override Hub's newer declared Daphne floor. Declared optional extras
+contribute an already-installed direct dependency when its platform marker
+applies. Missing optional packages are not invented. The local Hub is admitted
+through its actual `[all]` source input, not an index substitute.
+
+The helper seeds the output lock with validated cached versions. These are
+`uv pip compile` preferences, not a constraints file: normal resolution can
+change a cached version to satisfy the complete graph. Do not add `--upgrade`
+(which discards those preferences). Compilation must succeed before `uv pip
+sync` installs exactly that resolved closure. Sync can remove a helper needed
+only by a superseded third-party version; retaining every cached transitive
+name would incorrectly make those obsolete helpers permanent requirements.
+There is no package-specific orphan allowlist, dependency override, or
+`--no-deps` install. A genuinely incompatible retained owner still fails
+resolution. The image retains `runtime-roots.manifest.json` with the complete baseline
+names/versions/requirements, per-root reasons and cached preference inputs;
+`runtime.cached-preferences.in` preserves the original seed separately from
+the compiled `runtime.lock`. After sync, `--verify-closure` refuses missing
+retained capabilities and records final versions, removals and lock digest.
+`uv pip check` and the late image verifier remain mandatory.
+
+The frontend is baked only after this complete resolution, so its recorded
+Python graph is the graph actually shipped. The final relationship verifier
+still runs after all installs and frontend preparation. This policy preserves
+installed capabilities; it does not claim every optional extra is active or
+that the old cached versions remain the final supported versions.
 
 ## Non-production canary and rollback evidence
 
@@ -42,7 +76,8 @@ package source. An explicit `--apps-volume` conflicts with this mode and is
 refused. A clone path in image-only `PYTHONPATH` is refused too. Floors and real
 imports remain mandatory; a correct mode never turns a failing floor green.
 
-Staging declares its existing `editable` startup mode explicitly. That legacy
+Ordinary staging declares its existing `editable`/`build` modes explicitly;
+candidate-image staging selects `image-only`/`baked`. The legacy editable
 mode derives the actual apps mount from resolved Compose volume names and
 requires all three Python roles to agree. It does not guess a volume from an
 environment-name suffix. A different explicit volume is not the same deployment.

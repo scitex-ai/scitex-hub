@@ -1,11 +1,18 @@
-{% load static i18n %}
+{% load static i18n landing_capture_tabs %}
+{% landing_capture_tabs as gallery_groups %}
 <div class="landing-v2-carousel" role="region" aria-roledescription="carousel"
      aria-labelledby="landing-v2-carousel-title" data-landing-carousel tabindex="0">
     <div class="landing-v2-carousel-head">
-        <h3 id="landing-v2-carousel-title">{% trans "Actual SciTeX® Cloud Screenshots" %}</h3>
+        <h3 id="landing-v2-carousel-title">{% trans "Screenshots of SciTeX® Cloud" %}</h3>
         <div class="landing-v2-carousel-controls">
             <button type="button" data-carousel-prev aria-label="{% trans 'Previous screenshot' %}">←</button>
-            <span data-carousel-status aria-live="polite">1 / 11</span>
+            <button type="button" class="landing-v2-carousel-rotation" data-carousel-rotation
+                    data-pause-label="{% trans 'Pause automatic screenshots' %}"
+                    data-resume-label="{% trans 'Resume automatic screenshots' %}"
+                    aria-label="{% trans 'Pause automatic screenshots' %}">
+                <span data-carousel-status aria-live="off">1 / 11</span>
+                <i class="fa-solid fa-pause" data-carousel-rotation-icon aria-hidden="true"></i>
+            </button>
             <button type="button" data-carousel-next aria-label="{% trans 'Next screenshot' %}">→</button>
         </div>
     </div>
@@ -54,13 +61,13 @@
                 aria-label="{% trans '4 of 11: Cards' %}" hidden>
             <picture>
                 <source type="image/webp"
-                        srcset="{% static 'public_app/images/landing-v2/cards-20261102-768.webp' %} 768w, {% static 'public_app/images/landing-v2/cards-20261102-1200.webp' %} 1200w"
+                        srcset="{% static 'public_app/images/landing-v2/cards-board-mnist-20261103-768.webp' %} 768w, {% static 'public_app/images/landing-v2/cards-board-mnist-20261103-1200.webp' %} 1200w"
                         sizes="(max-width: 900px) 100vw, 54vw" />
-                <img src="{% static 'public_app/images/landing-v2/cards-20261102-1200.jpg' %}"
+                <img src="{% static 'public_app/images/landing-v2/cards-board-mnist-20261103-1200.jpg' %}"
                      width="1200" height="750" loading="lazy"
-                     alt="{% trans 'Cards — Read-only board statistics; private task content hidden.' %}" />
+                     alt="{% trans 'Cards — Synthetic MNIST workflow examples in the actual Board.' %}" />
             </picture>
-            <figcaption><strong><a href="/apps/cards/">Cards</a></strong> — {% trans "Read-only board statistics; private task content hidden. 2026-11-02." %}</figcaption>
+            <figcaption><strong><a href="/apps/cards/">Cards</a></strong> — {% trans "Synthetic MNIST workflow examples, not research progress. 2026-11-03." %}</figcaption>
         </figure>
         <figure id="landing-app-slide-storage" aria-labelledby="landing-app-tab-storage"
                 data-carousel-slide role="tabpanel" aria-roledescription="slide"
@@ -106,13 +113,13 @@
                 aria-label="{% trans '8 of 11: FigRecipe' %}" hidden>
             <picture>
                 <source type="image/webp"
-                        srcset="{% static 'public_app/images/landing-v2/figrecipe-20261102-768.webp' %} 768w, {% static 'public_app/images/landing-v2/figrecipe-20261102-1200.webp' %} 1200w"
+                        srcset="{% static 'public_app/images/landing-v2/figrecipe-20261103-scene-768.webp' %} 768w, {% static 'public_app/images/landing-v2/figrecipe-20261103-scene-1200.webp' %} 1200w"
                         sizes="(max-width: 900px) 100vw, 54vw" />
-                <img src="{% static 'public_app/images/landing-v2/figrecipe-20261102-1200.jpg' %}"
+                <img src="{% static 'public_app/images/landing-v2/figrecipe-20261103-scene-1200.jpg' %}"
                      width="1200" height="750" loading="lazy"
-                     alt="{% trans 'FigRecipe — Six-row sample worksheet with distinct axis-role badges; development capture.' %}" />
+                     alt="{% trans 'FigRecipe — Three synthetic figures with a selected line and native Details; development capture.' %}" />
             </picture>
-            <figcaption><strong><a href="/apps/figrecipe/">FigRecipe</a></strong> — {% trans "Six-row sample worksheet with distinct axis-role badges; development capture. 2026-11-02." %}</figcaption>
+            <figcaption><strong><a href="/apps/figrecipe/">FigRecipe</a></strong> — {% trans "Three synthetic figures with a selected line and native Details; development capture. 2026-11-02." %}</figcaption>
         </figure>
         <figure id="landing-app-slide-writer" aria-labelledby="landing-app-tab-writer"
                 data-carousel-slide role="tabpanel" aria-roledescription="slide"
@@ -154,39 +161,38 @@
             <figcaption><strong><a href="/apps/agentic-journal/">Agentic Journal</a></strong> — {% trans "Author guidance and publication workflow; no submissions shown. 2026-11-02." %}</figcaption>
         </figure>
     </div>
-    <div class="stx-content-tabs landing-v2-carousel-tabs" data-carousel-tabs role="tablist"
-         aria-label="{% trans 'Choose a screenshot' %}">
-        <div class="landing-v2-carousel-category" role="group" aria-labelledby="landing-category-platform">
-            <span class="landing-v2-carousel-category-label" id="landing-category-platform">{% trans "Platform" %}</span>
-            <div class="landing-v2-carousel-category-items" role="presentation">
-                <button type="button" class="stx-content-tabs__tab" role="tab" id="landing-app-tab-hub" aria-controls="landing-app-slide-hub" data-carousel-dot="0" aria-selected="true">Hub</button>
-                <button type="button" class="stx-content-tabs__tab" role="tab" id="landing-app-tab-sdk" aria-controls="landing-app-slide-sdk" data-carousel-dot="1" aria-selected="false" tabindex="-1">SDK</button>
+    <div class="landing-v2-carousel-tabs" data-carousel-tabs>
+        <div class="stx-content-tabs landing-v2-carousel-category-tabs" data-carousel-categories
+             role="tablist" aria-label="{% trans 'Screenshot categories' %}">
+            {% for group in gallery_groups %}
+            <button type="button" class="stx-content-tabs__tab" role="tab"
+                    id="landing-category-tab-{{ group.key }}"
+                    aria-controls="landing-category-panel-{{ group.key }}"
+                    data-carousel-category-tab="{{ group.key }}"
+                    aria-selected="{% if forloop.first %}true{% else %}false{% endif %}"
+                    tabindex="{% if forloop.first %}0{% else %}-1{% endif %}">{{ group.label }}</button>
+            {% endfor %}
+        </div>
+        {% for group in gallery_groups %}
+        <div class="landing-v2-carousel-category-panel" role="tabpanel"
+             id="landing-category-panel-{{ group.key }}"
+             aria-labelledby="landing-category-tab-{{ group.key }}"
+             data-carousel-category-panel="{{ group.key }}"{% if not forloop.first %} hidden{% endif %}>
+            <div class="stx-content-tabs landing-v2-carousel-app-tabs" data-carousel-app-tabs
+                 role="tablist" aria-label="{% blocktrans with category=group.label %}{{ category }} screenshots{% endblocktrans %}">
+                {% for app in group.apps %}
+                <button type="button" class="stx-content-tabs__tab" role="tab"
+                        id="landing-app-tab-{{ app.key }}" aria-controls="landing-app-slide-{{ app.key }}"
+                        data-carousel-dot="{{ app.index }}" data-carousel-app-category="{{ group.key }}"
+                        title="{{ app.version_note }}" data-capture-version-basis="{{ app.version_basis }}"
+                        aria-selected="{% if app.index == 0 %}true{% else %}false{% endif %}"
+                        tabindex="{% if app.index == 0 %}0{% else %}-1{% endif %}">
+                    <span>{{ app.label }}</span><small class="landing-v2-app-version">v{{ app.version }}</small>
+                </button>
+                {% endfor %}
             </div>
         </div>
-        <div class="landing-v2-carousel-category" role="group" aria-labelledby="landing-category-infrastructure">
-            <span class="landing-v2-carousel-category-label" id="landing-category-infrastructure">{% trans "Infrastructure" %}</span>
-            <div class="landing-v2-carousel-category-items" role="presentation">
-                <button type="button" class="stx-content-tabs__tab" role="tab" id="landing-app-tab-agent-container" aria-controls="landing-app-slide-agent-container" data-carousel-dot="2" aria-selected="false" tabindex="-1">Agent Container</button>
-                <button type="button" class="stx-content-tabs__tab" role="tab" id="landing-app-tab-cards" aria-controls="landing-app-slide-cards" data-carousel-dot="3" aria-selected="false" tabindex="-1">Cards</button>
-                <button type="button" class="stx-content-tabs__tab" role="tab" id="landing-app-tab-storage" aria-controls="landing-app-slide-storage" data-carousel-dot="4" aria-selected="false" tabindex="-1">Storage</button>
-            </div>
-        </div>
-        <div class="landing-v2-carousel-category" role="group" aria-labelledby="landing-category-research">
-            <span class="landing-v2-carousel-category-label" id="landing-category-research">{% trans "Research" %}</span>
-            <div class="landing-v2-carousel-category-items" role="presentation">
-                <button type="button" class="stx-content-tabs__tab" role="tab" id="landing-app-tab-scholar" aria-controls="landing-app-slide-scholar" data-carousel-dot="5" aria-selected="false" tabindex="-1">Scholar</button>
-                <button type="button" class="stx-content-tabs__tab" role="tab" id="landing-app-tab-stats" aria-controls="landing-app-slide-stats" data-carousel-dot="6" aria-selected="false" tabindex="-1">Stats</button>
-                <button type="button" class="stx-content-tabs__tab" role="tab" id="landing-app-tab-figrecipe" aria-controls="landing-app-slide-figrecipe" data-carousel-dot="7" aria-selected="false" tabindex="-1">FigRecipe</button>
-                <button type="button" class="stx-content-tabs__tab" role="tab" id="landing-app-tab-writer" aria-controls="landing-app-slide-writer" data-carousel-dot="8" aria-selected="false" tabindex="-1">Writer</button>
-            </div>
-        </div>
-        <div class="landing-v2-carousel-category" role="group" aria-labelledby="landing-category-publication">
-            <span class="landing-v2-carousel-category-label" id="landing-category-publication">{% trans "Publication" %}</span>
-            <div class="landing-v2-carousel-category-items" role="presentation">
-                <button type="button" class="stx-content-tabs__tab" role="tab" id="landing-app-tab-live-paper" aria-controls="landing-app-slide-live-paper" data-carousel-dot="9" aria-selected="false" tabindex="-1">Live Paper</button>
-                <button type="button" class="stx-content-tabs__tab" role="tab" id="landing-app-tab-agentic-journal" aria-controls="landing-app-slide-agentic-journal" data-carousel-dot="10" aria-selected="false" tabindex="-1">Agentic Journal</button>
-            </div>
-        </div>
+        {% endfor %}
     </div>
     <p class="landing-v2-provenance-note">
         {% trans "Actual development captures with account/project controls hidden for privacy, then resized and compressed. Example data is labeled; screenshots do not prove complete feature coverage or production availability." %}

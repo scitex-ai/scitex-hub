@@ -9829,8 +9829,118 @@ msgstr "scitex-ioライブラリと分野別のSciTeXパッケージは、デー
 msgid "scitex-hub provides a graphical workspace for users and API endpoints for external agents."
 msgstr "scitex-hubは、ユーザー向けのGUIワークスペースと、外部エージェント向けのAPIエンドポイントを提供します。"
 
+#: apps/infra/public_app/templates/public_app/landing_partials
+msgid "scitex-clew provides the foundation for provenance-based verification in AI for Science."
+msgstr "scitex-clewは、AI for Scienceにおける来歴に基づく検証の基盤を提供します。"
+
+#: apps/infra/public_app/templates/public_app/landing_partials
+msgid "SciTeX packages provide deterministic research tools with native scitex-clew support."
+msgstr "SciTeXパッケージは、scitex-clewを標準でサポートする決定論的な研究ツールを提供します。"
+
+#: apps/infra/public_app/templates/public_app/landing_partials
+msgid "scitex-hub provides a graphical workspace and API endpoints for users and external agents."
+msgstr "scitex-hubは、ユーザーと外部エージェント向けにGUIワークスペースとAPIエンドポイントを提供します。"
+
+#: apps/infra/public_app/templates/public_app/landing_partials
+msgid "Pause automatic screenshots"
+msgstr "スクリーンショットの自動切り替えを一時停止"
+
+#: apps/infra/public_app/templates/public_app/landing_partials
+msgid "Resume automatic screenshots"
+msgstr "スクリーンショットの自動切り替えを再開"
+
+#: apps/infra/public_app/templates/public_app/landing_partials
+msgid "Hub for Science"
+msgstr "科学のためのハブ"
+
+#: apps/infra/public_app/templates/public_app/landing_partials
+msgid "SciTeX — Hub for Science"
+msgstr "SciTeX — 科学のためのハブ"
+
+#: apps/infra/public_app/templates/public_app/landing_partials
+msgid "Screenshots of SciTeX® Cloud"
+msgstr "SciTeX® Cloudのスクリーンショット"
+
+#: apps/infra/public_app/templates/public_app/landing_partials
+msgid "SciTeX — Open-source Ecosystem for Scientific Research"
+msgstr "SciTeX — 科学研究のためのオープンソース・エコシステム"
+
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_modules.html
+msgid "SciTeX® Clew records source data and input–executable–output triplets in a hash-linked provenance graph. It traces manuscript claims backward to their sources, verifying the recorded hashes at each step."
+msgstr "SciTeX® Clewは、元データと入力・実行コード・出力の3要素を、ハッシュで結び付けた来歴グラフに記録します。原稿の主張から出典まで逆にたどり、各段階で記録済みのハッシュを検証します。"
+
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_modules.html
+msgid "Backward"
+msgstr "逆方向"
+
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_modules.html
+msgid "Source data → input–executable–output steps"
+msgstr "元データ → 入力・実行コード・出力のステップ"
+
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_modules.html
+msgid "Claims → output–executable–input steps → source data"
+msgstr "主張 → 出力・実行コード・入力のステップ → 元データ"
+
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_modules.html
+msgid "SciTeX® Clew records source data and inputs–executable–outputs triplets in a hash-linked provenance graph. It traces manuscript claims backward to their sources, verifying the recorded hashes at each step."
+msgstr "SciTeX® Clewは、元データと入力・実行コード・出力の3要素を、ハッシュで結び付けた来歴グラフに記録します。原稿の主張から出典まで逆にたどり、各段階で記録済みのハッシュを検証します。"
+
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_modules.html
+msgid "Source data → inputs–executable–outputs steps"
+msgstr "元データ → 入力・実行コード・出力のステップ"
+
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_modules.html
+msgid "Claims → outputs–executable–inputs steps → source data"
+msgstr "主張 → 出力・実行コード・入力のステップ → 元データ"
+
 msgid "Watch the demo to see the tools working together."
 msgstr "デモで、ツールが連携して動作する様子をご覧ください。"
+
+msgid "View the Clew paper repository"
+msgstr "Clew論文のリポジトリを見る"
+
+msgid "Install the toolkit"
+msgstr "ツールキットをインストール"
+
+msgid "Connect your MCP client"
+msgstr "MCPクライアントを接続"
+
+msgid "Install agent skills"
+msgstr "エージェントのスキルをインストール"
+
+msgid "Use the full path to scitex if your MCP client does not inherit your environment’s PATH."
+msgstr "MCPクライアントが環境のPATHを引き継がない場合は、scitexの絶対パスを指定してください。"
+
+msgid "Skills are collected from installed packages into ~/.scitex/dev/skills/."
+msgstr "インストール済みパッケージのスキルを ~/.scitex/dev/skills/ に集約します。"
+
+msgid "With newer scitex-dev releases:"
+msgstr "新しい scitex-dev では："
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_app_gallery.html
+msgid "Screenshot categories"
+msgstr "画面のカテゴリ"
+
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_app_gallery.html
+#, python-format
+msgid "%(category)s screenshots"
+msgstr "%(category)s の画面"
+
+msgid "FigRecipe — Three synthetic figures with a selected line and native Details; development capture."
+msgstr "FigRecipe — 3つの合成例の図と、選択した線の詳細。開発環境の画面。"
+
+msgid "Three synthetic figures with a selected line and native Details; development capture. 2026-11-02."
+msgstr "3つの合成例の図と、選択した線の詳細。開発環境の画面。2026-11-02。"
+
+msgid "The default shared store is ~/.scitex/dev/skills/. For Claude Code, --claude-symlink exposes it at ~/.claude/skills/scitex/."
+msgstr "既定の共有ストアは ~/.scitex/dev/skills/ です。Claude Codeでは --claude-symlink により ~/.claude/skills/scitex/ から参照できます。"
+
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_app_gallery.html
+msgid "Cards — Synthetic MNIST workflow examples in the actual Board."
+msgstr "Cards — 実際のボードに表示した架空のMNISTワークフロー例。"
+
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_app_gallery.html
+msgid "Synthetic MNIST workflow examples, not research progress. 2026-11-03."
+msgstr "研究の進捗ではなく、架空のMNISTワークフロー例です。2026-11-03。"
 
 #: apps/infra/auth_app/templates/auth_app/signup.html
 msgid "Academic email recognized — eligible for SciTeX Cloud Academic pricing."

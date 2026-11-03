@@ -36,6 +36,33 @@ def test_image_only_does_not_treat_frontend_clones_as_python_overlay():
     assert target == ("image:owned-image:reviewed", None)
 
 
+@pytest.mark.parametrize("read_only", [True, False])
+@pytest.mark.parametrize("target", [
+    "/usr/local/lib/python3.11/site-packages/scitex_container",
+    "/usr/local/lib/python3.11/site-packages/scitex/scholar/citation_graph",
+    "/usr/local", "/usr", "/", "/usr/local/bin/scitex-hub",
+    "/opt/scitex-image-contract", "/opt/scitex-frontend/vite",
+    "/opt/scitex-frontend-tools", "/root-init.sh", "/entrypoint.sh",
+])
+def test_image_only_refuses_runtime_shadowing_in_any_role(target, read_only):
+    document = _document()
+    document["services"]["celery_worker"]["volumes"].append({
+        "type": "bind", "source": "/owned/checkout", "target": target,
+        "read_only": read_only,
+    })
+    with pytest.raises(TargetUnreachable, match="qualified runtime code"):
+        environment.parse_context(document)
+
+
+def test_image_only_preserves_normal_data_and_static_mounts():
+    document = _document()
+    for target in ("/app/data/users", "/app/staticfiles", "/app/.scitex"):
+        document["services"]["django"]["volumes"].append({
+            "type": "bind", "source": "/owned/data", "target": target,
+        })
+    assert environment.parse_context(document).mode == "image-only"
+
+
 def test_legacy_editable_uses_the_actual_declared_volume_name():
     # Arrange
     context = environment.parse_context(_document("editable"))

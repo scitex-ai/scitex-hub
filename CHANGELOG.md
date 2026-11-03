@@ -11,6 +11,51 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.22.0a0] - 2026-11-03
+
+Alpha preview; the distribution and tag use the canonical PEP 440 spelling
+`0.22.0a0` / `v0.22.0a0` (the product label is “0.22.0-alpha”).
+
+### Added
+- Current application screenshots with category/app tabs, captured-version
+  labels, accessible keyboard navigation, and pausable gallery rotation.
+- Guarded, explicit MNIST Writer sample preparation from the computed example
+  provenance, preserving authored sections and bibliography.
+
+### Changed
+- Read the global header version and description from installed `scitex-hub`
+  distribution metadata in both development and production.
+- Declare the native GUI plugin dependency closure, including SDK 0.3.19,
+  Cards 0.56.22, and FigRecipe 0.44.1; check the final image dependency graph.
+- Bake the production frontend from installed-release Git tags and verified
+  public SDK wheel inputs. Verify and publish the complete Vite closure after
+  collectstatic without startup Git/npm activity or deleting older hashed chunks.
+- Align mounted application headers, scope capabilities, theme controls, and
+  viewport frames through shared SDK contracts.
+- Show Cloud alpha status and a research-workflow landing page with installation
+  instructions and verified screenshot provenance.
+- Require the complete declared release test dependencies; reject mismatched
+  tag/package versions before tests or builds. Alpha GitHub releases are marked
+  prereleases. Post-publication branch synchronization opens an ordinary PR.
+
+### Fixed
+
+- Set explicit permissions on production startup scripts, utilities and policy
+  inputs, and verify those protected paths alongside installed dependencies.
+- Resolve the retained runtime capabilities into one compiled dependency closure,
+  removing obsolete cache-only helpers while preserving scientific packages and
+  verifying every retained capability before the final image checks.
+- Refuse cyclic plugin home paths consistently on Python 3.13 while preserving
+  owned workspaces that have not been created yet.
+- Replace the shared build's exact Monaco-vendored sanitizer module with an
+  isolated patched instance, preserving markdown hover and hook behavior.
+- Keep chat diagrams in inert SVG images and sanitize interactive Clew diagrams
+  without losing node selection or status colors. Use one patched DOMPurify
+  release for bundled and legacy-global consumers, and render errors as text.
+
+- Limit workspace sidebar overrides to the Hub-owned outer panes, preserving
+  nested app sidebars such as Cards Details and keeping its Board visible.
+
 - Preserve native submission for explicit GET forms, including read-only Storage
   calculations and move planning. Implicit-method legacy forms remain guarded,
   and JS-driven form owners can still cancel their own submissions.

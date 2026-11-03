@@ -141,6 +141,7 @@ services:
       - UV_CACHE_DIR=/app/.cache/uv
       - NPM_CONFIG_CACHE=/app/.cache/npm
       - SCITEX_APPS_PYTHON_MODE=image-only
+      - SCITEX_HUB_FRONTEND_MODE=baked
     depends_on:
       pgbouncer:
         condition: service_healthy
@@ -429,6 +430,7 @@ services:
       - UV_CACHE_DIR=/app/.cache/uv
       - NPM_CONFIG_CACHE=/app/.cache/npm
       - SCITEX_APPS_PYTHON_MODE=image-only
+      - SCITEX_HUB_FRONTEND_MODE=baked
 
     depends_on:
       pgbouncer:
@@ -496,6 +498,7 @@ services:
       - UV_CACHE_DIR=/app/.cache/uv
       - NPM_CONFIG_CACHE=/app/.cache/npm
       - SCITEX_APPS_PYTHON_MODE=image-only
+      - SCITEX_HUB_FRONTEND_MODE=baked
 
     depends_on:
       pgbouncer:

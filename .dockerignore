@@ -43,9 +43,14 @@ logs/
 docs/_build/
 *.md
 !README.md
+# These are shipped package resources, including deployment instructions.
+!src/scitex_hub/_skills/**
+!src/scitex_hub/skills/**
 
 # Node (if applicable)
 node_modules/
+# Baked production frontends prepare reviewed release inputs inside the image.
+.apps/
 npm-debug.log*
 
 # Docker
