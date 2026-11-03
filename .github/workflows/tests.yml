@@ -107,6 +107,8 @@ jobs:
           # This job compiles frontend sources, not editable Python leaves.
           # Keep the interpreter above isolated; the installer otherwise tries
           # its Docker-oriented --system transaction on pooled runner Python.
+          export GIT_CONFIG_GLOBAL="$RUNNER_TEMP/hub-frontend-gitconfig"
+          export GIT_CONFIG_NOSYSTEM=1
           SCITEX_APPS_PYTHON_MODE=image-only bash scripts/apps/install_apps.sh
 
       - name: Setup Node.js

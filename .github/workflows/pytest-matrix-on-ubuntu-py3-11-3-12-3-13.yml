@@ -138,12 +138,8 @@ jobs:
           # uv: they are correct as written — they exercise the same installer
           # the product uses, with no mocks.
           uv venv --seed --python ${{ matrix.python-version }} .venv
-          # Fallback chain: prefer [all,dev] so optional-dep code paths
-          # (yaml, fastmcp, textual) get exercised. Falls back to [dev] then
-          # plain editable so a packaging hiccup doesn't strand CI.
-          uv pip install --python .venv/bin/python -e ".[all,dev]" \
-            || uv pip install --python .venv/bin/python -e ".[dev]" \
-            || uv pip install --python .venv/bin/python -e .
+          # Qualify the declared full cohort; a reduced install cannot verify it.
+          uv pip install --python .venv/bin/python -e ".[all,dev]"
       - name: Setup Node.js (for Vite build below)
         uses: actions/setup-node@v4
         with:

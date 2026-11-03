@@ -74,6 +74,10 @@ jobs:
         env:
           RELEASE_TAG: ${{ steps.ver.outputs.version }}
         run: python3 .github/ci/check_release_version.py --tag "$RELEASE_TAG"
+      - name: Setup Node.js for the real offline npm regression
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
       - uses: astral-sh/setup-uv@v7
         with:
           cache-dependency-glob: pyproject.toml

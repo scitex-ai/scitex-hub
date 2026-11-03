@@ -8,6 +8,7 @@ import hashlib
 import importlib.metadata as metadata
 import importlib.util
 import json
+import os
 import subprocess
 from pathlib import Path
 
@@ -378,12 +379,15 @@ def test_real_npm_stale_local_link_is_replaced_by_admitted_provider(tmp_path):
         '{"name":"owned-consumer","version":"1.0.0","dependencies":{"owned-port":"file:../old-provider"}}'
     )
     env = {
-        "PATH": "/usr/local/bin:/usr/bin:/bin",
-        "HOME": str(tmp_path),
+        # Keep the declared runner toolchain (setup-node uses its own prefix).
+        "PATH": os.environ.get("PATH", os.defpath),
+        "HOME": os.environ["HOME"],
+        "NPM_CONFIG_GLOBALCONFIG": str(tmp_path / "global-npmrc"),
         "NPM_CONFIG_CACHE": str(tmp_path / "cache"),
         "NPM_CONFIG_USERCONFIG": str(tmp_path / "npmrc"),
     }
     (tmp_path / "npmrc").touch()
+    (tmp_path / "global-npmrc").touch()
     command = [
         "npm",
         "install",
