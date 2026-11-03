@@ -14,6 +14,7 @@ from pathlib import PurePosixPath
 from urllib.parse import parse_qs, urlparse
 
 import pytest
+from playwright.sync_api import TimeoutError as PlaywrightTimeoutError
 
 from tests.e2e.playwright.page_ready import wait_for_page_ready
 
@@ -42,6 +43,9 @@ class BrowserEvidence:
 
 def _watch_page(page, evidence: BrowserEvidence, base_url: str) -> None:
     """Capture console and same-origin network failures from one page."""
+    from tests.e2e.playwright.server_diagnostics import observe_browser
+
+    observe_browser(page)
     page.on(
         "console",
         lambda message: (
@@ -90,6 +94,9 @@ def continuity_browser(request, pw_base_url):
 
 
 def _assert_project_metadata(page, app: str, version: str) -> None:
+    from tests.e2e.playwright.server_diagnostics import observe_ready
+
+    observe_ready(page)
     body = page.locator("body")
     sdk_document = app in {"writer", "scholar"}
     if sdk_document:
@@ -217,7 +224,16 @@ def test_login_launcher_and_project_apps_keep_one_project(continuity_browser):
         app_page = page.context.new_page()
         _watch_page(app_page, evidence, base_url)
         try:
-            response = app_page.goto(href, wait_until="commit")
+            try:
+                response = app_page.goto(href, wait_until="commit")
+            except PlaywrightTimeoutError:
+                from tests.e2e.playwright.server_diagnostics import capture_timeout
+
+                try:
+                    capture_timeout(app_page, href)
+                except Exception as error:
+                    print("Diagnostic observation failed:", type(error).__name__)
+                raise
             assert response is not None and response.status == 200
             wait_for_page_ready(app_page, wait_for_load=False)
             _assert_project_metadata(app_page, app, version)
