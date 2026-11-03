@@ -31,6 +31,14 @@ existing data requires a separately reviewed operator repair; do not recursively
 change its ownership or widen its permissions to make startup succeed. Only
 absent directories or empty root-owned mount roots may be initialized for the
 application user with private permissions.
+The Docker constructor separately prepares all ten image-owned state directories
+and existing image configuration after the final install/import gates. It must
+precreate `/app/data` before nested users mounts can be attached. Build-time
+`scripts/deploy/verify_default_bootstrap.py` gates inspect those defaults and run
+the complete root initializer with empty synthetic private tmpfs mounts under
+`--network=none`. This initialization concerns image defaults only; do not
+recursively repair runtime mounts. Require the canonical image cold boot and
+actual staging/native smoke before tagging or publishing the successor.
 See [the bootstrap permission boundary](../../../../docs/security/container-data-permissions.md)
 for the source-backed checks and root-owned mount qualification.
 

@@ -1,6 +1,6 @@
 [project]
 name = "scitex-hub"
-version = "0.22.0a2"
+version = "0.22.0a3"
 description = "A browser workspace connecting research projects, apps, and collaborators"
 readme = "README.md"
 license = "AGPL-3.0-only"
