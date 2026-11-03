@@ -77,15 +77,16 @@
   flex: 1;
 }
 
-/* Inner sidebars should fill their pane */
-.workspace-pane .stx-shell-sidebar {
+/* Only host-owned utility sidebars fill their pane. Nested module Details
+   panes retain the owning app's width and collapse behavior. */
+.workspace-pane :is(.ws-ai-pane, .ws-worktree-pane, .ws-viewer-pane) > .stx-shell-sidebar {
   width: 100% !important;
   height: 100% !important;
   position: relative;
 }
 
 /* Remove collapsed state — panes are always full width */
-.workspace-pane .stx-shell-sidebar.collapsed {
+.workspace-pane :is(.ws-ai-pane, .ws-worktree-pane, .ws-viewer-pane) > .stx-shell-sidebar.collapsed {
   width: 100% !important;
 }
 
