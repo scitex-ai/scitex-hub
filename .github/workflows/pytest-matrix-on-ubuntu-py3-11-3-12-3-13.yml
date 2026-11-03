@@ -126,6 +126,11 @@ jobs:
         with:
           cache-dependency-glob: pyproject.toml
       - name: Install dependencies (py${{ matrix.python-version }})
+        env:
+          # A pooled runner's discoverable Python may be incomplete or point
+          # outside this job container. Own the entire runtime per attempt;
+          # never repair or delete a shared host interpreter in place.
+          UV_PYTHON_INSTALL_DIR: ${{ runner.temp }}/hub-managed-python-${{ github.run_id }}-${{ github.run_attempt }}-${{ github.job }}-${{ matrix.python-version }}
         run: |
           set -euo pipefail
           # --seed installs pip/setuptools into the venv. uv itself does not
@@ -137,7 +142,8 @@ jobs:
           # explicitly. Seed the venv rather than rewriting those tests to use
           # uv: they are correct as written — they exercise the same installer
           # the product uses, with no mocks.
-          uv venv --seed --python ${{ matrix.python-version }} .venv
+          uv venv --seed --managed-python --python ${{ matrix.python-version }} .venv
+          .venv/bin/python -c "import sysconfig; sysconfig.get_config_vars(); print('managed Python sysconfig OK')"
           # Qualify the declared full cohort; a reduced install cannot verify it.
           uv pip install --python .venv/bin/python -e ".[all,dev]"
       - name: Setup Node.js (for Vite build below)
@@ -220,6 +226,9 @@ jobs:
           SCITEX_HUB_DB_PASSWORD_DEV: scitex_test_pass  # pragma: allowlist secret
           SCITEX_HUB_DB_HOST_DEV: ${{ job.container.id && 'postgres' || 'localhost' }}
           SCITEX_HUB_DB_PORT_DEV: ${{ job.container.id && '5432' || job.services.postgres.ports['5432'] }}
+          # Ledger/status fixtures must share this job's disposable PostgreSQL,
+          # never the library's implicit fleet-primary target.
+          SCITEX_STORE_DSN: postgresql://scitex:scitex_test_pass@${{ job.container.id && 'postgres' || 'localhost' }}:${{ job.container.id && '5432' || job.services.postgres.ports['5432'] }}/scitex_test?connect_timeout=5  # pragma: allowlist secret
           # Matches --cpus 8 in the container; hosted VMs have 4 vCPUs.
           PYTEST_XDIST_WORKERS: ${{ job.container.id && '8' || 'auto' }}
           # No Redis broker in this job, so .delay() would raise
