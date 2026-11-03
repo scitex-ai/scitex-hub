@@ -23,8 +23,11 @@ import contextlib
 import json
 import shutil
 
+from pathlib import Path
+from tempfile import TemporaryDirectory
+
 from django.contrib.auth.models import User
-from django.test import Client, TestCase
+from django.test import Client, TestCase, override_settings
 
 from apps.infra.project_app.models import Project, ProjectMembership
 from apps.infra.project_app.services.project_filesystem import (
@@ -39,6 +42,16 @@ STRANGERS_CONTENT = "WRITTEN BY AN UNAUTHORIZED CALLER"
 
 
 class SectionAccessPolicyTest(TestCase):
+    @classmethod
+    def setUpClass(cls):
+        # Database workers are isolated; their real project directories must be too.
+        directory = TemporaryDirectory(prefix="writer-owned-workspace-")
+        cls.addClassCleanup(directory.cleanup)
+        settings_override = override_settings(BASE_DIR=Path(directory.name).resolve())
+        settings_override.enable()
+        cls.addClassCleanup(settings_override.disable)
+        super().setUpClass()
+
     @classmethod
     def setUpTestData(cls):
         cls.owner = User.objects.create_user(username="policy-owner", password=PASSWORD)

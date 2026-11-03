@@ -46,7 +46,7 @@ leaf-code imports:
 from __future__ import annotations
 
 import dataclasses
-import importlib.util
+import importlib.metadata
 import json
 from pathlib import Path
 
@@ -398,10 +398,13 @@ def test_safe_method_with_foreign_origin_still_reads(resolve_to):
 
 
 def _leaf_manifest():
-    spec = importlib.util.find_spec("scitex_writer")
-    assert spec is not None and spec.origin, "scitex-writer not installed"
-    manifest = Path(spec.origin).parent / "_django" / "manifest.json"
-    assert manifest.exists(), "leaf _django/manifest.json missing"
+    # The umbrella alias may replace __spec__; installed distribution files
+    # remain the authoritative manifest location without importing the leaf.
+    distribution = importlib.metadata.distribution("scitex-writer")
+    relative = "scitex_writer/_django/manifest.json"
+    assert relative in {str(path) for path in distribution.files or ()}
+    manifest = Path(distribution.locate_file(relative))
+    assert manifest.is_file(), "leaf _django/manifest.json missing"
     return json.loads(manifest.read_text())
 
 

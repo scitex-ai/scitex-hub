@@ -334,9 +334,16 @@ settings.configure(SECRET_KEY='owned-file-size-test',INSTALLED_APPS=['django.con
 import django;django.setup()
 from apps.infra.project_app.services.first_project_samples.mnist_writer import plan_mnist_writer_demo,apply_mnist_writer_demo,DemoSeedRefused
 root=Path(sys.argv[2]);plan=plan_mnist_writer_demo(root)
+# Resolve actual lazy Writer/IO imports before limiting only the operation.
+from scitex_writer import Writer
+from apps.infra.project_app.services.writer_workspace_layout import WRITER_WORKSPACE_RELPATH
+writer=Writer(root/WRITER_WORKSPACE_RELPATH,git_strategy=None)
+for name in ('abstract','methods','results'): writer.read_section(name)
+original_limits=resource.getrlimit(resource.RLIMIT_FSIZE)
+original_signal=signal.getsignal(signal.SIGXFSZ)
 signal.signal(signal.SIGXFSZ,signal.SIG_IGN)
 limit=int(sys.argv[3]);phase=sys.argv[4]
-resource.setrlimit(resource.RLIMIT_FSIZE,(limit,limit))
+resource.setrlimit(resource.RLIMIT_FSIZE,(limit,original_limits[1]))
 try:
  apply_mnist_writer_demo(root,expected_plan_sha256=plan['plan_sha256'])
 except (DemoSeedRefused,OSError) as error:
@@ -347,11 +354,16 @@ except (DemoSeedRefused,OSError) as error:
  print('actual-file-size-refusal-'+phase)
 else:
  raise AssertionError('The actual staged Writer write must exceed the file-size limit')
+finally:
+ resource.setrlimit(resource.RLIMIT_FSIZE,original_limits)
+ signal.signal(signal.SIGXFSZ,original_signal)
+assert resource.getrlimit(resource.RLIMIT_FSIZE)==original_limits
 """
     result = subprocess.run(
         [
             sys.executable,
             "-I",
+            "-B",
             "-c",
             code,
             str(source_root),
