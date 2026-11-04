@@ -9945,3 +9945,55 @@ msgstr "研究の進捗ではなく、架空のMNISTワークフロー例です�
 #: apps/infra/auth_app/templates/auth_app/signup.html
 msgid "Academic email recognized — eligible for SciTeX Cloud Academic pricing."
 msgstr "学術機関のメールアドレスとして認識されました。SciTeX Cloud Academicの学術料金の対象です。"
+
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_hero.html
+msgid "Research you can trace and verify"
+msgstr "追跡し、検証できる研究"
+
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_hero.html
+msgid "Deterministic tools for scientific workflows"
+msgstr "科学的なワークフローのための決定論的ツール"
+
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_hero.html
+msgid "A graphical workspace for researchers"
+msgstr "研究者のためのグラフィカルな作業環境"
+
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_hero.html
+msgid "Flexible interfaces: Python API, CLI, MCP, skills, and web API"
+msgstr "柔軟なインターフェース：Python API、CLI、MCP、スキル、ウェブ API"
+
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_modules.html
+msgid "Your browser does not support HTML video."
+msgstr "このブラウザーは動画の再生に対応していません。"
+
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_modules.html
+msgid "Recorded Clew concept overview · 73 seconds"
+msgstr "録画済みの Clew コンセプト紹介・73秒"
+
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_research_demo.html
+msgid "In this 40-minute demonstration, an AI agent uses SciTeX for research topic selection, literature management, open data retrieval, data analysis, statistical testing, figure preparation, manuscript writing, and simulated peer review."
+msgstr "この40分間のデモでは、AI エージェントが SciTeX を使い、研究テーマの選定、文献管理、公開データの取得、データ分析、統計検定、図の作成、論文執筆、模擬査読を行います。"
+
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_modules.html
+msgid "Watch the demo, then connect your own AI agent."
+msgstr "デモを見てから、ご自身の AI エージェントを接続してください。"
+
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_modules.html
+msgid "Install SciTeX"
+msgstr "SciTeX をインストール"
+
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_modules.html
+msgid "Connect your agent"
+msgstr "エージェントを接続"
+
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_modules.html
+msgid "Example MCP configuration; the format depends on your client."
+msgstr "MCP の設定例です。設定形式はクライアントによって異なります。"
+
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_modules.html
+msgid "Add development skills (optional)"
+msgstr "開発用スキルを追加（任意）"
+
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_modules.html
+msgid "Link selected skills from ~/.scitex/dev/skills/ to your agent’s supported skills directory."
+msgstr "~/.scitex/dev/skills/ から必要なスキルを選び、エージェントが対応するスキル用ディレクトリへリンクしてください。"
