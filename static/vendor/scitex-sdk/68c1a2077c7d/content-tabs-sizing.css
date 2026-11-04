@@ -1,0 +1,11 @@
+/* Optional uniform sizing for the shared content-tabs primitive.
+ * Add stx-content-tabs--uniform to each row that should share a tab width.
+ * --stx-content-tabs-tab-width defaults to 9rem; rows scroll when needed.
+ * Selection, focus, keyboard behavior and tabs without this modifier are unchanged.
+ */
+.stx-content-tabs.stx-content-tabs--uniform > .stx-content-tabs__tab {
+  flex: 0 0 var(--stx-content-tabs-tab-width, 9rem);
+  min-width: 44px;
+  white-space: normal;
+  overflow-wrap: anywhere;
+}

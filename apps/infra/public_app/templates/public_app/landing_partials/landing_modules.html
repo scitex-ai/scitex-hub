@@ -16,6 +16,15 @@
                href="https://scitex.ai/ywatanabe/paper-scitex-clew/"
                target="_blank"
                rel="noopener noreferrer">{% trans "View the Clew paper repository" %}<span aria-hidden="true">↗</span></a>
+            <figure class="landing-v2-clew-clip">
+                <video controls playsinline preload="none"
+                       poster="{% static 'public_app/clew/short-clip-poster.jpg' %}"
+                       aria-label="{% trans 'Clew concept overview video' %}">
+                    <source src="{% static 'public_app/clew/short-clip-v2.mp4' %}" type="video/mp4" />
+                    {% trans "Your browser does not support HTML video." %}
+                </video>
+                <figcaption>{% trans "Recorded Clew concept overview · 73 seconds" %}</figcaption>
+            </figure>
         </div>
         <figure class="landing-v2-clew-figure">
             <picture>
@@ -38,13 +47,13 @@
         <div class="landing-v2-demo-copy">
             <p class="landing-v2-eyebrow"><a class="landing-v2-section-label" href="#demo"><i class="fa-solid fa-link" aria-hidden="true"></i> {% trans "Demo" %}</a></p>
             <h2 id="landing-v2-demo-title">{% trans "AI Agent + SciTeX®" %}</h2>
-            <p>{% trans "Watch the demo to see the tools working together." %}</p>
-            <p>{% trans "An AI-agent research workflow with the SciTeX Python toolkit and MCP tools: literature search, experiments, analysis, figures, and manuscript writing." %}</p>
+            <p>{% trans "Watch the demo, then connect your own AI agent." %}</p>
             <ol class="landing-v2-demo-setup">
-                <li><strong>{% trans "Install the toolkit" %}</strong>
+                <li><strong>{% trans "Install SciTeX" %}</strong>
                     <pre data-language="bash"><code class="language-bash">uv pip install 'scitex[all]'</code></pre>
                 </li>
-                <li><strong>{% trans "Connect your MCP client" %}</strong>
+                <li><strong>{% trans "Connect your agent" %}</strong>
+                    <p class="landing-v2-small">{% trans "Example MCP configuration; the format depends on your client." %}</p>
                     <pre data-language="json"><code class="language-json">{
   "mcpServers": {
     "scitex": {
@@ -55,11 +64,9 @@
 }</code></pre>
                     <p class="landing-v2-small">{% trans "Use the full path to scitex if your MCP client does not inherit your environment’s PATH." %}</p>
                 </li>
-                <li><strong>{% trans "Install agent skills" %}</strong>
-                    <pre data-language="bash"><code class="language-bash">scitex-dev skills install --claude-symlink</code></pre>
-                    <p class="landing-v2-small">{% trans "With newer scitex-dev releases:" %} </p>
-                    <pre data-language="bash"><code class="language-bash">scitex-dev dev skills install --claude-symlink</code></pre>
-                    <p class="landing-v2-small">{% trans "The default shared store is ~/.scitex/dev/skills/. For Claude Code, --claude-symlink exposes it at ~/.claude/skills/scitex/." %}</p>
+                <li><strong>{% trans "Add development skills (optional)" %}</strong>
+                    <pre data-language="bash"><code class="language-bash">scitex dev dev skills install --package scitex-dev</code></pre>
+                    <p class="landing-v2-small">{% trans "Link selected skills from ~/.scitex/dev/skills/ to your agent’s supported skills directory." %}</p>
                 </li>
             </ol>
         </div>

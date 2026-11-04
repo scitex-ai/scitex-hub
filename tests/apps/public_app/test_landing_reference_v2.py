@@ -122,7 +122,7 @@ def test_v2_connects_app_previews_to_the_toolkit_workflow():
         "Screenshots of SciTeX® Cloud",
         "AI Agent + SciTeX®",
         *BUILT_IN_APPS,
-        "MCP tools",
+        '"mcpServers"',
         "Trace claims back to their sources",
     )
     assert all(label in source for label in expected)

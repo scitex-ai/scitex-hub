@@ -5,8 +5,28 @@
   align-items: start;
 }
 
-.landing-v2-hero {
-  padding-top: clamp(2rem, 5vw, 4rem);
+.landing-v2-hero,
+.landing-v2-section {
+  --landing-section-space: clamp(2rem, 3vw, 3rem);
+  --landing-content-gap: clamp(1.5rem, 2.5vw, 2rem);
+  padding-block: var(--landing-section-space);
+}
+
+.landing-v2-hero-grid,
+.landing-v2-clew-grid,
+.landing-v2-demo-grid {
+  row-gap: var(--landing-content-gap);
+}
+
+.landing-v2-clew-clip {
+  margin: 1.5rem 0 0;
+}
+
+.landing-v2-clew-clip figcaption {
+  margin-top: 0.5rem;
+  color: var(--text-secondary);
+  font-size: 0.875rem;
+  line-height: 1.5;
 }
 
 .landing-v2-hero h1 {
@@ -161,14 +181,14 @@
   display: flex;
   min-width: 0;
 }
-.landing-v2-carousel-category-tabs .stx-content-tabs__tab,
-.landing-v2-carousel-app-tabs .stx-content-tabs__tab {
+.landing-v2-carousel-category-tabs .stx-content-tabs__tab {
   flex: 1 1 0;
   min-width: 0;
   padding-inline: 6px;
   white-space: normal;
 }
 .landing-v2-carousel-app-tabs .stx-content-tabs__tab {
+  padding-inline: 6px;
   flex-direction: column;
   gap: 2px;
 }
