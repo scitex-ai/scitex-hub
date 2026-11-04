@@ -16,6 +16,7 @@
 <section id="interface-discovery" class="api-section">
     <h2>{% trans "Discover first, then choose an interface" %}</h2>
     <p>{% trans "Read the installed package skill, inspect its Python or CLI help, and use the published MCP tool catalog or Web descriptor. Use a justified package exception where an interface does not apply." %}</p>
+    <p><a href="/apps/docs/#context-exposure">{% trans "Inspect a local context exposure report" %}</a></p>
     <p>{% trans "Select an explicit owner to keep ambiguous registrations visible; discovery does not silently choose between owners." %}</p>
     <pre><code class="language-bash">scitex-dev dev skills list --package scitex-dev --json
 scitex-dev ecosystem audit-project PACKAGE --path CHECKOUT --json</code></pre>
