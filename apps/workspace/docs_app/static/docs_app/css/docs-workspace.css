@@ -393,7 +393,7 @@
     line-height: 1.4;
     padding: 8px 10px;
     color: var(--text-primary, #e6edf3);
-    background: var(--workspace-bg-default, #0d1117);
+    background: var(--workspace-bg-primary, #0d1117);
     border: 1px solid var(--workspace-border-default, #30363d);
     border-radius: 6px;
     /* Whole-word wrap only — never char-by-char token shredding */
