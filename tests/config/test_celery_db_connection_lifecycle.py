@@ -41,27 +41,28 @@ class _Task:
         self.name = name
 
 
-def _use_the_database() -> None:
+def _use_the_database() -> int:
     with connections["default"].cursor() as cursor:
-        cursor.execute("SELECT 1")
-        cursor.fetchone()
+        cursor.execute("SELECT pg_backend_pid()")
+        return cursor.fetchone()[0]
 
 
-def _run_a_task(*, task_name: str = "tests.task") -> None:
+def _run_a_task(*, task_name: str = "tests.task") -> int:
     """A task as Celery runs it: prerun signal, work, postrun signal."""
     sender = _Task(task_name)
     task_prerun.send(sender=sender)
-    _use_the_database()
+    backend_pid = _use_the_database()
     task_postrun.send(sender=sender)
+    return backend_pid
 
 
-def _database_backend_count() -> int:
-    """PostgreSQL's view. Read with this thread's connections closed first, so the
-    query's own backend is the same +1 in every measurement and cancels out."""
-    connections.close_all()
+def _database_backend_count(backend_pids: set[int]) -> int:
+    """Count only this parked pool, excluding observer and unrelated sessions."""
     with connections["default"].cursor() as cursor:
         cursor.execute(
-            "SELECT count(*) FROM pg_stat_activity WHERE datname = current_database()"
+            "SELECT count(*) FROM pg_stat_activity "
+            "WHERE datname = current_database() AND pid = ANY(%s)",
+            [list(backend_pids)],
         )
         return cursor.fetchone()[0]
 
@@ -76,17 +77,21 @@ def _parked_pool(*, use_cleanup: bool):
     """
     parked = threading.Barrier(CONCURRENCY + 1)
     release = threading.Event()
+    backend_pids: set[int] = set()
+    pid_lock = threading.Lock()
 
     def _worker() -> None:
         try:
             for _ in range(ROUNDS):
                 if use_cleanup:
-                    _run_a_task(task_name="tests.pooled_task")
+                    backend_pid = _run_a_task(task_name="tests.pooled_task")
                 else:
                     task_prerun.send(sender=_Task("tests.pooled_task"))
-                    _use_the_database()
+                    backend_pid = _use_the_database()
                     # postrun deliberately NOT dispatched: the cleanup that lives
                     # there is the thing under test.
+            with pid_lock:
+                backend_pids.add(backend_pid)
             parked.wait(timeout=30)
             release.wait(timeout=30)
         finally:
@@ -98,7 +103,16 @@ def _parked_pool(*, use_cleanup: bool):
 
     def measure() -> int:
         parked.wait(timeout=30)
-        return _database_backend_count()
+        assert len(backend_pids) == CONCURRENCY
+        count = _database_backend_count(backend_pids)
+        # close() returns before PostgreSQL necessarily removes pg_stat_activity.
+        # Stay within the original 30-second park and never accept exited threads.
+        deadline = time.monotonic() + 5
+        while use_cleanup and count and time.monotonic() < deadline:
+            time.sleep(0.01)
+            count = _database_backend_count(backend_pids)
+        assert all(thread.is_alive() for thread in threads)
+        return count
 
     def stop() -> None:
         release.set()
@@ -187,37 +201,62 @@ def test_cleanup_removes_the_leak_the_pool_would_otherwise_hold():
     cleanup did nothing. Comparing them directly removes that escape: equality
     fails.
     """
-    before = _database_backend_count()
     measure, stop = _parked_pool(use_cleanup=True)
     try:
-        after_clean = measure()
+        clean_held = measure()
     finally:
         stop()
-    clean_growth = after_clean - before
 
-    before = _database_backend_count()
     measure, stop = _parked_pool(use_cleanup=False)
     try:
-        after_leaky = measure()
+        leaky_held = measure()
     finally:
         stop()
-    leaky_growth = after_leaky - before
 
-    assert clean_growth <= 1, (
-        f"a parked pool WITH cleanup left {clean_growth} extra backend(s); each "
-        "task must return its backend, so a parked pool should hold none "
-        "(the +1 allowance is the measuring connection itself)"
+    assert clean_held == 0, (
+        f"a parked pool WITH cleanup held {clean_held} worker backend(s); each "
+        "task must return its backend, so a parked pool should hold none"
     )
-    assert leaky_growth > clean_growth, (
-        f"the pool WITHOUT cleanup grew by {leaky_growth} and the pool WITH it by "
-        f"{clean_growth}. These must differ — if they are equal, the cleanup is not "
+    assert leaky_held > clean_held, (
+        f"the pool WITHOUT cleanup held {leaky_held} and the pool WITH it held "
+        f"{clean_held}. These must differ — if they are equal, the cleanup is not "
         "the thing being measured and the assertion above proves nothing"
     )
-    assert leaky_growth >= CONCURRENCY, (
-        f"a parked pool that never released grew by only {leaky_growth}; each "
+    assert leaky_held == CONCURRENCY, (
+        f"a parked pool that never released held {leaky_held} worker backend(s); each "
         f"parked thread should still hold one ({CONCURRENCY}), so this measurement "
         "cannot see the leak at all"
     )
+
+
+@pytest.mark.django_db(transaction=True)
+def test_parked_worker_measurement_ignores_unrelated_backend_closure():
+    """An unrelated session disappearing cannot subtract a real held worker."""
+    database = connections["default"]
+    unrelated = database.get_new_connection(database.get_connection_params())
+    measure, stop = _parked_pool(use_cleanup=False)
+    try:
+        unrelated.close()
+        assert measure() == CONCURRENCY
+    finally:
+        unrelated.close()
+        stop()
+
+
+@pytest.mark.django_db(transaction=True)
+def test_pool_comparison_refuses_disconnected_cleanup_handler():
+    """The positive pool control must fail when its actual receiver is absent."""
+    task_postrun.disconnect(dispatch_uid="celery_db_lifecycle.close_after_task")
+    try:
+        with pytest.raises(AssertionError, match="WITH cleanup held 4"):
+            test_cleanup_removes_the_leak_the_pool_would_otherwise_hold()
+    finally:
+        task_postrun.connect(
+            lifecycle._close_connections_after_task,
+            weak=False,
+            dispatch_uid="celery_db_lifecycle.close_after_task",
+        )
+        connections.close_all()
 
 
 # ---------------------------------------------------------------------------
