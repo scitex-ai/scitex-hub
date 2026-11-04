@@ -1,0 +1,72 @@
+{
+  "schema_version": "scitex-context-report/1",
+  "scope": "caller_supplied_advertised_metadata",
+  "normalization": "UTF-8 compact sorted-key JSON; not protocol framing",
+  "total": {
+    "characters": 314,
+    "utf8_bytes": 321
+  },
+  "instructions": {
+    "characters": 41,
+    "utf8_bytes": 41
+  },
+  "instructions_measurement": "serialized_json_string",
+  "instructions_raw": {
+    "characters": 36,
+    "utf8_bytes": 36
+  },
+  "packages": {
+    "scitex-scholar": {
+      "mcp_tools": 1,
+      "skill_headers": 0,
+      "characters": 94,
+      "utf8_bytes": 101
+    },
+    "scitex-sdk": {
+      "mcp_tools": 0,
+      "skill_headers": 1,
+      "characters": 69,
+      "utf8_bytes": 69
+    },
+    "unattributed": {
+      "mcp_tools": 1,
+      "skill_headers": 0,
+      "characters": 62,
+      "utf8_bytes": 62
+    }
+  },
+  "items": [
+    {
+      "kind": "mcp_tool",
+      "name": "fixture_search",
+      "owner": "scitex-scholar",
+      "ownership": "declared",
+      "characters": 94,
+      "utf8_bytes": 101
+    },
+    {
+      "kind": "mcp_tool",
+      "name": "fixture_unmapped",
+      "owner": null,
+      "ownership": "unattributed",
+      "characters": 62,
+      "utf8_bytes": 62
+    },
+    {
+      "kind": "skill_header",
+      "name": "scitex-sdk/fixture-guide",
+      "owner": "scitex-sdk",
+      "ownership": "declared",
+      "characters": 69,
+      "utf8_bytes": 69
+    }
+  ],
+  "tokens": null,
+  "tokenizer": null,
+  "client_total_context": "not_observed",
+  "notes": [
+    "Package/item sums exclude snapshot framing and shared instructions.",
+    "Skill bodies and tool results are not fetched; caller supplies selected headers only.",
+    "Discovery visibility does not establish authorization or runtime health."
+  ]
+}

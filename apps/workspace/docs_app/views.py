@@ -139,6 +139,14 @@ DOCS_PAGES = [
         "badges": ["dev"],
     },
     {
+        "slug": "context-exposure",
+        "label": _("Context exposure"),
+        "icon": "fas fa-ruler-combined",
+        "template": "docs_app/docs_context_exposure.html",
+        "section": "reference",
+        "badges": ["dev"],
+    },
+    {
         "slug": "api-getting-started",
         "label": "API: Getting Started",
         "icon": "fas fa-rocket",

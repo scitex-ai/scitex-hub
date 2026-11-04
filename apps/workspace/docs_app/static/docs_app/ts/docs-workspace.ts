@@ -323,9 +323,9 @@ function loadDocPage(
         .querySelectorAll<HTMLLinkElement>('link[rel="stylesheet"]')
         .forEach((link) => {
           if (
-            !document.querySelector(
-              'link[href="' + link.getAttribute("href") + '"]',
-            )
+            !Array.from(
+              document.head.querySelectorAll<HTMLLinkElement>('link[rel="stylesheet"]'),
+            ).some((existing) => existing.href === link.href)
           ) {
             document.head.appendChild(link.cloneNode(true));
           }
