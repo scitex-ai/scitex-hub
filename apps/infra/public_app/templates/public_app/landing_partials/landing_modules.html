@@ -54,10 +54,11 @@
                     <p class="landing-v2-small">{% trans "Use the full path to scitex if your MCP client does not inherit your environment’s PATH." %}</p>
                 </li>
                 <li><strong>{% trans "Install agent skills" %}</strong>
-                    <pre data-language="bash"><code class="language-bash">scitex-dev skills install --claude-symlink</code></pre>
-                    <p class="landing-v2-small">{% trans "With newer scitex-dev releases:" %} </p>
-                    <pre data-language="bash"><code class="language-bash">scitex-dev dev skills install --claude-symlink</code></pre>
-                    <p class="landing-v2-small">{% trans "The default shared store is ~/.scitex/dev/skills/. For Claude Code, --claude-symlink exposes it at ~/.claude/skills/scitex/." %}</p>
+                    <pre data-language="bash"><code class="language-bash">scitex dev dev skills install --package scitex-dev</code></pre>
+                    <p class="landing-v2-small">{% trans "Start with the shared Dev skills; select other packages when needed." %}</p>
+                    <p class="landing-v2-small">{% trans "The canonical skill store is ~/.scitex/dev/skills/." %}</p>
+                    <p class="landing-v2-small">{% trans "Ask your agent to set up skill discovery:" %}</p>
+                    <pre><code>{% trans "Find your supported skills directory and link only the selected installed SciTeX skill folders into it. Preserve existing files and report conflicts." %}</code></pre>
                 </li>
             </ol>
         </div>
