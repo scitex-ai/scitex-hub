@@ -161,14 +161,14 @@
   display: flex;
   min-width: 0;
 }
-.landing-v2-carousel-category-tabs .stx-content-tabs__tab,
-.landing-v2-carousel-app-tabs .stx-content-tabs__tab {
+.landing-v2-carousel-category-tabs .stx-content-tabs__tab {
   flex: 1 1 0;
   min-width: 0;
   padding-inline: 6px;
   white-space: normal;
 }
 .landing-v2-carousel-app-tabs .stx-content-tabs__tab {
+  padding-inline: 6px;
   flex-direction: column;
   gap: 2px;
 }

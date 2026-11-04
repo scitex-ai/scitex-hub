@@ -178,7 +178,7 @@
              id="landing-category-panel-{{ group.key }}"
              aria-labelledby="landing-category-tab-{{ group.key }}"
              data-carousel-category-panel="{{ group.key }}"{% if not forloop.first %} hidden{% endif %}>
-            <div class="stx-content-tabs landing-v2-carousel-app-tabs" data-carousel-app-tabs
+            <div class="stx-content-tabs stx-content-tabs--uniform landing-v2-carousel-app-tabs" data-carousel-app-tabs
                  role="tablist" aria-label="{% blocktrans with category=group.label %}{{ category }} screenshots{% endblocktrans %}">
                 {% for app in group.apps %}
                 <button type="button" class="stx-content-tabs__tab" role="tab"

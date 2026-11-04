@@ -1,0 +1,17 @@
+{
+  "provider": "scitex-sdk",
+  "source_commit": "68c1a2077c7d50333a7ace1b311aa4ef1301d837",
+  "source_tree": "86ec8127d26fbd2c645e135f17cbf5782a2fcce4",
+  "source_url": "https://github.com/scitex-ai/scitex-sdk/tree/68c1a2077c7d50333a7ace1b311aa4ef1301d837",
+  "source_pr": "https://github.com/scitex-ai/scitex-sdk/pull/117",
+  "build": "Raw SDK CSS source; no generated JavaScript",
+  "origin_paths": {
+    "content-tabs-sizing.css": "src/scitex_sdk/ui/static/scitex_sdk/ui/css/app/content-tabs-sizing.css",
+    "LICENSE": "LICENSE"
+  },
+  "sha256": {
+    "content-tabs-sizing.css": "d5a247d6391793e11fdf44a9c3e63767cc6ee424aa21077cd67a69caf38f1305",
+    "LICENSE": "4df3c306dddaaf4baffdff5ca820cc679ac8cd6dc263c6a74517783e42fa7a3b"
+  },
+  "policy": "Exact expert-owned additive source artifact. Uniform sizing is not claimed as a public SDK0.3.21 feature; installed SDK namespace/metadata/RECORD are unchanged. Replace this source-qualified pin with the normal SDK dependency after a qualified release."
+}
