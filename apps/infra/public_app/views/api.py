@@ -22,6 +22,58 @@ from django.contrib.auth.decorators import login_required
 from django.shortcuts import redirect, render
 
 
+def _interface_docs_context(request):
+    from django.http import Http404
+    from apps.infra.public_app.services.interface_catalog import build_interface_catalog
+
+    try:
+        return {
+            "interface_catalog": build_interface_catalog(request.GET.get("package"))
+        }
+    except ValueError as exc:
+        raise Http404("Invalid package identifier") from exc
+
+
+def _hub_version():
+    from importlib.metadata import PackageNotFoundError, version
+
+    try:
+        return version("scitex-hub")
+    except PackageNotFoundError:
+        return "unknown"
+
+
+def api_docs_catalog(request):
+    """Public inert provider metadata, not domain API execution or admission."""
+    from django.http import Http404, JsonResponse
+
+    if request.method != "GET":
+        response = JsonResponse(
+            {
+                "error": {
+                    "code": "method_not_allowed",
+                    "message": "Use GET for provider metadata.",
+                }
+            },
+            status=405,
+        )
+        response["Allow"] = "GET"
+        return response
+    try:
+        catalog = _interface_docs_context(request)["interface_catalog"]
+    except Http404:
+        return JsonResponse(
+            {
+                "error": {
+                    "code": "invalid_package",
+                    "message": "Use a valid package distribution name.",
+                }
+            },
+            status=400,
+        )
+    return JsonResponse(catalog)
+
+
 def _get_user_api_key(user):
     """Get user's first active API key (masked for display)."""
     try:
@@ -36,93 +88,44 @@ def _get_user_api_key(user):
     return None
 
 
-def api_docs(request):
-    """Display the API documentation page - shows getting-started by default."""
+def _render_api_docs(request, section=None):
+    """Compose provider-backed pages; historical section URLs stay unverified."""
     from django.conf import settings
-
     from apps.infra.public_app.config import (
         API_DOC_DEFAULT_SECTION,
-        get_active_campaign_token,
         get_all_sections,
         get_section,
     )
 
-    section_info = get_section(API_DOC_DEFAULT_SECTION)
-    version = getattr(settings, "SCITEX_HUB_VERSION", "0.7.0-alpha")
-
-    # Get user's API key if authenticated
-    user_api_key = (
-        _get_user_api_key(request.user) if request.user.is_authenticated else None
-    )
-
-    # Test password for dev mode only (for API docs examples)
-    test_password = ""
-    if settings.DEBUG and request.user.is_authenticated:
-        test_password = getattr(settings, "TEST_USER_PASSWORD", "")
-
+    current = section if get_section(section) else API_DOC_DEFAULT_SECTION
+    info = get_section(current)
+    legacy = current != "interfaces"
     return render(
         request,
         "public_app/pages/api_docs_section.html",
         {
-            "section_title": section_info["title"],
-            "section_template": section_info["template"],
-            "current_section": API_DOC_DEFAULT_SECTION,
+            "section_title": info["title"],
+            "section_template": "public_app/pages/api-docs-partials/legacy_reference.html"
+            if legacy
+            else info["template"],
+            "current_section": current,
             "sections": get_all_sections(),
-            "campaign_token": get_active_campaign_token(),
-            "user_api_key": user_api_key,
-            "version": version,
-            "test_password": test_password,
+            "version": _hub_version(),
             "debug": settings.DEBUG,
+            "legacy_reference": legacy,
+            **_interface_docs_context(request),
         },
     )
 
 
+def api_docs(request):
+    """Documentation dispatcher landing; never executes a leaf API."""
+    return _render_api_docs(request)
+
+
 def api_docs_section(request, section):
-    """Display a specific API documentation section."""
-    from django.conf import settings
-
-    from apps.infra.public_app.config import (
-        API_DOC_DEFAULT_SECTION,
-        get_active_campaign_token,
-        get_all_sections,
-        get_section,
-    )
-
-    section_info = get_section(section)
-    if not section_info:
-        # Fallback to default section
-        section = API_DOC_DEFAULT_SECTION
-        section_info = get_section(section)
-
-    version = getattr(settings, "SCITEX_HUB_VERSION", "0.7.0-alpha")
-    user_api_key = (
-        _get_user_api_key(request.user) if request.user.is_authenticated else None
-    )
-
-    # Test password for dev mode only (for API docs examples)
-    test_password = ""
-    if settings.DEBUG and request.user.is_authenticated:
-        test_password = getattr(settings, "TEST_USER_PASSWORD", "")
-
-    context = {
-        "section_title": section_info["title"],
-        "section_template": section_info["template"],
-        "current_section": section,
-        "sections": get_all_sections(),
-        "campaign_token": get_active_campaign_token(),
-        "user_api_key": user_api_key,
-        "version": version,
-        "test_password": test_password,
-        "debug": settings.DEBUG,
-    }
-
-    if section == "mcp-api":
-        from apps.infra.public_app.config.mcp_tools import MCP_TOOLS
-
-        context["mcp_tools"] = MCP_TOOLS
-        context["mcp_tool_count"] = sum(c["count"] for c in MCP_TOOLS)
-
-    return render(request, "public_app/pages/api_docs_section.html", context)
+    """Preserve old section URLs without certifying their historical examples."""
+    return _render_api_docs(request, section)
 
 
 def releases_view(request):
@@ -139,15 +142,14 @@ def api_docs_download(request, fmt="pdf"):
     from django.conf import settings
     from django.http import FileResponse, HttpResponse
 
-    from apps.infra.public_app.config import get_active_campaign_token
-    from apps.infra.public_app.services import generate_api_docs_markdown
+    import json
 
-    version = getattr(settings, "SCITEX_HUB_VERSION", "0.7.0-alpha")
-    base_url = request.build_absolute_uri("/").rstrip("/")
-    campaign_token = get_active_campaign_token() or "your-api-key"
-
-    # Generate markdown content from API registry (single source of truth)
-    md_content = generate_api_docs_markdown(version, base_url, campaign_token)
+    version = _hub_version()
+    catalog = _interface_docs_context(request)["interface_catalog"]
+    md_content = "# SciTeX interface provider catalog\n\n" + (
+        "Installed declarations only. Host admission is not observed and live APIs were not probed.\n\n"
+        "```json\n" + json.dumps(catalog, indent=2) + "\n```\n"
+    )
 
     if fmt == "md":
         response = HttpResponse(md_content, content_type="text/markdown; charset=utf-8")
@@ -270,3 +272,21 @@ def scitex_api_keys(request):
 
 
 # EOF
+
+
+def api_docs_skill(request):
+    """Read leaf-owned installed guidance, without certifying runtime APIs."""
+    from django.http import Http404, HttpResponseNotAllowed
+    from apps.infra.public_app.services.installed_skill_docs import read_installed_skill
+
+    if request.method != "GET":
+        return HttpResponseNotAllowed(["GET"])
+    try:
+        skill = read_installed_skill(
+            request.GET.get("package", ""),
+            request.GET.get("namespace", ""),
+            request.GET.get("name", ""),
+        )
+    except (ValueError, LookupError) as exc:
+        raise Http404("Installed skill not available for this package") from exc
+    return render(request, "public_app/pages/api_docs_skill.html", {"skill": skill})

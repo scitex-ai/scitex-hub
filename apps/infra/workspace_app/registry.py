@@ -159,6 +159,7 @@ class ModuleConfig:
     hidden_patterns: list = field(
         default_factory=lambda: ["__pycache__", "node_modules", ".git", ".venv"]
     )
+    pip_package: str = ""  # Registered owner; appended to preserve positional callers.
 
     def get_track_module(self) -> str:
         return self.track_module or self.name
@@ -352,6 +353,7 @@ def _manifest_to_module_config(data: dict) -> ModuleConfig:
         name=name,
         label=label,
         app_name=data["app_name"],
+        pip_package=data.get("pip_package") or ("scitex-hub" if data.get("builtin", True) else ""),
         icon_fa=icon,
         icon_badge=data.get("icon_badge", ""),
         icon_svg_tab=overrides.get("icon_svg_tab", ""),

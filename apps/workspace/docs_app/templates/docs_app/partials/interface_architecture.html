@@ -1,0 +1,66 @@
+{% load i18n %}
+<section id="interface-architecture" class="api-section" data-interface-architecture>
+    <h2>{% trans "One ecosystem, five predictable interfaces" %}</h2>
+    <p>{% trans "Use Python, CLI, MCP, Web API and installed skills to reach the same leaf-owned capabilities. Each package owns its domain behavior; shared dispatchers organize discovery and enforcement." %}</p>
+    <dl>
+        <dt><code>scitex-dev</code></dt>
+        <dd>{% trans "Discovers package documentation, skills, auditors and hooks. It dispatches shared checks and leaf-provided rules." %}</dd>
+        <dt><code>scitex-sdk</code></dt>
+        <dd>{% trans "Owns shared GUI and Web API contracts: descriptors, routes, schemas, operation IDs, errors and scope. Hosts explicitly admit API handlers." %}</dd>
+        <dt><code>scitex-hub</code></dt>
+        <dd>{% trans "Hosts the browser workspace, authenticates requests and supplies authorized project capabilities. These pages compose installed providers rather than implement leaf operations." %}</dd>
+        <dt>{% trans "Leaf packages" %}</dt>
+        <dd>{% trans "Own their Python functions, commands, MCP tools, Web handlers and skills. Registration does not grant access or enable a route." %}</dd>
+    </dl>
+</section>
+<section id="interface-discovery" class="api-section">
+    <h2>{% trans "Discover first, then choose an interface" %}</h2>
+    <p>{% trans "Read the installed package skill, inspect its Python or CLI help, and use the published MCP tool catalog or Web descriptor. Use a justified package exception where an interface does not apply." %}</p>
+    <pre><code>scitex-dev dev skills list --json
+scitex-dev ecosystem audit-project PACKAGE --path CHECKOUT --json</code></pre>
+    <p>{% trans "Documentation uses scitex_dev.docs providers. Web declarations use scitex.apis and SDK ApiPlugin data. An installed declaration, valid inert schema, host admission and a responding endpoint are separate observations." %}</p>
+</section>
+<section id="installed-providers" class="api-section" data-interface-catalog>
+    <h2>{% trans "Installed provider catalog" %}</h2>
+    {% if interface_catalog.selected_package %}<p>{% trans "Package" %}: <code>{{ interface_catalog.selected_package }}</code></p>{% endif %}
+    {% if interface_catalog.docs_discovery != "available" %}
+        <p role="status">{% trans "Documentation-provider discovery is unavailable or invalid in this installed environment. No fallback package inventory is being advertised." %}</p>
+    {% endif %}
+    {% if interface_catalog.api_discovery != "available" %}
+        <p role="status">{% trans "Web API declaration discovery is unavailable or ambiguous. API availability is unknown." %}</p>
+    {% endif %}
+    {% if interface_catalog.selected_not_registered %}
+        <p role="status">{% trans "No documentation or canonical Web API provider is registered for this package in this environment." %}</p>
+    {% endif %}
+    {% if interface_catalog.selected_package %}
+        <h3>{% trans "Installed leaf guidance" %}</h3>
+        <p>{% trans "These resources belong to the installed package and may describe optional or legacy interfaces. Reading guidance does not verify runtime availability or grant API access." %}</p>
+        {% if interface_catalog.selected_skills.state == "available" %}
+        <ul>{% for guide in interface_catalog.selected_skills.entries %}
+            <li><a href="{{ guide.url }}"><code>{{ guide.namespace }}/{{ guide.name }}</code></a>{% if guide.description and guide.description != "|" %} — {{ guide.description }}{% endif %}</li>
+        {% empty %}<li>{% trans "No registered and enabled installed skill resources were found for this owner." %}</li>{% endfor %}</ul>
+        {% else %}<p role="status">{% trans "Installed skill discovery is unavailable or ambiguous. No paths or guessed guides are advertised." %}</p>{% endif %}
+    {% endif %}
+    {% for package in interface_catalog.packages %}
+        <article class="api-section" data-provider-package="{{ package.distribution }}">
+            <h3><a href="{{ package.api_docs_url }}">{{ package.distribution }}</a>{% if package.version %} <small>{{ package.version }}</small>{% endif %}</h3>
+            <p>{{ package.summary }}</p>
+            <h4>{% trans "Installed skills and MCP setup" %}</h4>
+            <pre><code>{{ package.skills_command }}</code></pre>
+            <p>{% trans "MCP setup has not been inspected. Follow this package's registered documentation or installed skill; do not infer a package-specific install command." %}</p>
+            <h4>{% trans "Documentation providers" %}</h4>
+            <ul>{% for doc in package.docs %}<li><code>{{ doc.name }}</code> → <code>{{ doc.target }}</code>
+                {% if doc.state == "ambiguous" %} — {% trans "Ambiguous registration; choose an owner before serving content." %}
+                {% else %} — <a href="{{ doc.url }}">{% trans "Open package documentation" %}</a>{% endif %}
+            </li>{% empty %}<li>{% if interface_catalog.docs_discovery == "available" %}{% trans "No documentation provider registered." %}{% else %}{% trans "Documentation-provider status is unknown." %}{% endif %}</li>{% endfor %}</ul>
+            <h4>{% trans "Canonical Web API declarations" %}</h4>
+            <ul>{% for api in package.web_apis %}<li><code>{{ api.name }}</code> → <code>{{ api.target }}</code>
+                {% if api.state == "inert_descriptor" %}<ul>{% for operation in api.operations %}<li><code>{{ operation.method }} {{ operation.path }}</code> — <code>{{ operation.operation_id }}</code></li>{% endfor %}</ul>
+                {% elif api.state == "invalid_descriptor" %} — {% trans "Inert descriptor is invalid; no handler was imported." %}
+                {% else %} — {% trans "Entry point declared; inert descriptor unavailable. Routes remain unverified." %}{% endif %}
+            </li>{% empty %}<li>{% if interface_catalog.api_discovery == "available" %}{% trans "No canonical Web API provider registered. Existing GUI or legacy host URLs do not prove this contract." %}{% else %}{% trans "Canonical Web API provider status is unknown." %}{% endif %}</li>{% endfor %}</ul>
+        </article>
+    {% empty %}<p>{% trans "No installed provider rows are available to display." %}</p>{% endfor %}
+    <p>{% trans "Host admission was not inspected and no live API was probed. Package documentation may be unavailable until its bundled artifact is installed." %}</p>
+    <p><a href="/docs/web-api/catalog.json{% if interface_catalog.selected_package %}?package={{ interface_catalog.selected_package|urlencode }}{% endif %}">{% trans "Read this metadata as JSON" %}</a></p>
+</section>

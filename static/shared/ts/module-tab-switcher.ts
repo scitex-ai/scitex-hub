@@ -1,3 +1,5 @@
+import {prepareModuleDocumentation, mountModuleHeader} from "./workspace-api-docs";
+
 /**
  * Module tab switcher — intercepts tab bar clicks on workspace pages.
  *
@@ -66,8 +68,10 @@ async function switchModule(name: string): Promise<void> {
     }
 
     const html = await resp.text();
+    prepareModuleDocumentation(pane, resp);
     pane.innerHTML = html;
     reExecScripts(pane);
+    mountModuleHeader(pane);
     document.dispatchEvent(
       new CustomEvent("workspace:module-injected", {
         detail: { module: name },

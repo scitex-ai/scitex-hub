@@ -121,8 +121,8 @@ class TestAPIDocURLs:
         """Invalid section should show default section."""
         response = client.get("/docs/web-api/nonexistent/")
         assert response.status_code == 200
-        # Should show getting-started content
-        assert b"Introduction" in response.content
+        # Unknown sections return the provider dispatcher, never stale examples.
+        assert b"data-interface-architecture" in response.content
 
 
 class TestCampaignTokens:

@@ -1,4 +1,4 @@
-{% load static %}{% comment %} Converged onto the writer leaf header shape (10-19 audit plan).
+{% load static scitex_static %}{% comment %} Converged onto the writer leaf header shape (10-19 audit plan).
   The leaf (scitex-writer's writer/_app_header.html) is the SSoT for the
   header contract: identity = leaf label + LEAF version (never the hub's),
   picker = the leaf picker partial in the project-selector slot, actions
@@ -10,12 +10,12 @@
   The SDK AppHeader primitive still owns the row (data-stx-app-header
   mount), so every app keeps the same header.
 {% endcomment %}
-<link rel="stylesheet" href="{% static 'scitex_sdk/ui/css/app/app-header.css' %}">
+<link rel="stylesheet" href="{% app_static 'scitex_sdk/ui/css/app/app-header.css' %}">
 <div class="writer-app-header">
   <div data-stx-app-header
        data-app-title="{{ writer_label|default:'SciTeX Writer' }}"
        {% if writer_version %}data-app-version="{{ writer_version }}"{% endif %}></div>
-  <script type="module" src="{% static 'scitex_sdk/ui/js/app/app-header.js' %}"></script>
+  <script type="module" src="{% app_static 'scitex_sdk/ui/js/app/app-header.js' %}"></script>
   {% include "writer/_project_picker.html" %}
   <script type="module" src="{% static 'writer/js/header-picker.js' %}"></script>
 </div>

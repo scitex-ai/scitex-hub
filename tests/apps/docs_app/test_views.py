@@ -61,3 +61,25 @@ def test_overview_renders_japanese_heading_under_ja(compiled_catalogs):
         html = render_to_string(OVERVIEW_TEMPLATE, context)
     # Assert
     assert JAPANESE_HEADING in html
+
+
+@pytest.mark.django_db
+@pytest.mark.parametrize(
+    "slug", ["overview", "api-getting-started", "api-scholar", "api-mcp"]
+)
+def test_documentation_surfaces_share_provider_architecture_without_legacy_examples(
+    slug,
+):
+    # Arrange
+    client = Client()
+    # Act
+    response = client.get(f"/apps/docs/content/{slug}/")
+    html = response.content.decode()
+    # Assert
+    assert (
+        response.status_code,
+        "data-interface-architecture" in html,
+        "data-interface-catalog" in html,
+        "campaignToken" in html,
+        "YOUR_TOKEN" in html,
+    ) == (200, True, True, False, False)

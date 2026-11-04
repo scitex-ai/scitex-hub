@@ -1,60 +1,18 @@
-<!-- API Docs Sidebar Navigation (Public/Internal grouping) -->
 <aside class="api-sidebar">
-    <nav class="api-nav">
-        <!-- Public APIs -->
+    <nav class="api-nav" aria-label="Interface documentation">
         <div class="api-nav-group">
-            <div class="api-nav-group-label">Public</div>
-            {% for section in sections %}
-                {% if section.visibility == "public" %}
-                    <div class="api-nav-section {% if current_section == section.key %}active-section{% endif %}">
-                        <h4>
-                            <a href="{% url 'public_app:api_docs_section' section.key %}"
-                               {% if current_section == section.key %}class="active"{% endif %}>{{ section.text }}</a>
-                        </h4>
-                        {% if current_section == section.key %}
-                            <ul>
-                                {% for sub in section.subsections %}
-                                    <li>
-                                        <a href="#{{ sub.id }}" class="subsection-link" data-target="{{ sub.id }}">{{ sub.title }}</a>
-                                    </li>
-                                {% endfor %}
-                            </ul>
-                        {% endif %}
-                    </div>
-                {% endif %}
-            {% endfor %}
+            <h4><a href="{% url 'public_app:api_docs' %}"{% if not legacy_reference %} aria-current="page"{% endif %}>Interfaces and providers</a></h4>
+            {% if not legacy_reference %}<ul>
+                <li><a href="#interface-architecture">Shared architecture</a></li>
+                <li><a href="#interface-discovery">Discovery</a></li>
+                <li><a href="#installed-providers">Installed providers</a></li>
+            </ul>{% endif %}
         </div>
-        <!-- Internal APIs (collapsed by default in production) -->
-        <div class="api-nav-group api-nav-group-internal">
-            <button class="api-nav-group-toggle {% if debug %}expanded{% endif %}"
-                    type="button"
-                    aria-expanded="{% if debug %}true{% else %}false{% endif %}">
-                <span class="api-nav-group-label">Internal</span>
-                <i class="fas fa-chevron-right toggle-icon"></i>
-            </button>
-            <div class="api-nav-group-items {% if debug %}expanded{% endif %}">
-                {% for section in sections %}
-                    {% if section.visibility == "internal" %}
-                        <div class="api-nav-section {% if current_section == section.key %}active-section{% endif %}">
-                            <h4>
-                                <a href="{% url 'public_app:api_docs_section' section.key %}"
-                                   {% if current_section == section.key %}class="active"{% endif %}>
-                                    {{ section.text }}
-                                </a>
-                            </h4>
-                            {% if current_section == section.key %}
-                                <ul>
-                                    {% for sub in section.subsections %}
-                                        <li>
-                                            <a href="#{{ sub.id }}" class="subsection-link" data-target="{{ sub.id }}">{{ sub.title }}</a>
-                                        </li>
-                                    {% endfor %}
-                                </ul>
-                            {% endif %}
-                        </div>
-                    {% endif %}
-                {% endfor %}
-            </div>
-        </div>
+        <details class="api-nav-group"{% if legacy_reference %} open{% endif %}>
+            <summary>Unverified legacy host reference</summary>
+            <ul>{% for section in sections %}{% if section.key != "interfaces" %}
+                <li><a href="{% url 'public_app:api_docs_section' section.key %}"{% if current_section == section.key %} aria-current="page"{% endif %}>{{ section.text }}</a></li>
+            {% endif %}{% endfor %}</ul>
+        </details>
     </nav>
 </aside>

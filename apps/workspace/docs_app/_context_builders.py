@@ -12,7 +12,13 @@ def build_page_context(slug: str, sphinx_page: str = None) -> dict:
         "slug": slug,
         "base_template": "docs_app/docs_fragment_base.html",
     }
-    if slug in ("mcp-tools-local", "mcp-tools-https", "api-mcp"):
+    if slug == "overview" or slug.startswith("api-"):
+        from apps.infra.public_app.services.interface_catalog import (
+            build_interface_catalog,
+        )
+
+        context["interface_catalog"] = build_interface_catalog()
+    elif slug in ("mcp-tools-local", "mcp-tools-https", "api-mcp"):
         context.update(_get_mcp_context())
     elif slug == "python-packages":
         context.update(_get_packages_context())
@@ -22,88 +28,53 @@ def build_page_context(slug: str, sphinx_page: str = None) -> dict:
 
 
 def _get_packages_context() -> dict:
-    """Build Python packages context from ECOSYSTEM (source of truth)."""
+    """Project the same registered documentation owners used by the overview."""
     import importlib.metadata
-    import logging
+    from urllib.parse import urlsplit
 
-    from .views import check_docs_available
+    from apps.infra.public_app.services.interface_catalog import build_interface_catalog
 
-    logger = logging.getLogger(__name__)
-
-    try:
-        from scitex_dev.ecosystem import ECOSYSTEM
-    except ImportError:
-        logger.warning("scitex_dev.ecosystem not available — cannot list packages")
-        return {"core_packages": [], "standalone_packages": []}
-
-    # Packages to skip from docs listing (aliases, templates without docs)
-    _SKIP_PACKAGES = {
-        "scitex-plt",  # alias for figrecipe
-        "automated-research-demo",  # template, no docs
-        "scitex-research-template",  # template, no docs
-        "pip-project-template",  # template, no docs
-        "singularity-template",  # template, no docs
-    }
-
-    core_packages = []
-    standalone_packages = []
-
-    for pip_name, info in ECOSYSTEM.items():
-        if pip_name in _SKIP_PACKAGES:
+    catalog = build_interface_catalog()
+    core, standalone = [], []
+    for row in catalog["packages"]:
+        if not row["docs"]:
             continue
-
-        module_name = info.get("import_name", pip_name.replace("-", "_"))
-
+        provider = next((d for d in row["docs"] if d["state"] == "registered"), None)
+        github_url = ""
         try:
-            meta = importlib.metadata.metadata(pip_name)
-            version = meta["Version"] or ""
-            description = meta.get("Summary", "")
-            github_url = ""
-            for url_entry in meta.get_all("Project-URL") or []:
-                label, _, url = url_entry.partition(",")
-                url = url.strip()
-                if label.strip().lower() in ("homepage", "repository"):
-                    github_url = url
+            meta = importlib.metadata.metadata(row["distribution"])
+            for value in meta.get_all("Project-URL") or []:
+                label, _, url = value.partition(",")
+                parsed = urlsplit(url.strip())
+                if (
+                    label.strip().lower() in {"homepage", "repository"}
+                    and parsed.scheme in {"http", "https"}
+                    and parsed.hostname
+                    and not parsed.username
+                ):
+                    github_url = url.strip()
                     break
         except importlib.metadata.PackageNotFoundError:
-            logger.warning(
-                "Package '%s' from ECOSYSTEM not installed — showing with limited info",
-                pip_name,
-            )
-            version = ""
-            description = ""
-            github_url = ""
-
-        github_repo = info.get("github_repo", "")
-        if not github_url and github_repo:
-            github_url = f"https://github.com/{github_repo}"
-
-        has_sphinx = check_docs_available(pip_name)
-
+            pass
         pkg = {
-            "pip_name": pip_name,
-            "module": module_name,
-            "version": version,
-            "description": description,
-            "github_url": github_url or f"https://github.com/ywatanabe1989/{pip_name}",
-            "docs_url": f"/apps/docs/#pkg-{pip_name}",
-            "sphinx_url": (
-                f"/apps/docs/sphinx/{pip_name}/index.html" if has_sphinx else ""
-            ),
-            "has_sphinx": has_sphinx,
-            "pypi_version": version,
-            "status": "",
+            "pip_name": row["distribution"],
+            "module": provider["target"] if provider else "",
+            "version": row["version"] or "",
+            "description": row["summary"],
+            "github_url": github_url,
+            "docs_url": provider["url"] if provider else "",
+            "sphinx_url": provider["url"] if provider else "",
+            "has_sphinx": None,
+            "pypi_version": "",
+            "status": "registered" if provider else "ambiguous",
+            "artifact_availability": "not_checked",
+            "api_docs_url": row["api_docs_url"],
         }
-
-        is_core = pip_name == "scitex" or pip_name.startswith("scitex-")
-        if is_core:
-            core_packages.append(pkg)
-        else:
-            standalone_packages.append(pkg)
-
+        (core if row["distribution"].startswith("scitex") else standalone).append(pkg)
     return {
-        "core_packages": core_packages,
-        "standalone_packages": standalone_packages,
+        "core_packages": core,
+        "standalone_packages": standalone,
+        "provider_discovery": catalog["docs_discovery"],
     }
 
 

@@ -300,6 +300,7 @@ APP_TITLE_ONLY_PREFIXES = (
 
 # Hub sections that are not products, but still need a stable tab label.
 SECTION_NAMES = {
+    "/docs/web-api/": "Web API",
     "/status/": "Status",
     "/explore/": "Explore",
     "/social/explore/": "Explore",
@@ -344,6 +345,7 @@ ACCOUNT_PAGE_NAMES = {
 # project leaked into the tab ("dotfiles — SciTeX …") while naming nothing
 # the page is about. Operator report 2026-10-31.
 NON_PROJECT_PREFIXES = (
+    "/docs/web-api/",
     "/accounts/",
     "/auth/",
     "/new/",

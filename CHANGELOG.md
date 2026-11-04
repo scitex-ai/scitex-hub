@@ -9,6 +9,19 @@ verbatim. See [ADR-0001](docs/adr/0001-rename-scitex-cloud-to-scitex-hub.md).
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.22.0a4] - Unreleased
+
+- Compose browser Docs and Web API reference pages from public Dev documentation
+  providers and SDK inert Web declarations. Preserve ambiguous/missing states,
+  normalize owner-filtered URLs, and stop advertising unverified legacy examples.
+- Read installed leaf guidance through an exact owner/namespace/name, requiring
+  Dev0.62.11 owner-scoped reads; preserve global ambiguity and refuse old-reader
+  fallbacks. Share SDK export resolution between Vite and Vitest.
+- Supply route-agnostic SDK header documentation URLs from registered GUI owners;
+  fingerprint Writer's SDK header assets and retain leaf/project controls.
+- Admit raw package documentation only for a unique registered provider (plus the
+  existing explicit Hub bundled-docs alias), retaining artifact containment checks.
+
 ## [Unreleased]
 
 ## [0.22.0a3] - 2026-11-03

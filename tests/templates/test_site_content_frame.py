@@ -23,9 +23,11 @@ from apps.infra.workspace_app.middleware_site_content_frame import (
 
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
 FRAME_CSS = PROJECT_ROOT / "static" / FRAME_STYLESHEET
-HEAD_STYLES = PROJECT_ROOT / "templates" / "global_base_partials" / "global_head_styles.html"
+HEAD_STYLES = (
+    PROJECT_ROOT / "templates" / "global_base_partials" / "global_head_styles.html"
+)
 STANDALONE_PAGE = (
-    '<html><head><title>Leaf</title></head>'
+    "<html><head><title>Leaf</title></head>"
     '<body><div id="workspace-three-col"></div></body></html>'
 )
 
@@ -181,7 +183,9 @@ def test_site_header_skips_a_body_tag_inside_a_comment():
 
 def test_leaf_page_with_its_own_app_header_gets_no_second_header():
     # Arrange
-    html = STANDALONE_PAGE.replace("<body>", '<body><header class="app-header"></header>')
+    html = STANDALONE_PAGE.replace(
+        "<body>", '<body><header class="app-header"></header>'
+    )
 
     # Act
     rendered = _inject(html)
@@ -192,7 +196,9 @@ def test_leaf_page_with_its_own_app_header_gets_no_second_header():
 
 def test_leaf_page_with_a_global_header_class_gets_no_second_header():
     # Arrange
-    html = STANDALONE_PAGE.replace("<body>", '<body><header class="global-header"></header>')
+    html = STANDALONE_PAGE.replace(
+        "<body>", '<body><header class="global-header"></header>'
+    )
 
     # Act
     rendered = _inject(html)
@@ -208,7 +214,9 @@ def test_standalone_leaf_tab_icon_is_the_hub_favicon():
     from config.context_processors import scitex_env
 
     default_href = static("scitex_ui/img/scitex-favicon.svg")
-    html = STANDALONE_PAGE.replace("</head>", f'<link rel="icon" href="{default_href}" /></head>')
+    html = STANDALONE_PAGE.replace(
+        "</head>", f'<link rel="icon" href="{default_href}" /></head>'
+    )
     request = RequestFactory().get("/")
     request.user = AnonymousUser()
     hub_href = static(scitex_env(request)["SCITEX_FAVICON"])
@@ -220,12 +228,19 @@ def test_standalone_leaf_tab_icon_is_the_hub_favicon():
     assert f'rel="icon" href="{hub_href}"' in rendered
 
 
-def test_page_without_the_standalone_shell_is_left_unchanged():
+def test_page_without_standalone_shell_gets_only_registered_docs_metadata():
     # Arrange
-    html = "<html><head></head><body><main id=\"main-content\"></main></body></html>"
+    html = '<html><head></head><body><main id="main-content"></main></body></html>'
 
     # Act
     rendered = _inject(html)
 
     # Assert
-    assert rendered == html
+    expected = html.replace(
+        "<body>", '<body data-stx-api-docs-url="/docs/web-api/?package=scitex-scholar">'
+    )
+    assert (
+        rendered,
+        FRAME_STYLESHEET in rendered,
+        'class="global-header"' in rendered,
+    ) == (expected, False, False)
