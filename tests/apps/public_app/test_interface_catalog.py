@@ -333,3 +333,35 @@ def test_unique_registered_docs_name_reaches_only_its_artifact_lookup(
         [{"package": "demo-leaf", "format": "html"}],
         False,
     )
+
+
+@pytest.mark.django_db
+def test_installed_sdk_provider_is_available_as_inert_metadata_over_http(client):
+    # Arrange
+    import sys
+
+    before = set(sys.modules)
+    # Act
+    response = client.get("/docs/web-api/catalog.json", {"package": "SciTex_SDK"})
+    catalog = response.json()
+    provider = catalog["packages"][0]["web_apis"][0]
+    # Assert
+    assert (
+        response.status_code,
+        provider["state"],
+        [(row["method"], row["path"]) for row in provider["operations"]],
+        catalog["host_admission"],
+        catalog["live_availability"],
+        sorted(
+            name
+            for name in set(sys.modules) - before
+            if name.startswith("scitex_sdk._web")
+        ),
+    ) == (
+        200,
+        "inert_descriptor",
+        [("GET", "/skills")],
+        "not_observed",
+        "not_probed",
+        [],
+    )
