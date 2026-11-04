@@ -112,6 +112,7 @@ def test_real_workspace_fragment_adapter_sends_registered_owner_metadata(
 ):
     # Arrange
     from django.test import Client
+
     from apps.infra.workspace_app._api_docs_metadata import API_DOCS_HEADER
 
     user = django_user_model.objects.create_user(
@@ -126,3 +127,34 @@ def test_real_workspace_fragment_adapter_sends_registered_owner_metadata(
         200,
         "/docs/web-api/?package=scitex-hub",
     )
+
+
+def test_explicit_mount_uses_actual_sdk_callback_owner_without_launcher_entry():
+    # Arrange
+    from django.contrib.auth.decorators import login_required
+    from django.urls import resolve
+    from scitex_sdk.creator import urls
+
+    request = RequestFactory().get("/an-arbitrary-host-prefix/")
+    match = resolve("/", urlconf=tuple(urls.urlpatterns))
+    request.resolver_match = SimpleNamespace(func=login_required(match.func))
+    response = HttpResponse(HTML)
+    # Act
+    inject_api_docs_metadata(request, response, modules=[])
+    # Assert
+    assert (
+        b'data-stx-api-docs-url="/docs/web-api/?package=scitex-sdk"' in response.content
+    )
+
+
+def test_explicit_unknown_registry_owner_cannot_inherit_callback_identity():
+    # Arrange
+    from scitex_sdk.creator.views import index
+
+    request = RequestFactory().get("/apps/demo/")
+    request.resolver_match = SimpleNamespace(func=index)
+    response = HttpResponse(HTML)
+    # Act
+    inject_api_docs_metadata(request, response, modules=[owner("")])
+    # Assert
+    assert response.content == HTML.encode()

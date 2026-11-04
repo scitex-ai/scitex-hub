@@ -30,8 +30,9 @@ def inject_api_docs_metadata(request, response, *, modules=None):
         or "text/html" not in response.get("Content-Type", "").lower()
     ):
         return
-    from .middleware_site_content_frame import _body_open_tag
     from apps.infra.public_app.services.interface_catalog import api_docs_url
+
+    from .middleware_site_content_frame import _body_open_tag
 
     if modules is None:
         from .registry import get_all_modules
@@ -45,13 +46,17 @@ def inject_api_docs_metadata(request, response, *, modules=None):
             path != "/" and request.path.startswith(path.rstrip("/") + "/")
         ):
             candidates.append(module)
-    if not candidates:
-        return
-    module = max(candidates, key=lambda value: len(value.get_url()))
-    if not module.pip_package:
+    if candidates:
+        module = max(candidates, key=lambda value: len(value.get_url()))
+        package = module.pip_package
+    else:
+        from ._resolved_view_owner import resolved_view_owner
+
+        package = resolved_view_owner(request)
+    if not package:
         return
     try:
-        href = api_docs_url(module.pip_package)
+        href = api_docs_url(package)
     except ValueError:
         return
     body = response.content.decode(response.charset or "utf-8")

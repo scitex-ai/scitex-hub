@@ -68,3 +68,12 @@ Older installations show guidance discovery as unavailable and do not advertise
 reader links. The selected distribution remains attached to the resource read,
 including SDK namespaces also declared by archived distributions; there is no
 fallback to global namespace selection.
+
+Explicit host mounts that are absent from the launcher registry can still
+supply a header API-documentation link. The host checks the already-resolved
+view's callable globals, code filename and loaded module origin against an
+installed distribution's recorded file, then requires an unambiguous registered
+Docs provider whose module contains that view. Decorator traversal is bounded.
+Missing, conflicting or unproven ownership leaves the link absent; this does
+not register a launcher entry or admit a Web API endpoint. Registered module
+identities take precedence, including an explicitly unknown owner.
