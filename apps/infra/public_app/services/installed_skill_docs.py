@@ -11,8 +11,10 @@ def installed_skill_guides(package):
     owner = _distribution_name(package)
     try:
         from scitex_dev.ecosystem import list_skills
-        from scitex_dev.skill_registry import SkillRegistryError
+        from scitex_dev.skill_registry import INSTALL_CAPABILITIES, SkillRegistryError
     except ImportError:
+        return {"state": "unavailable", "entries": []}
+    if "owned-skill-read-v1" not in INSTALL_CAPABILITIES:
         return {"state": "unavailable", "entries": []}
     try:
         listed = list_skills(package=owner)
@@ -66,7 +68,7 @@ def read_installed_skill(package, namespace, name):
     from scitex_dev.skill_registry import SkillRegistryError
 
     try:
-        content = get_skill(namespace, name)
+        content = get_skill(namespace, name, owner=owner)
     except (SkillRegistryError, OSError, ValueError) as exc:
         raise LookupError("Installed skill resource unavailable") from exc
     if content is None:

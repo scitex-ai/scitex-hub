@@ -55,10 +55,16 @@ package payloads. This change does not authorize production deployment.
 
 A normalized selected package also lists its installed, leaf-owned skills using
 `scitex_dev.ecosystem.list_skills(package=...)`. Links open an exact
-owner/namespace/name resource through `get_skill`; the browser does not expose
+owner/namespace/name resource through `get_skill(..., owner=...)`; the browser does not expose
 host paths or the reader's legacy fuzzy matching. Missing, ambiguous, foreign or
 escaping resources are refused. Markdown is displayed as escaped documentation,
 with an installed version and content fingerprint, rather than executable HTML.
 This remains useful when a leaf has no canonical Web descriptor; it does not
 certify that historical endpoints are enabled or responding. The old
 `/apps/docs/api/` entry delegates to the same provider-backed page.
+
+Owner-preserving reads require Dev's public `owned-skill-read-v1` capability.
+Older installations show guidance discovery as unavailable and do not advertise
+reader links. The selected distribution remains attached to the resource read,
+including SDK namespaces also declared by archived distributions; there is no
+fallback to global namespace selection.
