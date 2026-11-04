@@ -8,12 +8,22 @@ from /workspace/views.py, writes JSON result to stdout.
 
 Input JSON (stdin):
     {
-        "function": "build_hello_world_app_context",
-        "username": "ywatanabe",
-        "project_slug": "my-project",
-        "project_id": 42,
-        "get_params": {}
+        "payload": {
+            "function": "build_hello_world_app_context",
+            "username": "alice",
+            "project_slug": "my-project",
+            "project_id": 42,
+            "get_params": {}
+        },
+        "app_env": {
+            "SCITEX_CURRENT_APP": "dev__alice__hello-world-app",
+            "SCITEX_API_TOKEN": "<runtime token>",
+            "SCITEX_API_URL": "http://hub.example.invalid"
+        }
     }
+
+The fixed environment keys are initialized before importing views.py. This
+envelope is supplied over stdin; the helper file contains no request secrets.
 
 Output JSON (stdout):
     {
@@ -31,9 +41,28 @@ from __future__ import annotations
 
 import importlib.util
 import json
+import os
 import sys
 import types
 from pathlib import Path
+
+_APP_ENV_KEYS = frozenset({"SCITEX_CURRENT_APP", "SCITEX_API_TOKEN", "SCITEX_API_URL"})
+
+
+def _runtime_payload(envelope: dict) -> dict:
+    """Initialize only the framework's app environment before loading views."""
+    if not isinstance(envelope, dict) or set(envelope) != {"payload", "app_env"}:
+        raise ValueError("Invalid runtime envelope")
+    payload, app_env = envelope["payload"], envelope["app_env"]
+    if not isinstance(payload, dict) or not isinstance(app_env, dict):
+        raise ValueError("Invalid runtime envelope")
+    if set(app_env) != _APP_ENV_KEYS or any(
+        not isinstance(value, str) or "\0" in value for value in app_env.values()
+    ):
+        raise ValueError("Invalid runtime environment")
+    for key in _APP_ENV_KEYS:
+        os.environ[key] = app_env[key]
+    return payload
 
 
 def _make_request_proxy(data: dict) -> types.SimpleNamespace:
@@ -66,9 +95,9 @@ def main() -> int:
         return 1
 
     try:
-        data = json.loads(raw)
-    except json.JSONDecodeError as exc:
-        print(json.dumps({"success": False, "error": f"Invalid JSON: {exc}"}))
+        data = _runtime_payload(json.loads(raw))
+    except (json.JSONDecodeError, ValueError, TypeError):
+        print(json.dumps({"success": False, "error": "Invalid runtime input"}))
         return 1
 
     app_dir = Path("/workspace")
