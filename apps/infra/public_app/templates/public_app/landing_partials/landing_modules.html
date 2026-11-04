@@ -47,11 +47,13 @@
         <div class="landing-v2-demo-copy">
             <p class="landing-v2-eyebrow"><a class="landing-v2-section-label" href="#demo"><i class="fa-solid fa-link" aria-hidden="true"></i> {% trans "Demo" %}</a></p>
             <h2 id="landing-v2-demo-title">{% trans "AI Agent + SciTeX®" %}</h2>
+            <p>{% trans "Watch the demo, then connect your own AI agent." %}</p>
             <ol class="landing-v2-demo-setup">
-                <li><strong>{% trans "Install the toolkit" %}</strong>
+                <li><strong>{% trans "Install SciTeX" %}</strong>
                     <pre data-language="bash"><code class="language-bash">uv pip install 'scitex[all]'</code></pre>
                 </li>
-                <li><strong>{% trans "Connect your MCP client" %}</strong>
+                <li><strong>{% trans "Connect your agent" %}</strong>
+                    <p class="landing-v2-small">{% trans "Add this to your MCP client’s configuration." %}</p>
                     <pre data-language="json"><code class="language-json">{
   "mcpServers": {
     "scitex": {
@@ -62,12 +64,9 @@
 }</code></pre>
                     <p class="landing-v2-small">{% trans "Use the full path to scitex if your MCP client does not inherit your environment’s PATH." %}</p>
                 </li>
-                <li><strong>{% trans "Install agent skills" %}</strong>
+                <li><strong>{% trans "Add skills (optional)" %}</strong>
                     <pre data-language="bash"><code class="language-bash">scitex dev dev skills install --package scitex-dev</code></pre>
-                    <p class="landing-v2-small">{% trans "Start with the shared Dev skills; select other packages when needed." %}</p>
-                    <p class="landing-v2-small">{% trans "The canonical skill store is ~/.scitex/dev/skills/." %}</p>
-                    <p class="landing-v2-small">{% trans "Ask your agent to set up skill discovery:" %}</p>
-                    <pre><code>{% trans "Find your supported skills directory and link only the selected installed SciTeX skill folders into it. Preserve existing files and report conflicts." %}</code></pre>
+                    <p class="landing-v2-small">{% trans "Link selected skills from ~/.scitex/dev/skills/ to your agent’s supported skills directory." %}</p>
                 </li>
             </ol>
         </div>
