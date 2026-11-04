@@ -16,6 +16,15 @@
                href="https://scitex.ai/ywatanabe/paper-scitex-clew/"
                target="_blank"
                rel="noopener noreferrer">{% trans "View the Clew paper repository" %}<span aria-hidden="true">↗</span></a>
+            <figure class="landing-v2-clew-clip">
+                <video controls playsinline preload="none"
+                       poster="{% static 'public_app/clew/short-clip-poster.jpg' %}"
+                       aria-label="{% trans 'Clew concept overview video' %}">
+                    <source src="{% static 'public_app/clew/short-clip-v2.mp4' %}" type="video/mp4" />
+                    {% trans "Your browser does not support HTML video." %}
+                </video>
+                <figcaption>{% trans "Recorded Clew concept overview · 73 seconds" %}</figcaption>
+            </figure>
         </div>
         <figure class="landing-v2-clew-figure">
             <picture>
