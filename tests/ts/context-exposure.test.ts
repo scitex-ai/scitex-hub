@@ -48,6 +48,7 @@ test("delegated viewer works after a Docs fragment replacement without network o
     expect(document.querySelectorAll('progress')).toHaveLength(3);
     (document.querySelector('[data-context-clear]') as HTMLButtonElement).click();
     expect((document.querySelector('[data-context-output]') as HTMLElement).hidden).toBe(true);
+    expect([...document.querySelectorAll('[data-context-value]')].every(field=>field.textContent==="")).toBe(true);
   }
   expect(fetch).not.toHaveBeenCalled();expect(storage).not.toHaveBeenCalled();fetch.mockRestore();storage.mockRestore();
 });
@@ -72,5 +73,6 @@ test("an arbitrary JSON owner key cannot mutate object prototypes", () => {
   expect(result.owners.map(row=>row.owner)).toContain(owner);
   renderContextReport(document.querySelector<HTMLElement>('[data-context-report-viewer]')!,result);
   expect(document.querySelector('tbody')!.textContent).toContain(owner);
-  expect(Object.getPrototypeOf({})).toBe(Object.prototype);
+  expect(({} as Record<string,unknown>).mcp_tools).toBeUndefined();
+  expect(Object.prototype.hasOwnProperty.call(Object.prototype,"mcp_tools")).toBe(false);
 });

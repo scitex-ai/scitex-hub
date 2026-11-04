@@ -4,6 +4,7 @@ const format = (value: number) => value.toLocaleString();
 export function clearContextReport(root: HTMLElement): void {
   root.querySelector<HTMLElement>("[data-context-output]")!.hidden = true;
   root.querySelector<HTMLElement>("[data-context-owner-rows]")!.replaceChildren();
+  root.querySelectorAll<HTMLElement>("[data-context-value]").forEach(field => { field.textContent = ""; });
 }
 export function renderContextReport(root: HTMLElement, report: ContextSummary): void {
   const values: Record<string, string> = {
