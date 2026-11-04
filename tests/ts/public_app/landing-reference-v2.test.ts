@@ -329,3 +329,37 @@ describe("two-level screenshot categories", () => {
     expect(dot(0).querySelector("small")?.textContent).toBe("v0.21.0");
   });
 });
+
+it("reveals a uniform application tab horizontally without moving the page on keyboard selection", () => {
+  document.body.innerHTML = markup;
+  const row = document.querySelector<HTMLElement>('[role="tablist"]')!;
+  row.dataset.carouselAppTabs = "";
+  Object.defineProperty(row, "clientWidth", { value: 200 });
+  vi.spyOn(row, "getBoundingClientRect").mockReturnValue(new DOMRect(0, 0, 200, 44));
+  const last = document.querySelector<HTMLButtonElement>('[data-carousel-dot="2"]')!;
+  vi.spyOn(last, "getBoundingClientRect").mockImplementation(() => new DOMRect(260 - row.scrollLeft, 0, 126, 44));
+  const focus = vi.spyOn(last, "focus");
+  const scrollPage = vi.spyOn(window, "scrollTo").mockImplementation(() => {});
+  initLandingCarousels();
+  document.querySelector<HTMLButtonElement>('[data-carousel-dot="0"]')!.dispatchEvent(new KeyboardEvent("keydown", { key: "End", bubbles: true }));
+  expect(row.scrollLeft).toBe(186);
+  expect(document.activeElement).toBe(last);
+  expect(focus).toHaveBeenCalledWith({ preventScroll: true });
+  expect(scrollPage).not.toHaveBeenCalled();
+});
+
+it("keeps automatic selection visible in its application row without taking keyboard focus", () => {
+  document.body.innerHTML = markup;
+  const row = document.querySelector<HTMLElement>('[role="tablist"]')!;
+  row.dataset.carouselAppTabs = "";
+  Object.defineProperty(row, "clientWidth", { value: 200 });
+  vi.spyOn(row, "getBoundingClientRect").mockReturnValue(new DOMRect(0, 0, 200, 44));
+  const last = document.querySelector<HTMLButtonElement>('[data-carousel-dot="2"]')!;
+  vi.spyOn(last, "getBoundingClientRect").mockImplementation(() => new DOMRect(260 - row.scrollLeft, 0, 126, 44));
+  const focus = vi.spyOn(last, "focus");
+  initLandingCarousels();
+  vi.advanceTimersByTime(12000);
+  expect(last.getAttribute("aria-selected")).toBe("true");
+  expect(row.scrollLeft).toBe(186);
+  expect(focus).not.toHaveBeenCalled();
+});

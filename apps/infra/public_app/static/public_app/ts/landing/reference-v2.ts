@@ -93,7 +93,17 @@ function initCarousel(carousel: HTMLElement): void {
     status.textContent = `${current + 1} / ${slides.length}`;
     const upcoming = slides[(current + 1) % slides.length].querySelector<HTMLImageElement>("img");
     if (upcoming) upcoming.loading = "eager";
-    if (focusDot) dots[current]?.focus();
+    const selectedDot = dots[current];
+    const tabRow = selectedDot?.closest<HTMLElement>("[data-carousel-app-tabs]");
+    if (selectedDot && tabRow && tabRow.clientWidth > 0) {
+      const row = tabRow.getBoundingClientRect();
+      const tab = selectedDot.getBoundingClientRect();
+      const left = row.left + tabRow.clientLeft;
+      const right = left + tabRow.clientWidth;
+      if (tab.left < left) tabRow.scrollLeft += tab.left - left;
+      else if (tab.right > right) tabRow.scrollLeft += tab.right - right;
+    }
+    if (focusDot) selectedDot?.focus({ preventScroll: true });
   };
 
   const selectCategory = (key: string, focusCategory = false): void => {
