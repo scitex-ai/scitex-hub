@@ -338,7 +338,7 @@ PARTIAL_CASES = [
     (OSS_TEMPLATE, "すべての層をオープンソースで", "Open source, throughout the stack"),
     (MODULES_TEMPLATE, "主張から根拠となるデータまでたどる", "Trace claims back to their sources"),
     (MODULES_TEMPLATE, "順方向に記録し、逆方向に検証する。", "Record Forward. Verify Backward."),
-    (MODULES_TEMPLATE, "ツールキットをインストール", "Install the toolkit"),
+    (MODULES_TEMPLATE, "SciTeX をインストール", "Install SciTeX"),
     (MODULES_TEMPLATE, "その他のデモ動画", "More demo videos"),
     (MODULES_TEMPLATE, "AIエージェント + SciTeX®", "AI Agent + SciTeX®"),
 ]
