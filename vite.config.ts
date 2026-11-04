@@ -4,9 +4,10 @@ import { defineConfig, Plugin } from "vite";
 import { resolve } from "path";
 import * as path from "path";
 import * as fs from "fs";
-import { execSync, execFileSync } from "child_process";
+import { execSync } from "child_process";
 import { createRequire } from "module";
 import { getEntryPoints } from "./vite.entries";
+import { discoverScitexSdkRoot, scitexSdkSubpathAliasesFromRoot } from "./vite.sdk-exports";
 
 const require = createRequire(import.meta.url);
 
@@ -43,40 +44,7 @@ function discoverScitexUiStatic(): string | null {
 
 const SCITEX_UI_STATIC = discoverScitexUiStatic();
 
-/**
- * Discover the scitex-sdk npm exports in checkouts or the installed wheel.
- * Same pattern as discoverScitexUiStatic — supports a Docker/CI `.apps/`
- * layout, the standard sibling checkout, and an explicit env override.
- */
-function discoverScitexSdkRoot(): string | null {
-  if (process.env.SCITEX_SDK_ROOT) {
-    return process.env.SCITEX_SDK_ROOT;
-  }
-  const candidates = [
-    resolve(__dirname, ".apps/scitex-sdk/src/scitex_sdk"),
-    resolve(__dirname, "../scitex-sdk/src/scitex_sdk"),
-    // Linked worktrees live under .worktrees/<name>/ (three levels up)
-    resolve(__dirname, "../../../scitex-sdk/src/scitex_sdk"),
-  ];
-  for (const candidate of candidates) {
-    if (fs.existsSync(resolve(candidate, "package.json"))) return candidate;
-  }
-  // Production installs the SDK wheel; a sibling checkout is optional.
-  // Read the installed provider's own npm exports, just as for editable roots.
-  try {
-    const installed = execFileSync("python3", ["-c",
-      "from importlib.util import find_spec; from pathlib import Path; s=find_spec('scitex_sdk'); print(Path(s.origin).parent if s and s.origin else '')",
-    ], { encoding: "utf-8", timeout: 5000 }).trim();
-    if (installed && fs.existsSync(resolve(installed, "package.json"))) {
-      return installed;
-    }
-  } catch {
-    // A missing provider is reported by the normal unresolved-import build gate.
-  }
-  return null;
-}
-
-const SCITEX_SDK_ROOT = discoverScitexSdkRoot();
+const SCITEX_SDK_ROOT = discoverScitexSdkRoot(__dirname);
 
 /**
  * Build `@scitex/sdk/*` aliases from the SDK package's own exports map.
@@ -100,29 +68,7 @@ const SCITEX_SDK_ROOT = discoverScitexSdkRoot();
  * today — add a regex entry if that changes).
  */
 function scitexSdkSubpathAliases(): Record<string, string> {
-  if (!SCITEX_SDK_ROOT) return {};
-  try {
-    const pkg = JSON.parse(
-      fs.readFileSync(resolve(SCITEX_SDK_ROOT, "package.json"), "utf-8"),
-    );
-    const exports = pkg.exports ?? {};
-    const aliases: Record<string, string> = {};
-    for (const [key, target] of Object.entries(exports)) {
-      if (typeof target !== "string") continue;
-      const sub = key.replace(/^\.\//, "");
-      const dest = (target as string).replace(/^\.\//, "");
-      if (!sub.endsWith("/*") || !dest.endsWith("/*")) continue;
-      // Strip "/*" (not just "*"): @rollup/plugin-alias appends its own "/"
-      // when prefix-matching, so a trailing-slash key would never match.
-      aliases[`@scitex/sdk/${sub.slice(0, -2)}`] = resolve(
-        SCITEX_SDK_ROOT,
-        dest.slice(0, -2),
-      );
-    }
-    return aliases;
-  } catch {
-    return {};
-  }
+  return scitexSdkSubpathAliasesFromRoot(SCITEX_SDK_ROOT);
 }
 
 // CSS ownership follows the SDK package's public exports, independently of

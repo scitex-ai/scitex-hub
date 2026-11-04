@@ -95,7 +95,7 @@ jobs:
           # a constraint CI did not state. A second, lower floor that is only
           # ever right by accident is the kind of disagreement that surfaces
           # the day someone pins for an unrelated reason.
-          uv pip install --python .venv/bin/python "scitex-ui>=0.21.0" "scitex-sdk[gui]>=0.3.19"
+          uv pip install --python .venv/bin/python "scitex-ui>=0.21.0" "scitex-sdk[gui]>=0.3.20"
           # install_apps.sh shells `pip`/`python` itself, so put the venv
           # ahead of anything the shared runner has on PATH.
           echo "$PWD/.venv/bin" >> "$GITHUB_PATH"
@@ -160,6 +160,23 @@ jobs:
 
       - name: Checkout code
         uses: actions/checkout@v4
+
+      - uses: astral-sh/setup-uv@v7
+        with:
+          enable-cache: false
+
+      - name: Install owned SDK frontend provider
+        run: |
+          set -euo pipefail
+          owned=$(mktemp -d "${RUNNER_TEMP:?}/hub-vitest-sdk.XXXXXX")
+          export UV_PYTHON_INSTALL_DIR="$owned/python"
+          export UV_CACHE_DIR="$owned/cache"
+          export SCITEX_DIR="$owned/state"
+          uv venv --python 3.11 "$owned/venv"
+          uv pip install --python "$owned/venv/bin/python" "scitex-sdk>=0.3.20"
+          uv pip check --python "$owned/venv/bin/python"
+          sdk_root=$("$owned/venv/bin/python" -I -c "from importlib.util import find_spec; from pathlib import Path; p=Path(find_spec('scitex_sdk').origin).parent; assert (p/'package.json').is_file(); print(p)")
+          printf 'SCITEX_SDK_ROOT=%s\n' "$sdk_root" >> "$GITHUB_ENV"
 
       - name: Setup Node.js
         uses: actions/setup-node@v4

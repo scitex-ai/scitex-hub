@@ -1,6 +1,6 @@
 [project]
 name = "scitex-hub"
-version = "0.22.0a3"
+version = "0.22.0a4"
 description = "A browser workspace connecting research projects, apps, and collaborators"
 readme = "README.md"
 license = "AGPL-3.0-only"
@@ -268,7 +268,8 @@ dependencies = [
     # $SCITEX_STORE_DSN set and never reached the fallback. A hub that
     # configures nothing is exactly the caller that DOES reach it.
     # 0.56.8 is the version measured good here, not proven to be the minimum.
-    "scitex-dev>=0.62.6",
+    # 0.62.11 preserves explicit skill ownership through metadata reads.
+    "scitex-dev>=0.62.11",
     # `scitex-audio` owns the whisper.cpp transcription pipeline that
     # llm_app/views/stt.py delegates to (`scitex_audio.transcribe`).
     # Declared DIRECTLY rather than relied on transitively: llm_app/views/chat.py
@@ -299,7 +300,8 @@ dependencies = [
     # replacing the shared navigation preference.
     # 0.3.19 binds generated CSS to genuine Vite source inputs; older SDK
     # project audits misclassify canonical bundled component CSS as local forks.
-    "scitex-sdk>=0.3.19",
+    # 0.3.20 supplies API-docs header lifecycle and inert wheel declarations.
+    "scitex-sdk>=0.3.20",
     "gitpython>=3.1.51",
 ]
 
@@ -352,7 +354,7 @@ all = [
     # Explicit plugin closure: these apps are not installed by the umbrella.
     # SAC uses the platform-owned SDK GUI dependency; its standalone [gui]
     # extra pins an older SDK and is not this host's GUI dependency contract.
-    "scitex-sdk[gui]>=0.3.19",
+    "scitex-sdk[gui]>=0.3.20",
     "scitex-agent-container>=0.38.4",
     "scitex-cards[web]>=0.56.22",
     "scitex-storage[gui]>=0.6.11",
@@ -614,7 +616,7 @@ dev = [
     # decides the three required checks; the audit workflow's own pin cannot
     # substitute for it. Keep the two identical — if they drift, the matrix
     # and the audit test different versions and one of them is lying.
-    "scitex-dev>=0.62.6",
+    "scitex-dev>=0.62.11",
     # The board-tenancy suite is guarded by `_TODO_INSTALLED`
     # (middleware.py:115, find_spec("scitex_cards")). Without this package
     # installed, every one of those tests SKIPS and the job exits 0 — a
@@ -627,7 +629,7 @@ dev = [
     # Explicit plugin closure: these apps are not installed by the umbrella.
     # SAC uses the platform-owned SDK GUI dependency; its standalone [gui]
     # extra pins an older SDK and is not this host's GUI dependency contract.
-    "scitex-sdk[gui]>=0.3.19",
+    "scitex-sdk[gui]>=0.3.20",
     "scitex-agent-container>=0.38.4",
     "scitex-cards[web]>=0.56.22",
     "scitex-storage[gui]>=0.6.11",
