@@ -104,6 +104,17 @@ What happens: Gitea access check → `validate_dev_repo()` (needs `templates/`
 dir) → reads `manifest.json` → creates `DevInstallation` record. Tab appears
 on next page load. Module name is `dev__<owner>__<repo>`.
 
+Dev context builders run in the configured Apptainer runtime rather than the
+Django process. A unique, runtime-readable helper is temporarily staged in the
+validated project directory; existing project files and fixed helper names are
+preserved. Request data and the fixed `SCITEX_CURRENT_APP`, `SCITEX_API_TOKEN`,
+and `SCITEX_API_URL` environment values arrive through a JSON stdin envelope.
+The helper sets those values before importing `views.py`. Neither credentials
+nor app metadata are placed in runtime command arguments or helper contents.
+Custom images passed to the Hub's context execution builder must use absolute
+native paths (SIF files or sandbox directories), rather than image URIs or
+relative paths. This path check does not certify image provenance.
+
 ```http
 POST /apps/store/api/dev/<owner>/<repo>/uninstall/   # soft-delete
 POST /apps/store/api/dev/<owner>/<repo>/reinstall/   # re-enable
