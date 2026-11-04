@@ -166,12 +166,7 @@ The SciTeX Team
                     safe_log_field(email),
                 )
                 logger.info(f"From: {settings.DEFAULT_FROM_EMAIL}")
-                # Never log the reset token in clear text: keep the URL shape
-                # for debugging, redact the trailing token segment.
-                logger.info(
-                    "Reset URL: %s",
-                    reset_url.rsplit("/", 1)[0] + "/<redacted>",
-                )
+                # Reset URLs contain credentials and must stay out of logs.
 
                 send_mail(
                     subject,
