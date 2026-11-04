@@ -9,13 +9,22 @@ verbatim. See [ADR-0001](docs/adr/0001-rename-scitex-cloud-to-scitex-hub.md).
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [0.22.0a5] - Unreleased
 
 ### Fixed
 
 - Keep password-reset URLs out of application logs. Trailing slashes previously
   caused the URL redaction to retain the credential. Verify successful and failed
   delivery attempts with fake credentials and a mocked mail transport.
+
+- Resolve header API documentation ownership for explicitly mounted views through
+  the actual callable, installed file record and unique registered Docs provider;
+  retain unknown/ambiguous states without adding launcher entries or endpoints.
+- Label CLI documentation examples as Bash and keep API guidance and mobile
+  controls readable in both themes.
+- Measure parked Celery worker connections by their actual backend PIDs in
+  regression tests, excluding unrelated session closures and retaining strict
+  clean/leaky and receiver-disconnected controls.
 
 ## [0.22.0a4] - 2026-11-04
 
