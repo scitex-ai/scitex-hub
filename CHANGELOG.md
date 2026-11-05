@@ -11,6 +11,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.22.0a6] - 2026-11-06
+
+### Changed
+
+- Preserve the approved landing-page repository tabs and planned beta pricing
+  heading in the release source.
+- Require FigRecipe 0.44.4 (safe recipe-data links), SDK 0.3.23, Dev 0.62.16
+  and logging 0.2.5 in the refreshed application dependency cohort.
+- Run the tag publisher through the same full PostgreSQL, frontend and three
+  Python-version matrix as pull requests, using the existing self-hosted pool.
+
 ### Fixed
 
 - Remove global SLURM cleanup from development app startup. Starting web or

@@ -24,6 +24,13 @@ on:
   schedule:
     - cron: "0 17 * * *"  # nightly 17:00 UTC (~02:00 JST), off-peak
   workflow_dispatch:
+  workflow_call:
+    inputs:
+      release_tag:
+        description: Exact existing release tag to qualify before publication
+        required: false
+        default: ""
+        type: string
 
 # Supersede a pull request's own earlier runs, which nobody will read once a
 # newer commit exists. Keyed per workflow per ref, so different PRs never
@@ -105,6 +112,14 @@ jobs:
           exit 1
 
       - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.release_tag || github.sha }}
+          fetch-depth: 0
+      - name: Verify release tag and checkout
+        if: inputs.release_tag != ''
+        env:
+          RELEASE_TAG: ${{ inputs.release_tag }}
+        run: python3 .github/ci/check_release_version.py --tag "$RELEASE_TAG"
       - name: Check out Writer's compile gate
         uses: actions/checkout@v4
         with:
