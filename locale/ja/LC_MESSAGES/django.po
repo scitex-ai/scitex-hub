@@ -9362,8 +9362,8 @@ msgid "Open source, throughout the stack"
 msgstr "すべての層をオープンソースで"
 
 #: apps/infra/public_app/templates/public_app/landing_partials
-msgid "Pricing (expected from beta)"
-msgstr "料金（ベータ版から適用予定）"
+msgid "Planned beta pricing"
+msgstr "ベータ版で予定している料金"
 
 #: apps/infra/public_app/templates/public_app/landing_partials
 msgid "Research needs tools that fit the experiment. Build your own app with the SciTeX SDK, using the platform's project context and shared interface components."
@@ -9997,3 +9997,7 @@ msgstr "開発用スキルを追加（任意）"
 #: apps/infra/public_app/templates/public_app/landing_partials/landing_modules.html
 msgid "Link selected skills from ~/.scitex/dev/skills/ to your agent’s supported skills directory."
 msgstr "~/.scitex/dev/skills/ から必要なスキルを選び、エージェントが対応するスキル用ディレクトリへリンクしてください。"
+
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_opensource.html
+msgid "Source repositories"
+msgstr "ソースリポジトリ"

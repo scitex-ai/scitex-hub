@@ -1,3 +1,5 @@
+import { initOpenSourceTabs } from "./opensource-tabs";
+
 const initialized = new WeakSet<HTMLElement>();
 const SWIPE_THRESHOLD = 48;
 const ROTATION_INTERVAL = 6000;
@@ -194,9 +196,10 @@ export function initLandingCarousels(root: ParentNode = document): void {
 }
 
 if (document.readyState === "loading") {
-  document.addEventListener("DOMContentLoaded", () => initLandingCarousels());
+  document.addEventListener("DOMContentLoaded", () => { initLandingCarousels(); initOpenSourceTabs(); });
 } else {
   initLandingCarousels();
+  initOpenSourceTabs();
 }
 
 
