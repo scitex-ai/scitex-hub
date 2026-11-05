@@ -9,9 +9,6 @@
                 <p class="landing-v2-eyebrow"><a class="landing-v2-section-label" href="#open-source"><i class="fa-solid fa-link" aria-hidden="true"></i> {% trans "Open source" %}</a></p>
                 <h2 id="landing-v2-oss-title">{% trans "Open source, throughout the stack" %}</h2>
             </div>
-            <p>
-                {% trans "Explore the platform, research apps, and shared tools in their public source repositories. Inspect the code, review each license, and contribute." %}
-            </p>
         </div>
         <div class="landing-oss-orgrow">
             <a class="landing-v2-button landing-v2-button-primary"
@@ -21,8 +18,13 @@
             <a class="landing-v2-button"
                href="{% url 'public_app:open_source' %}">{% trans "Why open source matters for research" %}<span aria-hidden="true">→</span></a>
         </div>
+        <div class="stx-content-tabs landing-oss-tabs" role="tablist" aria-label="{% trans 'Source repositories' %}" data-oss-tabs hidden>
+            {% for group in github_snapshot.groups %}
+                <button type="button" class="stx-content-tabs__tab" role="tab" id="landing-oss-tab-{{ forloop.counter }}" aria-controls="landing-oss-panel-{{ forloop.counter }}" aria-selected="{% if forloop.first %}true{% else %}false{% endif %}" tabindex="{% if forloop.first %}0{% else %}-1{% endif %}">{% trans group.label %}</button>
+            {% endfor %}
+        </div>
         {% for group in github_snapshot.groups %}
-            <div class="landing-oss-group">
+            <div class="landing-oss-group" id="landing-oss-panel-{{ forloop.counter }}" data-oss-panel>
                 <h3>{% trans group.label %}</h3>
                 <ul class="landing-oss-packages">
                     {% for repo in group.cards %}
@@ -44,6 +46,11 @@
     </div>
 </section>
 <style>
+    .landing-v2-oss .landing-v2-intro { display: block; margin-bottom: 1.25rem; }
+    .landing-v2-oss .landing-v2-intro h2 { max-width: none; }
+    .landing-oss-tabs { margin-bottom: 1rem; }
+    .landing-oss-tabs > .stx-content-tabs__tab { flex: 1 1 0; }
+    .landing-oss-tabs[hidden], .landing-oss-group[hidden], .landing-oss-group > h3[hidden] { display: none; }
     .landing-oss-orgrow {
         display: flex;
         flex-wrap: wrap;

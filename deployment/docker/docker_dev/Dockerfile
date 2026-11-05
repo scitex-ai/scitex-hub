@@ -251,6 +251,7 @@ RUN APPTAINER_VERSION=1.3.4 && \
 # Install Node.js, Mermaid CLI, and TypeScript tools
 RUN curl -fsSL https://deb.nodesource.com/setup_20.x | bash - && \
     apt-get install -y nodejs && \
+    npm install -g npm@11 && \
     npm install -g @mermaid-js/mermaid-cli typescript && \
     rm -rf /var/lib/apt/lists/*
 
@@ -289,14 +290,9 @@ LABEL org.scitex-hub.dependency-resolution=${SCITEX_HUB_DEPENDENCY_RESOLUTION}
 # so we skip install-deps which tries to install Ubuntu packages on Debian
 RUN python -m playwright install chromium
 
-# ============================================
-# Node.js Dependencies
-# ============================================
-# Install Node dependencies BEFORE copying application code for better caching
-# This layer is only invalidated when package.json/package-lock.json changes
-
-COPY package.json package-lock.json* ./
-RUN npm install
+# Workspace file: dependencies need runtime source mounts. Install their full
+# graph through install_dev_frontend.sh after those mounts are available;
+# image construction supplies Node/npm but must not resolve absent siblings.
 
 # ============================================
 # Application Code

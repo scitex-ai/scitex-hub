@@ -83,17 +83,26 @@ def test_publisher_requires_full_dependencies_and_ordinary_review():
     ).read_text()
     workflow = yaml.safe_load(source)
     jobs = workflow["jobs"]
+    matrix_file = "pytest-matrix-on-ubuntu-py3-11-3-12-3-13.yml"
+    assert jobs["test"]["uses"] == f"./.github/workflows/{matrix_file}"
+    assert jobs["test"]["with"]["release_tag"] == (
+        "${{ github.event_name == 'push' && github.ref_name || inputs.version }}"
+    )
+    matrix = yaml.safe_load((ROOT / ".github/workflows" / matrix_file).read_text())
+    steps = matrix["jobs"]["test"]["steps"]
     install = next(
-        s
-        for s in jobs["test"]["steps"]
-        if s.get("name") == "Install full declared test dependencies"
+        s for s in steps if s.get("name", "").startswith("Install dependencies")
     )
     assert '-e ".[all,dev]"' in install["run"]
     assert "||" not in install["run"]
-    for job in ("test", "build"):
-        steps = jobs[job]["steps"]
-        guard = next(s for s in steps if s.get("id") == "release_metadata")
-        assert 'check_release_version.py --tag "$RELEASE_TAG"' in guard["run"]
+    tag_guard = next(
+        s for s in steps if s.get("name") == "Verify release tag and checkout"
+    )
+    assert tag_guard["env"]["RELEASE_TAG"] == "${{ inputs.release_tag }}"
+    assert 'check_release_version.py --tag "$RELEASE_TAG"' in tag_guard["run"]
+    guard = next(s for s in jobs["build"]["steps"] if s.get("id") == "release_metadata")
+    assert 'check_release_version.py --tag "$RELEASE_TAG"' in guard["run"]
+    assert all("self-hosted" in j["runs-on"] for j in jobs.values() if "runs-on" in j)
     release = next(
         s for s in jobs["release"]["steps"] if s.get("name") == "Create GitHub Release"
     )
@@ -103,3 +112,38 @@ def test_publisher_requires_full_dependencies_and_ordinary_review():
     )
     assert "--admin" not in source
     assert "gh pr merge" not in source
+
+
+def test_audit_corpus_pin_satisfies_declared_dev_requirements():
+    """The native audit must not downgrade below the package it just installed."""
+    import shlex
+    import tomllib
+
+    from packaging.requirements import Requirement
+
+    workflow = yaml.safe_load(
+        (
+            ROOT / ".github/workflows/scitex-hub-quality-audit-on-ubuntu-latest.yml"
+        ).read_text()
+    )
+    install = next(
+        step
+        for step in workflow["jobs"]["audit"]["steps"]
+        if step.get("name") == "Install package + audit tooling"
+    )
+    pins = [
+        Requirement(token)
+        for line in install["run"].splitlines()
+        for token in shlex.split(line, comments=True)
+        if token.startswith("scitex-dev==")
+    ]
+    assert len(pins) == 1
+    pin = next(iter(pins[0].specifier)).version
+    project = tomllib.loads((ROOT / "pyproject.toml").read_text())["project"]
+    declarations = project["dependencies"] + [
+        req for group in project["optional-dependencies"].values() for req in group
+    ]
+    requirements = [Requirement(raw) for raw in declarations]
+    assert all(
+        req.specifier.contains(pin) for req in requirements if req.name == "scitex-dev"
+    )

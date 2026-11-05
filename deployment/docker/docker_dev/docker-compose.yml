@@ -51,7 +51,7 @@ services:
       - ${CROSSREF_LOCAL_SOURCE_DIR:-../../../../crossref-local}:/crossref-local:cached
       - ${OPENALEX_LOCAL_SOURCE_DIR:-../../../../openalex-local}:/openalex-local:cached
       - ../../../../socialia:/socialia:cached
-      - ../../../../scitex-ui:/scitex-ui:cached
+      - ${SCITEX_UI_SOURCE_DIR:-../../../../scitex-ui}:/scitex-ui:cached
       - ../../../../scitex-app:/scitex-app:cached
       - ../../../../scitex-sdk:/scitex-sdk:cached
       - ../../../../scitex-plt:/scitex-plt:cached
@@ -347,7 +347,7 @@ services:
       - ${CROSSREF_LOCAL_SOURCE_DIR:-../../../../crossref-local}:/crossref-local:cached
       - ${OPENALEX_LOCAL_SOURCE_DIR:-../../../../openalex-local}:/openalex-local:cached
       - ../../../../socialia:/socialia:cached
-      - ../../../../scitex-ui:/scitex-ui:cached
+      - ${SCITEX_UI_SOURCE_DIR:-../../../../scitex-ui}:/scitex-ui:cached
       - ../../../../scitex-app:/scitex-app:cached
       - ../../../../scitex-sdk:/scitex-sdk:cached
       - ../../../../scitex-plt:/scitex-plt:cached
@@ -479,7 +479,7 @@ services:
       - ${CROSSREF_LOCAL_SOURCE_DIR:-../../../../crossref-local}:/crossref-local:cached
       - ${OPENALEX_LOCAL_SOURCE_DIR:-../../../../openalex-local}:/openalex-local:cached
       - ../../../../socialia:/socialia:cached
-      - ../../../../scitex-ui:/scitex-ui:cached
+      - ${SCITEX_UI_SOURCE_DIR:-../../../../scitex-ui}:/scitex-ui:cached
       - ../../../../scitex-app:/scitex-app:cached
       - ../../../../scitex-sdk:/scitex-sdk:cached
       - ../../../../scitex-plt:/scitex-plt:cached
