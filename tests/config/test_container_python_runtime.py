@@ -8,6 +8,21 @@ import yaml
 WORKFLOW = Path(__file__).resolve().parents[2] / ".github/workflows/tests.yml"
 
 
+def _effective_job(workflow_name, job_name):
+    """Follow the release's exact local full-matrix call; reject other delegates."""
+    job = yaml.safe_load(WORKFLOW.with_name(workflow_name).read_text())["jobs"][
+        job_name
+    ]
+    if "uses" in job:
+        matrix = "pytest-matrix-on-ubuntu-py3-11-3-12-3-13.yml"
+        assert job["uses"] == f"./.github/workflows/{matrix}"
+        assert job["with"]["release_tag"] == (
+            "${{ github.event_name == 'push' && github.ref_name || inputs.version }}"
+        )
+        job = yaml.safe_load(WORKFLOW.with_name(matrix).read_text())["jobs"]["test"]
+    return job
+
+
 @pytest.mark.parametrize("job_name", ["terminal-tests", "security-regression"])
 def test_container_gate_owns_attempt_specific_runtime_before_full_install(job_name):
     job = yaml.safe_load(WORKFLOW.read_text())["jobs"][job_name]
@@ -68,9 +83,9 @@ def test_required_matrix_owns_a_fresh_seeded_managed_runtime_per_attempt():
     [
         (
             "test",
-            "Install full declared test dependencies",
+            "Install dependencies (py${{ matrix.python-version }})",
             "${{ matrix.python-version }}",
-            'uv pip install --python $P -e ".[all,dev]"',
+            'uv pip install --python .venv/bin/python -e ".[all,dev]"',
         ),
         (
             "build",
@@ -85,7 +100,7 @@ def test_release_gate_owns_its_runtime_and_never_reduces_declared_install(
 ):
     # Arrange
     release = WORKFLOW.with_name("pypi-publish-and-github-release-on-tag.yml")
-    job = yaml.safe_load(release.read_text())["jobs"][job_name]
+    job = _effective_job(release.name, job_name)
     step = next(s for s in job["steps"] if s.get("name") == step_name)
     commands = step["run"]
     # Act
@@ -112,14 +127,14 @@ def test_release_gate_owns_its_runtime_and_never_reduces_declared_install(
     "workflow_name,step_name",
     [
         ("pytest-matrix-on-ubuntu-py3-11-3-12-3-13.yml", "Run tests"),
-        ("pypi-publish-and-github-release-on-tag.yml", "Run pytest"),
+        ("pypi-publish-and-github-release-on-tag.yml", "Run tests"),
     ],
 )
 def test_full_suite_status_store_uses_the_same_disposable_database_as_django(
     workflow_name, step_name
 ):
     # Arrange
-    job = yaml.safe_load(WORKFLOW.with_name(workflow_name).read_text())["jobs"]["test"]
+    job = _effective_job(workflow_name, "test")
     step = next(s for s in job["steps"] if s.get("name") == step_name)
     env = step["env"]
     database = job["services"]["postgres"]["env"]
