@@ -24,6 +24,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- Defer development workspace npm installation until source peers are mounted,
+  synchronize existing dependency directories and refuse failed installs or
+  bundle builds, including when an earlier manifest remains. Supply
+  npm 11 in the image and a source override for the legacy frontend peer.
+
 - Keep blocked optional analytics scripts from triggering the application-load
   error banner. Required scripts, stylesheets and authentication resources
   continue to show recoverable errors.

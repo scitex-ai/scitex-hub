@@ -86,6 +86,11 @@ with runtime frontend build mode. Both modes are derived by the canonical
 resolver, not caller overrides. Production is always image-only/baked.
 An ambient mode variable cannot change this policy. Development's direct-bind
 installer does not support this image override.
+Development installs the full npm graph after source peers are mounted; an
+existing `node_modules` directory is not dependency evidence. A failed install
+or bundle build stops startup, even if an earlier manifest remains. `SCITEX_UI_SOURCE_DIR` can select the release-matched legacy npm
+provider when the default sibling is absent; retain the SDK as the shared GUI
+owner and qualify the actual editable peer graph before recreation.
 
 ## Qualify once, stage the same artifact
 
