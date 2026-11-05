@@ -112,3 +112,38 @@ def test_publisher_requires_full_dependencies_and_ordinary_review():
     )
     assert "--admin" not in source
     assert "gh pr merge" not in source
+
+
+def test_audit_corpus_pin_satisfies_declared_dev_requirements():
+    """The native audit must not downgrade below the package it just installed."""
+    import shlex
+    import tomllib
+
+    from packaging.requirements import Requirement
+
+    workflow = yaml.safe_load(
+        (
+            ROOT / ".github/workflows/scitex-hub-quality-audit-on-ubuntu-latest.yml"
+        ).read_text()
+    )
+    install = next(
+        step
+        for step in workflow["jobs"]["audit"]["steps"]
+        if step.get("name") == "Install package + audit tooling"
+    )
+    pins = [
+        Requirement(token)
+        for line in install["run"].splitlines()
+        for token in shlex.split(line, comments=True)
+        if token.startswith("scitex-dev==")
+    ]
+    assert len(pins) == 1
+    pin = next(iter(pins[0].specifier)).version
+    project = tomllib.loads((ROOT / "pyproject.toml").read_text())["project"]
+    declarations = project["dependencies"] + [
+        req for group in project["optional-dependencies"].values() for req in group
+    ]
+    requirements = [Requirement(raw) for raw in declarations]
+    assert all(
+        req.specifier.contains(pin) for req in requirements if req.name == "scitex-dev"
+    )

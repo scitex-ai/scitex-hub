@@ -132,7 +132,7 @@ jobs:
           # downgraded the project install and lacked the current measured
           # runner registry, so valid scitex-local-cpu jobs failed PS-224.
           # Bumps must remain reviewable; do not suppress new findings.
-          uv pip install --python .venv/bin/python "scitex-dev==0.62.11"
+          uv pip install --python .venv/bin/python "scitex-dev==0.62.16"
           uv pip check --python .venv/bin/python
 
       # Use the pytest wrapper so the documented `skip_rules` deferrals in
