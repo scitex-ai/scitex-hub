@@ -1,10 +1,13 @@
 import { afterEach, expect, it, vi } from "vitest";
+let sharedSanitizer: (typeof import("dompurify"))["default"] | undefined;
 
 afterEach(() => {
   document.body.replaceChildren();
   vi.restoreAllMocks();
   vi.unstubAllGlobals();
   vi.resetModules();
+  sharedSanitizer?.removeAllHooks();
+  sharedSanitizer = undefined;
 });
 
 async function workspace(slug = "overview", content = "<p>Documentation</p>") {
@@ -51,6 +54,22 @@ it("sanitizes fetched pages and generated headings in the real batch print actio
   // Assert
   expect(printDocument.querySelector("script, [onclick], [onerror]")).toBeNull();
   expect(printDocument.querySelector("p")?.textContent).toBe("Safe content");
+});
+
+it("keeps printing independent of hooks on the shared app sanitizer", async () => {
+  // Arrange: prove the shared hook is active before exercising the private path.
+  sharedSanitizer = (await import("dompurify")).default;
+  sharedSanitizer.addHook("afterSanitizeAttributes", node => {
+    if (node.nodeName === "IMG") node.setAttribute("onerror", "bad()");
+  });
+  expect(sharedSanitizer.sanitize("<img src=x>")).toContain("onerror");
+  const { printDocument } = await workspace();
+  document.getElementById("docs-content-area")!.insertAdjacentHTML("beforeend", '<img src=x onerror="originalAttack()">');
+  // Act
+  document.querySelector<HTMLButtonElement>(".docs-section-pdf-btn")!.click();
+  // Assert
+  expect(printDocument.querySelector("img")).not.toBeNull();
+  expect(printDocument.querySelector("[onerror]")).toBeNull();
 });
 
 it("encodes a document slug in fetch and export URLs without creating attributes", async () => {
