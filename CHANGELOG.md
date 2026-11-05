@@ -13,6 +13,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- Keep blocked optional analytics scripts from triggering the application-load
+  error banner. Required scripts, stylesheets and authentication resources
+  continue to show recoverable errors.
+
 - Remove global SLURM cleanup from development app startup. Starting web or
   worker roles no longer cancels completing jobs or resets scheduler node states.
 

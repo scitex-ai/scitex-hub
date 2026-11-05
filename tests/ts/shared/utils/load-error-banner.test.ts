@@ -123,4 +123,63 @@ describe("load-error-banner", () => {
     const posStyle = (el?.getAttribute("style") ?? "").replace(/\s+/g, "");
     expect(posStyle).toContain("bottom:calc(var(--site-dock-scroll-clearance,0px)+16px)");
   });
+
+  it.each([
+    "https://static.cloudflareinsights.com/beacon.min.js",
+    "https://static.cloudflareinsights.com/beacon.min.js/vce701823e78c4301a35b7e07294d87301792088814092",
+    "https://static.cloudflareinsights.com/beacon.min.js?fixture=analytics",
+  ])("ignores optional analytics but still reports the next required script: %s", async (src) => {
+    await importFresh();
+    const analytics = document.createElement("script");
+    analytics.src = src;
+    document.body.append(analytics);
+    analytics.dispatchEvent(new Event("error"));
+    expect(banner()).toBeNull();
+
+    const required = document.createElement("script");
+    required.src = "https://scitex.example/static/vite/required-app.js";
+    document.body.append(required);
+    required.dispatchEvent(new Event("error"));
+    expect(banner()?.textContent).toContain("required-app.js");
+    expect(document.querySelectorAll("#stx-load-error-banner")).toHaveLength(1);
+  });
+
+  it.each([
+    "https://scitex.example/static/beacon.min.js",
+    "https://static.cloudflareinsights.com.other.example/beacon.min.js",
+    "https://static.cloudflareinsights.com/required-app.js",
+    "https://challenges.cloudflare.com/turnstile/v0/api.js",
+  ])("keeps required and unrelated resource failures visible: %s", async (src) => {
+    await importFresh();
+    const script = document.createElement("script");
+    script.src = src;
+    document.body.append(script);
+    script.dispatchEvent(new Event("error"));
+    expect(banner()?.textContent).toContain(src.split("/").pop());
+  });
+
+  it("honors the host's analytics role without consuming a required failure", async () => {
+    await importFresh();
+    const analytics = document.createElement("script");
+    analytics.src = "https://analytics.example/script.js";
+    analytics.setAttribute("data-stx-resource-role", "analytics");
+    document.body.append(analytics);
+    analytics.dispatchEvent(new Event("error"));
+    expect(banner()).toBeNull();
+    const required = document.createElement("script");
+    required.src = "https://scitex.example/required-app.js";
+    document.body.append(required);
+    required.dispatchEvent(new Event("error"));
+    expect(banner()?.textContent).toContain("required-app.js");
+  });
+
+  it("keeps an explicitly required application script visible", async () => {
+    await importFresh();
+    const required = document.createElement("script");
+    required.src = "https://scitex.example/required-app.js";
+    required.setAttribute("data-stx-resource-role", "application");
+    document.body.append(required);
+    required.dispatchEvent(new Event("error"));
+    expect(banner()?.textContent).toContain("required-app.js");
+  });
 });
