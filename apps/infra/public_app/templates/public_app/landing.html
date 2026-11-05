@@ -26,6 +26,7 @@
 {% endblock %}
 
 {% block extra_js %}
+    <script type="module" src="{% app_static 'public_app/js/landing-opensource-tabs.js' %}"></script>
     <script type="module" src="{% app_static 'public_app/js/landing-github-counts.js' %}"></script>
     <script type="module" src="{% app_static 'vendor/scitex-sdk/721c15fe18cc/section-nav.js' %}"></script>
     {% vite_script 'public_app/landing/reference-v2' %}
