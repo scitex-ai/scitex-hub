@@ -2,7 +2,7 @@
  * Load-error fallback banner (UX standard: failures render an error state,
  * never a blank page).
  *
- * A failed script/stylesheet (restart window, stale manifest, CDN outage)
+ * A failed required script/stylesheet (restart window, stale manifest, CDN outage)
  * otherwise leaves interactive regions blank with zero explanation — the
  * exact shape of the FigRecipe blank-shell report (2026-10-16), where the
  * server HTML rendered and the JS never arrived. This module shows a
@@ -97,6 +97,23 @@ function showBanner(detail: string): void {
   document.body.append(banner);
 }
 
+function isOptionalAnalyticsScript(el: HTMLElement, src: string): boolean {
+  if (el.getAttribute("data-stx-resource-role") === "analytics") return true;
+  let url: URL;
+  try {
+    url = new URL(src, window.location.href);
+  } catch {
+    return false;
+  }
+  // Cloudflare injects this optional Web Analytics beacon at the edge.
+  // Blocking analytics must not look like a broken application. Match the
+  // exact origin/path; app bundles and authentication scripts stay visible.
+  return (
+    url.origin === "https://static.cloudflareinsights.com" &&
+    /^\/beacon\.min\.js(?:\/v[a-f0-9]+)?$/.test(url.pathname)
+  );
+}
+
 function describeTarget(target: EventTarget | null): string | null {
   const el = target as HTMLElement | null;
   if (!el || !el.tagName) return null;
@@ -107,6 +124,7 @@ function describeTarget(target: EventTarget | null): string | null {
     el.getAttribute("href") ||
     el.getAttribute("data-entry") ||
     tag;
+  if (tag === "script" && isOptionalAnalyticsScript(el, src)) return null;
   return src.split("/").pop() || tag;
 }
 
