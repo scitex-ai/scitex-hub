@@ -13,6 +13,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- Remove global SLURM cleanup from development app startup. Starting web or
+  worker roles no longer cancels completing jobs or resets scheduler node states.
+
 - Render workspace module error labels as escaped text and keep template parser
   diagnostics out of browser responses. Authorized application HTML continues to
   render through Django's normal template engine.

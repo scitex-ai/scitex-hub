@@ -47,6 +47,8 @@ and then swaps services. It has no build-only option. Its current build command
 uses `nice`, but does not create a systemd build scope or take the stack down
 before building. `make build` has no swap, but does not enforce worker limits.
 Do not stop unrelated services or delete Redis, jobs or mounted data to deploy.
+Development app startup must not cancel jobs or reset scheduler node states.
+Keep scheduler recovery separate from web and worker starts.
 
 ## Build a candidate without changing production's latest tag
 
