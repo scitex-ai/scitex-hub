@@ -13,6 +13,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- Render workspace module error labels as escaped text and keep template parser
+  diagnostics out of browser responses. Authorized application HTML continues to
+  render through Django's normal template engine.
+
 - Keep password-reset URLs out of application logs. Trailing slashes previously
   caused the URL redaction to retain the credential. Verify successful and failed
   delivery attempts with fake credentials and a mocked mail transport.
