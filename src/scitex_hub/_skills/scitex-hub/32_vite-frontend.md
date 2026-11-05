@@ -20,7 +20,10 @@ npm run test:run
 
 `dev` starts Vite's development server. HMR applies to clients connected to that
 server. `build` produces the bundled assets and manifest; it does not start a
-server. The tunnel preview uses prebuilt assets: the preview action in
+server. Its npm `prebuild` hook checks installed direct dependencies against
+the declarations with `npm ls --depth=0`, before Vite can change output files.
+This checks version satisfaction, not complete package integrity or security.
+The tunnel preview uses prebuilt assets: the preview action in
 `src/scitex_hub/_dev_preview/_actions.py` runs `npm run build` in the declared
 Django container. A source edit alone does not establish that those public
 assets have changed.

@@ -5,6 +5,7 @@
   "scripts": {
     "dev": "vite",
     "dev:app": "vite --config vite.config.devapp.ts",
+    "prebuild": "npm ls --depth=0",
     "build": "vite build",
     "preview": "vite preview",
     "test": "vitest",
