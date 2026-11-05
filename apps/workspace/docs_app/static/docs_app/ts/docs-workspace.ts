@@ -5,6 +5,11 @@
  * Reads initial state from data-active-doc attribute on .docs-workspace.
  */
 
+import createDOMPurify from "dompurify";
+
+// Printing has its own sanitizer instance, independent of other app hooks.
+const printSanitizer = createDOMPurify(window);
+
 // ── Types & Constants ────────────────────────────────────────
 
 interface SectionInfo {
@@ -244,7 +249,7 @@ function openPrintWindow(html: string): void {
   const s = doc.createElement("style");
   s.textContent = PRINT_CSS;
   doc.head.appendChild(s);
-  doc.body.innerHTML = html;
+  doc.body.innerHTML = printSanitizer.sanitize(html, { USE_PROFILES: { html: true } });
   win.print();
 }
 
@@ -260,13 +265,13 @@ function injectSectionExportButtons(
     '<button class="docs-export-btn docs-dropdown-toggle">' +
     '<i class="fas fa-download"></i> Download</button>' +
     '<div class="docs-dropdown-menu">' +
-    '<a href="/apps/docs/export/' +
-    slug +
-    '/" class="docs-dropdown-item">' +
+    '<a class="docs-dropdown-item">' +
     '<i class="fas fa-file-alt"></i> .md</a>' +
     '<button class="docs-dropdown-item docs-section-pdf-btn">' +
     '<i class="fas fa-file-pdf"></i> .pdf</button>' +
     "</div></div>";
+  bar.querySelector<HTMLAnchorElement>("a.docs-dropdown-item")!.href =
+    "/apps/docs/export/" + encodeURIComponent(slug) + "/";
   const pdfBtn = bar.querySelector<HTMLButtonElement>(".docs-section-pdf-btn");
   if (pdfBtn) {
     pdfBtn.onclick = () => openPrintWindow(contentArea.innerHTML);
@@ -303,7 +308,7 @@ function loadDocPage(
   // Show loading
   contentArea.style.opacity = "0.5";
 
-  let url = "/apps/docs/content/" + slug + "/";
+  let url = "/apps/docs/content/" + encodeURIComponent(slug) + "/";
   if (sphinxPage) url += "?page=" + encodeURIComponent(sphinxPage);
 
   fetch(url, {
@@ -370,10 +375,12 @@ function loadDocPage(
       }
     })
     .catch((err: Error) => {
-      contentArea.innerHTML =
-        '<div class="docs-error"><i class="fas fa-exclamation-triangle"></i> ' +
-        err.message +
-        "</div>";
+      const error = document.createElement("div");
+      error.className = "docs-error";
+      const icon = document.createElement("i");
+      icon.className = "fas fa-exclamation-triangle";
+      error.append(icon, document.createTextNode(" " + err.message));
+      contentArea.replaceChildren(error);
       contentArea.style.opacity = "1";
     });
 }
@@ -497,7 +504,7 @@ function downloadSelectedMd(): void {
 function downloadSelectedPdf(navItems: NodeListOf<HTMLAnchorElement>): void {
   const slugs = Array.from(selectedSlugs);
   const fetches = slugs.map((s) =>
-    fetch("/apps/docs/content/" + s + "/", {
+    fetch("/apps/docs/content/" + encodeURIComponent(s) + "/", {
       headers: { "X-Requested-With": "XMLHttpRequest" },
     }).then((r) => r.text()),
   );
@@ -537,7 +544,7 @@ function initDocsWorkspace(): void {
     allPdfBtn.onclick = () => {
       const slugs = Array.from(navItems).map((i) => i.dataset.docSlug ?? "");
       const fetches = slugs.map((s) =>
-        fetch("/apps/docs/content/" + s + "/", {
+        fetch("/apps/docs/content/" + encodeURIComponent(s) + "/", {
           headers: { "X-Requested-With": "XMLHttpRequest" },
         }).then((r) => r.text()),
       );
