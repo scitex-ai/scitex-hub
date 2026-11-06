@@ -14,16 +14,18 @@ at the same package-validity boundary as that installer.
 
 The gate requires clean Git repository roots. It snapshots exact commits into
 owned shared clones, preserving Git history for normal SCM versioning.
-A bounded throwaway container installs all declared editables and extras
-together with `uv pip install` into a normal system-site-packages virtual
-environment, then runs `uv pip check`. This uses the same resolver as the
-canonical development installer. This models the image plus editable overrides. The existing
-dependency-floor and import probe runs in a separate network-disabled
-container against those actual installed distributions. Serving package
-roots, secrets, user data, service sockets and scheduler mounts are not
-provided to either container. Git object stores are mounted read-only.
+A bounded throwaway container starts from the exact selected image. It
+installs all declared editables and extras together with the canonical
+`uv pip install --system` command, followed by `uv pip check --system`.
+This preserves the image's existing dependency graph unless the normal
+resolver needs to change it. No virtual environment, substituted package
+metadata or reduced extra set stands in for the future runtime.
+The existing dependency-floor and import probe runs against that same
+installed container after its network has been disconnected and verified.
+Serving package roots, secrets, user data, service sockets and scheduler
+mounts are not provided. Git object stores are mounted read-only.
 
-The environment lives on an owned Docker volume. Source snapshots and
+Installer caches live on an owned Docker volume. Source snapshots and
 labelled containers/volume are removed on completion or failure. Original
 source identities are rechecked after preparation and probing. An installer
 failure retains a private diagnostic log and refuses deployment. An

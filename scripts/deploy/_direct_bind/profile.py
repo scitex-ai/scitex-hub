@@ -1,4 +1,4 @@
-"""Payload run only in the owned prospective-profile container."""
+"""Run the canonical resolver only in the owned preparation container."""
 
 import json
 import os
@@ -8,34 +8,21 @@ from pathlib import Path
 
 
 def run(spec):
-    # The image supplies system dependencies; real editable installs shadow them
-    # in a normal venv. No distribution metadata or version is fabricated.
-    root = Path("/preflight")
     environment = dict(os.environ)
     environment.pop("UV_SYSTEM_PYTHON", None)
-    # setuptools-scm deliberately sanitizes GIT_* configuration variables.
-    # These are NEW owned snapshots, never original serving repositories.
-    # Align the clone roots with the build identity instead of trusting '*'.
+    environment["UV_CACHE_DIR"] = "/preflight/cache"
+    # SCM backends sanitize GIT_* configuration variables. Only these NEW
+    # owned clones are aligned with the build identity; serving roots stay RO.
+    # Target.close restores ownership after both installation and probing.
     for target in spec["sources"]:
         os.chown(target, os.getuid(), os.getgid())
         os.chown(Path(target) / ".git", os.getuid(), os.getgid())
-    python = root / "env/bin/python"
-    commands = [
-        [
-            "uv",
-            "venv",
-            "--seed",
-            "--system-site-packages",
-            "--python",
-            sys.executable,
-            str(root / "env"),
-        ],
+    subprocess.run(
         [
             "uv",
             "pip",
             "install",
-            "--python",
-            str(python),
+            "--system",
             "--link-mode=copy",
             *[
                 argument
@@ -43,18 +30,10 @@ def run(spec):
                 for argument in ("--editable", target + row["extras"])
             ],
         ],
-        ["uv", "pip", "check", "--python", str(python)],
-    ]
-    try:
-        for command in commands:
-            subprocess.run(command, env=environment, check=True)
-    finally:
-        # Build backends may write egg-info into these NEW owned copies.
-        # Do not follow links or change original Git objects/source directories.
-        for directory, names, files in os.walk("/preflight-sources", followlinks=False):
-            for name in names + files:
-                os.lchown(os.path.join(directory, name), spec["uid"], spec["gid"])
-            os.lchown(directory, spec["uid"], spec["gid"])
+        env=environment,
+        check=True,
+    )
+    subprocess.run(["uv", "pip", "check", "--system"], env=environment, check=True)
 
 
 if __name__ == "__main__":

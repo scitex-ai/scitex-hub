@@ -74,15 +74,16 @@ class DirectBindTarget(Target):
             mounts += ["--mount", "type=bind,src={0},dst={0},readonly".format(path)]
         mounts += ["--mount", "type=volume,src={0},dst=/preflight".format(self.volume)]
         driver = Path(__file__).with_name("profile.py").resolve()
-        install = [
+        create = [
             "docker",
-            "run",
-            "--rm",
-            "-i",
+            "create",
             "--name",
             self.install_name,
             "--label",
             "scitex.hub.preflight=" + self.token,
+            "--network",
+            "bridge",
+            "--no-healthcheck",
             "--cpus",
             "2",
             "--memory",
@@ -91,12 +92,36 @@ class DirectBindTarget(Target):
             "8g",
             *mounts,
             "--mount",
-            "type=bind,src={0},dst=/preflight-sources".format(directory),
-            "--mount",
             "type=bind,src={0},dst=/preflight-profile.py,readonly".format(driver),
             "--entrypoint",
             "python3",
             self.image,
+            "-I",
+            "-S",
+            "-B",
+            "-c",
+            "import time; time.sleep(1200)",
+        ]
+        subprocess.run(
+            create,
+            check=True,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            timeout=30,
+        )
+        subprocess.run(
+            ["docker", "start", self.install_name],
+            check=True,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            timeout=30,
+        )
+        install = [
+            "docker",
+            "exec",
+            "-i",
+            self.install_name,
+            "python3",
             "/preflight-profile.py",
         ]
         spec = {"sources": self.sources, "uid": os.getuid(), "gid": os.getgid()}
@@ -119,39 +144,33 @@ class DirectBindTarget(Target):
                 "private diagnostics: {0}; no deployment was changed".format(log_path)
             )
         snapshot.verify(self.sources)
-        readonly = []
-        for target, row in self.sources.items():
-            readonly += [
-                "--mount",
-                "type=bind,src={0},dst={1},readonly".format(row["snapshot"], target),
-            ]
-        readonly += [
-            "--mount",
-            "type=volume,src={0},dst=/preflight,readonly".format(self.volume),
-        ]
+        # Probe the exact installed image-plus-editables graph, without a
+        # second resolver or a fabricated metadata overlay. Disconnect ONLY
+        # this owned container; no serving network or source is modified.
+        subprocess.run(
+            ["docker", "network", "disconnect", "bridge", self.install_name],
+            check=True,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            timeout=30,
+        )
+        document = json.loads(
+            subprocess.check_output(
+                ["docker", "inspect", self.install_name],
+                stderr=subprocess.PIPE,
+                timeout=30,
+            )
+        )[0]
+        if document["NetworkSettings"]["Networks"]:
+            raise TargetUnreachable("owned prospective probe still has a network")
         self.argv = [
             "docker",
-            "run",
-            "--rm",
+            "exec",
             "-i",
-            "--network",
-            "none",
-            "--name",
-            self.probe_name,
-            "--label",
-            "scitex.hub.preflight=" + self.token,
-            "--cpus",
-            "2",
-            "--memory",
-            "8g",
-            "--memory-swap",
-            "8g",
             "--env",
             "PYTHONDONTWRITEBYTECODE=1",
-            *readonly,
-            "--entrypoint",
-            "/preflight/env/bin/python",
-            self.image,
+            self.install_name,
+            "python3",
             "-",
         ]
 
