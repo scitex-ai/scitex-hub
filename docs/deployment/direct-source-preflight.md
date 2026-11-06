@@ -3,6 +3,9 @@
 This host-tool follow-up to Hub 0.22.0a6 adds support for the canonical
 development Compose setup. The published 0.22.0a6 tag predates this support.
 Production image-only and staging clone-overlay policies remain unchanged.
+The follow-up also pins the available `electron-to-chromium` 1.5.477 build
+dependency: npm advertised 1.5.478 while its tarball returned HTTP 404.
+Already baked production bundles do not fetch this dependency at startup.
 
 Run `scripts/deploy/compose.sh dev up ...` on the Docker host. The shared
 pre-up gate resolves the actual Compose configuration, recognizes the

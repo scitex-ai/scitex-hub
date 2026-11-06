@@ -43,5 +43,8 @@
     "typo-js": "^1.2.4",
     "zustand": "^4.5.7",
     "dompurify": "3.4.17"
+  },
+  "overrides": {
+    "electron-to-chromium": "1.5.477"
   }
 }
