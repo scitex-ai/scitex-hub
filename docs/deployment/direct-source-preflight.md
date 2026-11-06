@@ -15,8 +15,14 @@ Django, worker and beat. It reads package roots and extras from
 umbrella with `[all]`. Missing non-package sibling directories are skipped
 at the same package-validity boundary as that installer.
 
-The gate requires clean Git repository roots. It snapshots exact commits into
-owned shared clones, preserving Git history for normal SCM versioning.
+The gate requires Git repository roots with no uncommitted source edits.
+Normal npm startup may modify or create `package-lock.json` beside a tracked
+`package.json`. These generated JSON locks are the only exception: their exact
+bytes, Git status and hashes enter the owned snapshot and are rechecked after
+installation and probing. Staged changes, other untracked files, symlinks and
+locks over 64 MiB are refused. Source files are never reset or discarded.
+The gate snapshots exact commits and those generated locks into owned shared
+clones, preserving normal Git history and dirty state for SCM versioning.
 A bounded throwaway container starts from the exact selected image. It
 installs all declared editables and extras together with the canonical
 `uv pip install --system` command, followed by `uv pip check --system`.

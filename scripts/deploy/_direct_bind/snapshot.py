@@ -1,7 +1,11 @@
 """Snapshot clean Git sources; serving checkouts are never built or edited."""
 
+import hashlib
+import os
 import subprocess
 from pathlib import Path
+
+from . import locks
 
 
 def git(source, *args):
@@ -16,11 +20,10 @@ def identity(source):
         != Path(source).resolve()
     ):
         raise ValueError("direct-bound packages must be repository roots")
-    if git(source, "status", "--porcelain", "--untracked-files=normal"):
-        raise ValueError(
-            "commit development source changes before a container recreation"
-        )
-    return git(source, "rev-parse", "HEAD")
+    return {
+        "head": git(source, "rev-parse", "HEAD"),
+        "locks": locks.fingerprints(source),
+    }
 
 
 def object_directories(objects):
@@ -46,7 +49,8 @@ def object_directories(objects):
 def prepare(roots, directory):
     snapshots, objects = {}, set()
     for target, row in roots.items():
-        head = identity(row["source"])
+        state = identity(row["source"])
+        head = state["head"]
         destination = directory / ("hub" if target == "/app" else target.lstrip("/"))
         subprocess.run(
             [
@@ -66,8 +70,29 @@ def prepare(roots, directory):
         git(destination, "checkout", "--detach", head)
         if git(destination, "rev-parse", "HEAD") != head:
             raise ValueError("snapshot checkout identity differs")
+        for relative, fingerprint in state["locks"].items():
+            output = destination / relative
+            output.parent.mkdir(parents=True, exist_ok=True)
+            payload = locks.read_payload(Path(row["source"]) / relative)
+            if hashlib.sha256(payload).hexdigest() != fingerprint["sha256"]:
+                raise ValueError("generated npm lock changed while being snapshotted")
+            parent = output.parent.resolve()
+            if (
+                parent != destination.resolve()
+                and destination.resolve() not in parent.parents
+            ):
+                raise ValueError("generated lock snapshot escapes its owned repository")
+            if output.is_symlink():
+                output.unlink()
+            descriptor = os.open(
+                output, os.O_WRONLY | os.O_CREAT | os.O_TRUNC | os.O_NOFOLLOW, 0o600
+            )
+            with os.fdopen(descriptor, "wb") as stream:
+                stream.write(payload)
         objects.update(object_directories(destination / ".git/objects"))
-        snapshots[target] = dict(row, head=head, snapshot=str(destination))
+        snapshots[target] = dict(
+            row, head=head, dirty_locks=state["locks"], snapshot=str(destination)
+        )
     return snapshots, sorted(
         str(path)
         for path in objects
@@ -77,5 +102,8 @@ def prepare(roots, directory):
 
 def verify(snapshots):
     for row in snapshots.values():
-        if identity(row["source"]) != row["head"]:
+        if identity(row["source"]) != {
+            "head": row["head"],
+            "locks": row["dirty_locks"],
+        }:
             raise ValueError("development source changed during qualification")
