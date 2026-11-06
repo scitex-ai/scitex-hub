@@ -14,16 +14,20 @@ MODE_KEY = "SCITEX_APPS_PYTHON_MODE"
 
 
 class DeploymentContext(object):
-    def __init__(self, mode, image, apps_volume, roles):
+    def __init__(self, mode, image, apps_volume, roles, direct_sources=None):
         self.mode = mode
         self.image = image
         self.apps_volume = apps_volume
         self.roles = roles
+        self.direct_sources = dict(direct_sources or {})
 
     def summary(self):
         """Only non-secret policy/identity fields may leave this module."""
-        return {"python_mode": self.mode, "image": self.image,
-                "python_roles": list(self.roles), "apps_volume": self.apps_volume}
+        result = {"python_mode": self.mode, "image": self.image,
+                  "python_roles": list(self.roles), "apps_volume": self.apps_volume}
+        if self.direct_sources:
+            result["direct_source_count"] = len(self.direct_sources)
+        return result
 
 
 def _refuse(reason):
@@ -53,7 +57,7 @@ def _overlay_source(document, service):
     _refuse("editable apps mount is neither a resolved volume nor an absolute bind")
 
 
-def parse_context(document):
+def parse_context(document, allow_direct=True):
     """Validate actual resolved role declarations, never the invoking shell mode."""
     if not isinstance(document, dict) or not isinstance(document.get("services"), dict):
         _refuse("services are missing")
@@ -66,7 +70,12 @@ def parse_context(document):
         if not isinstance(environment, dict):
             _refuse("a Python role has no resolved environment")
         mode = environment.get(MODE_KEY)
-        if mode not in ("image-only", "editable"):
+        from _direct_bind.context import is_direct_service
+        if is_direct_service(document, service) and mode in (None, "", "editable"):
+            if not allow_direct:
+                _refuse("run the direct-bound development preflight on its Docker host")
+            mode = "direct-bind"
+        if mode not in ("image-only", "editable", "direct-bind"):
             _refuse("every Python role must explicitly declare image-only or editable")
         image = service.get("image")
         if not isinstance(image, str) or not re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9._:/@-]{0,1023}", image):
@@ -113,12 +122,19 @@ def parse_context(document):
         _refuse("Django, worker and beat must agree on Python mode and image")
     mode, image = modes.pop(), images.pop()
     apps_volume = None
+    direct_sources = None
+    if mode == "direct-bind":
+        from _direct_bind.context import source_roots
+        try:
+            direct_sources = source_roots(document, roles)
+        except (OSError, ValueError) as exc:
+            _refuse(str(exc))
     if mode == "editable":
         sources = set(_overlay_source(document, row["service"]) for row in roles.values())
         if len(sources) != 1:
             _refuse("editable Python roles disagree on the apps mount")
         apps_volume = sources.pop()
-    return DeploymentContext(mode, image, apps_volume, PYTHON_ROLES)
+    return DeploymentContext(mode, image, apps_volume, PYTHON_ROLES, direct_sources)
 
 
 def resolve_context(environment, repo_root, via_ssh=None, timeout=300):
@@ -152,13 +168,17 @@ exec $COMPOSE_CMD config --format json
         document = json.loads(completed.stdout.decode("utf-8"))
     except (UnicodeDecodeError, ValueError):
         raise TargetUnreachable("sanctioned Compose configuration returned invalid JSON; output withheld because it can contain secrets")
-    return parse_context(document)
+    return parse_context(document, allow_direct=not via_ssh)
 
 
 def choose_target(context, explicit_target=None, explicit_volume=None):
     """Preserve a named target; automatic checks describe the Compose runtime."""
     if explicit_volume is not None and not explicit_volume:
         _refuse("an explicit apps volume cannot be empty")
+    if context.mode == "direct-bind":
+        if explicit_target is not None or explicit_volume is not None:
+            _refuse("direct-bound development requires its complete prospective profile, not a substitute target or overlay")
+        return "direct-bind", None
     if context.mode == "image-only":
         if explicit_volume is not None:
             _refuse("image-only mode forbids a Python clone overlay")
