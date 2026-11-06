@@ -15,8 +15,9 @@ at the same package-validity boundary as that installer.
 The gate requires clean Git repository roots. It snapshots exact commits into
 owned shared clones, preserving Git history for normal SCM versioning.
 A bounded throwaway container installs all declared editables and extras
-together into a normal system-site-packages virtual environment, then runs
-`pip check`. This models the image plus editable overrides. The existing
+together with `uv pip install` into a normal system-site-packages virtual
+environment, then runs `uv pip check`. This uses the same resolver as the
+canonical development installer. This models the image plus editable overrides. The existing
 dependency-floor and import probe runs in a separate network-disabled
 container against those actual installed distributions. Serving package
 roots, secrets, user data, service sockets and scheduler mounts are not

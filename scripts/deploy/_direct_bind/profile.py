@@ -31,17 +31,19 @@ def run(spec):
             str(root / "env"),
         ],
         [
-            str(python),
-            "-m",
+            "uv",
             "pip",
             "install",
+            "--python",
+            str(python),
+            "--link-mode=copy",
             *[
                 argument
                 for target, row in spec["sources"].items()
                 for argument in ("--editable", target + row["extras"])
             ],
         ],
-        [str(python), "-m", "pip", "check"],
+        ["uv", "pip", "check", "--python", str(python)],
     ]
     try:
         for command in commands:
