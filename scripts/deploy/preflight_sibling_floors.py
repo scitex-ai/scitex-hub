@@ -319,15 +319,24 @@ def main(argv=None):
     probes = _build_probes(imports, contract)
     sibling_floors = {n: f for n, f in floors.items() if _is_sibling_distribution(n, contract)}
 
+    target = None
     try:
-        target = targets.resolve(target_spec, apps_volume, args.apps_manifest, args.via_ssh)
+        if deployment_context is not None and deployment_context.mode == "direct-bind":
+            from _direct_bind.target import prepare
+            target = prepare(deployment_context, args.timeout)
+        else:
+            target = targets.resolve(target_spec, apps_volume, args.apps_manifest, args.via_ssh)
         spec = {
             "distributions": sorted(sibling_floors),
             "overlay": target.overlay,
             "extra_syspath": target.extra_syspath,
             "import_probes": [{"module": p["module"], "attrs": p["attrs"]} for p in probes],
         }
-        report = targets.interrogate(target, open(PROBE, encoding="utf-8").read(), spec, args.timeout)
+        try:
+            report = targets.interrogate(target, open(PROBE, encoding="utf-8").read(), spec, args.timeout)
+            target.verify_current()
+        finally:
+            target.close()
     except targets.TargetUnreachable as exc:
         out.write("\n{0}{1}❌ DEPLOY REFUSED -- the target could not be interrogated.{2}\n".format(RED, BOLD, NC))
         out.write("   {0}\n".format(exc))

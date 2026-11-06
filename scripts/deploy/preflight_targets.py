@@ -77,6 +77,12 @@ class Target(object):
     def command(self):
         return " ".join(shlex.quote(part) for part in self.argv)
 
+    def verify_current(self):
+        """Ordinary image targets have no mutable source snapshot to verify."""
+
+    def close(self):
+        """Ordinary targets have no retained preparation resources."""
+
 
 def _docker_available():
     for directory in os.environ.get("PATH", "").split(os.pathsep):
