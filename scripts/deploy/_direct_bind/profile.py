@@ -11,15 +11,14 @@ def run(spec):
     # The image supplies system dependencies; real editable installs shadow them
     # in a normal venv. No distribution metadata or version is fabricated.
     root = Path("/preflight")
-    config = root / "gitconfig"
     environment = dict(os.environ)
     environment.pop("UV_SYSTEM_PYTHON", None)
-    environment["GIT_CONFIG_GLOBAL"] = str(config)
+    # setuptools-scm deliberately sanitizes GIT_* configuration variables.
+    # These are NEW owned snapshots, never original serving repositories.
+    # Align the clone roots with the build identity instead of trusting '*'.
     for target in spec["sources"]:
-        subprocess.run(
-            ["git", "config", "--file", str(config), "--add", "safe.directory", target],
-            check=True,
-        )
+        os.chown(target, os.getuid(), os.getgid())
+        os.chown(Path(target) / ".git", os.getuid(), os.getgid())
     python = root / "env/bin/python"
     commands = [
         [
