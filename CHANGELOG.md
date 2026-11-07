@@ -13,6 +13,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Security
 
+- Use the shared API-key scope policy in Scholar authentication, accepting
+  explicit wildcard keys while still requiring every requested permission.
+
 - Reject Scholar API keys owned by disabled accounts and evaluate expiring keys
   with Django's timezone-aware clock instead of an invalid model-field call.
 
