@@ -92,14 +92,14 @@ def _write_paper_bib(
     """Write one .bib file under the project's bib_files dir. Returns filename."""
     import uuid
 
-    safe_source = re.sub(r"[^\w-]", "_", str(source))[:24]
-    safe_key = re.sub(r"[^\w-]", "_", str(citation_key))[:96]
+    safe_source = re.sub(r"[^\w-]", "_", str(source)[:24])
+    safe_key = re.sub(r"[^\w-]", "_", str(citation_key)[:96])
     timestamp = datetime.now().strftime("%Y%m%d-%H%M%S")
     unique = uuid.uuid4().hex[:6]
-    filename = f"search_{safe_source}_{safe_key}_{timestamp}_{unique}.bib"
-
-    if not re.fullmatch(r"[\w-]+\.bib", filename):
-        raise ValueError("Invalid bibliography filename")
+    # Retain only a final filename component, independently of metadata cleanup.
+    filename = os.path.basename(
+        f"search_{safe_source}_{safe_key}_{timestamp}_{unique}.bib"
+    )
 
     # Pin every directory by descriptor. Path.resolve() followed by write_text()
     # leaves a check/write race if a project directory is swapped for a symlink.
