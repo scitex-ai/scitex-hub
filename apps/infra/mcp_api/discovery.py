@@ -91,34 +91,66 @@ def _is_public(name: str) -> bool:
     return False
 
 
-def discover_tools() -> dict[str, ToolInfo]:
-    """Introspect the FastMCP server and return eligible tools.
+def _bind_tool(server, name: str) -> Callable:
+    """Invoke the public MCP protocol, including mounted tools and middleware."""
 
-    Returns
-    -------
-    dict[str, ToolInfo]
-        Mapping of tool name to ToolInfo for all REST-eligible tools.
+    async def invoke(**arguments):
+        from fastmcp import Client
 
-    Raises
-    ------
-    RuntimeError
-        If the MCP server is not available.  No fallback -- the error
-        must be visible.
-    """
+        async with Client(server) as client:
+            result = await client.call_tool(name, arguments)
+        if result.data is not None or not result.content:
+            return result.data
+        if len(result.content) == 1 and result.content[0].type == "text":
+            return result.content[0].text
+        return [block.model_dump(mode="json") for block in result.content]
+
+    return invoke
+
+
+def _resolve_server(mcp_server=None):
+    if mcp_server is not None:
+        return mcp_server
     try:
-        from scitex._mcp_tools._compat import get_tools_sync
         from scitex.mcp_server import FASTMCP_AVAILABLE
         from scitex.mcp_server import mcp as mcp_server
     except ImportError as exc:
         raise RuntimeError(
-            "scitex MCP server is not importable.  "
-            "Ensure scitex is installed with MCP extras."
+            "scitex MCP server is not importable. Install the MCP extras."
         ) from exc
-
     if not FASTMCP_AVAILABLE or mcp_server is None:
         raise RuntimeError("FastMCP is not available or MCP server is not initialized.")
+    return mcp_server
 
-    all_tools = get_tools_sync(mcp_server)
+
+def get_tool_metadata(mcp_server=None) -> dict[str, dict[str, Any]]:
+    """List protocol metadata without executing tools or relying on private attributes.
+
+    Wire-format field names keep FastMCP 2/3 and MCP 2 SDK objects consistent.
+    Missing providers raise an error rather than presenting an empty catalog.
+    """
+    from asgiref.sync import async_to_sync
+
+    try:
+        from fastmcp import Client
+    except ImportError as exc:
+        raise RuntimeError("FastMCP is not available; install the MCP extras.") from exc
+    server = _resolve_server(mcp_server)
+
+    async def list_tools():
+        async with Client(server) as client:
+            return await client.list_tools()
+
+    return {
+        tool.name: tool.model_dump(mode="json", by_alias=True)
+        for tool in async_to_sync(list_tools)()
+    }
+
+
+def discover_tools(mcp_server=None) -> dict[str, ToolInfo]:
+    """Discover REST-eligible tools; unavailable providers raise RuntimeError."""
+    mcp_server = _resolve_server(mcp_server)
+    all_tools = get_tool_metadata(mcp_server)
     result: dict[str, ToolInfo] = {}
 
     for tool_name in sorted(all_tools.keys()):
@@ -132,10 +164,10 @@ def discover_tools() -> dict[str, ToolInfo]:
 
         result[tool_name] = ToolInfo(
             name=tool_name,
-            description=getattr(tool_obj, "description", "") or "",
-            parameters=getattr(tool_obj, "parameters", {}) or {},
-            output_schema=getattr(tool_obj, "output_schema", None),
-            fn=tool_obj.fn,
+            description=tool_obj.get("description") or "",
+            parameters=tool_obj["inputSchema"],
+            output_schema=tool_obj.get("outputSchema"),
+            fn=_bind_tool(mcp_server, tool_name),
             namespace=namespace,
             url_path=url_path,
             is_public=_is_public(tool_name),

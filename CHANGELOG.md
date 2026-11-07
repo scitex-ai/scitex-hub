@@ -11,6 +11,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- Discover mounted MCP tools through protocol metadata and execute them through
+  FastMCP's public client. REST calls retain schema validation, middleware and
+  existing access/exclusion policies without requiring a private function handle.
+- Build the documentation tool catalog from the same protocol schemas. Missing
+  providers report errors rather than appearing as an empty inventory. Require
+  FastMCP 2.14.5 or newer for the validated client/result interface.
+
 ## [0.22.0a6] - 2026-11-06
 
 ### Changed

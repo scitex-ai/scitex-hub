@@ -532,7 +532,7 @@ all = [
     "Pillow>=12.1.1",
     "pypdf>=4.0",
     # --- MCP server surface ---
-    "fastmcp>=2.0.0",
+    "fastmcp>=2.14.5",
     "pyyaml>=6.0",
     # --- Test runtime (kept here, not [dev], because some tests run
     # against the deployed app inside the container) ---
@@ -595,7 +595,7 @@ dev = [
     # to be self-sufficient (no `pytest.importorskip` dance).
     "channels>=4.3",
     "celery[redis]>=5.4,<5.6",
-    "fastmcp>=2.0.0",
+    "fastmcp>=2.14.5",
     "scitex>=2.29.3",
     # django-celery-beat is in INSTALLED_APPS (settings_shared.py), so
     # Django cannot even start without it — every Django test fails at
