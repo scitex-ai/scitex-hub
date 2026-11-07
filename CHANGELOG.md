@@ -11,6 +11,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Security
+
+- Confine Scholar bibliography saves to the selected project using directory
+  descriptors and no-follow file opens. Sanitize citation-derived filenames and
+  reject directory symlinks without writing to their targets.
+
 ## [0.22.0a7] - 2026-11-07
 
 ### Fixed

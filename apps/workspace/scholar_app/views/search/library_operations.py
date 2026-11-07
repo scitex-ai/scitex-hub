@@ -4,6 +4,8 @@
 from __future__ import annotations
 
 import json
+import os
+from contextlib import ExitStack
 from datetime import datetime
 from pathlib import Path
 from typing import Any, Mapping
@@ -78,9 +80,7 @@ def build_bibtex_for_paper(paper: Mapping[str, Any]) -> tuple[str, str]:
     )
 
     if abstract:
-        bibtex_entry = (
-            bibtex_entry.rstrip("}") + f"  abstract = {{{abstract}}},\n}}"
-        )
+        bibtex_entry = bibtex_entry.rstrip("}") + f"  abstract = {{{abstract}}},\n}}"
 
     return citation_key, bibtex_entry
 
@@ -91,16 +91,39 @@ def _write_paper_bib(
     """Write one .bib file under the project's bib_files dir. Returns filename."""
     import uuid
 
-    bib_dir = project_path / "scitex" / "scholar" / "bib_files"
-    bib_dir.mkdir(parents=True, exist_ok=True)
-
     safe_source = "".join(
         c if (c.isalnum() or c in ("-", "_")) else "_" for c in str(source)
     )[:24]
+    safe_key = "".join(
+        c if (c.isalnum() or c in ("-", "_")) else "_" for c in str(citation_key)
+    )[:96]
     timestamp = datetime.now().strftime("%Y%m%d-%H%M%S")
     unique = uuid.uuid4().hex[:6]
-    filename = f"search_{safe_source}_{citation_key}_{timestamp}_{unique}.bib"
-    (bib_dir / filename).write_text(bibtex_entry, encoding="utf-8")
+    filename = f"search_{safe_source}_{safe_key}_{timestamp}_{unique}.bib"
+
+    # Pin every directory by descriptor. Path.resolve() followed by write_text()
+    # leaves a check/write race if a project directory is swapped for a symlink.
+    # Opening each component without following symlinks keeps the write beneath
+    # the selected project even when its visible directory names change.
+    flags = os.O_RDONLY | os.O_DIRECTORY | os.O_NOFOLLOW
+    with ExitStack() as stack:
+        parent_fd = os.open(Path(project_path).resolve(strict=True), flags)
+        stack.callback(os.close, parent_fd)
+        for component in ("scitex", "scholar", "bib_files"):
+            try:
+                os.mkdir(component, dir_fd=parent_fd)
+            except FileExistsError:
+                pass
+            parent_fd = os.open(component, flags, dir_fd=parent_fd)
+            stack.callback(os.close, parent_fd)
+        fd = os.open(
+            filename,
+            os.O_WRONLY | os.O_CREAT | os.O_EXCL | os.O_NOFOLLOW,
+            0o600,
+            dir_fd=parent_fd,
+        )
+        with os.fdopen(fd, "w", encoding="utf-8") as destination:
+            destination.write(bibtex_entry)
     return filename
 
 
@@ -142,9 +165,7 @@ def _save_papers_to_project_path(
             continue
 
         source = paper.get("source", "") or "unknown"
-        filename = _write_paper_bib(
-            project_path, source, citation_key, bibtex_entry
-        )
+        filename = _write_paper_bib(project_path, source, citation_key, bibtex_entry)
         logger.info(f"Saved paper to: {project_path / filename}")
         saved += 1
         files.append(
@@ -285,9 +306,7 @@ def _index_saved_papers_in_db(user, project_path, items) -> int:
             continue
         try:
             doi = (paper.get("doi") or "").strip() or None
-            arxiv = (
-                paper.get("arxiv") or paper.get("arxiv_id") or ""
-            ).strip() or None
+            arxiv = (paper.get("arxiv") or paper.get("arxiv_id") or "").strip() or None
             pmid = (paper.get("pmid") or "").strip() or None
             year_raw = str(paper.get("year", "")).strip()[:4]
             pub_date = None
@@ -396,9 +415,7 @@ def save_paper(request):
         ensure_bibliography_structure(project_path)
 
         source = paper["source"] or "unknown"
-        filename = _write_paper_bib(
-            project_path, source, citation_key, bibtex_entry
-        )
+        filename = _write_paper_bib(project_path, source, citation_key, bibtex_entry)
 
         logger.info(f"Saved paper to: {project_path / filename}")
 
