@@ -9,6 +9,7 @@ import secrets
 
 from django.contrib.auth.models import User
 from django.db import models
+from django.utils import timezone
 
 
 class APIKey(models.Model):
@@ -105,10 +106,10 @@ class APIKey(models.Model):
         return self.key_hash == self.hash_key(key)
 
     def is_valid(self):
-        """Check if key is active and not expired."""
-        if not self.is_active:
+        """Check account status, key status and expiration."""
+        if not self.is_active or not self.user.is_active:
             return False
-        if self.expires_at and self.expires_at < models.DateTimeField().now():
+        if self.expires_at and self.expires_at <= timezone.now():
             return False
         return True
 
