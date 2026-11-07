@@ -448,7 +448,7 @@ class SettingsAndChatTilesTest(TestCase):
             order.index("tools"),
             order.index("settings"),
         )
-        # Assert — Chat is Work; Settings leads System; Tools is the final group.
+        # Assert — Chat ends Work; Settings leads System; Tools is the final group.
         assert order.index("writer") < chat < settings_ < order.index("docs") < tools
 
     def test_stats_keeps_its_slot_between_scholar_and_figrecipe(self):

@@ -65,11 +65,23 @@ def _visitor_role_violations(script: str) -> list[str]:
     return []
 
 
+def _live_lines(script: str) -> list[str]:
+    """Non-comment lines: retirement notices may name the old commands."""
+    return [
+        line
+        for line in script.splitlines()
+        if line.strip() and not line.lstrip().startswith("#")
+    ]
+
+
 @pytest.mark.parametrize("entrypoint", ENTRYPOINTS, ids=lambda path: path.parent.name)
 def test_every_dev_and_prod_entrypoint_keeps_visitor_runtime_retired(entrypoint):
     script = entrypoint.read_text(encoding="utf-8")
     assert "service_role.src" in script
     assert _visitor_role_violations(script) == []
+    live = "\n".join(_live_lines(script))
+    assert "create_visitor_pool" not in live
+    assert "reconcile_visitor_slots" not in live
 
 
 def test_source_checker_rejects_the_old_unconditional_dev_block():

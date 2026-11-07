@@ -17,6 +17,9 @@ class TestRegistryManifestLoading:
         # get_all_modules() returns one ModuleConfig per builtin manifest path,
         # so the count is derived from the registry's manifest list rather than
         # a hardcoded number that drifts whenever an app is added/removed.
+        import json
+        from pathlib import Path
+
         from apps.infra.workspace_app.registry import (
             _BUILTIN_MANIFEST_PATHS,
             _BUILTIN_MODULES,
