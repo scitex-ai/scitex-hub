@@ -9,8 +9,10 @@ Provides authentication via API keys for programmatic access.
 """
 
 from functools import wraps
+
 from django.http import JsonResponse
 from django.utils import timezone
+
 from apps.infra.accounts_app.models import APIKey
 
 
@@ -98,7 +100,7 @@ def require_api_key(scopes=None):
             # Check scopes if required
             if scopes:
                 for scope in scopes:
-                    if scope not in api_key.scopes:
+                    if not api_key.has_scope(scope):
                         return JsonResponse(
                             {
                                 "success": False,

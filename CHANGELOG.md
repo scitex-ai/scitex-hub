@@ -20,6 +20,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Security
 
+- Use the shared API-key scope policy in Scholar authentication, accepting
+  explicit wildcard keys while still requiring every requested permission.
+
+- Confine Scholar bibliography saves to the selected project using directory
+  descriptors and no-follow file opens. Sanitize citation-derived filenames and
+  reject directory symlinks before bibliography/Writer-link initialization can
+  write to their targets. Bound UTF-8 filename bytes so long Unicode metadata
+  remains within filesystem limits.
 - Reject Scholar API keys owned by disabled accounts and evaluate expiring keys
   with Django's timezone-aware clock instead of an invalid model-field call.
 
