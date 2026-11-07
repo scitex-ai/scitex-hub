@@ -119,4 +119,22 @@ logging the app's error text or runtime stderr.
 | `cloud_app_set_prefs` | Set app preferences |
 | `cloud_app_check_deps` | Check dependencies |
 
+## Mounted Scholar Library
+
+Hub's Scholar URL wrapper authenticates each callback, then binds
+`request.scholar_library_root` using the shared `user_library_path(user)`
+resolver in `apps/workspace/scholar_app/services/user_library_service.py`.
+The resolver uses the user's Unix home when available, otherwise Hub's
+`USER_DATA_ROOT` user tree, with the existing configured library fallback.
+Unsafe owner path components are refused before resolution. Resolving a path
+does not create a library. The leaf owns metadata formats,
+listing, imports and exports.
+
+When investigating an empty Library, compare the bound persistent directory
+with the selected user's primary `MASTER/*/metadata.json` files. Legacy Django
+`UserLibrary` rows alone do not establish what the leaf displays. Do not seed
+the container service-account home as a substitute for the user's library.
+The real leaf read/import and anonymous-access controls are in
+`tests/apps/scholar_app/test_leaf_user_library_root.py`.
+
 # EOF

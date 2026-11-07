@@ -21,14 +21,7 @@ from typing import Dict, List, Optional
 
 from django.conf import settings
 from django.contrib.auth.models import User
-
-logger = logging.getLogger(__name__)
-
-try:  # Package PathManager: the offered seam for the canonical layout.
-    from scitex_scholar.config.core._PathManager import PathManager
-except ImportError:  # pragma: no cover - old leaf; manual same-layout fallback
-    PathManager = None
-
+from django.core.exceptions import PermissionDenied
 from scitex_scholar.storage._master_store import (
     add_paper as _leaf_add_paper,
 )
@@ -38,9 +31,34 @@ from scitex_scholar.storage._master_store import (
 from scitex_scholar.storage._master_store import (
     list_papers as _leaf_list_papers,
 )
-from scitex_scholar.storage._master_store import (
-    paper_id_for as _paper_id,
-)
+
+logger = logging.getLogger(__name__)
+
+try:  # Package PathManager: the offered seam for the canonical layout.
+    from scitex_scholar.config.core._PathManager import PathManager
+except ImportError:  # pragma: no cover - old leaf; manual same-layout fallback
+    PathManager = None
+
+
+def user_library_path(user: User) -> Path:
+    """Resolve Hub's canonical per-user library without creating directories."""
+    username = user.username
+    if (
+        not isinstance(username, str)
+        or username in ("", ".", "..")
+        or any(character in username for character in ("/", "\\", "\x00"))
+    ):
+        raise PermissionDenied("Invalid library owner identifier")
+    try:
+        home = Path(pwd.getpwnam(username).pw_dir)
+        return home / ".scitex" / "scholar" / "library"
+    except KeyError:
+        pass
+    if settings.USER_DATA_ROOT:
+        root = Path(settings.USER_DATA_ROOT)
+        users_root = root if root.name == "users" else root / "users"
+        return users_root / username / ".scitex" / "scholar" / "library"
+    return Path(settings.SCITEX_SCHOLAR_USER_LIBRARY_ROOT)
 
 
 class UserLibraryService:
@@ -67,31 +85,8 @@ class UserLibraryService:
         self._ensure_structure()
 
     def _get_user_scholar_dir(self) -> Path:
-        """
-        Get the user's ``~/.scitex/scholar`` dir.
-
-        Every hub user is a unix user: pwd-resolve the home. Fresh signups
-        without a unix account yet fall back to the managed
-        ``{USER_DATA_ROOT}/users/<name>/.scitex/scholar`` tree, else the
-        package default setting.
-        """
-        try:
-            home = Path(pwd.getpwnam(self.user.username).pw_dir)
-            return home / ".scitex" / "scholar"
-        except KeyError:
-            pass
-        if settings.USER_DATA_ROOT:
-            # USER_DATA_ROOT may already point at the users tree itself
-            # (e.g. /app/data/users); never double the "users" segment.
-            root = settings.USER_DATA_ROOT
-            users_root = root if root.name == "users" else root / "users"
-            return (
-                users_root
-                / self.user.username
-                / ".scitex"
-                / "scholar"
-            )
-        return settings.SCITEX_SCHOLAR_USER_LIBRARY_ROOT.parent
+        """Resolve the user's canonical Scholar directory without writing."""
+        return user_library_path(self.user).parent
 
     def _get_user_library_path(self) -> Path:
         """Legacy accessor: the library root (kept for callers)."""
@@ -130,9 +125,7 @@ class UserLibraryService:
         self, identifier: str, id_type: str, file_type: str = "pdf"
     ) -> Optional[Path]:
         """Absolute path to paper file in user library (leaf lookup)."""
-        return _leaf_get_paper_path(
-            self.library_path, identifier, id_type, file_type
-        )
+        return _leaf_get_paper_path(self.library_path, identifier, id_type, file_type)
 
     def ensure_project_link(self, project_path: Path) -> Optional[Path]:
         """
@@ -155,10 +148,16 @@ class UserLibraryService:
             project_root = project_path.resolve()
             placeholder = project_root / ".scitex" / "scholar" / "library"
             if placeholder.is_dir() and not placeholder.is_symlink():
-                if any(parent.is_symlink() for parent in (
-                    project_root / ".scitex", placeholder.parent,
-                )):
-                    raise FileExistsError("Project library parents must not be symlinks")
+                if any(
+                    parent.is_symlink()
+                    for parent in (
+                        project_root / ".scitex",
+                        placeholder.parent,
+                    )
+                ):
+                    raise FileExistsError(
+                        "Project library parents must not be symlinks"
+                    )
                 try:
                     placeholder.rmdir()
                 except OSError as error:
@@ -171,9 +170,7 @@ class UserLibraryService:
                     raise
 
             try:
-                return link_project_tree(
-                    project_path, library_root=self.library_path
-                )
+                return link_project_tree(project_path, library_root=self.library_path)
             except TypeError:  # leaf predates library_root: same link, manual
                 target = self.library_path.resolve()
                 link_parent = project_path / ".scitex" / "scholar"
@@ -185,14 +182,14 @@ class UserLibraryService:
                     raise FileExistsError(
                         f"{link} is a symlink elsewhere; refusing to "
                         "replace without force"
-                    )
+                    ) from None
                 if link.is_dir() and not any(link.iterdir()):
                     # Scaffold placeholder with no content: safe to adopt.
                     link.rmdir()
                 elif link.exists():
                     raise FileExistsError(
                         f"{link} occupied; refusing to replace without force"
-                    )
+                    ) from None
                 link.symlink_to(self.library_path)
                 return link
         except ImportError:

@@ -14,16 +14,14 @@ mount for WRITER was removed as a P0 (card sec-working-dir-passthrough-family,
 SITE 3; see the note in config/urls.py). This module exists so the same mistake
 cannot be made by copying the obvious snippet.
 
-WHY NOT A WorkingDirScopedView LIKE WRITER'S
---------------------------------------------
-Writer's wrapper also injects a server-side ``working_dir`` because writer takes
-a caller-supplied path, which is what SITE 1 of that same card was about.
-Scholar has no such input: scitex-scholar reports that no ``request.GET`` value
-in its views reaches the filesystem, and the DB path comes from
-``settings.CROSSREF_DB_PATH`` only. So authentication is the entire wrapper.
-That claim is scholar's, about scholar's code; hub's gate does not depend on it
-being true — if it is ever wrong, the exposure is to *logged-in* users rather
-than the world, which is the difference this file guarantees.
+PER-USER LIBRARY BINDING
+------------------------
+The leaf owns bibliography formats and library operations. Hub supplies the
+persistent directory belonging to the authenticated user through the leaf's
+``request.scholar_library_root`` seam. This reuses UserLibraryService's path
+policy without constructing that service or creating directories on reads.
+Without the binding, the leaf falls back to a library under the container's
+service-account home, disconnected from Hub's persistent user data.
 
 WHY IT WRAPS THE URLCONF INSTEAD OF IMPORTING VIEWS ONE BY ONE
 --------------------------------------------------------------
@@ -42,6 +40,7 @@ correct response to a shape this module cannot honestly gate.
 from __future__ import annotations
 
 import logging
+from functools import wraps
 
 from django.contrib.auth.decorators import login_required
 from django.urls import URLPattern, URLResolver, include, path
@@ -104,8 +103,24 @@ class ImproperlyGatedURLConf(RuntimeError):
     """The upstream urlconf has a shape this module cannot authenticate."""
 
 
+def _user_library_scoped(view):
+    """Bind an authenticated request to Hub's persistent library directory."""
+
+    @wraps(view)
+    def scoped(request, *args, **kwargs):
+        from ..services.user_library_service import user_library_path
+
+        request.scholar_library_root = user_library_path(request.user)
+        return view(request, *args, **kwargs)
+
+    # Keep the leaf's public identity across both host adaptations. Route
+    # parity and introspection should see the original leaf view, rather than
+    # the path-binding implementation detail.
+    return wraps(view)(login_required(scoped))
+
+
 def _gated(patterns):
-    """Return `patterns` with login_required applied to every view.
+    """Authenticate and bind the per-user library for every leaf view.
 
     Rebuilds each URLPattern around the same route object, so routes, names and
     default args are preserved exactly and a new upstream route is picked up for
@@ -127,7 +142,7 @@ def _gated(patterns):
         gated.append(
             URLPattern(
                 entry.pattern,
-                login_required(entry.callback),
+                _user_library_scoped(entry.callback),
                 entry.default_args,
                 entry.name,
             )
