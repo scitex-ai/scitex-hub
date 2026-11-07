@@ -113,7 +113,10 @@ def _user_library_scoped(view):
         request.scholar_library_root = user_library_path(request.user)
         return view(request, *args, **kwargs)
 
-    return login_required(scoped)
+    # Keep the leaf's public identity across both host adaptations. Route
+    # parity and introspection should see the original leaf view, rather than
+    # the path-binding implementation detail.
+    return wraps(view)(login_required(scoped))
 
 
 def _gated(patterns):
