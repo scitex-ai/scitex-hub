@@ -18,6 +18,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   reject directory symlinks before bibliography/Writer-link initialization can
   write to their targets. Bound UTF-8 filename bytes so long Unicode metadata
   remains within filesystem limits.
+- Reject Scholar API keys owned by disabled accounts and evaluate expiring keys
+  with Django's timezone-aware clock instead of an invalid model-field call.
 
 ## [0.22.0a7] - 2026-11-07
 
