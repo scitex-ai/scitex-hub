@@ -64,7 +64,7 @@ def test_any_iframe_document_renders_no_nested_dock():
     request = RequestFactory().get(
         "/accounts/settings/ai-providers/", HTTP_SEC_FETCH_DEST="iframe"
     )
-    request.user = type("User", (), {"is_authenticated": True})()
+    request.user = type("User", (), {"is_authenticated": True})()  # type: ignore[attr-defined]
     # Act
     renders = should_render_dock(request)
     # Assert

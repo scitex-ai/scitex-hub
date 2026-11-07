@@ -15,6 +15,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- Reconcile the stable/development histories without restoring retired app
+  wrappers or visitor runtime. Retain host-label collision and startup-role
+  regression coverage through the current metadata and tenancy contracts.
+
 - Reject keys belonging to inactive accounts in the shared API-key validator.
   Apply expiry, account and scope checks to HTTP MCP authentication; the complete
   host MCP server requires an active platform operator with `mcp` or `*` scope.

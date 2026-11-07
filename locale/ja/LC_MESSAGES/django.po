@@ -8908,19 +8908,19 @@ msgstr "SciTeX Cloud——ひとつのプロジェクトコンテキスト"
 
 #: apps/infra/public_app/templates/public_app/landing_partials/landing_modules.html
 msgid "App launcher from the tracked in-repository product guide."
-msgstr "追跡中のリポジトリ内製品ガイドによるアプリランチャーの画面。"
+msgstr "リポジトリで管理されている製品ガイドのアプリランチャー。"
 
 #: apps/infra/public_app/templates/public_app/landing_partials/landing_modules.html
 msgid "Search workspace from the tracked in-repository product guide."
-msgstr "追跡中のリポジトリ内製品ガイドによる検索ワークスペースの画面。"
+msgstr "リポジトリで管理されている製品ガイドの検索画面。"
 
 #: apps/infra/public_app/templates/public_app/landing_partials/landing_modules.html
 msgid "Template picker from the tracked in-repository product guide."
-msgstr "追跡中のリポジトリ内製品ガイドによるテンプレート選択画面。"
+msgstr "リポジトリで管理されている製品ガイドのテンプレート選択画面。"
 
 #: apps/infra/public_app/templates/public_app/landing_partials/landing_modules.html
 msgid "Source and preview workspace from the tracked in-repository product guide."
-msgstr "追跡中のリポジトリ内製品ガイドによるソース・プレビュー画面。"
+msgstr "リポジトリで管理されている製品ガイドのソースとプレビュー画面。"
 
 #: apps/infra/public_app/templates/public_app/landing_partials/landing_modules.html
 msgid "Sample two-group analysis with recommended test, results, and chart."
