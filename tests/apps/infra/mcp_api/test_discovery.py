@@ -56,11 +56,25 @@ def test_mounted_execution_retains_protocol_validation(tmp_path):
     assert not marker.exists()
 
 
-def test_excluded_tools_remain_absent_and_public_policy_is_preserved(tmp_path):
+@pytest.mark.parametrize(
+    "forbidden_name",
+    [
+        "project_exec_shell",
+        "cloud_project_exec_shell",
+        "hub_project_exec_python",
+        "cloud_onsite_eval_js",
+        "hub_onsite_eval_js",
+        "agent_container_host_exec",
+        "container_exec",
+    ],
+)
+def test_excluded_tools_remain_absent_and_public_policy_is_preserved(
+    tmp_path, forbidden_name
+):
     server = FastMCP("owned-policy")
     marker = tmp_path / "must-not-exist"
 
-    @server.tool(name="project_exec_shell")
+    @server.tool(name=forbidden_name)
     def forbidden() -> str:
         marker.write_text("forbidden")
         return "never executed"

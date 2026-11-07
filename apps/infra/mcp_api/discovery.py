@@ -22,6 +22,7 @@ EXCLUDED_PREFIXES = frozenset(
         "project_exec_python",
         "project_exec_shell",
         "cloud_onsite_eval_js",
+        "onsite_eval_js",
         "browser_",
         "capture_",
         "audio_",
@@ -29,6 +30,10 @@ EXCLUDED_PREFIXES = frozenset(
         "notification_",
         "tunnel_",
         "dev_",
+        # Host/agent lifecycle and command execution require their dedicated
+        # control-plane authorization, not the generic REST "api" scope.
+        "agent_",
+        "container_",
     }
 )
 
@@ -77,10 +82,15 @@ def _tool_name_to_url_path(name: str) -> str:
 
 def _is_excluded(name: str) -> bool:
     """Return True if this tool should NOT be exposed as REST."""
-    for prefix in EXCLUDED_PREFIXES:
-        if name.startswith(prefix):
-            return True
-    return False
+    names = [name]
+    # Current and legacy Hub mount names must retain the same deny rules.
+    if name.startswith(("cloud_", "hub_")):
+        names.append(name.split("_", 1)[1])
+    return any(
+        candidate.startswith(prefix)
+        for candidate in names
+        for prefix in EXCLUDED_PREFIXES
+    )
 
 
 def _is_public(name: str) -> bool:
