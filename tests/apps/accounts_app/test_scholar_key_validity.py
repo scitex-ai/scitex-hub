@@ -83,3 +83,35 @@ def test_scholar_decorators_reject_disabled_owner_before_usage_update(issued_key
     assert _optional_view(_request(token)).content == b'{"key_authenticated": false}'
     key.refresh_from_db()
     assert key.last_used_at is None
+
+
+@require_api_key(scopes=["scholar:read", "scholar:write"])
+def _multi_scope_view(request):
+    return JsonResponse({"owner_id": request.api_user.pk})
+
+
+@pytest.mark.parametrize(
+    ("scopes", "expected_status"),
+    [
+        (["*"], 200),
+        (["scholar:read", "scholar:write"], 200),
+        (["scholar:read"], 403),
+        (["unrelated:read"], 403),
+        ([], 403),
+    ],
+)
+def test_scholar_uses_shared_scope_policy_without_recording_denied_keys(
+    issued_key, scopes, expected_status
+):
+    # Arrange
+    _, key, token = issued_key
+    key.scopes = scopes
+    key.save(update_fields=["scopes"])
+    # Act
+    response = _multi_scope_view(_request(token))
+    key.refresh_from_db()
+    # Assert
+    assert (response.status_code, key.last_used_at is not None) == (
+        expected_status,
+        expected_status == 200,
+    )

@@ -13,6 +13,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Security
 
+- Use the shared API-key scope policy in Scholar authentication, accepting
+  explicit wildcard keys while still requiring every requested permission.
+
 - Confine Scholar bibliography saves to the selected project using directory
   descriptors and no-follow file opens. Sanitize citation-derived filenames and
   reject directory symlinks before bibliography/Writer-link initialization can
