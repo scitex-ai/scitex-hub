@@ -2137,7 +2137,7 @@ msgid "Unless otherwise indicated, the SciTeX platform is our proprietary proper
 msgstr "別段の定めがある場合を除き、SciTeX プラットフォームは当社の専有財産であり、プラットフォーム上のすべてのソースコード、データベース、機能、ソフトウェア、ウェブサイトデザイン、音声、動画、テキスト、写真およびグラフィック（総称して「コンテンツ」）、ならびにこれらに含まれる商標、サービスマークおよびロゴ（「マーク」）は、当社が所有もしくは管理し、または当社にライセンスされており、著作権法、商標法その他各種の知的財産権によって保護されています。"
 
 msgid "SciTeX codebase is fully open and available at no cost as long as customers can utilize it independently. Our code is open-source and can be freely used, modified, and distributed according to the terms of our license. For users who prefer not to manage their own installations, we offer a web interface as a service for a fee."
-msgstr "SciTeX のコードベースは、お客様が独自に利用可能である限り、完全に公開され無償で提供されます。当社のコードはオープンソースであり、ライセンスの条項に従って自由に使用・修正・配布できます。自分の環境の管理を避けたいユーザーには、有償でウェブインターフェースをサービスとして提供しています。"
+msgstr "SciTeX のコードベースは、あなたが独自に利用可能である限り、完全に公開され無償で提供されます。当社のコードはオープンソースであり、ライセンスの条項に従って自由に使用・修正・配布できます。自分の環境の管理を避けたいユーザーには、有償でウェブインターフェースをサービスとして提供しています。"
 
 msgid "Provided that you are eligible to use the platform, you are granted a limited license to access and use the platform and to download or print a copy of any portion of the Content to which you have properly gained access solely for your personal, non-commercial use. We reserve all rights not expressly granted to you in and to the platform, the Content, and the Marks."
 msgstr "プラットフォームの利用資格があることを条件に、あなたはプラットフォームへのアクセス・利用、および正当にアクセスを許されたコンテンツの一部のダウンロードまたは印刷を、個人・非商用目的のみに限って行う限定的なライセンスを付与されます。プラットフォーム、コンテンツ、マークに関してあなたが明示的に付与されていないすべての権利は、当社に留保されます。"
