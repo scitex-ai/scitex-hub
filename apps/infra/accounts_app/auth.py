@@ -24,7 +24,7 @@ def resolve_api_key(raw_key: str) -> Tuple[Optional[APIKey], Optional[str]]:
     """Look up a raw ``scitex_…`` key and say WHY it fails when it does.
 
     Returns ``(api_key, None)`` for a usable key, else ``(None, reason)``
-    where reason is one of ``KEY_INVALID`` (no such key), ``KEY_REVOKED``
+    where reason is one of ``KEY_INVALID`` (no such key or inactive owner), ``KEY_REVOKED``
     (the row exists but was deactivated) or ``KEY_EXPIRED``. Does not
     touch ``last_used_at`` and does not catch database errors.
     """
@@ -38,6 +38,8 @@ def resolve_api_key(raw_key: str) -> Tuple[Optional[APIKey], Optional[str]]:
         return None, KEY_REVOKED
     if api_key.expires_at and api_key.expires_at < timezone.now():
         return None, KEY_EXPIRED
+    if not api_key.user.is_active:
+        return None, KEY_INVALID
     return api_key, None
 
 

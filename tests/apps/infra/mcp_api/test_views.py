@@ -43,10 +43,18 @@ def owned_registry(tmp_path):
         discovery._registry = previous
 
 
-def test_public_mounted_tool_returns_the_native_json_payload(owned_registry):
-    request = APIRequestFactory().post(
-        "/api/v1/tools/docs/echo/", {"value": 7}, format="json"
+def _operator_request(path, data):
+    from django.contrib.auth import get_user_model
+
+    request = APIRequestFactory().post(path, data, format="json")
+    force_authenticate(
+        request, user=get_user_model()(is_active=True, is_superuser=True)
     )
+    return request
+
+
+def test_operator_mounted_tool_returns_the_native_json_payload(owned_registry):
+    request = _operator_request("/api/v1/tools/docs/echo/", {"value": 7})
     response = ToolExecuteView.as_view()(request, tool_path="docs/echo")
     payload = json.loads(response.content)
     assert response.status_code == 200
@@ -55,9 +63,7 @@ def test_public_mounted_tool_returns_the_native_json_payload(owned_registry):
 
 
 def test_invalid_rest_parameters_do_not_execute_the_tool(owned_registry):
-    request = APIRequestFactory().post(
-        "/api/v1/tools/docs/echo/", {"value": "bad"}, format="json"
-    )
+    request = _operator_request("/api/v1/tools/docs/echo/", {"value": "bad"})
     response = ToolExecuteView.as_view()(request, tool_path="docs/echo")
     assert response.status_code == 400
     assert json.loads(response.content)["error_code"] == "VALIDATION_ERROR"
@@ -111,8 +117,22 @@ def test_catalog_declares_operator_access_for_private_tools(owned_registry):
         t["name"]: t for category in payload["namespaces"] for t in category["tools"]
     }
     assert tools["stats_private"]["access"] == "operator"
-    assert tools["docs_echo"]["access"] == "public"
-    assert "superuser" in payload["private_tool_access"]
+    assert tools["docs_echo"]["access"] == "operator"
+    assert tools["docs_echo"]["is_public"] is False
+    assert "superuser" in payload["tool_execution_access"]
+    assert not owned_registry.exists()
+
+
+@pytest.mark.parametrize("legacy_public_flag", [False, True])
+def test_tool_name_and_metadata_cannot_grant_anonymous_execution(
+    owned_registry, legacy_public_flag
+):
+    discovery._registry["docs_echo"].is_public = legacy_public_flag
+    request = APIRequestFactory().post(
+        "/api/v1/tools/docs/echo/", {"value": 7}, format="json"
+    )
+    response = ToolExecuteView.as_view()(request, tool_path="docs/echo")
+    assert response.status_code in {401, 403}
     assert not owned_registry.exists()
 
 
@@ -125,7 +145,7 @@ def test_catalog_declares_operator_access_for_private_tools(owned_registry):
         (True, True, [], 403),
         (True, True, ["api"], 200),
         (True, True, ["*"], 200),
-        (True, False, ["api"], 403),
+        (True, False, ["api"], 401),
     ],
 )
 def test_real_api_key_requires_operator_identity_and_scope(

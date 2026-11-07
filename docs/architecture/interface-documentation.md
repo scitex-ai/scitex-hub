@@ -37,12 +37,13 @@ attribute for an unknown owner, suppressing stale body inheritance, and use
 ## Generic MCP REST compatibility bridge
 
 The separate `/api/v1/tools/` bridge discovers MCP protocol metadata. MCP
-registration does not grant a project-scoped Web API admission. Private generic
+registration does not grant a project-scoped Web API admission. Generic
 tools require an authenticated, active platform superuser; an API key must also
 carry `api` or `*` scope. Ordinary users, staff users without superuser status,
-and inactive operators cannot execute them. Public tools retain the bridge's
-existing public-tool policy. Listings distinguish `access: public` from
-`access: operator` and state the private-tool requirements.
+and inactive operators cannot execute them. Tool execution is never made public by a
+`docs_`, `introspect_`, or other name prefix. Listings remain publicly readable,
+advertise `access: operator` and `is_public: false`, and state the requirements
+in `tool_execution_access`. Public documentation/catalog routes remain available.
 
 Project clients use the leaf Web APIs described by the SDK contracts and
 authorized by the host's project capabilities. A generic tool's filesystem
@@ -51,6 +52,18 @@ Agent/container operations and explicit code-execution tools are excluded from
 the bridge, including current Hub and legacy Cloud mount aliases. Discovery and
 the documentation catalog use the same protocol schemas; discovery never calls
 the registered tool implementations.
+
+The HTTP `/mcp` route hosts the complete umbrella server and has the same
+operator boundary: its API key must belong to an active platform superuser and
+carry `mcp` or `*` scope. Expired/revoked keys and inactive accounts receive 401;
+valid keys without operator identity or the required scope receive 403. A failed
+authentication database lookup returns 503, not a false invalid-key verdict.
+Campaign tokens do not grant this host authority. Local MCP servers and scoped
+leaf Web APIs retain their own access contracts.
+
+All shared API-key consumers reject an inactive owner through
+`accounts_app.auth.resolve_api_key`, consistently with the identity endpoint.
+Refused credentials do not update successful-use timestamps.
 
 ## Development rollout and verification
 
