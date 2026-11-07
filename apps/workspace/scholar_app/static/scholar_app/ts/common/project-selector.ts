@@ -1,8 +1,18 @@
 /**
-
  * Project Selector Handler for Scholar App
- * Manages project selection and persists the selection in sessionStorage
+ *
+ * Writes go through the shared project-context module so every reader
+ * resolves one normalized value. On load, seeds the stored selection from
+ * the server-rendered `<select>` value or `?project=` — a server-rendered
+ * `selected` option fires no change event, which used to leave the stored
+ * selection empty ("No project selected") with a project visibly chosen.
  */
+
+import {
+  PROJECT_STORAGE_KEY,
+  getSelectedProjectId,
+  setSelectedProjectId,
+} from "./_project-context";
 
 function initProjectSelector(): void {
   const projectSelector = document.getElementById(
@@ -14,22 +24,27 @@ function initProjectSelector(): void {
     projectSelector.addEventListener(
       "change",
       function (this: HTMLSelectElement): void {
+        setSelectedProjectId(this.value || null);
         if (this.value) {
-          sessionStorage.setItem("scholar_selected_project_id", this.value);
           console.log("[Scholar] Selected project ID:", this.value);
         } else {
-          sessionStorage.removeItem("scholar_selected_project_id");
           console.log("[Scholar] Cleared project selection");
         }
       },
     );
 
-    // Initialize from sessionStorage on page load
-    const savedProjectId: string | null = sessionStorage.getItem(
-      "scholar_selected_project_id",
-    );
-    if (savedProjectId) {
-      projectSelector.value = savedProjectId;
+    // Seed from the server-rendered value / URL when nothing stored yet.
+    // getSelectedProjectId() falls back to this very select, so a stored
+    // value always exists afterwards when a project is visibly selected.
+    const resolved = getSelectedProjectId();
+    if (resolved) {
+      projectSelector.value = resolved;
+    } else {
+      try {
+        sessionStorage.removeItem(PROJECT_STORAGE_KEY);
+      } catch {
+        /* ignore */
+      }
     }
   }
 }

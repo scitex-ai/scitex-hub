@@ -1,25 +1,25 @@
 """SciTeX App Tools — init, validate, develop, publish, and manage app plugins."""
 
-# Scaffold, validate, publish — canonical source is scitex-app (hard
-# runtime dep). The previous try/except fallback to a LOCAL copy of
-# _scaffold.py existed only because pre-scitex-app-0.2.10 the upstream
-# `scitex_app.appmaker.init_app` emitted a FLAT layout that broke
-# `pip_install_user_app` (hatchling refused to package). Our M4 #293
-# patched a local fallback, but at runtime scitex-app was always
-# installed → the try-import always succeeded → the local fallback
-# was shadowed and unreachable.
+# Scaffold, validate, publish — canonical source is scitex-sdk (hard
+# runtime dep, ``scitex_sdk.app.appmaker``). The previous try/except
+# fallback to a LOCAL copy of _scaffold.py existed only because
+# pre-scitex-app-0.2.10 the upstream `init_app` emitted a FLAT layout
+# that broke `pip_install_user_app` (hatchling refused to package).
+# Our M4 #293 patched a local fallback, but at runtime scitex-app was
+# always installed → the try-import always succeeded → the local
+# fallback was shadowed and unreachable.
 #
-# Now that scitex-app >= 0.2.10 (PR #35 ports the same fix into the
-# canonical generator), the local _scaffold.py is dead code. Removed
-# entirely; imports below are unconditional.
+# The appmaker implementation has since moved into scitex-sdk
+# (``scitex_sdk.app.appmaker``); imports below track the canonical
+# source unconditionally.
 #
 # `_validate.py` is kept temporarily; it will be removed in the
 # validator-move follow-up (forward-port any hub-specific enhancements
-# into scitex-app's _validate.py, then delete the local copy here).
-from scitex_app.appmaker import init_app, validate
-from scitex_app.appmaker._license import generate_license_text
-from scitex_app.appmaker._publish import publish
-from scitex_app.appmaker._validate import (
+# into the canonical `_validate.py`, then delete the local copy here).
+from scitex_sdk.app.appmaker import init_app, validate
+from scitex_sdk.app.appmaker._license import generate_license_text
+from scitex_sdk.app.appmaker._publish import publish
+from scitex_sdk.app.appmaker._validate import (
     validate_css,
     validate_dependencies,
     validate_manifest,

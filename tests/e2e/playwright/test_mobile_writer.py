@@ -7,8 +7,6 @@ Verify the writer pane dimensions on mobile viewport.
 The writer editing pane must be at least 48px wide to be usable.
 """
 
-import pytest
-
 from tests.e2e.playwright.page_ready import wait_for_page_ready
 
 # WHY THESE TESTS DO NOT WAIT FOR `networkidle`
@@ -43,7 +41,8 @@ class TestMobileWriter:
 
     def test_writer_pane_minimum_width(self, authenticated_mobile_page, screenshot):
         """Writer editing pane is at least 48px wide on mobile."""
-        authenticated_mobile_page.goto("/apps/writer/")
+        response = authenticated_mobile_page.goto("/apps/writer/")
+        assert response is not None and response.status == 200
         wait_for_page_ready(authenticated_mobile_page)
 
         # Find the writer/editor pane
@@ -57,8 +56,7 @@ class TestMobileWriter:
             "textarea.editor"
         ).first
 
-        if pane.count() == 0:
-            pytest.skip("No writer pane element found on page")
+        assert pane.count() == 1, "Writer's editor pane is missing"
 
         box = pane.bounding_box()
         assert box is not None, "Writer pane has no bounding box (not visible)"
@@ -70,7 +68,8 @@ class TestMobileWriter:
 
     def test_writer_pane_not_clipped(self, authenticated_mobile_page):
         """Writer pane is not clipped beyond viewport on mobile."""
-        authenticated_mobile_page.goto("/apps/writer/")
+        response = authenticated_mobile_page.goto("/apps/writer/")
+        assert response is not None and response.status == 200
         wait_for_page_ready(authenticated_mobile_page)
 
         pane = authenticated_mobile_page.locator(
@@ -81,12 +80,10 @@ class TestMobileWriter:
             ".editor-container"
         ).first
 
-        if pane.count() == 0:
-            pytest.skip("No writer pane element found on page")
+        assert pane.count() == 1, "Writer's editor pane is missing"
 
         box = pane.bounding_box()
-        if box is None:
-            pytest.skip("Writer pane not visible")
+        assert box is not None, "Writer pane is not visible"
 
         viewport = authenticated_mobile_page.viewport_size
         assert box["x"] + box["width"] <= viewport["width"] + 1, (

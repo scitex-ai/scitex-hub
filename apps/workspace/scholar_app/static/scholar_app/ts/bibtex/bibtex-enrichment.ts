@@ -21,6 +21,7 @@ import {
   toggleProcessingLogVisibility,
 } from "./_enrichment/diff-display";
 import { loadRecentJobs, deleteJob } from "./_enrichment/recent-jobs";
+import { getSelectedProjectId } from "../common/_project-context";
 import {
   showAlert,
   resetBibtexForm,
@@ -209,12 +210,7 @@ class BibtexEnrichmentOrchestrator {
    * Auto-save enriched BibTeX to project (fire-and-forget)
    */
   private autoSaveToProject(jobId: string): void {
-    const projectInput = document.getElementById(
-      "projectSelector",
-    ) as HTMLInputElement;
-    const projectId =
-      projectInput?.value ||
-      sessionStorage.getItem("scholar_selected_project_id");
+    const projectId = getSelectedProjectId();
     if (!projectId) return;
 
     const csrfToken =

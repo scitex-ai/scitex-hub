@@ -1,4 +1,5 @@
 import react from "@vitejs/plugin-react";
+import { monacoSanitizerBoundary } from "./vite.monaco-sanitizer";
 import { defineConfig, Plugin } from "vite";
 import { resolve } from "path";
 import * as path from "path";
@@ -6,6 +7,7 @@ import * as fs from "fs";
 import { execSync } from "child_process";
 import { createRequire } from "module";
 import { getEntryPoints } from "./vite.entries";
+import { discoverScitexSdkRoot, scitexSdkSubpathAliasesFromRoot } from "./vite.sdk-exports";
 
 const require = createRequire(import.meta.url);
 
@@ -23,6 +25,8 @@ function discoverScitexUiStatic(): string | null {
   const candidates = [
     resolve(__dirname, ".apps/scitex-ui/src/scitex_ui/static/scitex_ui"),
     resolve(__dirname, "../scitex-ui/src/scitex_ui/static/scitex_ui"),
+    // Linked worktrees live under .worktrees/<name>/ (three levels up)
+    resolve(__dirname, "../../../scitex-ui/src/scitex_ui/static/scitex_ui"),
   ];
   for (const candidate of candidates) {
     if (fs.existsSync(candidate)) return candidate;
@@ -39,6 +43,37 @@ function discoverScitexUiStatic(): string | null {
 }
 
 const SCITEX_UI_STATIC = discoverScitexUiStatic();
+
+const SCITEX_SDK_ROOT = discoverScitexSdkRoot(__dirname);
+
+/**
+ * Build `@scitex/sdk/*` aliases from the SDK package's own exports map.
+ *
+ * WHY THIS EXISTS: no `@scitex/sdk` package lives in hub's node_modules
+ * (hub does not declare the dep — leaf frontends do, e.g. figrecipe's
+ * `file:../../../../../../scitex-sdk/src/scitex_sdk`), so the generic
+ * resolveBridgedBareImports() retry against hub node_modules cannot help,
+ * and Rollup aborts the build with "failed to resolve import" (observed
+ * 2026-10-15: figrecipe workspace.ts `@scitex/sdk/ui/css/app.css`, added
+ * by the Oct-02 SDK-owner migration, broke `npm run build`, which left the
+ * manifest without shared entries and 500'd every page via vite_script).
+ *
+ * A single `"@scitex/sdk"` prefix alias is WRONG here: Vite aliases do not
+ * apply the target package.json `exports` remapping, so
+ * `@scitex/sdk/ui/css/app.css` would resolve to the non-existent
+ * `<root>/ui/css/app.css` instead of the exported
+ * `<root>/ui/static/scitex_sdk/ui/css/app.css`. Only wildcard exports
+ * (`./x/*`) are mapped, with slash-terminated keys whose prefix semantics
+ * are exact; exact-file exports are left out (no bridged leaf imports one
+ * today — add a regex entry if that changes).
+ */
+function scitexSdkSubpathAliases(): Record<string, string> {
+  return scitexSdkSubpathAliasesFromRoot(SCITEX_SDK_ROOT);
+}
+
+// CSS ownership follows the SDK package's public exports, independently of
+// an older SCITEX_UI_STATIC pin still needed by legacy JS/TS consumers.
+const SCITEX_SDK_CSS = scitexSdkSubpathAliases()["@scitex/sdk/ui/css"] ?? null;
 
 /** Discovered app bridge configuration. */
 interface AppBridgeInfo {
@@ -240,6 +275,7 @@ function resolveBridgedBareImports(): Plugin {
 
 export default defineConfig(({ command }) => ({
   plugins: [
+    monacoSanitizerBoundary(__dirname),
     react({
       // Exclude external app sources from Fast Refresh (avoids preamble error).
       // esbuild still handles JSX via tsconfig "jsx": "react-jsx".
@@ -303,6 +339,19 @@ export default defineConfig(({ command }) => ({
       // dagre / @xyflow/react (both imported from scitex-cards' bridged
       // layout.ts) are handled by the generic resolveBridgedBareImports()
       // plugin below instead of one-off aliases -- see its docstring.
+      // Match CSS before the broad legacy JS/TS prefix. Both URL spellings
+      // resolve to the same exported SDK source, even with SCITEX_UI_STATIC.
+      ...(SCITEX_SDK_CSS
+        ? {
+            "scitex-ui/css": SCITEX_SDK_CSS,
+            "../../../scitex_ui/css": SCITEX_SDK_CSS,
+          }
+        : SCITEX_UI_STATIC
+          ? {
+              "scitex-ui/css": resolve(SCITEX_UI_STATIC, "css"),
+              "../../../scitex_ui/css": resolve(SCITEX_UI_STATIC, "css"),
+            }
+          : {}),
       // scitex-ui: shared component library (auto-discovered)
       ...(SCITEX_UI_STATIC
         ? {
@@ -310,13 +359,14 @@ export default defineConfig(({ command }) => ({
             // @scitex/ui is the npm package name used by figrecipe's frontend
             // imports like @scitex/ui/src/scitex_ui/static/... resolve from repo root
             "@scitex/ui": resolve(SCITEX_UI_STATIC, "../../../.."),
-            // shared/css/primitives/variables.css @imports scitex-ui tokens by
-            // their collectstatic URL; lets the bundled head CSS resolve them.
-            "../../../scitex_ui/css": resolve(SCITEX_UI_STATIC, "css"),
           }
         : {}),
       // Auto-discovered app bridges (e.g. "figrecipe-editor" → sibling repo)
       ...APP_BRIDGES.aliases,
+      // @scitex/sdk subpaths (exports-derived; hub node_modules carries no
+      // @scitex/sdk, so bridged leaf imports like figrecipe's
+      // `@scitex/sdk/ui/css/app.css` resolve here instead of aborting build)
+      ...scitexSdkSubpathAliases(),
     },
     extensions: [".ts", ".js", ".tsx", ".jsx", ".json"],
   },
@@ -403,7 +453,7 @@ export default defineConfig(({ command }) => ({
   },
 
   optimizeDeps: {
-    include: ["fabric", "react", "react-dom", "mermaid"],
+    include: ["react", "react-dom", "mermaid"],
     // Exclude auto-discovered app editor aliases from pre-bundling
     exclude: Object.keys(APP_BRIDGES.aliases),
   },

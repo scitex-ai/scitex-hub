@@ -19,15 +19,22 @@ existing gate is *read*-shaped, so a read-only collaborator currently passes it,
 while ``Project.can_edit`` is the Hub's answer to what a write requires.
 """
 
+import contextlib
 import json
 import shutil
 
+from pathlib import Path
+from tempfile import TemporaryDirectory
+
 from django.contrib.auth.models import User
-from django.test import Client, TestCase
+from django.test import Client, TestCase, override_settings
 
 from apps.infra.project_app.models import Project, ProjectMembership
 from apps.infra.project_app.services.project_filesystem import (
     get_project_filesystem_manager,
+)
+from tests.apps.workspace.writer_app._old_direct_gate import (
+    writer_old_direct_urls,
 )
 
 PASSWORD = "TestPass123!"  # pragma: allowlist secret
@@ -35,6 +42,16 @@ STRANGERS_CONTENT = "WRITTEN BY AN UNAUTHORIZED CALLER"
 
 
 class SectionAccessPolicyTest(TestCase):
+    @classmethod
+    def setUpClass(cls):
+        # Database workers are isolated; their real project directories must be too.
+        directory = TemporaryDirectory(prefix="writer-owned-workspace-")
+        cls.addClassCleanup(directory.cleanup)
+        settings_override = override_settings(BASE_DIR=Path(directory.name).resolve())
+        settings_override.enable()
+        cls.addClassCleanup(settings_override.disable)
+        super().setUpClass()
+
     @classmethod
     def setUpTestData(cls):
         cls.owner = User.objects.create_user(username="policy-owner", password=PASSWORD)
@@ -79,7 +96,20 @@ class SectionAccessPolicyTest(TestCase):
         cls.addClassCleanup(shutil.rmtree, str(cls.other_base / cls.other_project.slug), True)
 
     def _url(self, project_id, section="abstract"):
-        return f"/apps/writer/api/project/{project_id}/section/{section}/?doc_type=manuscript"
+        # CUTOVER: the hub section route lives ONLY at old-direct in dev
+        # now (same view, same assertions — only the prefix moved).
+        return f"/apps/writer/old-direct/api/project/{project_id}/section/{section}/?doc_type=manuscript"
+
+    def setUp(self):
+        # The suite runs prod-shaped (gate off in the ambient urlconf), so
+        # serve the old-direct reference for every drive in this class:
+        # reload the real root urlconf with the explicit flag, restore
+        # after. (override_settings alone cannot do this — the gate is read
+        # once, at import time of config/urls.)
+        super().setUp()
+        self._old_direct_stack = contextlib.ExitStack()
+        self.addCleanup(self._old_direct_stack.close)
+        self._old_direct_stack.enter_context(writer_old_direct_urls())
 
     def _login(self, username):
         client = Client()

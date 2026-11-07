@@ -94,7 +94,7 @@ jobs:
           node-version: '20'
 
       - name: Install Python dependencies
-        run: pip install -e ".[all,dev]" || pip install -e ".[dev]" || pip install -e .
+        run: pip install -e ".[all,dev]"
 
       - name: Install sibling workspace apps (scitex-ui, figrecipe)
         # Same canonical script the e2e-mobile and typescript-check jobs use;

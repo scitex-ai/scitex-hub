@@ -99,6 +99,13 @@ ALLOWED = {
     "SSH",
     "DAG",
     "scitex-clew",
+    "scitex-io",  # Package identifier retained verbatim in the translated role list.
+    # Current app/fixture/algorithm names, preserved as names in Japanese.
+    "scitex-hub", "Agent Container", "Cards", "Storage", "Stats", "MNIST",
+    "Welch", "Live Paper", "Agentic Journal", "GUI", "AI for Science",
+    # Exact command identifiers and documented default skill paths in JA prose.
+    "scitex", "scitex-dev", "PATH", "claude-symlink",
+    "scitex/dev/skills/", "claude/skills/scitex/",
     "Edward Jenner",
     "Edward",
     "Jenner",
@@ -131,6 +138,22 @@ ALLOWED = {
     "English",
     # contact
     "info@scitex.ai",
+    # "Web" survives inside the Japanese 「このWebプラットフォームを含む」 —
+    # it is the standard loanword; katakana-ising it to ウェブ would read as
+    # a different word to a Japanese reader.
+    "Web",
+    # SDK section identifiers: the mythological term kept in romaji inside
+    # the JA Clew paragraph (「clew」とは…), the API component names, and the
+    # store proper names. Translating any of these would break the reference.
+    "clew",
+    "SDK",
+    "CLI",
+    "DataStore",
+    "FileVault",
+    "JobQueue",
+    "SciTeX App Store",
+    "Apple App Store",
+    "Google Play",
 }
 
 # NOTE ON "video" AND "import": these appear INSIDE the Japanese translations —
@@ -145,10 +168,11 @@ _COMMENT = re.compile(r"<!--.*?-->", re.S)
 # the CSS and JS behind, and the first run of this sweep duly reported
 # 'module-demo-container', 'max-width', 'console.error' and 'vite' as
 # untranslated copy — an instrument reading the wrong layer.
-_NON_TEXT = re.compile(r"<(script|style)\b.*?</\1>", re.S | re.I)
+# Machine-readable <code> (Bash/JSON) must stay literal in either language.
+_NON_TEXT = re.compile(r"<(script|style|code)\b.*?</\1>", re.S | re.I)
 _ENTITY = re.compile(r"&[a-zA-Z][a-zA-Z0-9]{1,8};?")
 _WS = re.compile(r"\s+")
-_VERSION = re.compile(r"v?\d+(?:\.\d+)*")
+_VERSION = re.compile(r"v?\d+(?:\.\d+)*(?:[-+][0-9A-Za-z.-]+)?")
 
 CONTEXT = {
     "SITE_TAGLINE": "タグライン",
@@ -207,8 +231,14 @@ def _untranslated_words(text):
         # A run may be an allowed token plus punctuation, or several allowed
         # tokens in a row ("Docker Singularity SLURM"). Only report a run that
         # contains at least one word nobody has accounted for.
-        words = [w for w in re.split(r"[\s/+]+", chunk) if len(w) > 2]
-        if words and all(w.strip(".,'’") in ALLOWED for w in words):
+        # Adjacent gallery labels can form one Latin run. Account for complete
+        # multiword names without allowlisting generic words such as "Paper".
+        remainder = chunk
+        for phrase in sorted((p for p in ALLOWED if " " in p), key=len, reverse=True):
+            pattern = r"(?<![A-Za-z0-9])" + r"\s+".join(re.escape(w) for w in phrase.split()) + r"(?![A-Za-z0-9])"
+            remainder = re.sub(pattern, " ", remainder)
+        words = [w for w in re.split(r"[\s/+]+", remainder) if len(w) > 2]
+        if not words or all(w.strip(".,'’") in ALLOWED for w in words):
             continue
         leftovers.append(chunk)
     return leftovers
@@ -285,3 +315,22 @@ def test_partial_still_renders_english_under_english(template):
         f"{template} rendered no English text at all under en — the template is "
         "empty or broken, and the ja sweep above would pass vacuously."
     )
+
+
+def test_code_literals_are_excluded_but_untranslated_prose_is_still_detected():
+    # Arrange
+    html = '<pre><code class="language-json">{"command": "scitex", "args": ["mcp", "start"]}</code></pre><p>Untranslated narrative remains visible.</p>'
+    # Act
+    leftovers = _untranslated_words(_visible_text(html))
+    # Assert
+    assert leftovers == ["Untranslated narrative remains visible"]
+
+
+def test_adjacent_product_names_do_not_hide_untranslated_narrative():
+    # Arrange
+    brands = "Hub SDK Agent Container Cards Storage Scholar Stats FigRecipe Writer Live Paper Agentic Journal"
+    # Act
+    known = _untranslated_words(brands)
+    prose = _untranslated_words("Agent Container hidden untranslated narrative")
+    # Assert
+    assert (known, prose) == ([], ["Agent Container hidden untranslated narrative"])

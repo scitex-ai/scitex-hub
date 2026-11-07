@@ -2,6 +2,14 @@
 
 Delegates to figrecipe._django with project-context injection.
 
+CUTOVER (CCT-2784): this module is UNCHANGED by the handover and stays the
+authoritative SITE-2 jail guard — but it is mounted ONLY at
+``apps/figrecipe/old-direct/`` in dev now (via urls/legacy.py; mount + gate
+in config/urls.py), never on the user path. The user path serves the leaf
+through the login-gated wrapper (urls/figrecipe_django.py); the leaf jails
+itself leaf-side (SDK authority + prepare_request, manifest mount_policy
+figrecipe#456). Thinning THIS guard is a SAC-manager call, not this move.
+
 SECURITY (card sec-working-dir-passthrough-family, SITE 2)
 ----------------------------------------------------------
 This mount used to be COMPLETELY UNAUTHENTICATED: neither the editor page

@@ -2,17 +2,92 @@
 
 <!-- Settings Navigation - Reusable partial -->
 {% comment %}
-PHONES (<=768px): the full list is 13 items, and it used to fill the whole first
+DESKTOP (>768px): .settings-nav-full renders the sidebar link tree
+(accounts_app/partials/settings_nav_links.html). Untouched.
+
+PHONES (<=768px): the full 13-item list used to fill the whole first
 screen, so a settings page's own content started below the fold (site audit
-2026-09-14, D7). On phones it collapses into the one-line disclosure
-"Settings › <current page>" and the content comes first; the desktop sidebar is
-unchanged. settings-layout.css shows one or the other. A <details> needs no
-JavaScript, so this works on every page that includes the partial.
+2026-09-14, D7). Phones instead get three compact cascading labeled
+<select>s — Section (settings shell) > Group > Page — and the content comes
+first. settings-layout.css shows one or the other. The links partial is
+rendered exactly once (desktop sidebar); the cascade carries its own
+<option>s, so there is no accordion duplication. Changing Group refilters
+the Page list; changing Page navigates. Without JavaScript, <noscript>
+falls back to the sidebar list via CSS.
 {% endcomment %}
-<details class="settings-nav-compact">
-    <summary class="settings-nav-compact-summary" aria-label="{% trans "Settings sections" %}">
-        <span>{% trans "Settings" %}</span> <span aria-hidden="true">›</span> <strong>{% if active == 'profile' %}{% trans "Profile" %}{% elif active == 'appearance' %}{% trans "Appearance" %}{% elif active == 'keyboard_shortcuts' %}{% trans "Keyboard Shortcuts" %}{% elif active == 'git_integrations' %}{% trans "Git platforms" %}{% elif active == 'ai_providers' %}{% trans "AI providers" %}{% elif active == 'ai_usage' %}{% trans "AI usage" %}{% elif active == 'mcp_tools' %}{% trans "MCP tools" %}{% elif active == 'ssh_keys' %}{% trans "SSH keys" %}{% elif active == 'api_keys' %}{% trans "API keys" %}{% elif active == 'privacy' %}{% trans "Privacy & Analytics" %}{% elif active == 'billing' %}{% trans "Payment method" %}{% elif active == 'repository_health' %}{% trans "Project Health" %}{% else %}{% trans "Account Settings" %}{% endif %}</strong>
-    </summary>
-    <div class="settings-nav-compact-list">{% include "accounts_app/partials/settings_nav_links.html" %}</div>
-</details>
+<div class="settings-nav-cascade">
+    <div class="settings-nav-cascade-row">
+        <label for="settings-cascade-section">{% trans "Section" %}</label>
+        <select id="settings-cascade-section" class="settings-nav-cascade-select">
+            {# Only the Account shell exists here; Organization/Project shells #}
+            {# plug in as further options when their mobile cascade lands. #}
+            <option value="" selected>{% trans "Account Settings" %}</option>
+        </select>
+    </div>
+    <div class="settings-nav-cascade-row">
+        <label for="settings-cascade-group">{% trans "Group" %}</label>
+        <select id="settings-cascade-group" class="settings-nav-cascade-select">
+            <option value="personal" {% if active == 'profile' or active == 'appearance' or active == 'keyboard_shortcuts' or active == 'account' %}selected{% endif %}>{% trans "Personal" %}</option>
+            <option value="integrations" {% if active == 'git_integrations' or active == 'ai_providers' or active == 'ai_usage' or active == 'mcp_tools' %}selected{% endif %}>{% trans "Integrations" %}</option>
+            <option value="authentication" {% if active == 'ssh_keys' or active == 'api_keys' %}selected{% endif %}>{% trans "Authentication" %}</option>
+            <option value="privacy" {% if active == 'privacy' %}selected{% endif %}>{% trans "Privacy" %}</option>
+            <option value="billing" {% if active == 'billing' %}selected{% endif %}>{% trans "Billing" %}</option>
+            <option value="projects" {% if active == 'repository_health' %}selected{% endif %}>{% trans "Projects" %}</option>
+        </select>
+    </div>
+    <div class="settings-nav-cascade-row">
+        <label for="settings-cascade-page">{% trans "Page" %}</label>
+        <select id="settings-cascade-page" class="settings-nav-cascade-select">
+            <option value="{% url 'accounts_app:profile_edit' %}" data-group="personal" {% if active == 'profile' %}selected{% endif %}>{% trans "Profile" %}</option>
+            <option value="{% url 'accounts_app:appearance' %}" data-group="personal" {% if active == 'appearance' %}selected{% endif %}>{% trans "Appearance" %}</option>
+            <option value="{% url 'accounts_app:keyboard_shortcuts' %}" data-group="personal" {% if active == 'keyboard_shortcuts' %}selected{% endif %}>{% trans "Keyboard Shortcuts" %}</option>
+            <option value="{% url 'accounts_app:account' %}" data-group="personal" {% if active == 'account' %}selected{% endif %}>{% trans "Account" %}</option>
+            {% if request.user.is_authenticated %}
+                <option value="/{{ request.user.username }}/" data-group="personal">{% trans "Public profile" %}</option>
+            {% endif %}
+            <option value="{% url 'accounts_app:git_integrations' %}" data-group="integrations" {% if active == 'git_integrations' %}selected{% endif %}>{% trans "Git platforms" %}</option>
+            <option value="{% url 'accounts_app:ai_providers' %}" data-group="integrations" {% if active == 'ai_providers' %}selected{% endif %}>{% trans "AI providers" %}</option>
+            <option value="{% url 'llm_app:usage_dashboard' %}" data-group="integrations" {% if active == 'ai_usage' %}selected{% endif %}>{% trans "AI usage" %}</option>
+            <option value="{% url 'accounts_app:mcp_tools' %}" data-group="integrations" {% if active == 'mcp_tools' %}selected{% endif %}>{% trans "MCP tools" %}</option>
+            <option value="{% url 'accounts_app:ssh_keys' %}" data-group="authentication" {% if active == 'ssh_keys' %}selected{% endif %}>{% trans "SSH keys" %}</option>
+            <option value="{% url 'accounts_app:api_keys' %}" data-group="authentication" {% if active == 'api_keys' %}selected{% endif %}>{% trans "API keys" %}</option>
+            <option value="{% url 'accounts_app:privacy_settings' %}" data-group="privacy" {% if active == 'privacy' %}selected{% endif %}>{% trans "Privacy & Analytics" %}</option>
+            <option value="{% url 'accounts_app:billing' %}" data-group="billing" {% if active == 'billing' %}selected{% endif %}>{% trans "Payment method" %}</option>
+            <option value="{% url 'accounts_app:repository_health' %}" data-group="projects" {% if active == 'repository_health' %}selected{% endif %}>{% trans "Project Health" %}</option>
+        </select>
+    </div>
+</div>
+<script>
+(function () {
+    var group = document.getElementById('settings-cascade-group');
+    var page = document.getElementById('settings-cascade-page');
+    if (!group || !page) return;
+    var options = Array.prototype.slice.call(page.options);
+    function visibleOptions() {
+        return options.filter(function (o) { return !o.hidden; });
+    }
+    function filter() {
+        options.forEach(function (o) { o.hidden = o.dataset.group !== group.value; });
+        var visible = visibleOptions();
+        var currentVisible = visible.some(function (o) { return o.selected; });
+        if (!currentVisible && visible.length) {
+            visible.forEach(function (o) { o.selected = false; });
+            visible[0].selected = true;
+        }
+    }
+    group.addEventListener('change', filter);
+    page.addEventListener('change', function () {
+        if (page.value) window.location.href = page.value;
+    });
+    filter();
+})();
+</script>
+<noscript>
+    <style>
+        @media (max-width: 768px) {
+            .settings-nav-cascade { display: none !important; }
+            .settings-layout .settings-nav-full { display: block !important; }
+        }
+    </style>
+</noscript>
 <div class="settings-nav-full">{% include "accounts_app/partials/settings_nav_links.html" %}</div>

@@ -24,6 +24,7 @@ Both states now answer the same controlled response: 200, empty content,
 ordinary path (a structurally complete workspace) is pinned unchanged.
 """
 
+import contextlib
 import json
 from unittest.mock import patch
 
@@ -38,6 +39,9 @@ from apps.infra.project_app.services.writer_workspace_layout import (
     get_writer_workspace_path,
 )
 from apps.workspace.writer_app.views.editor.api.content import _workspace_is_not_ready
+from tests.apps.workspace.writer_app._old_direct_gate import (
+    writer_old_direct_urls,
+)
 
 PASSWORD = "TestPass123!"  # pragma: allowlist secret
 REQUIRED_DIRS = ("01_manuscript", "02_supplementary", "03_revision")
@@ -92,7 +96,20 @@ class SectionReadWhenWorkspaceIsHalfCreatedTest(TestCase):
             (get_writer_workspace_path(complete_root) / name).mkdir(parents=True, exist_ok=True)
 
     def _url(self, project_id, section="abstract"):
-        return f"/apps/writer/api/project/{project_id}/section/{section}/?doc_type=manuscript"
+        # CUTOVER: the hub section route lives ONLY at old-direct in dev
+        # now (same view, same assertions — only the prefix moved).
+        return f"/apps/writer/old-direct/api/project/{project_id}/section/{section}/?doc_type=manuscript"
+
+    def setUp(self):
+        # The suite runs prod-shaped (gate off in the ambient urlconf), so
+        # serve the old-direct reference for every drive in this class:
+        # reload the real root urlconf with the explicit flag, restore
+        # after. (override_settings alone cannot do this — the gate is read
+        # once, at import time of config/urls.)
+        super().setUp()
+        self._old_direct_stack = contextlib.ExitStack()
+        self.addCleanup(self._old_direct_stack.close)
+        self._old_direct_stack.enter_context(writer_old_direct_urls())
 
     def _client(self):
         client = Client()

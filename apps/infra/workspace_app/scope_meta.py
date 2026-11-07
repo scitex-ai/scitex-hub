@@ -1,20 +1,20 @@
 """Shared scope-meta injection for hub leaf-app bridges.
 
-The scitex-app manifest is the single source of truth for a leaf app's
-release scope (``user`` vs ``project``, d8528de / #185). scitex-app's host
+The scitex-sdk app manifest is the single source of truth for a leaf app's
+release scope (``user`` vs ``project``, d8528de / #185). scitex-sdk's host
 view layer (``scitex_editor_page`` -> ``_inject_scope_meta``) stamps
 ``<meta name="stx-app-scope" content="project">`` into the served HTML ONLY
-for leaves embedded through that factory (e.g. Scholar's /apps/scholar/v2/).
+for leaves embedded through that factory (e.g. Scholar's /apps/scholar/).
 
 The Hub's Writer + FigRecipe bridges do NOT go through that factory — they
 call the raw leaf ``editor_page`` via WorkingDirScopedView (a pure
 pass-through), so their pages carry no scope marker, and the leaf's
 ``mountProjectSelectorByScope`` (which reads the marker) has nothing to mount
 against. This helper applies the SAME injection contract to a hub-served leaf
-response, reusing scitex-app's own emitter (never re-implementing it) and the
+response, reusing scitex-sdk's own emitter (never re-implementing it) and the
 leaf manifest scope (never duplicating leaf logic).
 
-Scope semantics (from scitex-app ``_app_scope``): project-scoped -> emit the
+Scope semantics (from scitex-sdk ``scitex_sdk.app._app_scope``): project-scoped -> emit the
 marker; user-scoped / absent -> emit NOTHING (page byte-identical). This keeps
 the "global header never forces a selector" ruling intact — the marker only
 tells the per-app surface it MAY offer selection.
@@ -22,7 +22,7 @@ tells the per-app surface it MAY offer selection.
 Two correctness properties this module is responsible for (both were
 independent-review findings on the first cut):
   * IDEMPOTENT — if a leaf later stamps ``stx-app-scope`` itself, the hub
-    wrapper must NOT add a second marker (scitex-app's ``_inject_scope_meta``
+    wrapper must NOT add a second marker (scitex-sdk's ``_inject_scope_meta``
     always inserts, so we guard on the existing marker before calling it).
   * NO PER-REQUEST FILE I/O — the resolved scope is cached at process level,
     invalidated deterministically on the installed leaf package identity (the
@@ -36,19 +36,20 @@ from typing import Dict, Optional
 
 from django.http import HttpResponse
 
-# scitex-app is an editable source mount; the contract module may be absent if
-# the mount predates d8528de. Guard the import so a stale mount degrades to
-# "no marker" (the safe direction) rather than 500'ing every leaf page.
+# scitex-sdk is the canonical source; the contract module may be absent if
+# the installed release predates the scope-meta contract. Guard the import
+# so a stale install degrades to "no marker" (the safe direction) rather
+# than 500'ing every leaf page.
 try:
-    from scitex_app._app_scope import _inject_scope_meta
-except Exception:  # noqa: BLE001 - scitex-app not advanced to the contract yet
+    from scitex_sdk.app._app_scope import _inject_scope_meta
+except Exception:  # noqa: BLE001 - scitex-sdk not advanced to the contract yet
     _inject_scope_meta = None
 
 #: registry module name -> the importable scitex leaf package whose
 #: ``_django/manifest.json`` declares the SDK ``scope`` (the SSoT). The hub's
 #: OWN wrapper manifests (apps/workspace/<app>/manifest.json, what the registry
 #: reads) do NOT carry ``scope`` — it lives in the leaf package. The package
-#: name follows the scitex_app manifest ``pip_package`` convention
+#: name follows the scitex-sdk app manifest ``pip_package`` convention
 #: (hyphenated -> underscored).
 _LEAF_MANIFEST_PKG: Dict[str, str] = {
     "figrecipe": "figrecipe._django",
@@ -56,7 +57,7 @@ _LEAF_MANIFEST_PKG: Dict[str, str] = {
     "scholar": "scitex_scholar._django",
 }
 
-# The scitex-app marker shape (scope_meta_tag in _app_scope.py):
+# The scitex-sdk marker shape (scope_meta_tag in _app_scope.py):
 #   <meta name="stx-app-scope" content="project">
 # We only need to detect that a stx-app-scope marker is ALREADY present (any
 # content), so the hub does not duplicate it if a leaf emits one itself.
@@ -152,7 +153,7 @@ def inject_scope_meta(response: HttpResponse, app_name: str) -> HttpResponse:
     if "html" not in content_type.lower():
         return response
     if _inject_scope_meta is None:
-        return response  # scitex-app mount predates the contract -> no marker
+        return response  # scitex-sdk predates the contract -> no marker
     html = response.content.decode("utf-8", "replace")
     # IDEMPOTENCY GUARD: a marker the leaf already emitted wins; do not add a second.
     if _EXISTING_SCOPE_MARKER.search(html):

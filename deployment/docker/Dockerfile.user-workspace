@@ -37,6 +37,8 @@ RUN sed -i 's/main/main contrib/g' /etc/apt/sources.list.d/debian.sources 2>/dev
     htop \
     tree \
     less \
+    # Fast file finder (Storage page scan needs fd or fdfind on PATH)
+    fd-find \
     # SSH client (for git operations)
     openssh-client \
     # Compression tools

@@ -17,6 +17,18 @@
                 {# explicit unknown state until the backend supplies              #}
                 {# `chat_allowance`; it never invents a count.                    #}
                 {% include "chat/partials/chat_allowance.html" with allowance=chat_allowance %}
+                {% if request.GET.project %}
+                {# Project scope chip: when the chat is deep-linked with ?project= #}
+                {# (beta golden path step 6) the scope is on screen, auditable   #}
+                {# in pixels — same role as the Writer project dropdown. Never   #}
+                {# invents: renders only the explicit param.                     #}
+                <div class="chat-scope-chip"
+                     data-chat-scope="{{ request.GET.project }}"
+                     title="{% trans 'This chat is scoped to this project' %}">
+                    <i class="fas fa-folder-open"></i>
+                    <span>{{ request.GET.project }}</span>
+                </div>
+                {% endif %}
                 <div class="chat-welcome-input-box">
                     {% trans "• " context "chat example bullet" as bullet %}
                     <textarea id="chat-welcome-input"

@@ -1,0 +1,70 @@
+/* Native section links keep the landing page usable without JavaScript. */
+.landing-section-nav {
+  --landing-header-height: 65px;
+  position: sticky;
+  top: calc(var(--landing-header-height) + env(safe-area-inset-top, 0px));
+  z-index: 900;
+  background: var(--bg-page);
+  color: var(--text-primary);
+}
+
+.landing-section-nav__inner {
+  width: min(1180px, calc(100% - 48px));
+  margin-inline: auto;
+  padding-block: 8px;
+}
+
+.landing-section-nav__tabs {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  padding: 0;
+  margin: 0;
+  list-style: none;
+  overflow: visible;
+}
+
+.landing-section-nav__tabs li {
+  display: flex;
+  min-width: 0;
+}
+
+/* Layout and wrapping only; SDK owns underline, text, hover and focus. */
+.landing-section-nav__tabs .stx-content-tabs__tab {
+  flex: 1 1 auto;
+  min-width: 0;
+  padding-inline: 6px;
+  white-space: normal;
+  text-align: center;
+}
+
+.landing-v2-hero,
+.landing-v2-section,
+#research-demo,
+#pricing {
+  scroll-margin-top: calc(160px + env(safe-area-inset-top, 0px));
+}
+
+@media (max-width: 768px) {
+  .landing-section-nav {
+    --landing-header-height: 45px;
+  }
+
+  .landing-section-nav__inner {
+    width: calc(100% - 24px);
+  }
+
+  .landing-section-nav__tabs {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .landing-v2-hero,
+  .landing-v2-section,
+  #research-demo,
+  #pricing {
+    scroll-margin-top: calc(205px + env(safe-area-inset-top, 0px));
+  }
+}
+
+:root:has(.global-header.collapsed) .landing-section-nav {
+  --landing-header-height: 6px;
+}

@@ -9,6 +9,191 @@ verbatim. See [ADR-0001](docs/adr/0001-rename-scitex-cloud-to-scitex-hub.md).
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+## [0.22.0a7] - 2026-11-07
+
+### Fixed
+
+- Reconcile the stable/development histories without restoring retired app
+  wrappers or visitor runtime. Retain host-label collision and startup-role
+  regression coverage through the current metadata and tenancy contracts.
+
+- Reject keys belonging to inactive accounts in the shared API-key validator.
+  Apply expiry, account and scope checks to HTTP MCP authentication; the complete
+  host MCP server requires an active platform operator with `mcp` or `*` scope.
+  Report authentication-store failures as unavailable rather than invalid keys.
+- Remove name-based anonymous execution grants from the generic MCP REST bridge.
+  All generic tools require an active operator with `api` or `*` key scope;
+  public metadata stays readable and advertises the execution requirements.
+- Discover mounted MCP tools through protocol metadata and execute them through
+  FastMCP's public client. REST calls retain schema validation, middleware and
+  existing access/exclusion policies without requiring a private function handle.
+- Build the documentation tool catalog from the same protocol schemas. Missing
+  providers report errors rather than appearing as an empty inventory. Require
+  FastMCP 2.14.5 or newer for the validated client/result interface.
+- Exclude agent and container operations from the generic MCP REST bridge;
+  host execution and lifecycle operations require dedicated control-plane
+  authorization.
+
+## [0.22.0a6] - 2026-11-06
+
+### Changed
+
+- Preserve the approved landing-page repository tabs and planned beta pricing
+  heading in the release source.
+- Require FigRecipe 0.44.4 (safe recipe-data links), SDK 0.3.23, Dev 0.62.16
+  and logging 0.2.5 in the refreshed application dependency cohort.
+- Run the tag publisher through the same full PostgreSQL, frontend and three
+  Python-version matrix as pull requests, using the existing self-hosted pool.
+
+### Fixed
+
+- Defer development workspace npm installation until source peers are mounted,
+  synchronize existing dependency directories and refuse failed installs or
+  bundle builds, including when an earlier manifest remains. Supply
+  npm 11 in the image and a source override for the legacy frontend peer.
+
+- Keep blocked optional analytics scripts from triggering the application-load
+  error banner. Required scripts, stylesheets and authentication resources
+  continue to show recoverable errors.
+
+- Remove global SLURM cleanup from development app startup. Starting web or
+  worker roles no longer cancels completing jobs or resets scheduler node states.
+
+- Render workspace module error labels as escaped text and keep template parser
+  diagnostics out of browser responses. Authorized application HTML continues to
+  render through Django's normal template engine.
+
+## [0.22.0a5] - 2026-11-04
+
+### Fixed
+
+- Keep password-reset URLs out of application logs. Trailing slashes previously
+  caused the URL redaction to retain the credential. Verify successful and failed
+  delivery attempts with fake credentials and a mocked mail transport.
+
+- Resolve header API documentation ownership for explicitly mounted views through
+  the actual callable, installed file record and unique registered Docs provider;
+  retain unknown/ambiguous states without adding launcher entries or endpoints.
+- Label CLI documentation examples as Bash and keep API guidance and mobile
+  controls readable in both themes.
+- Measure parked Celery worker connections by their actual backend PIDs in
+  regression tests, excluding unrelated session closures and retaining strict
+  clean/leaky and receiver-disconnected controls.
+
+## [0.22.0a4] - 2026-11-04
+
+- Compose browser Docs and Web API reference pages from public Dev documentation
+  providers and SDK inert Web declarations. Preserve ambiguous/missing states,
+  normalize owner-filtered URLs, and stop advertising unverified legacy examples.
+- Read installed leaf guidance through an exact owner/namespace/name, requiring
+  Dev0.62.11 owner-scoped reads; preserve global ambiguity and refuse old-reader
+  fallbacks. Share SDK export resolution between Vite and Vitest.
+- Supply route-agnostic SDK header documentation URLs from registered GUI owners;
+  fingerprint Writer's SDK header assets and retain leaf/project controls.
+- Admit raw package documentation only for a unique registered provider (plus the
+  existing explicit Hub bundled-docs alias), retaining artifact containment checks.
+
+## [0.22.0a3] - 2026-11-03
+
+### Fixed
+
+- Prepare image-owned data, configuration and runtime defaults at build time,
+  after package installation and import checks. Nested private mounts therefore
+  retain an application-accessible parent without runtime ownership repair.
+- Require constructor metadata checks and the complete root bootstrap against
+  synthetic private tmpfs mounts during the image build, without network access.
+  Preserve the runtime guard and private mounted ownership, modes and content.
+
+## [0.22.0a2] - 2026-11-03
+
+Unpublished candidate; its immutable tag is retained. Publication stopped before
+package build when actual staging cold boot exposed an inaccessible image-owned
+`/app/data` parent with a nested users mount. The build-time constructor correction
+is included in `0.22.0a3`; the runtime privacy guard remains unchanged.
+
+### Fixed
+
+- Preserve existing user-data and configuration ownership and permissions during
+  container startup. Create missing directories privately; initialize inaccessible
+  empty root-owned mount roots without touching existing files. Require an
+  explicit operator repair for inaccessible existing data.
+
+## [0.22.0a1] - 2026-11-03
+
+Unpublished candidate; its immutable tag is retained. Publication stopped before
+package build when deployment admission exposed the startup permission issue
+fixed in `0.22.0a2`.
+
+### Fixed
+
+- Require Scholar 1.29.1, whose SDK-owned favicon resolves correctly with the
+  production static manifest, and refresh the image dependency-resolution input.
+- Refuse debug mode for image-only baked deployments so native app pages use
+  the qualified frontend instead of development-server scripts.
+- Use the production health endpoint and measured staging readiness grace;
+  document starting the web role before background roles to avoid migration races.
+- Restrict PWA caching to explicitly public static assets and remove the legacy
+  cache, preventing private page/API replies from being replayed across accounts.
+
+## [0.22.0a0] - 2026-11-03
+
+Alpha preview; the distribution and tag use the canonical PEP 440 spelling
+`0.22.0a0` / `v0.22.0a0` (the product label is “0.22.0-alpha”).
+
+### Added
+- Current application screenshots with category/app tabs, captured-version
+  labels, accessible keyboard navigation, and pausable gallery rotation.
+- Guarded, explicit MNIST Writer sample preparation from the computed example
+  provenance, preserving authored sections and bibliography.
+
+### Changed
+- Read the global header version and description from installed `scitex-hub`
+  distribution metadata in both development and production.
+- Declare the native GUI plugin dependency closure, including SDK 0.3.19,
+  Cards 0.56.22, and FigRecipe 0.44.1; check the final image dependency graph.
+- Bake the production frontend from installed-release Git tags and verified
+  public SDK wheel inputs. Verify and publish the complete Vite closure after
+  collectstatic without startup Git/npm activity or deleting older hashed chunks.
+- Align mounted application headers, scope capabilities, theme controls, and
+  viewport frames through shared SDK contracts.
+- Show Cloud alpha status and a research-workflow landing page with installation
+  instructions and verified screenshot provenance.
+- Require the complete declared release test dependencies; reject mismatched
+  tag/package versions before tests or builds. Alpha GitHub releases are marked
+  prereleases. Post-publication branch synchronization opens an ordinary PR.
+
+### Fixed
+
+- Set explicit permissions on production startup scripts, utilities and policy
+  inputs, and verify those protected paths alongside installed dependencies.
+- Resolve the retained runtime capabilities into one compiled dependency closure,
+  removing obsolete cache-only helpers while preserving scientific packages and
+  verifying every retained capability before the final image checks.
+- Refuse cyclic plugin home paths consistently on Python 3.13 while preserving
+  owned workspaces that have not been created yet.
+- Replace the shared build's exact Monaco-vendored sanitizer module with an
+  isolated patched instance, preserving markdown hover and hook behavior.
+- Keep chat diagrams in inert SVG images and sanitize interactive Clew diagrams
+  without losing node selection or status colors. Use one patched DOMPurify
+  release for bundled and legacy-global consumers, and render errors as text.
+
+- Limit workspace sidebar overrides to the Hub-owned outer panes, preserving
+  nested app sidebars such as Cards Details and keeping its Board visible.
+
+- Preserve native submission for explicit GET forms, including read-only Storage
+  calculations and move planning. Implicit-method legacy forms remain guarded,
+  and JS-driven form owners can still cancel their own submissions.
+
+- Move the minimized launcher pill away from overlapping focused controls, just
+  like the expanded launcher, without reserving page space. Floating launchers
+  keep their selected position. Before focus, the pill remains an overlay.
+
+- Keep launcher focus avoidance scoped to actionable controls. When a tab switch
+  leaves focus on the page body or a structural panel, clear the temporary shift
+  so the launcher returns to its anchor instead of covering the graph.
+
 ## [0.20.0a2] - 2026-09-17
 
 Second follow-up alpha for the signed-in-only SciTeX application platform.

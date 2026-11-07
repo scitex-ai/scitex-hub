@@ -60,13 +60,12 @@ Every status code below was measured live on production 2026-08-17,
 authenticated as a visitor, with nginx bypassed. Two measurement traps are
 pinned as tests of their own so nobody re-hits them:
 
-  * ``api/file-content/AGENTS.md`` (BARE filename) is CORRECTLY 403 — the
-    remainder resolves against BASE_DIR, i.e. ``/app/AGENTS.md``, which is
-    outside every tenant's jail. Used as a positive control it looks like
-    the guard over-blocks. The real in-jail form is
-    ``api/file-content/data/users/<user>/proj/<project>/AGENTS.md``.
-    ``test_bare_filename_remainder_is_403_because_it_resolves_outside_the_jail``
-    pins that this 403 is intended.
+  * Public FigRecipe's SDK-backed file-content handler now resolves against
+    the authorized project root. A bare ``AGENTS.md`` therefore reads the
+    caller's own project file. Absolute in-project paths remain valid; an
+    absolute victim path and a same-named owned fixture outside the project
+    must both refuse without leaking their content. BASE_DIR-relative paths
+    belong to the historical handler contract and are not escape probes now.
   * ``curl`` normalises ``../`` CLIENT-SIDE per RFC 3986, so a traversal
     probe never reaches Django and returns 301, which reads as a pass.
     Django's test client sends the path verbatim — one more reason this
@@ -102,9 +101,10 @@ from apps.infra.project_app.models import Project
 pytestmark = [
     pytest.mark.security,
     pytest.mark.django_db,
+    pytest.mark.usefixtures("figrecipe_old_direct_here"),
     pytest.mark.guards(
         defect=(
-            "The figrecipe mount /apps/figrecipe/figrecipe/ can silently stop "
+            "The figrecipe mount /apps/figrecipe/old-direct/figrecipe/ can silently stop "
             "authorizing: its path jail lives in a wrapper guard that a "
             "refactor can unwire (or a nginx 'return 403' someone deletes), "
             "letting a caller-controlled path in the query string, the JSON "
@@ -114,9 +114,49 @@ pytestmark = [
     ),
 ]
 
-# The REAL routed prefix: config/urls.py mounts figrecipe_app at
-# "apps/figrecipe/", and urls/figrecipe.py routes "figrecipe/<path:endpoint>".
-MOUNT = "/apps/figrecipe/figrecipe/"
+
+@pytest.fixture(autouse=True)
+def figrecipe_owned_host_root(settings, tmp_path):
+    """Real canonical tenant paths belong to this test, never another worker."""
+    settings.BASE_DIR = tmp_path / "host"
+    settings.BASE_DIR.mkdir()
+
+
+@pytest.fixture
+def figrecipe_old_direct_here(figrecipe_owned_host_root):
+    """Serve the old-direct parity reference to the Django test client.
+
+    Cutover CCT-2784: the guarded wrapper this suite pins lives ONLY at
+    old-direct now (dev-gated, off in the prod-shaped suite), so the suite
+    turns the gate on around each test — same reload + clear_url_caches
+    pattern as the scholar_old_direct / figrecipe_old_direct fixtures.
+    """
+    import importlib
+
+    from django.test.utils import override_settings
+    from django.urls import clear_url_caches
+
+    import config.urls as root_urlconf
+
+    gate = override_settings(FIGRECIPE_OLD_DIRECT_ENABLED=True)
+    gate.enable()
+    try:
+        importlib.reload(root_urlconf)
+        clear_url_caches()
+        yield
+    finally:
+        gate.disable()
+        importlib.reload(root_urlconf)
+        clear_url_caches()
+
+
+# The REAL routed prefix: config/urls.py mounts the old-direct reference at
+# "apps/figrecipe/old-direct/" (dev-gated), and urls/figrecipe.py routes
+# "figrecipe/<path:endpoint>" beneath it. Cutover CCT-2784 moved the guarded
+# wrapper off the user path — the user path serves the leaf now, so an
+# end-to-end guard suite must drive the reference mount, exactly like
+# scholar's DB tests retargeted to /apps/scholar/old-direct/ (#1074).
+MOUNT = "/apps/figrecipe/old-direct/figrecipe/"
 
 CALLER = "figjail-caller"
 VICTIM = "figjail-victim"
@@ -152,9 +192,9 @@ def _make_tenant(username: str, sentinel: str, slug: str) -> tuple[User, Path]:
         email=f"{username}@example.com",
         password="Password123!",  # pragma: allowlist secret
     )
-    # Directory named by slug: the SDK storage provider derives the project
-    # root as data/users/{username}/proj/{slug}/, so the fixture dir must
-    # match or resolution correctly reports "no workspace yet".
+    # The leaf's real SDK capability resolves managed roots by project slug,
+    # independently of the legacy wrapper's local_path projection. Both guards
+    # must authorize the same actual fixture directory.
     project_dir = _data_root() / username / "proj" / slug
     project_dir.mkdir(parents=True, exist_ok=True)
     (project_dir / "AGENTS.md").write_text(sentinel + "\n", encoding="utf-8")
@@ -171,14 +211,11 @@ def _make_tenant(username: str, sentinel: str, slug: str) -> tuple[User, Path]:
 
 @pytest.fixture(autouse=True)
 def figrecipe_base_matches_base_dir():
-    """Pin the package's own file-content base to BASE_DIR.
+    """Keep process launch context separate from the authorized project.
 
-    ``handle_api_file_content`` resolves its remainder against
-    ``_find_default_working_dir()``, which is ``FIGRECIPE_WORKING_DIR`` or
-    the process cwd. In the container that cwd IS ``/app`` == ``BASE_DIR``,
-    which is the arrangement the wrapper's Channel-3 check is written
-    against. Setting the env var reproduces prod exactly instead of leaving
-    the suite dependent on which directory pytest was invoked from.
+    Set the actual legacy launch knob to BASE_DIR, as the container does.
+    The current SDK-backed handler must still use its request's authorized
+    project root, even when this process-level default points elsewhere.
 
     Plain ``os.environ`` + teardown, not the ``monkeypatch`` fixture
     (STX-NM002): this configures the REAL package through its REAL public
@@ -224,8 +261,8 @@ def anon_client():
 
 
 def _segment(project_dir: Path) -> str:
-    """The BASE_DIR-relative segment form ``api/file-content`` expects."""
-    return str(project_dir.relative_to(Path(settings.BASE_DIR)))
+    """An actual absolute fixture path, checked by both project jail layers."""
+    return str(project_dir)
 
 
 def _post(http: Client, endpoint: str, body: dict):
@@ -451,19 +488,14 @@ def test_file_content_segment_absolute_remainder_is_403(client):
     assert response.status_code == 403
 
 
-def test_file_content_segment_cross_tenant_read_is_unreachable(
-    client, victim_project_dir
-):
-    # Arrange — project-relative leaf contract: a BASE_DIR-style victim path
-    # resolves INSIDE the caller's own project root, where it names nothing.
-    # Cross-tenant reads are impossible by construction (not merely
-    # forbidden); the victim sentinel must stay absent either way.
+def test_file_content_segment_cross_tenant_read_is_403(client, victim_project_dir):
+    # Arrange — an actual other-tenant path, not a nonexistent relative
+    # subdirectory inside the caller's project.
     url = MOUNT + "api/file-content/" + _segment(victim_project_dir) + "/AGENTS.md"
     # Act
     response = client.get(url)
     # Assert
-    assert response.status_code == 404
-    assert VICTIM_SENTINEL not in response.content.decode("utf-8", "replace")
+    assert response.status_code == 403
 
 
 def test_file_content_segment_cross_tenant_read_leaks_no_content(
@@ -475,6 +507,35 @@ def test_file_content_segment_cross_tenant_read_leaks_no_content(
     response = client.get(url)
     # Assert — status codes can be right while the body still leaks
     assert VICTIM_SENTINEL not in response.content.decode("utf-8", "replace")
+
+
+def test_project_relative_filename_reads_the_callers_own_project(client):
+    # Arrange — the released handler and wrapper both resolve project-relative
+    # filenames against the server-authorized project, never process cwd.
+    url = MOUNT + "api/file-content/AGENTS.md"
+    # Act
+    response = client.get(url)
+    # Assert
+    assert (
+        response.status_code,
+        CALLER_SENTINEL in json.loads(response.content)["content"],
+    ) == (200, True)
+
+
+def test_absolute_same_basename_outside_project_is_403_without_content(
+    client, tmp_path
+):
+    # Arrange — a real owned file outside the tenant project proves refusal
+    # protects data rather than merely returning 404 for a nonexistent path.
+    outside = tmp_path / "AGENTS.md"
+    outside.write_text("outside-project-sentinel", encoding="utf-8")
+    # Act
+    response = client.get(MOUNT + "api/file-content/" + str(outside))
+    # Assert
+    assert (
+        response.status_code,
+        "outside-project-sentinel" in response.content.decode(),
+    ) == (403, False)
 
 
 def test_gallery_thumbnail_segment_traversal_is_403(client):
@@ -500,9 +561,9 @@ def test_gallery_thumbnail_segment_absolute_name_is_403(client):
 # from "endpoint is dead", and "deny everything" would pass.
 # ===========================================================================
 def test_own_file_content_by_segment_is_served(client, caller_project_dir):
-    # Arrange — the CORRECT in-jail form: project-relative. The leaf resolves
-    # the remainder against the authorized project root (not BASE_DIR).
-    url = MOUNT + "api/file-content/AGENTS.md"
+    # Arrange — an absolute path inside the canonical caller project root.
+    # Both the host wrapper and leaf SDK capability must admit the real file.
+    url = MOUNT + "api/file-content/" + _segment(caller_project_dir) + "/AGENTS.md"
     # Act
     response = client.get(url)
     # Assert
@@ -513,7 +574,7 @@ def test_own_file_content_by_segment_returns_the_real_content(
     client, caller_project_dir
 ):
     # Arrange — a 200 with an empty body would not prove the read happened
-    url = MOUNT + "api/file-content/AGENTS.md"
+    url = MOUNT + "api/file-content/" + _segment(caller_project_dir) + "/AGENTS.md"
     # Act
     response = client.get(url)
     # Assert
@@ -681,9 +742,7 @@ def test_compose_write_with_no_body_working_dir_creates_no_file(client, tmp_path
     assert not (tmp_path / "pwned.png").exists()
 
 
-def test_compose_traversal_filename_with_no_body_working_dir_is_403(
-    client, tmp_path
-):
+def test_compose_traversal_filename_with_no_body_working_dir_is_403(client, tmp_path):
     # Arrange — no working_dir, and a RELATIVE ``../`` filename that climbs
     # out of the ``Path(".")`` base the handler falls through to.
     body = {

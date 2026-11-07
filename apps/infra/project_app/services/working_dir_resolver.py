@@ -16,8 +16,8 @@ Contract:
     the authenticated user's current project (``get_current_project``,
     which enforces ``can_view``) resolved to its on-disk path. A
     caller-supplied ``?working_dir=`` is NEVER honoured; it is an
-    OVERRIDE, not a default (mirrors ``TodoBoardTenancyMiddleware`` which
-    discards any client ``?store=``).
+    OVERRIDE, not a default (mirrors the generic plugin-mount guard, which
+    discards any client ``?store=`` for tenanted mounts).
   * The resolver returns ``None`` when no project can be resolved. Callers
     that fail closed (``WorkingDirScopedView(fail_closed=True)``) turn that
     into an explicit error / redirect — never a silent fallback to a

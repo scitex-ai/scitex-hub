@@ -308,53 +308,11 @@
   border-bottom: 1px solid var(--workspace-border-default);
 }
 
-/* Repo filter wrapper + icon + input */
+/* Host layout only; SDK FilterField owns input, icon and keyboard hints. */
 .hub-repo-filter-wrap {
   position: relative;
   flex: 1;
   max-width: 280px;
-}
-
-.hub-repo-filter-icon {
-  position: absolute;
-  left: 0.55rem;
-  top: 50%;
-  transform: translateY(-50%);
-  color: var(--workspace-text-muted);
-  font-size: 0.75rem;
-  pointer-events: none;
-}
-
-.hub-repo-filter-input {
-  width: 100%;
-  padding: 0.3rem 2.2rem 0.3rem 1.8rem;
-  background: var(--workspace-bg-tertiary);
-  border: 1px solid var(--workspace-border-default);
-  border-radius: 6px;
-  color: var(--workspace-text-primary);
-  font-size: 0.85rem;
-  outline: none;
-}
-
-.hub-repo-filter-input:focus {
-  border-color: var(--app-accent-hub);
-}
-
-.hub-repo-filter-kbd {
-  position: absolute;
-  right: 0.5rem;
-  top: 50%;
-  transform: translateY(-50%);
-  font-family:
-    ui-monospace, "Cascadia Code", "Source Code Pro", Menlo, Consolas, Monaco,
-    monospace;
-  font-size: 0.75rem;
-  color: rgba(255, 255, 255, 0.5);
-  background: transparent;
-  border: none;
-  padding: 1px 4px;
-  opacity: 0.6;
-  pointer-events: none;
 }
 
 .hub-repo-no-results {

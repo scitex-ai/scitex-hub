@@ -1,0 +1,17 @@
+{
+  "provider": "scitex-sdk",
+  "source_commit": "721c15fe18ccd1715c7e287832bd7bc556dd169a",
+  "source_url": "https://github.com/scitex-ai/scitex-sdk/tree/721c15fe18ccd1715c7e287832bd7bc556dd169a",
+  "build": "node scripts/build-ui.mjs --only js/app/section-nav.js",
+  "origin_paths": {
+    "content-tabs.css": "src/scitex_sdk/ui/static/scitex_sdk/ui/css/app/content-tabs.css",
+    "section-nav.js": "src/scitex_sdk/ui/static/scitex_sdk/ui/js/app/section-nav.js",
+    "LICENSE": "LICENSE"
+  },
+  "sha256": {
+    "content-tabs.css": "448e475502bf74f79e77fcf80c1009aaba50345a3a6dc95e51253178b0e98886",
+    "section-nav.js": "b29aab3626953c56e3585a96a59807577da9209c9a61da7c658b5bc6e850e5d6",
+    "LICENSE": "4df3c306dddaaf4baffdff5ca820cc679ac8cd6dc263c6a74517783e42fa7a3b"
+  },
+  "policy": "Exact provider artifacts, no host edits. Source-qualified additive enhancement pending a published SDK release; installed SDK distribution and RECORD remain unchanged. Replace this pin with a normal SDK dependency upgrade when available."
+}

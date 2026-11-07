@@ -14,7 +14,8 @@ MEASURED 2026-08-17, from the artifact of a GREEN run on develop
 
   * ``04-figrecipe.png`` — the header strip, and then the entire body
     blank. ``#app-mount`` is the FigRecipe bundle's mount point
-    (``figrecipe_app/templates/figrecipe_app/figrecipe_partial.html``);
+    (leaf ``figrecipe/workspace_partial.html`` since the leaf flip
+    hub-figrecipe-leaf-move-20261009; hub partial retired);
     nothing had mounted into it.
   * ``02-writer.png`` — the file selector still reading "Loading...",
     the word count still "0", the manuscript pane empty. Those are the
@@ -115,17 +116,16 @@ RUNTIME_MEDIA_REASON = (
 #: per page, by the tests — the probe only measures.
 PAGE_ELEMENT_SIGNALS = {
     "/apps/writer/": {
-        # The Hub reference editor remains the current /apps/writer/ product
-        # route until its package-owned replacement reaches parity. Its
-        # dropdown starts as "Loading..." and is replaced after sections load.
-        "file_selector": "#section-selector-text",
-        # The reference template ships this as "0" until content loads.
-        "word_count": "#current-word-count",
+        # Published Writer owns these controls; Hub reference selectors are retired.
+        "file_selector": "#section-tabs select.writer-section-select",
+        "current_file": "#current-file",
+        "word_count": "#word-count",
+        "editor_content": "#editor-container .monaco-editor .view-lines",
     },
     "/apps/figrecipe/": {
-        # figrecipe_partial.html's mount point for the FigRecipe bundle.
-        # Present-but-empty is precisely the blank body in 04-figrecipe.png.
-        "mount": "#app-mount",
+        # Direct public route uses standalone.html, not the embedded partial.
+        "mount": "#root[data-app-name='figrecipe'][data-hosted='true']",
+        "workspace": "#root[data-app-name='figrecipe'] .editor-body",
     },
 }
 
@@ -227,10 +227,24 @@ CONTENT_PROBE_JS = """
           shown: shown(el),
           box: boxOf(el),
           text: (el.innerText || '').replace(/\\s+/g, ' ').trim(),
+          selectedValue: el instanceof HTMLSelectElement ? el.value : null,
+          selectedText: el instanceof HTMLSelectElement ? (el.selectedOptions[0]?.text || '').trim() : null,
           childElementCount: el.childElementCount,
         };
   }
 
+  const editor = elements.editor_content;
+  const visibleCode = (editor?.text || '').replace(/\\s/g, '');
+  const monacoModels = editor && window.monaco?.editor?.getModels
+    ? window.monaco.editor.getModels().map(model => {
+        const value = model.getValue().trim();
+        return {
+          chars: value.length,
+          preview: value.slice(0, 160),
+          placeholder: /^%%?\\s*loading[. …]*$/i.test(value),
+          matchesVisibleCode: visibleCode.length > 0 && value.replace(/\\s/g, '').includes(visibleCode),
+        };
+      }) : [];
   const bodyText = (document.body ? (document.body.innerText || '') : '').trim();
   return {
     url: location.pathname,
@@ -239,6 +253,7 @@ CONTENT_PROBE_JS = """
     loadingMarkers: loadingMarkers,
     images: images,
     elements: elements,
+    monacoModels: monacoModels,
   };
 }
 """ % {"max_marker": MAX_LOADING_MARKER_CHARS}
@@ -640,6 +655,35 @@ def describe_signals(where, signals):
             )
         )
     return "\n".join(lines)
+
+
+def writer_content_problem(signals, where):
+    """Require a selected real section and the loaded visible Monaco model."""
+    from pathlib import PurePosixPath
+
+    for name in ("file_selector", "current_file", "editor_content"):
+        problem = missing_element_problem(signals, name, where)
+        if problem:
+            return problem
+    selector = signals["elements"]["file_selector"]
+    selected = selector.get("selectedValue") or ""
+    label = selector.get("selectedText") or ""
+    current = signals["elements"]["current_file"]["text"]
+    if (
+        not selected.endswith(".tex")
+        or not label
+        or label.lower().startswith("loading")
+    ):
+        return f"{where}: Writer has no selected named TeX section: {selected!r}, {label!r}"
+    if PurePosixPath(selected).name != current:
+        return f"{where}: selected section {selected!r} differs from loaded file {current!r}"
+    models = signals.get("monacoModels", ())
+    if not any(
+        m["chars"] > 0 and not m["placeholder"] and m["matchesVisibleCode"]
+        for m in models
+    ):
+        return f"{where}: visible Monaco content has no matching loaded non-placeholder model: {models!r}"
+    return ""
 
 
 # EOF

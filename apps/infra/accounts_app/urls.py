@@ -12,6 +12,7 @@ from .views import (
     billing_settings,
     git_integrations,
     keyboard_shortcuts,
+    keymap_api,
     mcp_settings,
     mcp_settings_api,
     payment_step,
@@ -61,6 +62,11 @@ urlpatterns = [
     # hub-signup-email-stripe-funnel-20260917): terms first, then the provider.
     path("settings/payment/", payment_step, name="payment_step"),
     # API Endpoints
+    path(
+        "api/keymap/",
+        keymap_api,
+        name="keymap_api",
+    ),
     path(
         "api/ssh-keys/generate/",
         api_generate_ssh_key,

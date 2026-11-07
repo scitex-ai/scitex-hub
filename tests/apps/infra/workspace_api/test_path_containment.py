@@ -30,11 +30,12 @@ No mocks (project rule). One assertion per test (STX-TQ007).
 
 import json
 import shutil
+import tempfile
 from pathlib import Path
 
 from django.conf import settings
 from django.contrib.auth.models import AnonymousUser, User
-from django.test import RequestFactory, TestCase
+from django.test import RequestFactory, TestCase, override_settings
 
 from apps.infra.project_app.models import Project
 from apps.infra.workspace_api.views.file_content import api_get_file_content
@@ -53,6 +54,17 @@ class WorkspaceApiContainmentTest(TestCase):
     """Two real tenants; the victim project's slug is a string PREFIX of a
     sibling directory, exercising the exact hole the prefix guard left open.
     """
+
+    @classmethod
+    def setUpClass(cls):
+        # Each xdist worker populates this class independently. Fixed tenant
+        # names must not share physical directories with another worker.
+        home = tempfile.TemporaryDirectory(prefix="workspace-containment-")
+        cls.addClassCleanup(home.cleanup)
+        host = override_settings(BASE_DIR=Path(home.name))
+        host.enable()
+        cls.addClassCleanup(host.disable)
+        super().setUpClass()
 
     @classmethod
     def setUpTestData(cls):
@@ -127,9 +139,7 @@ class WorkspaceApiContainmentTest(TestCase):
         # Act
         response = self._read("README.md")
         # Assert
-        assert "legit in-project file" in response.content.decode(
-            "utf-8", "replace"
-        )
+        assert "legit in-project file" in response.content.decode("utf-8", "replace")
 
     # -- WRITE: api_save_file ---------------------------------------------
 

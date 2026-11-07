@@ -73,28 +73,38 @@ class _AncestorClasses(HTMLParser):
             self.stack.pop()
 
 
-# The plugin tiles the Home layout is specified against. registry.py appends
-# these manifests only when the backing package is importable (no dead tiles on
-# a host without it), and CI installs `.[all,dev]`, which ships scitex-cards but
-# not scitex-storage or scitex-agent-container. These tests pin the LAYOUT, so
-# they register the manifests themselves instead of inheriting the environment.
-_PLUGIN_TILE_MANIFESTS = (
-    "workspace/todo_app/manifest.json",
-    "workspace/storage_app/manifest.json",
-    "workspace/agents_app/manifest.json",
-)
+# The plugin tiles the Home layout is specified against. Tiles come from the
+# LEAF manifests via the scitex.apps entry points (register_plugin_modules);
+# CI installs `.[all,dev]`, which ships scitex-cards but not scitex-storage
+# or scitex-agent-container. These tests pin the LAYOUT, so they register
+# any missing tile themselves instead of inheriting the environment.
+_PLUGIN_TILE_NAMES = ("scitex-cards", "storage", "agent-container")
 
 
 def _register_plugin_tiles() -> list[str]:
     """Register any plugin tile the environment left out; return what was added."""
+    try:
+        from scitex_sdk.app.plugins import loaded_plugin_configs
+    except ImportError:
+        return []
+    from apps.workspace.apps_app.services.plugin_apps import plugin_module_config
+
     added = []
-    for rel_path in _PLUGIN_TILE_MANIFESTS:
-        config = registry._manifest_to_module_config(
-            registry._load_manifest(registry._APPS_ROOT / rel_path)
-        )
-        if registry.get_module(config.name) is None:
-            registry.register_module(config)
-            added.append(config.name)
+    try:
+        configs = loaded_plugin_configs()
+    except Exception:
+        return []
+    for config in configs:
+        try:
+            module = plugin_module_config(config)
+        except Exception:
+            continue
+        if (
+            module.name in _PLUGIN_TILE_NAMES
+            and registry.get_module(module.name) is None
+        ):
+            registry.register_module(module)
+            added.append(module.name)
     return added
 
 
@@ -103,8 +113,21 @@ def _unregister(names: list[str]) -> None:
         registry.unregister_module(name)
 
 
-# SCITEX_HUB_INTERNAL_APPS_RELEASED=True: Agents and Cards (visibility
-# internal) are on the grid, as on the dev deployment.
+# The curated infrastructure order (launcher_order foundation members).
+# Tests assert this order restricted to the tiles the environment provides:
+# optional plugin tiles (storage, agent-container) are absent in CI, so an
+# exact four-tile pin would fail there for the wrong reason.
+_CURATED_FOUNDATION = ("my_projects", "agent-container", "scitex-cards", "storage")
+
+
+def _curated_present(rendered: list) -> list:
+    """Curated foundation members in order, restricted to rendered tiles."""
+    present = set(rendered)
+    return [name for name in _CURATED_FOUNDATION if name in present]
+
+
+# SCITEX_HUB_INTERNAL_APPS_RELEASED=True: Agent Container and Cards
+# (visibility internal) are on the grid, as on the dev deployment.
 @override_settings(SCITEX_HUB_INTERNAL_APPS_RELEASED=True)
 class HomePagesTest(TestCase):
     @classmethod
@@ -135,7 +158,9 @@ class HomePagesTest(TestCase):
         # Act
         content = self.client.get(url).content
         # Assert
-        assert b'id="launcher-dots"' in content and b'id="launcher-page-next"' in content
+        assert (
+            b'id="launcher-dots"' in content and b'id="launcher-page-next"' in content
+        )
 
     def _groups(self):
         return self.client.get("/apps/").context["groups"]
@@ -155,7 +180,8 @@ class HomePagesTest(TestCase):
         # Act
         names = [c.get("name") for c in groups[0]["cells"] if not c.get("is_planned")]
         # Assert
-        assert names == ["my_projects", "agents", "todo", "storage"]
+        assert names == _curated_present(names)
+        assert "my_projects" in names
 
     def test_files_is_an_internal_service_not_a_launcher_app(self):
         # Arrange
@@ -170,9 +196,10 @@ class HomePagesTest(TestCase):
         # Arrange
         groups = self._groups()
         # Act
-        first_row = [cell.get("name") for cell in groups[0]["cells"][:4]]
+        names = [c.get("name") for c in groups[0]["cells"] if not c.get("is_planned")]
+        first_row = names[:4]
         # Assert
-        assert first_row == ["my_projects", "agents", "todo", "storage"]
+        assert first_row == _curated_present(names)[:4]
 
     def test_stats_slot_is_real_only_when_its_leaf_route_is_mounted(self):
         # A legacy scitex_modules entry point can exist without a Django mount.
@@ -194,8 +221,8 @@ class HomePagesTest(TestCase):
         # Assert
         assert cells == [
             ("scholar", False),
-            ("figrecipe", False),
             ("stats", not stats_is_real),
+            ("figrecipe", False),
             ("writer", False),
             ("chat", False),
             ("create-app", False),
@@ -216,24 +243,27 @@ class HomePagesTest(TestCase):
         # Act
         names = [c.get("name") for c in groups[1]["cells"]]
         # Assert
-        assert names[:4] == ["scholar", "figrecipe", "stats", "writer"]
+        assert names[:4] == ["scholar", "stats", "figrecipe", "writer"]
 
     def test_publication_group_holds_public_projects_and_hides_slides(self):
         # Arrange
         groups = self._groups()
         # Act
         names = [c.get("name") for c in groups[2]["cells"] if not c.get("is_planned")]
-        # Assert
-        assert names == ["public_projects"]
+        # Assert — live-paper and agentic-journal ship real tiles alongside
+        # the public-projects entry.
+        assert names == ["public_projects", "live-paper", "agentic-journal"]
 
     def test_publication_group_holds_the_publication_placeholders(self):
         # Arrange
         groups = self._groups()
         # Act
         planned = [c.get("name") for c in groups[2]["cells"] if c.get("is_planned")]
-        # Assert
-        assert planned == ["live-paper", "agentic-journal"]
-
+        # Assert — live-paper and agentic-journal ship real tiles, so they
+        # must not linger as coming-soon placeholders (whatever else is
+        # still planned is that test's business, not this mount's).
+        assert "live-paper" not in planned
+        assert "agentic-journal" not in planned
 
     def test_system_group_holds_settings_docs_and_app_store(self):
         # Arrange
@@ -290,8 +320,14 @@ class HomePagesTest(TestCase):
         # Arrange
         css = _launcher_css("grid.css")
         # Act
-        light = re.findall(r'^\.launcher-group\[data-group="(\w+)"\]\s*\{\s*--launcher-band', css, re.M)
-        dark = re.findall(r'^\[data-theme="dark"\] \.launcher-group\[data-group="(\w+)"\]\s*\{\s*--launcher-band', css, re.M)
+        light = re.findall(
+            r'^\.launcher-group\[data-group="(\w+)"\]\s*\{\s*--launcher-band', css, re.M
+        )
+        dark = re.findall(
+            r'^\[data-theme="dark"\] \.launcher-group\[data-group="(\w+)"\]\s*\{\s*--launcher-band',
+            css,
+            re.M,
+        )
         # Assert
         assert (sorted(light), sorted(dark)) == (
             ["foundation", "publication", "system", "tools", "work"],
@@ -331,7 +367,9 @@ class HomePagesTest(TestCase):
         # it is taken out of flow.
         css = _launcher_css("grid.css")
         # Act
-        rule = re.search(r"\.launcher-group\[aria-label\]::before\s*\{([^}]*)\}", css).group(1)
+        rule = re.search(
+            r"\.launcher-group\[aria-label\]::before\s*\{([^}]*)\}", css
+        ).group(1)
         # Assert
         assert re.search(r"position:\s*absolute", rule)
 
@@ -339,7 +377,10 @@ class HomePagesTest(TestCase):
         # Arrange
         content = self.client.get("/apps/").content.decode("utf-8")
         # Act
-        labels = re.findall(r'class="launcher-group" role="group" data-group="(\w+)" aria-label="([^"]+)"', content)
+        labels = re.findall(
+            r'class="launcher-group" role="group" data-group="(\w+)" aria-label="([^"]+)"',
+            content,
+        )
         # Assert
         assert dict(labels) == {
             "foundation": "Foundation",
@@ -353,7 +394,9 @@ class HomePagesTest(TestCase):
         # Arrange
         content = self.client.get("/apps/").content.decode("utf-8")
         # Act
-        arrow = re.search(r'<button[^>]*id="launcher-page-next"[^>]*>', content).group(0)
+        arrow = re.search(r'<button[^>]*id="launcher-page-next"[^>]*>', content).group(
+            0
+        )
         # Assert
         assert re.search(r"\shidden(\s|>|$)", arrow)
 
@@ -439,9 +482,9 @@ class TileBadgeTest(TestCase):
 
     def test_badge_css_has_no_outward_offset(self):
         # Arrange
-        css = (
-            _WORKSPACE / "apps_app/static/apps_app/css/launcher/grid.css"
-        ).read_text("utf-8")
+        css = (_WORKSPACE / "apps_app/static/apps_app/css/launcher/grid.css").read_text(
+            "utf-8"
+        )
         # Act
         badge_rules = re.findall(r"\.launcher-badge[^{]*\{[^}]*\}", css)
         # Assert — the old pills were pushed out with translateX(46px)
@@ -504,10 +547,11 @@ class TileBadgeTest(TestCase):
         # Arrange
         tile = self._tile_html("scitex-badge-probe-app")
         # Act
-        badge = re.search(r'launcher-badge-desktop-only"[^>]*aria-label="([^"]+)"', tile)
+        badge = re.search(
+            r'launcher-badge-desktop-only"[^>]*aria-label="([^"]+)"', tile
+        )
         # Assert
         assert badge.group(1) == "Mobile layout coming soon"
-
 
 
 # EOF

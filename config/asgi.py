@@ -9,7 +9,6 @@ Exposes the ASGI callable as a module-level variable named ``application``.
 """
 
 import asyncio
-import hashlib
 import logging
 import os
 
@@ -120,56 +119,10 @@ async def _send_json_error(send, status: int, message: str) -> None:
 
 
 async def _mcp_api_key_valid(scope) -> bool:
-    """Return True if the request carries a valid APIKey with mcp or full-access scope.
+    """Compatibility predicate for the host MCP authorization decision."""
+    from apps.infra.accounts_app.mcp_authentication import authorize_host_mcp
 
-    Accepts both:
-    - User API keys (stored hashed in the APIKey model)
-    - Campaign API keys (validated by format + date range)
-    """
-    headers = dict(scope.get("headers", []))
-    auth = headers.get(b"authorization", b"").decode("utf-8", errors="replace")
-    if not auth.startswith("Bearer "):
-        return False
-    raw_key = auth[7:].strip()
-    if not raw_key:
-        return False
-
-    # Check campaign key first (no DB lookup needed)
-    if _is_valid_campaign_key(raw_key):
-        return True
-
-    key_hash = hashlib.sha256(raw_key.encode()).hexdigest()
-    try:
-        from django.utils import timezone
-
-        from apps.infra.accounts_app.models import APIKey
-
-        api_key = await APIKey.objects.aget(key_hash=key_hash, is_active=True)
-        # Require mcp or full-access scope
-        if not ("*" in api_key.scopes or "mcp" in api_key.scopes):
-            return False
-        # Update last_used_at (fire-and-forget; ignore errors)
-        api_key.last_used_at = timezone.now()
-        await api_key.asave(update_fields=["last_used_at"])
-        return True
-    except Exception:
-        return False
-
-
-def _is_valid_campaign_key(raw_key: str) -> bool:
-    """Check if a key is a valid, non-expired campaign API key."""
-    try:
-        from apps.infra.public_app.config import (
-            is_valid_campaign_token,
-            parse_campaign_token,
-        )
-
-        if not is_valid_campaign_token(raw_key):
-            return False
-        parsed = parse_campaign_token(raw_key)
-        return parsed is not None and parsed.get("is_active", False)
-    except Exception:
-        return False
+    return (await authorize_host_mcp(scope)).allowed
 
 
 _django_http_app = get_asgi_application()
@@ -179,12 +132,11 @@ async def _http_router(scope, receive, send):
     """Route /mcp -> FastMCP (auth-protected), everything else -> Django."""
     path = scope.get("path", "")
     if path == "/mcp" or path.startswith("/mcp/"):
-        if not await _mcp_api_key_valid(scope):
-            await _send_json_error(
-                send,
-                401,
-                "Valid API key required. Use: Authorization: Bearer <key>",
-            )
+        from apps.infra.accounts_app.mcp_authentication import authorize_host_mcp
+
+        authorization = await authorize_host_mcp(scope)
+        if not authorization.allowed:
+            await _send_json_error(send, authorization.status, authorization.message)
             return
         # Ensure the MCP lifespan (session manager task group) is running
         # before forwarding the first request.

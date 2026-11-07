@@ -225,30 +225,14 @@ function initAbstractToggle(): void {
 }
 
 /**
- * Initialize save selected button
+ * Initialize save selected button.
+ *
+ * RETIRED: the real bulk-save (server POST + toasts) lives in
+ * _toolbar-handlers.ts. This stub only wrote to localStorage and its
+ * alert() dialog blocks headless verification — do NOT re-bind here.
  */
 function initSaveSelected(): void {
-  const btn = document.getElementById("saveSelectedBtn");
-  if (!btn) return;
-
-  btn.addEventListener("click", () => {
-    const papers = getSelectedPapers();
-    if (papers.length === 0) {
-      alert("No papers selected. Click on papers to select them.");
-      return;
-    }
-    const saved = JSON.parse(
-      localStorage.getItem("scitex_saved_papers") || "[]",
-    );
-    const newPapers = papers.filter(
-      (p) => !saved.some((s: PaperData) => s.title === p.title),
-    );
-    saved.push(...newPapers);
-    localStorage.setItem("scitex_saved_papers", JSON.stringify(saved));
-    alert(
-      `Saved ${newPapers.length.toLocaleString()} paper(s) to library. (${(papers.length - newPapers.length).toLocaleString()} already saved)`,
-    );
-  });
+  return;
 }
 
 /**

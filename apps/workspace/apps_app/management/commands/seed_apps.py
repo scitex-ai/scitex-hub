@@ -24,7 +24,7 @@ _CATEGORY_MAP = {
     "store": "utility",
     "public_projects": "social",
     "docs": "reference",
-    "todo": "utility",
+    "scitex-cards": "utility",
     "storage": "data",
     "files": "data",
 }
@@ -41,8 +41,8 @@ _DESCRIPTIONS = {
     "store": "Browse, install, and manage workspace modules.",
     "public_projects": "Discover public repositories, researchers, and organizations across the SciTeX community.",
     "docs": "Documentation hub — Python packages, MCP tools, API reference, and self-hosting guide.",
-    "todo": "Task and collaboration management.",
-    "agents": "Agent lifecycle management.",
+    "scitex-cards": "Task and collaboration management.",
+    "agent-container": "Agent lifecycle management.",
     "stats": "Statistical analysis.",
     "storage": "Browse your storage across the machines you can reach.",
     "files": "Your whole SciTeX workspace: Downloads, Recordings and every project folder.",
@@ -119,6 +119,18 @@ def ensure_builtin_modules(author_username="ywatanabe"):
             obj.versions.filter(version__endswith="-alpha").update(
                 version="0.1.0", is_stable=True
             )
+
+        if obj.is_verified and not obj.pinned_version:
+            # Backfill the certification pin so production badges survive:
+            # the badge is bound to the certified version.
+            latest = (
+                obj.versions.order_by("-released_at")
+                .values_list("version", flat=True)
+                .first()
+            )
+            if latest:
+                obj.pinned_version = latest
+                obj.save(update_fields=["pinned_version"])
 
         if was_created:
             created += 1

@@ -1,15 +1,13 @@
-"""Entrypoint retirement gate: no visitor-pool boot reconciliation.
+"""Retired visitor pools must never be reintroduced by container startup.
 
-C1 retired the visitor pool (visitor-pool boot lifecycle removed): entrypoints
-must not create, quarantine, reconcile, or repair legacy visitor slots, and the
-celery_worker_vis service no longer exists. This file pins the retired state —
-any reappearance of pool mutations in boot is a regression — while keeping the
-role-library unit checks (unknown commands fail closed).
+Accepted dab365317 removed the visitor runtime and dedicated worker. Keep the
+real service-role classifier controls, but do not require dead pool mutations
+as the former reconciliation test did.
 """
 
-from pathlib import Path
 import shlex
 import subprocess
+from pathlib import Path
 
 import pytest
 import yaml
@@ -55,38 +53,15 @@ def _is_web_role(*argv: str) -> bool:
     return result.returncode == 0
 
 
-def _visitor_block(script: str) -> str:
-    marker = "# Initialize Visitor Pool"
-    separator = "# ============================================"
-    if marker not in script:
-        return ""
-    block = script.split(marker, 1)[1]
-    # Skip the separator that closes this heading, then stop at the next one.
-    block = block.split(separator, 1)[1]
-    return block.split(separator, 1)[0]
-
-
 def _visitor_role_violations(script: str) -> list[str]:
-    """Reject pool mutations not enclosed by the explicit web-role branch."""
-    block = _visitor_block(script)
-    live = [line.strip() for line in block.splitlines() if not line.lstrip().startswith("#")]
-    mutations = [
-        index
-        for index, line in enumerate(live)
-        if "manage.py create_visitor_pool" in line
+    """No live startup role may run a retired pool mutation."""
+    live = [line.strip() for line in script.splitlines() if not line.lstrip().startswith("#")]
+    if any(
+        "manage.py create_visitor_pool" in line
         or "manage.py reconcile_visitor_slots" in line
-    ]
-    guards = [
-        index
-        for index, line in enumerate(live)
-        if line == 'if [ "$IS_WEB_ROLE" = true ]; then'
-    ]
-    if not mutations:
-        return ["visitor-pool create/reconcile commands are missing"]
-    if not guards or guards[0] > min(mutations):
-        return ["visitor-pool mutation is not guarded by IS_WEB_ROLE"]
-    if not any(index > max(mutations) and live[index] == "else" for index in range(len(live))):
-        return ["non-web roles have no explicit visitor-pool skip branch"]
+        for line in live
+    ):
+        return ["retired visitor-pool bootstrap must not run in any role"]
     return []
 
 
@@ -100,9 +75,10 @@ def _live_lines(script: str) -> list[str]:
 
 
 @pytest.mark.parametrize("entrypoint", ENTRYPOINTS, ids=lambda path: path.parent.name)
-def test_no_entrypoint_contains_visitor_pool_mutations(entrypoint):
+def test_every_dev_and_prod_entrypoint_keeps_visitor_runtime_retired(entrypoint):
     script = entrypoint.read_text(encoding="utf-8")
     assert "service_role.src" in script
+    assert _visitor_role_violations(script) == []
     live = "\n".join(_live_lines(script))
     assert "create_visitor_pool" not in live
     assert "reconcile_visitor_slots" not in live
@@ -110,8 +86,22 @@ def test_no_entrypoint_contains_visitor_pool_mutations(entrypoint):
 
 def test_source_checker_rejects_the_old_unconditional_dev_block():
     assert _visitor_role_violations(OLD_UNSAFE_DEV_BLOCK) == [
-        "visitor-pool mutation is not guarded by IS_WEB_ROLE"
+        "retired visitor-pool bootstrap must not run in any role"
     ]
+
+
+def test_web_role_guard_does_not_authorize_resurrecting_retired_pool():
+    guarded = 'if [ "$IS_WEB_ROLE" = true ]; then\n' + OLD_UNSAFE_DEV_BLOCK + "\nfi"
+    assert _visitor_role_violations(guarded) == [
+        "retired visitor-pool bootstrap must not run in any role"
+    ]
+
+
+def test_production_has_no_retired_visitor_worker():
+    compose = yaml.safe_load(
+        (REPO_ROOT / "deployment/docker/docker_prod/docker-compose.yml").read_text()
+    )
+    assert "celery_worker_vis" not in compose["services"]
 
 
 @pytest.mark.parametrize(

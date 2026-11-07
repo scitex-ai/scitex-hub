@@ -18,7 +18,12 @@ from config._env import (
     require_env_with_legacy_alias as _require_env_alias,
 )
 
-from ._optional_apps import optional_upstream_apps, with_plugin_apps
+from ._optional_apps import (
+    _with_host_plugin_apps,
+    optional_sdk_ui_template_dirs,
+    optional_upstream_apps,
+    plugin_store_route_bindings,
+)
 
 
 # ---------------------------------------
@@ -93,8 +98,23 @@ SCITEX_ENV = branding.normalize_env(os.environ.get("SCITEX_HUB_ENV", "developmen
 # so its tab reads "Writer — SciTeX (standalone)" instead of "Writer — SciTeX".
 SCITEX_APP_MODE = branding.MODE_HUB
 
-# Storage leaf asks the hub which directories belong to the requester.
-SCITEX_STORAGE_VOLUMES_PROVIDER = "apps.workspace.storage_app.volumes.user_volumes"
+# A plugin leaf asks the hub which directories belong to the requester.
+SCITEX_STORAGE_VOLUMES_PROVIDER = "apps.workspace.apps_app.services.plugin_volumes.user_volumes"
+SCITEX_USER_HOME_PROVIDER = "apps.workspace.apps_app.services.plugin_volumes.user_home"
+
+# Usernames admitted to restricted-audience plugin mounts (staff and
+# superusers always pass). Deployment DATA, not app logic. Defaults to the
+# fleet-operator allowlist the Agents mount historically admitted, so the
+# operator's account keeps working without Django staff; set
+# SCITEX_HUB_PLUGIN_OPERATORS explicitly to take over.
+SCITEX_HUB_PLUGIN_OPERATORS = [
+    value.strip()
+    for value in os.environ.get(
+        "SCITEX_HUB_PLUGIN_OPERATORS",
+        os.environ.get("SCITEX_AGENT_CONTAINER_LIFECYCLE_OPERATORS", ""),
+    ).split(",")
+    if value.strip()
+]
 
 # Project-scope apps (scitex-stats project-default mode, scitex-ui picker) ask the
 # hub where an AUTHORIZED project's files live and whether this request may write.
@@ -204,14 +224,13 @@ THIRD_PARTY_APPS.append("scitex_ui")
 # lives in _optional_apps.py — including the scitex-cards rename-window
 # shim and the reason it exists. Extracted 2026-08-16.
 THIRD_PARTY_APPS.extend(optional_upstream_apps())
+# Request-scoped plugin credentials never replace the ambient host store.
+PLUGIN_STORE_ROUTE_SECRET_BINDINGS = plugin_store_route_bindings()
+# Existing host apps keep their labels and ordering when plugins are discovered.
 LOCAL_APPS = discover_local_apps()
-# Plugin apps: `pip install <pkg>` with a `scitex.apps` entry point (scitex_app.plugins).
-# LOCAL_APPS ride along as extra label claims (not merged here): a plugin from
-# another package that reuses a local app's label (scitex-clew 0.21.0 claims
-# `clew_app`, same as apps.workspace.clew_app) must be skipped, or
-# django.setup() dies on the duplicate label. Order matters: locals must be
-# discovered BEFORE this call so the guard can see them.
-THIRD_PARTY_APPS = with_plugin_apps(THIRD_PARTY_APPS, extra_claims=LOCAL_APPS)
+THIRD_PARTY_APPS = _with_host_plugin_apps(
+    THIRD_PARTY_APPS, DJANGO_APPS + LOCAL_APPS
+)
 
 INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + LOCAL_APPS
 
@@ -233,14 +252,10 @@ SCITEX_UI_ELEMENT_INSPECTOR = _scitex_hub_env in ("development", "staging")
 
 # Host service for leaf apps' project pickers (scitex_ui.project_scope).
 SCITEX_PROJECT_PROVIDER = (
-    "apps.infra.project_app.services.project_scope.HubProjectProvider"
+    "apps.infra.project_app.services.project_scope.AppAwareHubProjectProvider"
 )
 SCITEX_PROJECT_PROVIDER_URL = "api_project_scope"
-# Where an AUTHORIZED project's files live + per-request write check, for
-# project-scope leaf apps (figrecipe wrapper) via the SDK host capability.
-SCITEX_PROJECT_STORAGE = (
-    "apps.infra.project_app.services.project_scope.HubProjectStorage"
-)
+from .settings_scope import SCITEX_APP_SCOPE_CAPABILITIES
 
 # ── Internal-app release channel ────────────────────────────────────────
 # Whether "internal"-visibility apps (Cards, Storage, todo, …) are released
@@ -283,7 +298,12 @@ ASGI_APPLICATION = "config.asgi.application"
 TEMPLATES = [
     {
         "BACKEND": "django.template.backends.django.DjangoTemplates",
-        "DIRS": [BASE_DIR / "templates"],
+        # SDK UI shell templates (card hub-sdk-ui-shell-bridge-20261007):
+        # scitex_sdk.ui registers in INSTALLED_APPS only when its config
+        # label is the namespaced scitex_sdk_ui (pre-relabel SDKs claiming
+        # scitex_ui stay out: duplicate label). The filesystem loader entry
+        # below covers the unregistered case. [] when not installed.
+        "DIRS": [BASE_DIR / "templates", *optional_sdk_ui_template_dirs()],
         "OPTIONS": {
             "context_processors": [
                 "django.template.context_processors.debug",
@@ -308,6 +328,15 @@ TEMPLATES = [
                 "django.template.loaders.app_directories.Loader",
                 "apps.workspace.apps_app.template_loader.UserAppTemplateLoader",
             ],
+            # SDK UI shell tag library (card hub-sdk-ui-shell-bridge-20261007):
+            # scitex_sdk.ui may or may not be in INSTALLED_APPS (label-gated
+            # registration), so tag discovery cannot be relied on — register
+            # scitex_i18n (also provides {% scitex_js_catalog %}) by Python
+            # path.
+            # Lazy: only imported by templates that {% load %} it.
+            "libraries": {
+                "scitex_i18n": "scitex_sdk.ui.templatetags.scitex_i18n",
+            },
         },
     },
 ]
@@ -432,6 +461,10 @@ EMAIL_USE_TLS = (
 ).lower() == "true"
 EMAIL_HOST_USER = _getenv_alias("SCITEX_HUB_EMAIL_HOST_USER")
 EMAIL_HOST_PASSWORD = _getenv_alias("SCITEX_HUB_EMAIL_HOST_PASSWORD")
+# Fail fast, never hang the request: without this Django SMTP blocks
+# indefinitely on a stalled mail server (observed: signup POST never
+# returned). The signup view already handles send failure gracefully.
+EMAIL_TIMEOUT = int(_getenv_alias("SCITEX_HUB_EMAIL_TIMEOUT", "10") or "10")
 DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
 SERVER_EMAIL = EMAIL_HOST_USER
 

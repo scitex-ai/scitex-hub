@@ -24,7 +24,8 @@ describe("CodeQL JavaScript and template regressions", () => {
     );
     expect(media).not.toMatch(/\.innerHTML\s*=/);
     expect(media).toContain("encodeURIComponent");
-    expect(media).toContain('new Blob([svg], { type: "image/svg+xml;charset=utf-8" })');
+    // SVG MIME, inert image DOM and object-URL cleanup are exercised by
+    // svg-media-blob-behavior.test.ts using the real renderer and Blob.
   });
 
   it("validates sidebar fallback navigation before assigning it", () => {
@@ -65,7 +66,7 @@ describe("CodeQL JavaScript and template regressions", () => {
       "sha384-F/bZzf7p3Joyp5psL90p/p89AZJsndkSoGwRpXcZhleCWhd8SnRuoYo4d0yirjJp",
       "sha384-+ch8x/dgaV//v6Sa8m4v5+7KScnpCuxHqilN8njQ013CEKg3Fbd8Q3oN9tfpouLh",
       "sha384-zbcZAIxlvJtNE3Dp5nxLXdXtXyxwOdnILY1TDPVmKFhl4r4nSUG1r8bcFXGVa4Te",
-      "sha384-cwS6YdhLI7XS60eoDiC+egV0qHp8zI+Cms46R0nbn8JrmoAzV9uFL60etMZhAnSu",
+      "sha384-P0JNneQf81HOl9VwNXK76cQ9VMD6Nfsnepxb0cCOg8+UzEdzgPHAPV4wVQrvYQSx",
     ]) {
       expect(templates).toContain(`integrity="${integrity}"`);
     }

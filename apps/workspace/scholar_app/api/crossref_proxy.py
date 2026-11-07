@@ -14,11 +14,25 @@ from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from rest_framework.throttling import AnonRateThrottle
 
+from ..services.network_jail import build_internal_url, jailed_get_internal
+
 
 class CrossRefAPIThrottle(AnonRateThrottle):
     """Rate limit for CrossRef API: 100 requests per hour"""
 
     rate = "100/hour"
+
+
+class PublicHealthThrottle(AnonRateThrottle):
+    """Rate limit for public health/stats: 10 requests per minute.
+
+    Slice 1: health/stats fan out to the internal crossref-local service,
+    so unthrottled anon access was an amplification vector. Same window
+    as the citation-graph health throttle; behavior change only under
+    flood (429 past the window).
+    """
+
+    rate = "10/minute"
 
 
 def get_crossref_url():
@@ -73,10 +87,11 @@ def search(request):
         cached_data["cached"] = True
         return Response(cached_data)
 
-    # Proxy to internal CrossRef service
+    # Proxy to internal CrossRef service (Slice 1: server-configured base +
+    # jailed internal egress; caller params travel as params only).
     try:
-        url = f"{get_crossref_url()}/api/search/"
-        response = requests.get(url, params=params, timeout=60)
+        url = build_internal_url(get_crossref_url(), "api", "search")
+        response = jailed_get_internal(url, params=params, timeout=60)
         response.raise_for_status()
 
         data = response.json()
@@ -128,10 +143,10 @@ def citations(request):
         cached_data["cached"] = True
         return Response(cached_data)
 
-    # Proxy to internal CrossRef service
+    # Proxy to internal CrossRef service (Slice 1: jailed internal egress).
     try:
-        url = f"{get_crossref_url()}/api/citations/"
-        response = requests.get(url, params=params, timeout=60)
+        url = build_internal_url(get_crossref_url(), "api", "citations")
+        response = jailed_get_internal(url, params=params, timeout=60)
         response.raise_for_status()
 
         data = response.json()
@@ -151,18 +166,22 @@ def citations(request):
 
 @api_view(["GET"])
 @permission_classes([AllowAny])
+@throttle_classes([PublicHealthThrottle])
 def health(request):
     """
-    Health check endpoint (no rate limiting)
+    Health check endpoint.
 
     GET /api/scholar/crossref/health/
+
+    Slice 1: now throttled (10/min) — see PublicHealthThrottle. Single
+    probes are unaffected; only floods see 429.
 
     Example:
         curl "https://scitex.ai/api/scholar/crossref/health/"
     """
     try:
-        url = f"{get_crossref_url()}/health"
-        response = requests.get(url, timeout=5)
+        url = build_internal_url(get_crossref_url(), "health", trailing_slash=False)
+        response = jailed_get_internal(url, timeout=5)
         response.raise_for_status()
 
         data = response.json()
@@ -178,18 +197,22 @@ def health(request):
 
 @api_view(["GET"])
 @permission_classes([AllowAny])
+@throttle_classes([PublicHealthThrottle])
 def stats(request):
     """
-    Get database statistics (no rate limiting)
+    Get database statistics.
 
     GET /api/scholar/crossref/stats/
+
+    Slice 1: now throttled (10/min) — see PublicHealthThrottle. Single
+    probes are unaffected; only floods see 429.
 
     Example:
         curl "https://scitex.ai/api/scholar/crossref/stats/"
     """
     try:
-        url = f"{get_crossref_url()}/api/stats/"
-        response = requests.get(url, timeout=5)
+        url = build_internal_url(get_crossref_url(), "api", "stats")
+        response = jailed_get_internal(url, timeout=5)
         response.raise_for_status()
 
         return Response(response.json())

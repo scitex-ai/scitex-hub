@@ -18,6 +18,8 @@ Exports all view functions for URL routing.
 # API and developer pages
 from .api import (
     api_docs,
+    api_docs_catalog,
+    api_docs_skill,
     api_docs_download,
     api_docs_section,
     releases_view,
@@ -56,6 +58,7 @@ from .pages import (
     about,
     contributors,
     demos,
+    funding_manifest,
     fundraising,
     keyboard_shortcuts,
     open_source,
@@ -103,6 +106,7 @@ __all__ = [
     "internal_demo_media",
     "publications",
     "fundraising",
+    "funding_manifest",
     "pricing",
     "services",
     "security",
@@ -138,6 +142,7 @@ __all__ = [
     "versions_api",
     # API
     "api_docs",
+    "api_docs_catalog",
     "api_docs_section",
     "api_docs_download",
     "scitex_api_keys",

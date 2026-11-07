@@ -51,7 +51,7 @@ def gettext_noop(message):
 
 
 # Core branding
-SITE_NAME = "SciTeX™"
+SITE_NAME = "SciTeX®"
 # The tagline is TWO lines: the promise, then what SciTeX is. Both are shown
 # together wherever the brand introduces itself (the landing hero), so they are
 # defined together here rather than one in a template and one in Python.
@@ -217,6 +217,16 @@ FAVICON_BY_ENV = {
     ENV_DEVELOPMENT: f"{_ICON_DIR}/scitex-icon-white-bg-navy.svg",
 }
 
+# Header logo, theme-aware (operator 2026-10-26): the LIGHT variant is the
+# same env favicon; the DARK variant is the gold-CTA disc (white snake on
+# --stx-gold) for every environment — brand-consistent in dark mode.
+# Templates render both and CSS keys off html[data-theme].
+FAVICON_DARK_BY_ENV = {
+    ENV_PRODUCTION: f"{_ICON_DIR}/scitex-icon-white-bg-gold.svg",
+    ENV_STAGING: f"{_ICON_DIR}/scitex-icon-white-bg-gold.svg",
+    ENV_DEVELOPMENT: f"{_ICON_DIR}/scitex-icon-white-bg-gold.svg",
+}
+
 
 def favicon_for_env(env):
     """Return the static-relative favicon path for ``env``.
@@ -224,6 +234,11 @@ def favicon_for_env(env):
     Raises ``ValueError`` on an unknown environment (see ``normalize_env``).
     """
     return FAVICON_BY_ENV[normalize_env(env)]
+
+
+def favicon_dark_for_env(env):
+    """Return the dark-mode header-logo path for ``env`` (gold CTA disc)."""
+    return FAVICON_DARK_BY_ENV[normalize_env(env)]
 
 
 # ---------------------------------------------------------------------------
@@ -260,11 +275,14 @@ APP_NAMES = {
     "/apps/figrecipe/": "FigRecipe",
     "/apps/console/": "Console",
     "/apps/cards/": "Cards",
-    "/apps/agents/": "Agents",
+    "/apps/agent-container/": "Agent Container",
     "/apps/llm/": "LLM",
     "/apps/comms/": "Comms",
     "/apps/storage/": "Storage",
     "/apps/stats/": "Stats",
+    "/apps/sdk/": "SDK",
+    "/apps/live-paper/": "Live Paper",
+    "/apps/agentic-journal/": "Agentic Journal",
     "/apps/files/": "Files",
     "/apps/clew/": "Clew",
     "/apps/public-projects/": "Public Projects",
@@ -274,8 +292,15 @@ APP_NAMES = {
     "/apps/my-projects/": "My Projects",
 }
 
+# These app tabs identify the tool, not the ambient project selection.
+# This title-only policy does not change project scoping or permissions.
+APP_TITLE_ONLY_PREFIXES = (
+    "/apps/storage/", "/apps/stats/", "/apps/figrecipe/", "/apps/sdk/",
+)
+
 # Hub sections that are not products, but still need a stable tab label.
 SECTION_NAMES = {
+    "/docs/web-api/": "Web API",
     "/status/": "Status",
     "/explore/": "Explore",
     "/social/explore/": "Explore",
@@ -314,14 +339,20 @@ ACCOUNT_PAGE_NAMES = {
 
 # Paths whose tab must never borrow the AMBIENT project (current_project /
 # project from context processors). An explicit page_title_detail from a view
-# still applies. The console is a shell, not a project view.
+# still applies. The console is a shell, not a project view. The
+# agent-container dashboard is a fleet view, not a project view: its detail
+# pages are agents (e.g. /apps/agent-container/dotfiles/), so the ambient
+# project leaked into the tab ("dotfiles — SciTeX …") while naming nothing
+# the page is about. Operator report 2026-10-31.
 NON_PROJECT_PREFIXES = (
+    "/docs/web-api/",
     "/accounts/",
     "/auth/",
     "/new/",
     "/console/",
     "/apps/console/",
     "/apps/workspace/console/",
+    "/apps/agent-container/",
 )
 
 # Everything that can name a tab. Apps win over sections on an exact tie;
@@ -396,7 +427,7 @@ def page_title(app=None, detail=None, *, env, mode=MODE_HUB):
         mode: one of ``KNOWN_MODES``; defaults to hub-embedded.
 
     Returns:
-        e.g. ``"my-project · Writer — SciTeX (dev)"``.
+        e.g. ``"my-project · Writer (dev)"``.
     """
     marker = title_marker(env, mode)
     brand = f"{SITE_NAME} ({marker})" if marker else SITE_NAME
@@ -404,4 +435,6 @@ def page_title(app=None, detail=None, *, env, mode=MODE_HUB):
     lead = [part for part in (detail, app) if part]
     if not lead:
         return brand
-    return DETAIL_SEPARATOR.join(lead) + TITLE_SEPARATOR + brand
+    # App/page titles identify the content; the site brand belongs in chrome.
+    suffix = f" ({marker})" if marker else ""
+    return DETAIL_SEPARATOR.join(lead) + suffix

@@ -1,0 +1,49 @@
+name: scitex-sdk-ui-lint
+
+# SDK drift pack gate (STX-UI108/109/110/111, warning-tier SSOT rules):
+# leaf-local headers, hub manifest label/icon drift, launcher hardcoded
+# icons, unconditional !important vs @media. Fails the run on any gated
+# violation in the fixed trees. UI-110 hub-native tiles (chat/settings)
+# carry the explicit `"hub_native": true` escape hatch per SDK ruling;
+# create-app resolves its glyph from the SDK creator manifest at render
+# time. Older UI-101..107 rows are grandfathered (counted, informational).
+#
+# SCOPE (regression gate, widened as lanes comply): the pack measured
+# writer + launcher rows as hub-side work, so the gate lints exactly the
+# fixed trees. Whole-tree UI108 cannot pass yet — dozens of document
+# pages (legal/landing/docs) carry legitimate semantic <header> elements,
+# and scholar/docs/pricing carry !importants their lanes still own.
+# Widen the TARGET list as each lane clears its rows.
+#
+# Use the published SDK artifact that provides the enforced drift rules.
+
+on:
+  push:
+    branches: [develop, main]
+    paths:
+      - "apps/**"
+      - "static/**"
+      - "templates/**"
+      - ".github/workflows/scitex-sdk-ui-lint.yml"
+  pull_request:
+    paths:
+      - "apps/**"
+      - "static/**"
+      - "templates/**"
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  ui-lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install scitex-sdk (drift-pack rules source)
+        run: pip install "scitex-sdk==0.3.19"
+      - name: Lint fixed trees (UI108/109/110/111 enforced)
+        run: python .github/ci/check_sdk_ui_rules.py

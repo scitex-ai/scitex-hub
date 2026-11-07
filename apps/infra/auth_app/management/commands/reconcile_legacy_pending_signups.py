@@ -128,6 +128,7 @@ class Command(BaseCommand):
                 email=user.email,
                 reconciled_at=timezone.now(),
                 reconciled_by=reconciled_by,
+                plan="subscription-free",
             )
             self.stdout.write(f"  reconciled {user_id} ({user.username})")
             return ("reconciled", f"{user_id} ({user.username})")

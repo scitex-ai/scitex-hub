@@ -1,0 +1,13 @@
+{% extends "global_base.html" %}
+{% load static i18n %}
+{% block extra_css %}<link rel="stylesheet" href="{% static 'public_app/css/api-docs.css' %}" />{% endblock %}
+{% block content %}
+<div class="container py-2">
+    <p><a href="/docs/web-api/?package={{ skill.owner|urlencode }}">{% trans "Back to this package's interface documentation" %}</a></p>
+    <h1>{{ skill.namespace }}/{{ skill.name }}</h1>
+    <p>{% trans "Installed leaf guidance" %}: <code>{{ skill.owner }}</code> {{ skill.version }}</p>
+    <p>{% trans "Source-owned documentation, not proof of an enabled or responding API. No handler or model was called to render this resource." %}</p>
+    <details><summary>{% trans "Resource fingerprint" %}</summary><code>{{ skill.sha256 }}</code></details>
+    <pre class="code-block">{{ skill.content }}</pre>
+</div>
+{% endblock %}

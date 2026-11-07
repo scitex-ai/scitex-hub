@@ -128,10 +128,10 @@ function checkSearchCompletion(): void {
     // Show no results message if empty
     if (totalResults === 0) {
       showNoResultsMessage(currentSearchQuery);
-    } else {
-      // Select all papers by default after search completes
-      toggleSelectAll(true);
     }
+    // NOTE: results stay UNCHECKED by default. The user explicitly selects
+    // via the "Select all" toolbar button (or Ctrl+A) and then saves.
+    // Auto-selecting everything caused accidental bulk saves.
   }
 }
 

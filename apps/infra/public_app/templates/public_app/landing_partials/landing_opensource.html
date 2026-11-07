@@ -1,0 +1,119 @@
+{% load i18n static landing_i18n %}
+{% landing_github_repositories as github_snapshot %}
+{# Initial source fallback; the anonymous cached endpoint refreshes visible counts. #}
+<section class="landing-v2-section landing-v2-oss" id="open-source" data-github-counts-url="{% url 'public_app:landing-github-counts' %}" aria-labelledby="landing-v2-oss-title">
+    <span id="github" class="landing-section-alias" aria-hidden="true"></span>
+    <div class="container landing-v2-shell">
+        <div class="landing-v2-intro">
+            <div>
+                <p class="landing-v2-eyebrow"><a class="landing-v2-section-label" href="#open-source"><i class="fa-solid fa-link" aria-hidden="true"></i> {% trans "Open source" %}</a></p>
+                <h2 id="landing-v2-oss-title">{% trans "Open source, throughout the stack" %}</h2>
+            </div>
+        </div>
+        <div class="landing-oss-orgrow">
+            <a class="landing-v2-button landing-v2-button-primary"
+               href="https://github.com/scitex-ai"
+               target="_blank"
+               rel="noopener noreferrer"><i class="fab fa-github" aria-hidden="true"></i> {% trans "Explore scitex-ai on GitHub" %}<span aria-hidden="true">↗</span></a>
+            <a class="landing-v2-button"
+               href="{% url 'public_app:open_source' %}">{% trans "Why open source matters for research" %}<span aria-hidden="true">→</span></a>
+        </div>
+        <div class="stx-content-tabs landing-oss-tabs" role="tablist" aria-label="{% trans 'Source repositories' %}" data-oss-tabs hidden>
+            {% for group in github_snapshot.groups %}
+                <button type="button" class="stx-content-tabs__tab" role="tab" id="landing-oss-tab-{{ forloop.counter }}" aria-controls="landing-oss-panel-{{ forloop.counter }}" aria-selected="{% if forloop.first %}true{% else %}false{% endif %}" tabindex="{% if forloop.first %}0{% else %}-1{% endif %}">{% trans group.label %}</button>
+            {% endfor %}
+        </div>
+        {% for group in github_snapshot.groups %}
+            <div class="landing-oss-group" id="landing-oss-panel-{{ forloop.counter }}" data-oss-panel>
+                <h3>{% trans group.label %}</h3>
+                <ul class="landing-oss-packages">
+                    {% for repo in group.cards %}
+                        <li data-github-repo="{{ repo.name }}">
+                            <h4>{{ repo.name }}</h4>
+                            {% if repo.description %}<p>{{ repo.description }}</p>{% endif %}
+                            <div class="landing-oss-counts">
+                                <a class="landing-oss-repo-link" href="{{ repo.url }}" target="_blank" rel="noopener noreferrer" title="{% trans 'View on GitHub' %}" aria-label="{% trans 'View on GitHub' %}: {{ repo.name }}"><i class="fab fa-github" aria-hidden="true"></i> GitHub</a>
+                                <a data-github-count-link data-github-label="{% trans 'stars' %}" title="{% trans 'stars' %}" aria-label="{{ repo.stars }} {% trans 'stars' %}: {{ repo.name }}" href="{{ repo.url }}/stargazers" target="_blank" rel="noopener noreferrer" {% if not repo.available %}hidden{% endif %}><i class="far fa-star" aria-hidden="true"></i> <span data-github-stars>{{ repo.stars|default_if_none:"—" }}</span> <span data-github-count-label>{% trans "stars" %}</span></a>
+                                <a data-github-count-link data-github-label="{% trans 'forks' %}" title="{% trans 'forks' %}" aria-label="{{ repo.forks }} {% trans 'forks' %}: {{ repo.name }}" href="{{ repo.url }}/forks" target="_blank" rel="noopener noreferrer" {% if not repo.available %}hidden{% endif %}><i class="fas fa-code-branch" aria-hidden="true"></i> <span data-github-forks>{{ repo.forks|default_if_none:"—" }}</span> <span data-github-count-label>{% trans "forks" %}</span></a>
+                                <span data-github-unavailable {% if repo.available %}hidden{% endif %}>{% trans "Counts unavailable" %}</span>
+                            </div>
+                        </li>
+                    {% endfor %}
+                </ul>
+            </div>
+        {% endfor %}
+
+    </div>
+</section>
+<style>
+    .landing-v2-oss .landing-v2-intro { display: block; margin-bottom: 1.25rem; }
+    .landing-v2-oss .landing-v2-intro h2 { max-width: none; }
+    .landing-oss-tabs { margin-bottom: 1rem; }
+    .landing-oss-tabs > .stx-content-tabs__tab { flex: 1 1 0; }
+    .landing-oss-tabs[hidden], .landing-oss-group[hidden], .landing-oss-group > h3[hidden] { display: none; }
+    .landing-oss-orgrow {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.75rem;
+        margin: 1.25rem 0 2rem;
+    }
+    .landing-oss-packages {
+        list-style: none;
+        padding: 0;
+        margin: 0 0 3rem;
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+        gap: 1rem;
+    }
+    .landing-oss-packages li {
+        display: flex;
+        flex-direction: column;
+        border: 1px solid var(--border-default);
+        border-radius: 8px;
+        padding: 1rem 1.25rem;
+        background: var(--bg-secondary);
+    }
+    .landing-oss-packages h4 {
+        margin: 0 0 0.5rem;
+        font-size: 1.05rem;
+        overflow-wrap: anywhere;
+    }
+    .landing-oss-packages p {
+        margin: 0 0 0.75rem;
+        color: var(--text-secondary);
+        font-size: 0.95rem;
+        line-height: 1.6;
+    }
+    .landing-oss-counts [hidden] { display: none; }
+    .landing-oss-counts {
+        display: flex;
+        gap: 0.4rem;
+        margin-top: auto;
+        padding-top: 0.75rem;
+        align-items: center;
+        justify-content: space-between;
+        flex-wrap: nowrap;
+    }
+    .landing-oss-counts a {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.35rem;
+        min-height: 44px;
+        min-width: 44px;
+        text-decoration: none;
+    }
+    .landing-oss-counts a { white-space: nowrap; }
+    .landing-oss-packages a {
+        overflow-wrap: anywhere;
+        font-family: var(--font-mono);
+        font-size: 0.85rem;
+    }
+
+    .landing-oss-packages .landing-oss-counts { gap: 4px; }
+    .landing-oss-packages .landing-oss-counts a {
+        font-family: var(--base-font-family, sans-serif);
+        font-size: 12px;
+        gap: 3px;
+    }
+</style>

@@ -1,0 +1,62 @@
+{
+  "schema": "scitex-clew.claims/v1",
+  "claims": [
+    {
+      "claim_id": "mnist_logreg_accuracy",
+      "file_path": "manuscript.pdf",
+      "line_number": 3,
+      "claim_type": "statistic",
+      "claim_value": "logistic regression test accuracy = 0.8825",
+      "source_session": "sess_train",
+      "source_file": "examples/make_example_project_mnist.py",
+      "source_hash": null,
+      "registered_at": "2026-10-24T07:39:07Z",
+      "verified_at": null,
+      "status": "registered",
+      "anchor": {
+        "page": 3,
+        "bbox": [
+          91.8,
+          435.6,
+          306.0,
+          673.2
+        ]
+      }
+    },
+    {
+      "claim_id": "mnist_knn_accuracy",
+      "file_path": "manuscript.pdf",
+      "line_number": 3,
+      "claim_type": "statistic",
+      "claim_value": "kNN(k=5) test accuracy = 0.8910",
+      "source_session": "sess_train",
+      "source_file": "examples/make_example_project_mnist.py",
+      "source_hash": null,
+      "registered_at": "2026-10-24T07:39:07Z",
+      "verified_at": null,
+      "status": "registered",
+      "anchor": {
+        "page": 3,
+        "bbox": [
+          306.0,
+          435.6,
+          520.2,
+          673.2
+        ]
+      }
+    },
+    {
+      "claim_id": "mnist_model_comparison",
+      "file_path": "manuscript.pdf",
+      "line_number": 1,
+      "claim_type": "value",
+      "claim_value": "logreg minus kNN accuracy = -0.0085 on 2000 held-out images",
+      "source_session": "sess_train",
+      "source_file": "examples/make_example_project_mnist.py",
+      "source_hash": null,
+      "registered_at": "2026-10-24T07:39:07Z",
+      "verified_at": null,
+      "status": "registered"
+    }
+  ]
+}

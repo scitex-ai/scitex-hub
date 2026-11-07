@@ -12,13 +12,20 @@ from apps.infra.project_app.services.project_filesystem import (
 from apps.infra.project_app.services.writer_workspace_layout import (
     get_manuscript_path,
 )
+from tests.apps.workspace.writer_app._old_direct_gate import (
+    writer_old_direct_urls,
+)
 
 pytestmark = pytest.mark.django_db
 
 
 def _status_for(client, project):
-    url = reverse("writer_app:api_manuscript_status", args=[project.id])
-    return client.get(url).json()
+    # CUTOVER: the hub manuscript-status route lives ONLY at old-direct in
+    # dev now (same view, same assertions — only the prefix moved; the gate
+    # reloads the real root urlconf because the suite runs prod-shaped).
+    with writer_old_direct_urls():
+        url = reverse("writer_app:api_manuscript_status", args=[project.id])
+        return client.get(url).json()
 
 
 @pytest.fixture

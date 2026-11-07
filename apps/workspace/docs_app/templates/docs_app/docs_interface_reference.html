@@ -1,0 +1,10 @@
+{% extends base_template|default:"global_base.html" %}
+{% load static %}
+{% block content %}
+<link rel="stylesheet" href="{% static 'public_app/css/api-docs.css' %}" />
+<div class="container py-2">
+<p role="status">This historical documentation section does not certify a leaf API or MCP implementation. Use installed provider declarations and leaf documentation below.</p>
+<p><a href="/docs/web-api/">Open the shared interface documentation dispatcher</a></p>
+{% include "docs_app/partials/interface_architecture.html" %}
+</div>
+{% endblock %}

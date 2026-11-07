@@ -27,16 +27,16 @@ def app_check_deps(app_dir) -> None:
 
     manifest = Path(app_dir) / "manifest.json"
     if not manifest.is_file():
-        console.print("[red]No manifest.json found[/red]")
+        console.error("[red]No manifest.json found[/red]")
         raise SystemExit(1)
 
     missing = check_deps_from_manifest(manifest)
     report = format_missing_report(missing)
     if missing:
-        console.print(f"[yellow]{report}[/yellow]")
+        console.warning(f"[yellow]{report}[/yellow]")
         raise SystemExit(1)
     else:
-        console.print(f"[green]{report}[/green]")
+        console.success(f"[green]{report}[/green]")
 
 
 @app.command("install-deps")
@@ -62,7 +62,7 @@ def app_install_deps(app_dir, dep_type, dry_run, yes) -> None:
 
     manifest_path = Path(app_dir) / "manifest.json"
     if not manifest_path.is_file():
-        console.print("[red]No manifest.json found[/red]")
+        console.error("[red]No manifest.json found[/red]")
         raise SystemExit(1)
 
     if dry_run:
@@ -78,18 +78,18 @@ def app_install_deps(app_dir, dep_type, dry_run, yes) -> None:
     )
 
     manifest = _json.loads(manifest_path.read_text(encoding="utf-8"))
-    console.print(f"[cyan]Installing {dep_type} dependencies...[/cyan]")
+    console.info(f"[cyan]Installing {dep_type} dependencies...[/cyan]")
 
     result = install_deps(manifest, dep_type)
 
     if result["success"]:
         installed = result.get("installed", [])
         if installed:
-            console.print(f"[green]Installed:[/green] {', '.join(installed)}")
+            console.success(f"[green]Installed:[/green] {', '.join(installed)}")
         else:
-            console.print("[green]No dependencies to install.[/green]")
+            console.success("[green]No dependencies to install.[/green]")
     else:
-        console.print(f"[red]Failed:[/red] {result['error']}")
+        console.error(f"[red]Failed:[/red] {result['error']}")
         raise SystemExit(1)
 
 
@@ -129,14 +129,14 @@ def app_build_container(app_dir, output_dir, dry_run, yes) -> None:
         f"Build Apptainer container from {target}?", yes=yes, dry_run=dry_run
     )
 
-    console.print(f"[cyan]Building container from:[/cyan] {target}")
+    console.info(f"[cyan]Building container from:[/cyan] {target}")
 
     result = build_container(target, output_dir=out)
 
     if result["success"]:
-        console.print(f"[green]Built:[/green] {result['sif_path']}")
+        console.success(f"[green]Built:[/green] {result['sif_path']}")
     else:
-        console.print(f"[red]Failed:[/red] {result['error']}")
+        console.error(f"[red]Failed:[/red] {result['error']}")
         raise SystemExit(1)
 
 

@@ -147,10 +147,19 @@ class TestRememberCurrentProject:
 class TestWriterOpensTheProjectYouCameFrom:
     def test_writer_page_uses_referer_project(self, client, owner, last_used, came_from):
         # Arrange
-        client.force_login(owner)
-        # Act
-        response = client.get(
-            "/apps/writer/", HTTP_REFERER="http://testserver/hinted/sleep-study/"
+        from tests.apps.workspace.writer_app._old_direct_gate import (
+            writer_old_direct_urls,
         )
+
+        client.force_login(owner)
+        # Act (CUTOVER: the hub writer page lives ONLY at old-direct in
+        # dev now — /apps/writer/ serves the leaf, which renders no
+        # current_project context. Same view, same assertions, only the
+        # prefix moved.)
+        with writer_old_direct_urls():
+            response = client.get(
+                "/apps/writer/old-direct/",
+                HTTP_REFERER="http://testserver/hinted/sleep-study/",
+            )
         # Assert
         assert response.context["current_project"] == came_from

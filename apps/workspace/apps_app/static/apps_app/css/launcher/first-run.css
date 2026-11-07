@@ -200,3 +200,17 @@
     right: 4px;
   }
 }
+
+/* Density (2026-09-25): finished steps keep their check + count in the
+   summary, but collapse to a slim single-line row so the remaining steps
+   dominate. */
+.first-run-step--done {
+  padding-top: 1px;
+  padding-bottom: 1px;
+  font-size: 0.85em;
+}
+.first-run-step--done .first-run-marker {
+  width: 18px;
+  height: 18px;
+  font-size: 9px;
+}

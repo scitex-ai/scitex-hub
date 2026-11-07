@@ -18,13 +18,14 @@ from __future__ import annotations
 
 import hashlib
 import json
-import logging
 import subprocess
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from pathlib import Path
 
-logger = logging.getLogger(__name__)
+import scitex_logging as slogging
+
+logger = slogging.getLogger(__name__)
 
 SYNC_STATE_FILE = ".scitex-sync-state.json"
 EXCLUDES = {".git", "__pycache__", "node_modules", ".venv", SYNC_STATE_FILE}

@@ -320,9 +320,15 @@ def get_related_papers(request, service=None):
 
 @api_view(["GET"])
 @permission_classes([AllowAny])
+@throttle_classes([CitationGraphThrottle])
 def paper_summary(request):
     """
-    Get summary information for a paper (no rate limiting - simple lookup).
+    Get summary information for a paper.
+
+    Slice 1: now throttled (CitationGraphThrottle, 50/hour) — this was
+    the only citation-graph endpoint with no throttle ("simple lookup"),
+    and unthrottled anon access to a DB/cache-backed lookup is a flood
+    vector. Single lookups are unaffected; only floods see 429.
 
     GET /api/scholar/citation-graph/paper/
 
@@ -377,6 +383,14 @@ def paper_summary(request):
 @throttle_classes([HealthCheckThrottle])
 def health(request):
     """Delegate the optional capability report to its owning Scholar package.
+
+    Initial page load reports configuration without constructing a backend.
+    ``?probe=1`` retains Scholar's explicit, sanitized live-probe contract.
+    Hub keeps its existing method, permission, and rate-limit boundary.
+
+    Rate limited to 10 requests/minute to prevent flood attacks.
+
+    GET /api/scholar/citation-graph/health/
 
     Initial page load reports configuration without constructing a backend.
     ``?probe=1`` retains Scholar's explicit, sanitized live-probe contract.

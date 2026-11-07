@@ -2,7 +2,8 @@
 <header class="stx-leaf-site-header" data-leaf-site-header>
     <div class="stx-leaf-site-header-inner">
         <a href="/apps/" class="stx-leaf-site-header-logo" title="{% trans 'Home' %}" aria-label="{% trans 'Home' %}">
-            <img src="{% static SCITEX_FAVICON %}" alt="SciTeX" width="36" height="36" />
+            <img src="{% static SCITEX_FAVICON %}" alt="SciTeX" width="36" height="36" class="stx-leaf-logo-img stx-leaf-logo-img--light" />
+            <img src="{% static SCITEX_FAVICON_DARK %}" alt="" aria-hidden="true" width="36" height="36" class="stx-leaf-logo-img stx-leaf-logo-img--dark" />
         </a>
         {% if leaf_app_title %}<span class="stx-leaf-site-header-title">{{ leaf_app_title }}</span>{% endif %}
     </div>

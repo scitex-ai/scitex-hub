@@ -152,7 +152,10 @@ def mcp_doctor():
         click.echo("  [OK] pyyaml installed")
     except ImportError:
         click.echo("  [WARN] pyyaml not installed (needed for gitea delete)")
-        click.echo("         Fix: pip install scitex-hub[mcp]")
+        # PS-233: the extra that actually ships PyYAML is `[all]`; the old
+        # `scitex-hub[mcp]` hint named an extra that no longer exists, so the
+        # advice could not be followed.
+        click.echo("         Fix: pip install 'scitex-hub[all]'")
 
     click.echo()
 

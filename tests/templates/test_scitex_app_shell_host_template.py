@@ -2,7 +2,7 @@
 
 scitex-agent-container's dashboard templates start with
 ``{% extends "scitex_app/app_shell.html" %}``. The hub is the host, so the hub
-must ship that template; when it did not, /apps/agents/ returned 500 for staff
+must ship that template; when it did not, /apps/agent-container/ returned 500 for staff
 on the dev server (2026-09-14) while anonymous and non-operator requests looked
 healthy (302 / 403), because neither of those reaches a template.
 """

@@ -5,6 +5,11 @@
  * Reads initial state from data-active-doc attribute on .docs-workspace.
  */
 
+import createDOMPurify from "dompurify";
+
+// Printing has its own sanitizer instance, independent of other app hooks.
+const printSanitizer = createDOMPurify(window);
+
 // ── Types & Constants ────────────────────────────────────────
 
 interface SectionInfo {
@@ -124,6 +129,112 @@ function teardownScrollspy(): void {
   }
 }
 
+// ── Mobile Cascade Nav (section → page dropdowns) ─────────
+// Two labeled <select>s rendered server-side from docs_sections (same
+// DOCS_PAGES source as the sidebar). Level 1 picks the section, level 2
+// lists pages within it. Desktop keeps the sidebar; CSS shows this nav
+// ≤767px only.
+
+interface CascadePage {
+  value: string;
+  label: string;
+}
+
+const cascadePagesBySection = new Map<string, CascadePage[]>();
+const cascadeSectionBySlug = new Map<string, string>();
+
+function snapshotCascadeOptions(pageSelect: HTMLSelectElement): void {
+  cascadePagesBySection.clear();
+  cascadeSectionBySlug.clear();
+  pageSelect.querySelectorAll("optgroup").forEach((group) => {
+    const key = group.getAttribute("data-section") ?? "";
+    if (!key) return;
+    const pages: CascadePage[] = [];
+    group.querySelectorAll("option").forEach((opt) => {
+      pages.push({
+        value: opt.value,
+        label: opt.textContent?.trim() ?? opt.value,
+      });
+      cascadeSectionBySlug.set(opt.value, key);
+    });
+    cascadePagesBySection.set(key, pages);
+  });
+}
+
+function populateCascadePages(
+  sectionSelect: HTMLSelectElement,
+  pageSelect: HTMLSelectElement,
+  sectionKey: string,
+): void {
+  const pages = cascadePagesBySection.get(sectionKey) ?? [];
+  pageSelect.textContent = "";
+  pages.forEach((page) => {
+    const opt = document.createElement("option");
+    opt.value = page.value;
+    opt.textContent = page.label;
+    pageSelect.appendChild(opt);
+  });
+  pageSelect.disabled = pages.length === 0;
+}
+
+/** Keep both dropdowns in sync with the currently displayed doc page. */
+function syncMobileCascade(slug: string): void {
+  const sectionSelect = document.getElementById(
+    "docs-mobile-section",
+  ) as HTMLSelectElement | null;
+  const pageSelect = document.getElementById(
+    "docs-mobile-page",
+  ) as HTMLSelectElement | null;
+  if (!sectionSelect || !pageSelect || !cascadePagesBySection.size) return;
+  const sectionKey = cascadeSectionBySlug.get(slug);
+  if (!sectionKey) return;
+  if (sectionSelect.value !== sectionKey) {
+    sectionSelect.value = sectionKey;
+    populateCascadePages(sectionSelect, pageSelect, sectionKey);
+  }
+  if (pageSelect.value !== slug) pageSelect.value = slug;
+}
+
+function initMobileCascade(
+  contentArea: HTMLElement,
+  sidebar: Element,
+  navItems: NodeListOf<HTMLAnchorElement>,
+): void {
+  const sectionSelect = document.getElementById(
+    "docs-mobile-section",
+  ) as HTMLSelectElement | null;
+  const pageSelect = document.getElementById(
+    "docs-mobile-page",
+  ) as HTMLSelectElement | null;
+  if (!sectionSelect || !pageSelect) return;
+
+  snapshotCascadeOptions(pageSelect);
+  // Flatten to the active section's pages on init (optgroups are only the
+  // no-JS fallback carrying the full section → page map).
+  const initialSection =
+    sectionSelect.value || sectionSelect.options[0]?.value || "";
+  if (initialSection) {
+    populateCascadePages(sectionSelect, pageSelect, initialSection);
+    if (currentSlug) pageSelect.value = currentSlug;
+  }
+
+  sectionSelect.addEventListener("change", () => {
+    const key = sectionSelect.value;
+    populateCascadePages(sectionSelect, pageSelect, key);
+    // Cascade: selecting a section navigates to its first page.
+    const first = cascadePagesBySection.get(key)?.[0];
+    if (first) {
+      loadDocPage(first.value, undefined, contentArea, sidebar, navItems);
+    }
+  });
+
+  pageSelect.addEventListener("change", () => {
+    if (pageSelect.value) {
+      loadDocPage(pageSelect.value, undefined, contentArea, sidebar, navItems);
+    }
+  });
+}
+
 // ── Export Helpers ────────────────────────────────────────────
 
 function openPrintWindow(html: string): void {
@@ -138,7 +249,7 @@ function openPrintWindow(html: string): void {
   const s = doc.createElement("style");
   s.textContent = PRINT_CSS;
   doc.head.appendChild(s);
-  doc.body.innerHTML = html;
+  doc.body.innerHTML = printSanitizer.sanitize(html, { USE_PROFILES: { html: true } });
   win.print();
 }
 
@@ -154,13 +265,13 @@ function injectSectionExportButtons(
     '<button class="docs-export-btn docs-dropdown-toggle">' +
     '<i class="fas fa-download"></i> Download</button>' +
     '<div class="docs-dropdown-menu">' +
-    '<a href="/apps/docs/export/' +
-    slug +
-    '/" class="docs-dropdown-item">' +
+    '<a class="docs-dropdown-item">' +
     '<i class="fas fa-file-alt"></i> .md</a>' +
     '<button class="docs-dropdown-item docs-section-pdf-btn">' +
     '<i class="fas fa-file-pdf"></i> .pdf</button>' +
     "</div></div>";
+  bar.querySelector<HTMLAnchorElement>("a.docs-dropdown-item")!.href =
+    "/apps/docs/export/" + encodeURIComponent(slug) + "/";
   const pdfBtn = bar.querySelector<HTMLButtonElement>(".docs-section-pdf-btn");
   if (pdfBtn) {
     pdfBtn.onclick = () => openPrintWindow(contentArea.innerHTML);
@@ -191,10 +302,13 @@ function loadDocPage(
     item.classList.toggle("active", item.dataset.docSlug === slug);
   });
 
+  // Keep the mobile cascade dropdowns (section → page) in sync
+  syncMobileCascade(slug);
+
   // Show loading
   contentArea.style.opacity = "0.5";
 
-  let url = "/apps/docs/content/" + slug + "/";
+  let url = "/apps/docs/content/" + encodeURIComponent(slug) + "/";
   if (sphinxPage) url += "?page=" + encodeURIComponent(sphinxPage);
 
   fetch(url, {
@@ -214,9 +328,9 @@ function loadDocPage(
         .querySelectorAll<HTMLLinkElement>('link[rel="stylesheet"]')
         .forEach((link) => {
           if (
-            !document.querySelector(
-              'link[href="' + link.getAttribute("href") + '"]',
-            )
+            !Array.from(
+              document.head.querySelectorAll<HTMLLinkElement>('link[rel="stylesheet"]'),
+            ).some((existing) => existing.href === link.href)
           ) {
             document.head.appendChild(link.cloneNode(true));
           }
@@ -261,10 +375,12 @@ function loadDocPage(
       }
     })
     .catch((err: Error) => {
-      contentArea.innerHTML =
-        '<div class="docs-error"><i class="fas fa-exclamation-triangle"></i> ' +
-        err.message +
-        "</div>";
+      const error = document.createElement("div");
+      error.className = "docs-error";
+      const icon = document.createElement("i");
+      icon.className = "fas fa-exclamation-triangle";
+      error.append(icon, document.createTextNode(" " + err.message));
+      contentArea.replaceChildren(error);
       contentArea.style.opacity = "1";
     });
 }
@@ -388,7 +504,7 @@ function downloadSelectedMd(): void {
 function downloadSelectedPdf(navItems: NodeListOf<HTMLAnchorElement>): void {
   const slugs = Array.from(selectedSlugs);
   const fetches = slugs.map((s) =>
-    fetch("/apps/docs/content/" + s + "/", {
+    fetch("/apps/docs/content/" + encodeURIComponent(s) + "/", {
       headers: { "X-Requested-With": "XMLHttpRequest" },
     }).then((r) => r.text()),
   );
@@ -419,13 +535,16 @@ function initDocsWorkspace(): void {
   // Dropdown toggles
   initDropdowns();
 
+  // Mobile cascade nav (section → page selects)
+  initMobileCascade(contentArea, sidebar, navItems);
+
   // Global "All PDF" button
   const allPdfBtn = document.getElementById("docs-export-all-pdf");
   if (allPdfBtn) {
     allPdfBtn.onclick = () => {
       const slugs = Array.from(navItems).map((i) => i.dataset.docSlug ?? "");
       const fetches = slugs.map((s) =>
-        fetch("/apps/docs/content/" + s + "/", {
+        fetch("/apps/docs/content/" + encodeURIComponent(s) + "/", {
           headers: { "X-Requested-With": "XMLHttpRequest" },
         }).then((r) => r.text()),
       );

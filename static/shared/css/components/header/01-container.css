@@ -11,6 +11,13 @@
   position: sticky;
   top: 0;
   z-index: 1000;
+  /* Breathing room between the header and the page below, on every page
+     (operator 2026-09-27). Workspace pages manage their own gaps. */
+  margin-bottom: 12px;
+}
+
+body.workspace-page .global-header {
+  margin-bottom: 0;
 }
 
 .global-header::before {

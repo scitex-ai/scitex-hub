@@ -47,8 +47,8 @@
     var(--site-dock-live-height, var(--site-dock-height)) +
       var(--site-dock-gap) + 8px + env(safe-area-inset-bottom, 0px)
   );
-  /* The accepted 0.82 glass, made exactly 10 percentage points more
-     transparent. Keep opacity on the surface only — never fade controls. */
+  /* 0.5 alpha glass (operator 2026-09-26). Keep opacity on the surface
+     only — never fade controls. */
   --site-dock-bg-idle: rgba(255, 255, 255, 0.72);
   --site-dock-bg-opaque: #ffffff;
   --site-dock-border: rgba(0, 0, 0, 0.1);
@@ -93,8 +93,11 @@ body:has(> .site-dock:not(.site-dock--floating):not(.site-dock--minimized))
 
 body:has(> .site-dock:not(.site-dock--floating):not(.site-dock--minimized))
   :where(a[href], button, input, select, textarea, [tabindex]):focus-visible,
+/* Pager dots are navigation, not content: giving the last dot a dock-sized
+   scroll-margin scrolled the whole window when it was focused (2026-09-27:
+   launcher pushed up out of view on page #2). */
 body:has(> .site-dock:not(.site-dock--floating):not(.site-dock--minimized))
-  :where(a[href], button, input, select, textarea, [tabindex]):last-child {
+  :where(a[href], button, input, select, textarea, [tabindex]):last-child:not(.launcher-dot) {
   scroll-margin-bottom: var(--site-dock-scroll-clearance);
 }
 
@@ -110,10 +113,11 @@ body:has(> .site-dock:not(.site-dock--floating):not(.site-dock--minimized))
   gap: 2px;
   box-sizing: border-box;
   /* A fixed height at every width: a wider dock spaces its icons out, it never
-     grows taller. */
+     grows taller. Width matches the launcher grid panels (operator
+     design 2026-09-14; pager.ts measures and sets it inline on Home to
+     line the edges up exactly at every width). */
   width: var(--site-dock-width);
   height: var(--site-dock-height);
-  max-width: calc(100vw - 16px);
   padding: var(--site-dock-pad);
   border-radius: 22px;
   background: var(--site-dock-bg-idle);
@@ -155,7 +159,7 @@ body:has(> .site-dock:not(.site-dock--floating):not(.site-dock--minimized))
 
 @media (hover: hover) {
   .site-dock:hover {
-    background: var(--site-dock-bg-opaque);
+    background: var(--site-dock-bg-idle);
   }
 }
 

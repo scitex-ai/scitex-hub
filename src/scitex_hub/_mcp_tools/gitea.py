@@ -184,7 +184,19 @@ def register_gitea_tools(mcp) -> None:
                 }
             )
 
-        import yaml
+        # PS-233: guarded, not declared — PyYAML is an optional `[all]`
+        # capability. The tool reports the absent capability and the install
+        # hint in its normal JSON error shape rather than raising.
+        try:
+            import yaml
+        except ImportError:
+            return _json(
+                {
+                    "success": False,
+                    "error": "PyYAML is required to read the tea config",
+                    "hint": "Install it with: pip install 'scitex-hub[all]'",
+                }
+            )
 
         config_path = Path.home() / ".config" / "tea" / "config.yml"
         if not config_path.exists():

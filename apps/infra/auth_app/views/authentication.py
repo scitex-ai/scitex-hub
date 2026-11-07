@@ -231,7 +231,21 @@ def signup(request):
             # The verify, resend and cleanup paths all require it. Resend and
             # email-change deliberately never create one — that separation is
             # what stops a suspended account acquiring signup authority.
-            PendingSignup.objects.create(user=user, email=email)
+            # The fleet store requires plan NOT NULL: an allowlisted ?plan=
+            # wins, otherwise the newcomer default subscription-free.
+            requested_plan = (request.POST.get("plan") or request.GET.get("plan") or "").strip()
+            signup_plan = "subscription-free"
+            if requested_plan:
+                try:
+                    from apps.infra.public_app.services.billing_provider import (
+                        resolve_signup_plan,
+                    )
+
+                    if resolve_signup_plan(requested_plan) is not None:
+                        signup_plan = requested_plan
+                except Exception:
+                    pass
+            PendingSignup.objects.create(user=user, email=email, plan=signup_plan)
 
             # Create Gitea user account (sync with Gitea)
             try:
@@ -306,9 +320,52 @@ def signup(request):
     return render(request, "auth_app/signup.html", context)
 
 
+_CONTINUE_APP_NAMES = {
+    "stats": "Stats",
+    "scholar": "Scholar",
+    "writer": "Writer",
+    "figrecipe": "FigRecipe",
+    "cards": "Cards",
+    "storage": "Storage",
+    "agent-container": "Agent Container",
+    "clew": "Clew",
+    "console": "Console",
+    "docs": "Docs",
+}
+
+
+def _is_safe_next(request, value) -> bool:
+    """Same-origin ``next`` only — never an external or protocol-relative URL."""
+    if not value:
+        return False
+    from django.utils.http import url_has_allowed_host_and_scheme
+
+    return url_has_allowed_host_and_scheme(
+        value,
+        allowed_hosts={request.get_host()},
+        require_https=request.is_secure(),
+    )
+
+
+def _continue_app_name(next_value):
+    """Display name of the app a ``/apps/<name>/…`` return points at, else None."""
+    if not next_value or not next_value.startswith("/"):
+        return None
+    parts = [p for p in next_value.split("?", 1)[0].split("/") if p]
+    if len(parts) >= 2 and parts[0] == "apps":
+        return _CONTINUE_APP_NAMES.get(parts[1])
+    return None
+
+
 def login_view(request):
     """User login view with authentication."""
     from .account_switching import add_authenticated_account
+    from ..onboarding import resolve_post_login_url
+
+    # The login gate carries its return in ?next= (e.g. /apps/stats/). The
+    # signin form re-posts it as a hidden field, so read POST first (B2).
+    raw_next = request.POST.get("next") or request.GET.get("next")
+    safe_next = raw_next if _is_safe_next(request, raw_next) else None
 
     if request.method == "POST":
         form = LoginForm(request.POST)
@@ -334,11 +391,9 @@ def login_view(request):
                 if not form.cleaned_data.get("remember_me"):
                     request.session.set_expiry(0)
 
-                # Redirect to next page or user's project page
-                next_page = request.GET.get("next")
-                if not next_page:
-                    # Default to hub root (Gitea-style project dashboard)
-                    next_page = "/"
+                # Funnel is the authority (payment gate wins); otherwise honor
+                # the login gate's safe same-origin return (B2).
+                next_page = resolve_post_login_url(user, raw_next, request)
 
                 messages.success(request, f"Welcome back, @{user.username}!")
 
@@ -353,6 +408,9 @@ def login_view(request):
 
     context = {
         "form": form,
+        # B2: name the gated destination and carry it through the POST.
+        "next_url": safe_next,
+        "continue_app": _continue_app_name(safe_next) if safe_next else None,
     }
     return render(request, "auth_app/signin.html", context)
 

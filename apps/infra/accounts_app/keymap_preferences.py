@@ -37,21 +37,13 @@ def _identifier(value: str, label: str) -> str:
 
 
 def _sequence(value: str) -> str:
-    # Regex-free on purpose: the normalizer runs on user-supplied shortcut
-    # text, so no regular expression may touch it (ReDoS class eliminated,
-    # not merely bounded). Collapse whitespace runs, then drop spaces
-    # adjacent to "+" separators ("Ctrl + Shift" -> "Ctrl+Shift").
-    collapsed = " ".join(str(value).split())
-    chars = [
-        ch
-        for i, ch in enumerate(collapsed)
-        if ch != " "
-        or (
-            collapsed[i - 1 : i] != "+"
-            and collapsed[i + 1 : i + 2] != "+"
-        )
-    ]
-    candidate = "".join(chars)
+    # NOT a regex: ``\s*\+\s*`` backtracks polynomially on a long run of spaces
+    # that contains no ``+`` (CodeQL py/polynomial-redos, alert 14563), and this
+    # input is whatever the client posts. str.split/join is linear and gives the
+    # same result for every case the regex handled, including the degenerate
+    # " + " -> "+" collapse.
+    candidate = " ".join(str(value).split())
+    candidate = "+".join(part.strip() for part in candidate.split("+"))
     if not candidate or len(candidate) > 128:
         raise InvalidKeymapPreference("Shortcut sequence must contain 1-128 characters")
     return candidate

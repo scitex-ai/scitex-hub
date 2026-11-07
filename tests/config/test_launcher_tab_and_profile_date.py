@@ -32,7 +32,10 @@ PROJECT_ROOT = Path(__file__).resolve().parents[2]
 def compiled_catalogs():
     """*.mo is gitignored; compile the real .po the same way the image does."""
     subprocess.run(
-        [sys.executable, str(PROJECT_ROOT / "scripts" / "i18n" / "compile_catalogs.py")],
+        [
+            sys.executable,
+            str(PROJECT_ROOT / "scripts" / "i18n" / "compile_catalogs.py"),
+        ],
         cwd=PROJECT_ROOT,
         capture_output=True,
         check=True,
@@ -58,7 +61,7 @@ def test_launcher_tab_is_home_even_with_a_last_used_project():
     with translation.override("en"):
         title = branding_tags.page_title(context)
     # Assert
-    assert title == "Home — SciTeX™"
+    assert title == "Home"
 
 
 @override_settings(SCITEX_ENV="production", SCITEX_APP_MODE=branding.MODE_HUB)
@@ -80,7 +83,7 @@ def test_launcher_tab_is_translated_to_japanese():
     with translation.override("ja"):
         title = branding_tags.page_title(context)
     # Assert
-    assert title == "ホーム — SciTeX™"
+    assert title == "ホーム"
 
 
 def test_an_app_under_apps_keeps_its_own_tab_name():
@@ -96,17 +99,21 @@ def test_an_app_under_apps_keeps_its_own_tab_name():
 @override_settings(SCITEX_ENV="production", SCITEX_APP_MODE=branding.MODE_HUB)
 def test_rendered_launcher_page_title_is_home():
     # Arrange
-    user = User.objects.create_user(username="launcher-title-user", password="pw-unused-123")
+    user = User.objects.create_user(
+        username="launcher-title-user", password="pw-unused-123"
+    )
     client = Client(HTTP_ACCEPT_LANGUAGE="en")
     client.force_login(user)
     # Act
     html = client.get("/apps/").content.decode()
     # Assert
-    assert re.search(r"<title>\s*Home — SciTeX™\s*</title>", html)
+    assert re.search(r"<title>\s*Home\s*</title>", html)
 
 
 def _profile_html(language):
-    user = User.objects.create_user(username=f"joined-{language}", password="pw-unused-123")
+    user = User.objects.create_user(
+        username=f"joined-{language}", password="pw-unused-123"
+    )
     user.date_joined = timezone.make_aware(datetime.datetime(2026, 9, 3, 12, 0))
     user.save(update_fields=["date_joined"])
     client = Client(HTTP_ACCEPT_LANGUAGE=language)

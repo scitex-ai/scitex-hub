@@ -59,6 +59,7 @@ import sys
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 import preflight_declarations as declarations  # noqa: E402
+import preflight_environment as environment  # noqa: E402
 import preflight_targets as targets  # noqa: E402
 import preflight_versions as versions  # noqa: E402
 
@@ -256,7 +257,7 @@ def main(argv=None):
         description="Refuse a container recreate whose target cannot satisfy hub's declared floors.",
     )
     parser.add_argument("--env", choices=["dev", "staging", "prod"],
-                        help="derive the target names for this environment")
+                        help="resolve the actual Compose image, Python mode and boot-overlay contract")
     parser.add_argument("--target", help="image:<ref> | container:<name> | local | cmd:<argv>")
     parser.add_argument("--apps-volume", help="docker volume holding the boot-overlay clones")
     parser.add_argument("--apps-manifest", default=os.path.join(REPO_ROOT, ".scitex-apps.json"))
@@ -279,10 +280,18 @@ def main(argv=None):
         return 3
 
     target_spec, apps_volume = args.target, args.apps_volume
-    if args.env and not target_spec:
-        target_spec = "image:scitex-hub-{0}-django:latest".format(args.env)
-        if apps_volume is None:
-            apps_volume = "scitex-hub-{0}_apps_volume".format(args.env)
+    deployment_context = None
+    if args.env:
+        try:
+            deployment_context = environment.resolve_context(
+                args.env, args.repo_root, args.via_ssh, args.timeout,
+            )
+            target_spec, apps_volume = environment.choose_target(
+                deployment_context, target_spec, apps_volume,
+            )
+        except targets.TargetUnreachable as exc:
+            out.write("preflight: DEPLOY REFUSED -- {0}\n".format(exc))
+            return 2
     if not target_spec:
         out.write("{0}preflight: one of --env or --target is required{1}\n".format(RED, NC))
         return 3
@@ -310,21 +319,33 @@ def main(argv=None):
     probes = _build_probes(imports, contract)
     sibling_floors = {n: f for n, f in floors.items() if _is_sibling_distribution(n, contract)}
 
+    target = None
     try:
-        target = targets.resolve(target_spec, apps_volume, args.apps_manifest, args.via_ssh)
+        if deployment_context is not None and deployment_context.mode == "direct-bind":
+            from _direct_bind.target import prepare
+            target = prepare(deployment_context, args.timeout)
+        else:
+            target = targets.resolve(target_spec, apps_volume, args.apps_manifest, args.via_ssh)
         spec = {
             "distributions": sorted(sibling_floors),
             "overlay": target.overlay,
             "extra_syspath": target.extra_syspath,
             "import_probes": [{"module": p["module"], "attrs": p["attrs"]} for p in probes],
         }
-        report = targets.interrogate(target, open(PROBE, encoding="utf-8").read(), spec, args.timeout)
+        try:
+            report = targets.interrogate(target, open(PROBE, encoding="utf-8").read(), spec, args.timeout)
+            target.verify_current()
+        finally:
+            target.close()
     except targets.TargetUnreachable as exc:
         out.write("\n{0}{1}❌ DEPLOY REFUSED -- the target could not be interrogated.{2}\n".format(RED, BOLD, NC))
         out.write("   {0}\n".format(exc))
         out.write("\n   Unknown is not OK. This preflight exists because a package was once verified\n"
                   "   somewhere other than production and the result was stated about production.\n")
         return 2
+
+    if deployment_context is not None:
+        report["deployment_context"] = deployment_context.summary()
 
     if args.as_json:
         out.write(json.dumps(report, indent=2, sort_keys=True) + "\n")
@@ -339,6 +360,8 @@ def main(argv=None):
     out.write("\n{0}SIBLING FLOOR + IMPORT PREFLIGHT{1}\n".format(BOLD, NC))
     out.write("  target interrogated : {0}\n".format(target.description))
     out.write("  interrogated by     : {0}\n".format(target.command))
+    if deployment_context is not None:
+        out.write("  Compose Python mode : {0} (Django, worker, beat agree)\n".format(deployment_context.mode))
     out.write("  target python       : {0} at {1}\n".format(
         report.get("python_version", "?"), report.get("executable", "?")))
     out.write("  declared floors from: {0}  ([project.dependencies]{1})\n".format(

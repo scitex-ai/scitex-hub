@@ -67,9 +67,12 @@ def api_save_theme_preference(request):
         # Get or create user profile
         profile, created = UserProfile.objects.get_or_create(user=request.user)
 
-        # Update theme preferences
+        # Update theme preferences. An explicit theme choice is stamped
+        # so get-theme can tell a real choice apart from the auto-created
+        # row default; code/editor-only updates must not stamp it.
         if theme:
             profile.theme_preference = theme
+            profile.theme_explicit = True
         if code_theme_light:
             profile.code_theme_light = code_theme_light
         if code_theme_dark:
@@ -118,6 +121,11 @@ def api_get_theme_preference(request):
 
     try:
         profile = request.user.auth_profile
+        if not profile.theme_explicit:
+            # Row exists but the user never chose a theme (auto-created
+            # default). Serve the base default so an explicit prior
+            # localStorage choice wins client-side.
+            return JsonResponse(dict(_DEFAULT_THEME_RESPONSE))
         return JsonResponse(
             {
                 "theme": profile.theme_preference,

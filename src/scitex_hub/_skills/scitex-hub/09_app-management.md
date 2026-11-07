@@ -98,6 +98,15 @@ scitex-hub app build-container [app_dir] [-o output_dir]
 
 Reads `container` field from `manifest.json`, builds an Apptainer `.sif` image.
 
+For Hub dev context execution, custom runtime images must be absolute native
+SIF or sandbox paths; the path check does not certify image provenance. Context
+builders execute inside the runtime, with a unique temporary public helper in
+the validated project directory. Request data and the fixed app environment
+(`SCITEX_CURRENT_APP`, `SCITEX_API_TOKEN`, `SCITEX_API_URL`) use stdin, are
+initialized before `views.py` imports, and are not included in command arguments
+or helper contents. Runtime failures produce fixed Hub diagnostics rather than
+logging the app's error text or runtime stderr.
+
 ## MCP Tools
 
 | Tool | What it does |

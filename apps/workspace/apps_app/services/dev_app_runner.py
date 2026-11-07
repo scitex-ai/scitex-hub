@@ -7,8 +7,8 @@ Prevents dev app backend code from running inside the Django process.
 Uses JSON stdin/stdout protocol with run_dev_context.py as the sandboxed runner.
 
 Primary path: reuse the user's existing SLURM allocation via run_in_user_allocation.
-The runner script is written temporarily to project_dir so it is visible inside
-the container at /workspace/.scitex_run_dev_context.py.
+A unique public helper is staged exclusively in project_dir and removed only
+while its file identity still belongs to this call.
 """
 
 from __future__ import annotations
@@ -16,9 +16,11 @@ from __future__ import annotations
 import json
 import logging
 import os
-import re
+import stat
 import subprocess
+import tempfile
 import time
+from contextlib import contextmanager
 from pathlib import Path
 from typing import Any, Dict, Optional
 
@@ -26,6 +28,37 @@ logger = logging.getLogger(__name__)
 
 # Path to the runner script (inside Django container, copied to project dir at runtime)
 _RUNNER_SCRIPT = Path(__file__).parent.parent / "scripts" / "run_dev_context.py"
+
+
+@contextmanager
+def _owned_runner_file(project_dir: Path):
+    """Stage public helper code exclusively; never overwrite project content."""
+    content = _RUNNER_SCRIPT.read_text(encoding="utf-8")
+    fd, filename = tempfile.mkstemp(
+        prefix=".scitex_run_dev_context-", suffix=".py", dir=project_dir
+    )
+    path = Path(filename)
+    identity = os.fstat(fd)
+    try:
+        with os.fdopen(fd, "w", encoding="utf-8") as stream:
+            stream.write(content)
+            stream.flush()
+            # This public static script must be readable by the runtime UID.
+            # Credentials and request data travel only through stdin.
+            os.fchmod(stream.fileno(), 0o644)
+        yield path
+    finally:
+        try:
+            current = path.lstat()
+            if stat.S_ISREG(current.st_mode) and (current.st_dev, current.st_ino) == (
+                identity.st_dev,
+                identity.st_ino,
+            ):
+                path.unlink()
+        except FileNotFoundError:
+            pass
+        except OSError:
+            logger.warning("[DevAppRunner] owned helper cleanup unavailable")
 
 
 def run_dev_context(
@@ -39,9 +72,8 @@ def run_dev_context(
     """
     Run a dev app's context builder inside Apptainer.
 
-    The runner script is written to project_dir/.scitex_run_dev_context.py so
-    it is accessible inside the container at /workspace/.scitex_run_dev_context.py.
-    JSON input is passed via stdin; output is read from stdout.
+    A unique runtime-readable helper is staged under the validated project root.
+    Request metadata and credentials use a JSON stdin envelope, never argv.
 
     Args:
         dev_install: DevInstallation model instance.
@@ -68,145 +100,80 @@ def run_dev_context(
         dev_install.source_owner, dev_install.source_repo
     )
     if not project_dir:
-        logger.warning(
-            "[DevAppRunner] project dir not found: %s/%s",
-            dev_install.source_owner,
-            dev_install.source_repo,
-        )
+        logger.warning("[DevAppRunner] project directory unavailable")
         return {}
 
-    fn_name = _infer_function_name(dev_install)
-
-    input_data = {
-        "function": fn_name,
+    payload = {
+        "function": _infer_function_name(dev_install),
         "username": username,
         "project_id": project_id,
         "project_slug": project_slug,
         "get_params": get_params or {},
     }
-
-    # Write runner script to project_dir so it is visible inside the container
-    runner_dest = project_dir / ".scitex_run_dev_context.py"
-    runner_in_container = "/workspace/.scitex_run_dev_context.py"
-
-    try:
-        runner_dest.write_text(
-            _RUNNER_SCRIPT.read_text(encoding="utf-8"), encoding="utf-8"
-        )
-    except Exception as exc:
-        logger.error("[DevAppRunner] failed to write runner script: %s", exc)
-        return {}
-
-    module_name = dev_install.module_name
-    api_token = _generate_api_token(username)
-    api_url = os.environ.get("SCITEX_API_URL", "http://127.0.0.1:8000")
-
     app_env = {
-        "SCITEX_CURRENT_APP": module_name,
-        "SCITEX_API_TOKEN": api_token,
-        "SCITEX_API_URL": api_url,
+        "SCITEX_CURRENT_APP": dev_install.module_name,
+        "SCITEX_API_TOKEN": _generate_api_token(username),
+        "SCITEX_API_URL": os.environ.get("SCITEX_API_URL", "http://127.0.0.1:8000"),
     }
 
-    inner_cmd = [
-        "env",
-        f"SCITEX_CURRENT_APP={module_name}",
-        f"SCITEX_API_TOKEN={api_token}",
-        f"SCITEX_API_URL={api_url}",
-        "python",
-        runner_in_container,
-    ]
-
     try:
-        job_ids = Allocation.find_existing_jobs(username)
+        with _owned_runner_file(project_dir) as runner_dest:
+            # Only framework-owned executable/script names enter argv. Dynamic
+            # metadata and credentials are initialized inside the sandbox.
+            inner_cmd = ["python", f"/workspace/{runner_dest.name}"]
+            job_ids = Allocation.find_existing_jobs(username)
+            if job_ids:
+                cmd = [
+                    "srun",
+                    "--overlap",
+                    f"--jobid={job_ids[0]}",
+                    "apptainer",
+                    "instance",
+                    "exec",
+                    _instance_name(username),
+                    *inner_cmd,
+                ]
+            else:
+                container = getattr(
+                    dev_install, "apptainer_container_path", ""
+                ) or get_container_for_user(username)
+                cmd = build_apptainer_exec_cmd(
+                    inner_cmd, project_dir, container_path=container
+                )
 
-        if job_ids:
-            job_id = job_ids[0]
-            instance = _instance_name(username)
-            logger.info(
-                "[DevAppRunner] reusing allocation job=%s instance=%s for %s",
-                job_id,
-                instance,
-                username,
+            start = time.time()
+            proc = subprocess.run(
+                cmd,
+                input=json.dumps({"payload": payload, "app_env": app_env}),
+                capture_output=True,
+                text=True,
+                timeout=timeout,
             )
-            cmd = [
-                "srun",
-                "--overlap",
-                f"--jobid={job_id}",
-                "apptainer",
-                "instance",
-                "exec",
-                instance,
-                *inner_cmd,
-            ]
-        else:
-            logger.info(
-                "[DevAppRunner] no active allocation for %s — using local apptainer exec",
-                username,
-            )
-            # Per-app container takes priority over user default
-            container = getattr(
-                dev_install, "apptainer_container_path", ""
-            ) or get_container_for_user(username)
-            cmd = build_apptainer_exec_cmd(
-                inner_cmd, project_dir, env_vars=app_env, container_path=container
-            )
-
-        # Never log the per-user API token in clear text
-        # (py/clear-text-logging-sensitive-data): redact before emitting.
-        redacted_cmd = re.sub(
-            r"SCITEX_API_TOKEN=\S+", "SCITEX_API_TOKEN=<redacted>", " ".join(cmd)
-        )
-        logger.debug("[DevAppRunner] cmd: %s", redacted_cmd)
-
-        start = time.time()
-        proc = subprocess.run(
-            cmd,
-            input=json.dumps(input_data),
-            capture_output=True,
-            text=True,
-            timeout=timeout,
-        )
-        elapsed = time.time() - start
-
-        if proc.returncode != 0:
-            logger.warning(
-                "[DevAppRunner] runner exited %d in %.1fs: %s",
-                proc.returncode,
-                elapsed,
-                proc.stderr[:200],
-            )
-            return {}
-
-        output = proc.stdout.strip()
-        if not output:
-            return {}
-
-        result = json.loads(output)
-        if not result.get("success"):
-            logger.warning(
-                "[DevAppRunner] context builder error: %s", result.get("error")
-            )
-            return {}
-
-        return result.get("context") or {}
-
+            elapsed = time.time() - start
+            if proc.returncode != 0:
+                logger.warning(
+                    "[DevAppRunner] runner exited %d in %.1fs",
+                    proc.returncode,
+                    elapsed,
+                )
+                return {}
+            output = proc.stdout.strip()
+            if not output:
+                return {}
+            result = json.loads(output)
+            if not result.get("success"):
+                logger.warning("[DevAppRunner] context builder returned an error")
+                return {}
+            return result.get("context") or {}
     except subprocess.TimeoutExpired:
-        logger.warning("[DevAppRunner] timed out after %ds", timeout)
+        logger.warning("[DevAppRunner] context builder timed out")
         return {}
     except FileNotFoundError:
-        logger.error(
-            "[DevAppRunner] apptainer or srun not found"
-            " — running context builder unsandboxed is not allowed"
-        )
+        logger.error("[DevAppRunner] sandbox runtime or helper unavailable")
         return {}
-    except Exception as exc:
-        logger.error("[DevAppRunner] error: %s", exc, exc_info=True)
+    except Exception:
+        logger.error("[DevAppRunner] context builder failed")
         return {}
-    finally:
-        try:
-            runner_dest.unlink(missing_ok=True)
-        except OSError:
-            pass
 
 
 def _generate_api_token(username: str) -> str:
@@ -218,8 +185,8 @@ def _generate_api_token(username: str) -> str:
         User = get_user_model()
         user = User.objects.get(username=username)
         return str(RefreshToken.for_user(user).access_token)
-    except Exception as exc:
-        logger.warning("[DevAppRunner] failed to generate API token: %s", exc)
+    except Exception:
+        logger.warning("[DevAppRunner] API token generation unavailable")
         return ""
 
 

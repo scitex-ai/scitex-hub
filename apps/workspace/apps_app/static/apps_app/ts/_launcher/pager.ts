@@ -168,8 +168,13 @@ export class LauncherPager {
     // stacked above it (banner, section head, web fonts). At DOMContentLoaded
     // none of that has settled, so re-measure once layout has happened, and
     // keep watching. apply() only rebuilds when the capacity really changed.
+    // Web fonts shift the grid after load (operator 2026-10-26: dock/panel
+    // width drift) — re-measure when they settle too.
     requestAnimationFrame(() => this.apply());
     window.addEventListener("load", () => this.apply());
+    if (typeof document !== "undefined" && "fonts" in document) {
+      document.fonts.ready.then(() => this.apply()).catch(() => undefined);
+    }
 
     if ("ResizeObserver" in window) {
       // Observe the CONTAINER, never the grid itself: apply() sets the grid's
@@ -467,7 +472,14 @@ export class LauncherPager {
   goTo(index: number): void {
     const last = Math.max(0, this.pageCount() - 1);
     const target = Math.min(Math.max(0, index), last);
-    if (window.location.hash !== `#${target}`) window.location.hash = String(target);
+    // replaceState, never a hash assignment: assigning location.hash lets the
+    // browser scroll the window to a (nonexistent) anchor, which both pushes
+    // the launcher up out of view and — on iOS — breaks the fixed dock
+    // (2026-09-27: dock gone on page #2). replaceState updates the URL
+    // without scrolling and without firing hashchange, so sync directly.
+    if (window.location.hash !== `#${target}`) {
+      history.replaceState(null, "", `#${target}`);
+    }
     this.requestedPage = target;
     this.scrollToPage(target, "smooth");
     if (this.currentPage() === target) this.requestedPage = null;

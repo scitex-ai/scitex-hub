@@ -56,6 +56,15 @@ def resolve_sphinx_path(module: str) -> "Path | None":
         local_build = Path(settings.BASE_DIR) / "docs" / "sphinx" / "_build" / "html"
         return local_build if (local_build / "index.html").is_file() else None
 
+    from apps.infra.public_app.services.interface_catalog import documentation_providers
+
+    providers, state = documentation_providers()
+    matching = [row for row in providers if row.name == module]
+    if state != "available" or len(matching) != 1:
+        # A URL is not permission to introspect an arbitrary installed module.
+        # Duplicate declarations need an explicit owner before content serving.
+        return None
+
     pip_name = _REPO_TO_PIP.get(module, module)
     try:
         from scitex_dev import get_docs
@@ -151,34 +160,20 @@ def _docs_unavailable():
 
 
 def register_sphinx_packages(docs_pages, pages_by_slug):
-    """Auto-register sidebar entries for ECOSYSTEM packages with Sphinx docs."""
-    import logging
+    """Compose provider sidebar metadata; defer artifact resolution until opened."""
+    from collections import Counter
+    from apps.infra.public_app.services.interface_catalog import documentation_providers
 
-    logger = logging.getLogger(__name__)
-
-    try:
-        from scitex_dev.ecosystem import ECOSYSTEM
-    except ImportError:
-        logger.warning("scitex_dev.ecosystem not available — cannot register packages")
+    providers, state = documentation_providers()
+    if state != "available":
         return
-
-    # Packages to skip (aliases, templates without docs)
-    _SKIP = {
-        "scitex-plt",
-        "automated-research-demo",
-        "scitex-research-template",
-        "pip-project-template",
-        "singularity-template",
-    }
-
-    for pip_name in ECOSYSTEM:
-        if pip_name in _SKIP:
+    counts = Counter(row.name for row in providers)
+    for provider in providers:
+        pip_name = provider.name
+        if counts[pip_name] != 1 or not re.fullmatch(r"[A-Za-z0-9_-]+", pip_name):
             continue
         slug = f"pkg-{pip_name}"
         if slug in pages_by_slug:
-            continue
-        if not check_docs_available(pip_name):
-            logger.warning("Package '%s' has no Sphinx docs available", pip_name)
             continue
         page = {
             "slug": slug,
@@ -187,6 +182,7 @@ def register_sphinx_packages(docs_pages, pages_by_slug):
             "template": "docs_app/docs_sphinx_package.html",
             "badges": ["pkg"],
             "group": "packages",
+            "section": "packages",
         }
         docs_pages.append(page)
         pages_by_slug[slug] = page

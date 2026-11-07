@@ -203,3 +203,41 @@ def test_project_module_id_migration_merges_precreated_canonical_identity():
     assert ModuleVersion.objects.filter(module=canonical, version="0.1.0").count() == 1
     assert source_project.marketplace_module.id == canonical.id
     assert not AppsModule.objects.filter(module_name="home").exists()
+
+
+@pytest.mark.django_db(transaction=True)
+def test_stale_todo_module_migration_removes_row_and_scrubs_configs():
+    migration = importlib.import_module(
+        "apps.workspace.apps_app.migrations.0023_remove_stale_todo_module"
+    )
+    user = User.objects.create_user(username="stale-todo-migration")
+    AppsModule.objects.create(
+        module_name="todo", label="Cards", icon="fas fa-list-check", visibility="public"
+    )
+    # The install lives on the SURVIVING plugin row but its launcher config
+    # still names the retired id (pinned dock / custom order from before the
+    # rebrand). Installs attached to the deleted row itself cascade away.
+    canonical = AppsModule.objects.create(
+        module_name="scitex-cards",
+        label="Cards",
+        icon="fas fa-diagram-project",
+        visibility="public",
+    )
+    install = ModuleInstallation.objects.create(
+        user=user,
+        module=canonical,
+        tab_order=17,
+        config={
+            "launcher_dock": ["todo", "scitex-cards", "chat"],
+            "launcher_link_order": {"todo": 10, "scitex-cards": 20, "chat": 30},
+        },
+    )
+    PlannedAppInterest.objects.create(user=user, app_id="todo", kind="notify")
+
+    migration.remove_stale_todo_module(importlib.import_module("django.apps").apps, None)
+
+    install.refresh_from_db()
+    assert not AppsModule.objects.filter(module_name="todo").exists()
+    assert not PlannedAppInterest.objects.filter(app_id="todo").exists()
+    assert install.config["launcher_dock"] == ["scitex-cards", "chat"]
+    assert install.config["launcher_link_order"] == {"scitex-cards": 20, "chat": 30}

@@ -1,3 +1,5 @@
+import {prepareModuleDocumentation, mountModuleHeader} from "@/workspace-api-docs";
+
 /**
  * Workspace Shell — Tab switching without page reload.
  * AI Agent pane and Worktree pane remain cached in DOM.
@@ -53,9 +55,11 @@ async function switchModule(name: string): Promise<void> {
     });
     if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
     const html = await resp.text();
+    prepareModuleDocumentation(pane, resp);
     pane.innerHTML = html;
     reLoadStyles(pane);
     reExecScripts(pane);
+    mountModuleHeader(pane);
     // Wire up resize handles inside the injected partial. Auto-init
     // ran on DOMContentLoaded, long before this content existed —
     // without the late init, injected [data-panel-resizer] /

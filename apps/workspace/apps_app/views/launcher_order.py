@@ -27,22 +27,20 @@ from __future__ import annotations
 # each group starts a new row and gets a soft colour band, and a group's last
 # row keeps its empty cells rather than pulling the next group's app up:
 #   FOUNDATION (基盤): My Projects, Agents, Cards, Storage, Files
-#   WORK (作業):       Scholar, FigRecipe, (Stats), Writer, Chat, Tools
+#   WORK (作業):       Scholar, Stats, FigRecipe, Writer, Chat, Tools
 #   PUBLISH (発信):    Public Projects — showing work outside
 #                      (proposed 2026-09-14, Telegram 6040; pending operator)
 #   SYSTEM (システム): Settings, Docs, App Store
 # Within a group the order is the operator's earlier order (infrastructure,
-# then Scholar-FigRecipe-Stats-Writer, then Chat/Settings/Tools, then
+# then Scholar-Stats-FigRecipe-Writer, then Chat/Settings/Tools, then
 # Docs/App Store/Storage). Each group carries role="group" and a translated
 # aria-label, which launcher/grid.css also shows as the band's visible label.
 #
-# "stats" keeps its position although no Stats app exists yet: until it lands
-# it is a visible Coming-soon tile (planned_apps.py), never an empty cell — an
-# unexplained gap read as a broken grid in the 2026-09-14 walkthrough. The day
-# the module lands it takes that position without touching this list. Give its manifest "order": 27
-# (figrecipe is 25, writer 30). Chat and Settings are link tiles
-# (services/launcher_links.py). Console and Clew opt out of the grid via
-# show_in_launcher=false.
+# Stats keeps its curated position across deployment profiles. A registered,
+# mounted leaf supplies the real tile; without a reachable leaf route,
+# planned_apps.py supplies the Coming-soon fallback rather than an empty cell.
+# Chat and Settings are link tiles (services/launcher_links.py). Console and
+# Clew can opt out of the grid via show_in_launcher=false.
 from dataclasses import dataclass
 
 LAUNCHER_COLUMNS = 4
@@ -59,14 +57,14 @@ LAUNCHER_GROUPS: tuple[LauncherGroup, ...] = (
     LauncherGroup(
         "foundation",
         "Foundation",
-        ("my_projects", "agents", "todo", "storage"),
+        ("my_projects", "agent-container", "scitex-cards", "storage"),
     ),
     LauncherGroup(
         "work",
         "Work",
         (
             "scholar",
-            "stats",  # a Coming-soon tile until the app ships (planned_apps.py)
+            "stats",  # real mounted leaf or planned_apps.py fallback
             "figrecipe",
             "writer",
             "chat",  # link tile -> /chat/

@@ -10,6 +10,7 @@ Stats is the truthful unmounted gap: its coming-soon tile must not invent a URL.
 from __future__ import annotations
 
 from dataclasses import dataclass
+from pathlib import PurePosixPath
 from urllib.parse import parse_qs, urlparse
 
 import pytest
@@ -90,12 +91,49 @@ def continuity_browser(request, pw_base_url):
 
 def _assert_project_metadata(page, app: str, version: str) -> None:
     body = page.locator("body")
-    assert body.get_attribute("data-active-project-key") == PROJECT_KEY
-    assert body.get_attribute("data-active-app-version") == version
-    assert page.locator('meta[name="stx-project-provider"]').count() == 1
-    assert page.locator('meta[name="stx-project-provider"]').get_attribute(
-        "content"
-    ) == ("/api/project/scope/")
+    sdk_document = app in {"writer", "scholar"}
+    if sdk_document:
+        # Published Writer and Scholar own SDK documents, not Hub body attrs.
+        header = page.locator("[data-stx-app-header][data-stx-app-header-mounted]")
+        assert header.count() == 1
+        assert header.get_attribute("data-app-version") == version
+        picker = page.locator("[data-stx-project-picker]")
+        assert picker.count() == 1
+        assert picker.get_attribute("data-current") == PROJECT_KEY
+    else:
+        assert body.get_attribute("data-active-project-key") == PROJECT_KEY
+        assert body.get_attribute("data-active-app-version") == version
+    if app == "writer":
+        assert (
+            page.locator('meta[name="scitex-app-version"]').get_attribute("content")
+            == f"writer@{version}"
+        )
+        writer = page.locator(".writer-app")
+        assert writer.count() == 1
+        assert writer.get_attribute("data-project-id") == PROJECT_KEY
+        workspace = PurePosixPath(writer.get_attribute("data-project-dir") or "")
+        assert workspace.is_absolute()
+        assert workspace.parts[-5:] == (
+            USERNAME,
+            "proj",
+            PROJECT_SLUG,
+            ".scitex",
+            "writer",
+        )
+    elif app == "scholar":
+        assert page.locator("body > #workspace-three-col").count() == 1
+        assert page.locator("[data-scholar-root]").count() == 1
+    if sdk_document:
+        provider_url = picker.get_attribute("data-provider-url")
+    else:
+        assert page.locator('meta[name="stx-project-provider"]').count() == 1
+        provider_url = page.locator('meta[name="stx-project-provider"]').get_attribute(
+            "content"
+        )
+    assert provider_url, "The owning shell must expose its real project provider"
+    provider = urlparse(provider_url)
+    assert provider.path == "/api/project/scope/"
+    assert parse_qs(provider.query)["app"] == [app]
     assert page.locator("[data-stx-project-picker]").count() <= 1
     assert page.locator("[id$='app-header']").count() <= 1
     assert urlparse(page.url).path == f"/apps/{app}/"
@@ -110,12 +148,15 @@ def test_login_launcher_and_project_apps_keep_one_project(continuity_browser):
     assert launcher is not None and launcher.status == 200
     wait_for_page_ready(page)
     assert page.locator("body").get_attribute("data-session-role") == "user"
+    assert page.locator("body").get_attribute("data-current-username") == USERNAME
     assert page.locator("#app-launcher").get_attribute("data-active-project-key") == (
         PROJECT_KEY
     )
     assert page.locator(".launcher-active-project").is_visible()
 
-    stats = page.locator('[data-module="stats"], [data-planned="stats"]')
+    stats = page.locator(
+        '#launcher-grid [data-module="stats"], #launcher-grid [data-planned="stats"]'
+    )
     assert stats.count() == 1
     stats_href = stats.get_attribute("href")
     apps_to_visit = ["scholar"]
@@ -137,14 +178,36 @@ def test_login_launcher_and_project_apps_keep_one_project(continuity_browser):
             page.goto("/apps/", wait_until="domcontentloaded")
             wait_for_page_ready(page)
     apps_to_visit.append("figrecipe")
-    if viewport == "desktop":
-        apps_to_visit.append("writer")
+    apps_to_visit.append("writer")
 
     for app in apps_to_visit:
         tile = page.locator(
             f'#launcher-grid [data-module="{app}"]:not([data-favorite-alias])'
         )
         assert tile.count() == 1
+        # Resource scope does not imply GUI scope capability. Published older
+        # leaves may intentionally expose disabled project choices.
+        listing_response = page.context.request.get(
+            f"{base_url}/api/project/scope/?app={app}"
+        )
+        assert listing_response.status == 200
+        choices = listing_response.json()["projects"]
+        selected = [choice for choice in choices if choice["id"] == PROJECT_KEY]
+        assert len(selected) == 1, "The authorized fixture project must remain visible"
+        if selected[0].get("disabled", False):
+            reason = selected[0].get("disabled_reason")
+            assert reason, "Disabled scope must explain its declared restriction"
+            before = page.context.request.get(f"{base_url}/api/project/scope/").body()
+            refusal = page.context.request.get(
+                f"{base_url}/apps/{app}/?project={PROJECT_KEY}"
+            )
+            assert refusal.status == 403
+            assert refusal.headers.get("content-type", "").startswith("text/html")
+            after = page.context.request.get(f"{base_url}/api/project/scope/").body()
+            assert (
+                before == after
+            ), "Refused GUI scope must not rewrite global preference"
+            continue
         assert tile.get_attribute("data-scope") == "project"
         version = tile.get_attribute("data-version")
         assert version, f"{app} launcher tile did not expose its installed version"
@@ -168,22 +231,25 @@ def test_login_launcher_and_project_apps_keep_one_project(continuity_browser):
             page.locator("#app-launcher").get_attribute("data-active-project-key")
             == PROJECT_KEY
         )
+        assert page.locator("body").get_attribute("data-session-role") == "user"
+        assert page.locator("body").get_attribute("data-current-username") == USERNAME
 
     evidence.assert_clean()
     assert viewport in {"desktop", "mobile"}
 
 
-def test_stats_stays_nonlaunchable_until_leaf_adopts_the_hub_project_contract(
+def test_stats_tile_is_launchable_now_that_calculate_is_verified(
     authenticated_desktop_page,
 ):
-    """Do not expose a real Stats tile before its project contract is safe."""
+    """Stats Calculate is verified end-to-end: the tile must launch."""
     page = authenticated_desktop_page
     page.goto("/apps/", wait_until="domcontentloaded")
     wait_for_page_ready(page)
-    stats = page.locator('[data-module="stats"], [data-planned="stats"]')
+    stats = page.locator(
+        '#launcher-grid [data-module="stats"], #launcher-grid [data-planned="stats"]'
+    )
     assert stats.count() == 1
-    assert stats.get_attribute("href") is None
-    assert stats.get_attribute("data-availability") == "coming_soon"
+    assert stats.get_attribute("data-availability") == "available"
 
 
 def test_browser_evidence_rejects_every_same_origin_server_failure():

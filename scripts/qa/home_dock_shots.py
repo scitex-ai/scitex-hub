@@ -2,7 +2,7 @@
 """Home + site-dock screenshot set: phone and desktop, dark and light, one command.
 
 Captures /apps/, /apps/my-projects/, /apps/public-projects/ and a leaf page
-(/apps/scholar/v2/) at 390x844 (DPR 3, touch), 1280x800, 1440x900 and
+(/apps/scholar/) at 390x844 (DPR 3, touch), 1280x800, 1440x900 and
 1920x1080, in dark and light, signed in as the probe user. Writes PNGs to --out
 and prints one JSON geometry probe per capture, covering what the operator
 checked by eye on 2026-09-14:
@@ -44,7 +44,7 @@ PAGES = [
     ("apps", "/apps/"),
     ("myprojects", "/apps/my-projects/"),
     ("public_projects", "/apps/public-projects/"),
-    ("scholar", "/apps/scholar/v2/"),
+    ("scholar", "/apps/scholar/"),
 ]
 SIZES = [
     ("390", 390, 844, True),

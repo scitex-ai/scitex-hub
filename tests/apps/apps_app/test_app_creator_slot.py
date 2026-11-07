@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 # File: tests/apps/apps_app/test_app_creator_slot.py
-"""App Creator is an empty "+" slot, always last in Work (operator, 2026-09-14).
+"""SDK is an empty "+" slot, always last in Work (operator, 2026-09-14).
 
 Real client, real ORM, real templates; no mocks.
 """
@@ -85,8 +85,8 @@ class AppCreatorSlotTest(TestCase):
         slot = html[start : html.index(">", module)]
         # Assert
         assert (
-            'aria-label="App Creator"' in slot
-            and 'title="App Creator"' in slot
+            'aria-label="SDK"' in slot
+            and 'title="SDK"' in slot
             and 'draggable="false"' in slot
         )
 
@@ -97,7 +97,7 @@ class AppCreatorSlotTest(TestCase):
         start = html.index('data-module="create-app"')
         slot = html[start : html.index("</a>", start)]
         # Assert
-        assert '<span class="launcher-slot-add-label">App Creator</span>' in slot
+        assert '<span class="launcher-slot-add-label">SDK</span>' in slot
 
     def test_slot_stays_last_after_the_user_reorders_it_to_the_front(self):
         # Operator iPhone 2026-09-14: 1000+ reorder values put it FIRST in Work.
@@ -126,7 +126,7 @@ class AppCreatorSlotTest(TestCase):
 def test_app_creator_visible_label_is_localized_in_japanese(compiled_catalogs):
     # Arrange
     tile = {
-        "label": "App Creator",
+        "label": "SDK",
         "launch_url": "/apps/store/create/",
         "name": "create-app",
         "group": "work",
@@ -138,7 +138,7 @@ def test_app_creator_visible_label_is_localized_in_japanese(compiled_catalogs):
         )
     # Assert
     assert (
-        '<span class="launcher-slot-add-label">アプリ<wbr>クリエイター</span>' in html
+        '<span class="launcher-slot-add-label">SDK</span>' in html
     )
 
 

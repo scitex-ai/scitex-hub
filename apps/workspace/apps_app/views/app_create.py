@@ -14,9 +14,9 @@ from django.views.decorators.http import require_http_methods, require_POST
 
 from ..services.app_create import (
     DEFAULT_STARTER,
-    STARTERS,
     AppCreateError,
     create_app_project,
+    create_page_starters,
 )
 from ..services.app_workspace import (
     EditRefused,
@@ -63,7 +63,9 @@ def create_page(request):
     return render(
         request,
         "apps_app/appmaker/create.html",
-        {"starters": STARTERS, "form": form, "error": error},
+        # SDK catalogue + hub overlay (time_estimate/result); the SDK tuple
+        # itself has no hub-only presentation fields.
+        {"starters": create_page_starters(), "form": form, "error": error},
         status=400 if error else 200,
     )
 
@@ -73,6 +75,7 @@ def workspace_page(request, slug):
     from ..models import DevInstallation
     from ..services.appmaker_agent import resolve_chat_backend
     from ..services.dev_app_loader import read_manifest
+    from scitex_sdk.app.embed import package_version
 
     project = owned_app_project(request.user, slug)
     project_dir = project_dir_for(project)
@@ -88,6 +91,7 @@ def workspace_page(request, slug):
         "project": project,
         "current_project": project,
         "app_label": manifest.get("label") or project.name,
+        "app_version": package_version(manifest["pip_package"]) if manifest.get("pip_package") else "",
         "files": files,
         "file_base_url": f"/{request.user.username}/{project.slug}/blob/",
         "has_ai_provider": resolve_chat_backend(request.user) is not None,
@@ -110,7 +114,7 @@ def _json_body(request) -> dict:
 @login_required
 @require_POST
 def api_chat(request, slug):
-    from scitex_app._chat import sse_keepalive_wrap, stream_chat
+    from scitex_sdk.app._chat import sse_keepalive_wrap, stream_chat
 
     from ..services.appmaker_agent import (
         build_skills,
@@ -197,3 +201,9 @@ def api_run(request, slug):
 
 
 # EOF
+
+
+# This controller owns private project workspaces, independently of the SDK wizard.
+# The generic host resolver reads the actual resolved callback's declaration.
+create_page.scitex_scope_capabilities = {"user": False, "project": True}
+workspace_page.scitex_scope_capabilities = {"user": False, "project": True}

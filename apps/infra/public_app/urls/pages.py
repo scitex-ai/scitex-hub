@@ -45,6 +45,15 @@ urlpatterns = [
     # Legal and contact pages
     path("contact/", views.contact, name="contact"),
     path("donate/", views.donate, name="donate"),
+    # Funding and sustainability (operator priority, beta entry surface).
+    # The page renders data/funding.json via funding.funding_plan(); the
+    # manifest is served verbatim at /.well-known/funding.json.
+    path("funding/", views.fundraising, name="funding"),
+    path(
+        ".well-known/funding.json",
+        views.funding_manifest,
+        name="funding_manifest",
+    ),
     path("privacy/", views.privacy_policy, name="privacy"),
     path("terms/", views.terms_of_use, name="terms"),
     path("cookies/", views.cookie_policy, name="cookies"),
@@ -65,6 +74,8 @@ urlpatterns = [
     path("demo/", views.demo, name="demo"),
     # Web API documentation
     path("docs/web-api/", views.api_docs, name="api_docs"),
+    path("docs/web-api/skill/", views.api_docs_skill, name="api_docs_skill"),
+    path("docs/web-api/catalog.json", views.api_docs_catalog, name="api_docs_catalog"),
     path(
         "docs/web-api/<str:section>/",
         views.api_docs_section,

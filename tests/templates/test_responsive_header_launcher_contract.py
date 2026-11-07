@@ -53,13 +53,13 @@ def test_theme_help_and_account_actions_live_inside_the_shared_menu():
     assert 'id="user-menu-toggle"' not in template
 
 
-def test_shared_hamburger_keeps_a_44px_target_outside_mobile_media_query():
+def test_shared_hamburger_keeps_its_52px_base_target_outside_mobile_media_query():
     css = HEADER_CSS.read_text(encoding="utf-8")
     base = _rule(css, ".mobile-hamburger")
 
     assert "display: flex" in base
-    assert re.search(r"width\s*:\s*44px", base)
-    assert re.search(r"height\s*:\s*44px", base)
+    assert re.search(r"width\s*:\s*52px", base)
+    assert re.search(r"height\s*:\s*52px", base)
     assert css.index(".mobile-hamburger {") < css.index("@media (max-width: 768px)")
 
 

@@ -261,3 +261,32 @@ a.disabled {
   font-size: 0.6rem;
   margin-left: 0.2rem;
 }
+/* Scholar project picker (header): All projects = user library space. */
+.scholar-project-picker {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  margin: 0;
+}
+.scholar-project-picker .fa-folder-open {
+  opacity: 0.65;
+}
+.scholar-project-picker .form-select {
+  max-width: 220px;
+}
+
+.scholar-project-picker { position: relative; }
+.scholar-project-picker .form-select {
+  appearance: none;
+  -webkit-appearance: none;
+  padding-right: 1.6rem;
+}
+.scholar-project-picker-chevron {
+  position: absolute;
+  right: 0.55rem;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 0.7rem;
+  opacity: 0.6;
+  pointer-events: none;
+}

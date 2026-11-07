@@ -1,0 +1,22 @@
+/* Writer editor — responsive rules (STX-UI111).
+
+Unconditional Monaco vendor overrides live in editor.css, which must
+carry no @media block: a top-level `!important` layout override in a
+file that also has @media wins over the responsive rules and forks the
+layout by viewport. Responsive rules live HERE instead.
+*/
+
+@media (max-width: 768px) {
+  .mvp-container {
+    flex-direction: column;
+  }
+
+  .mvp-sidebar {
+    width: 100%;
+    height: 200px;
+  }
+
+  .preview-panel {
+    display: none;
+  }
+}

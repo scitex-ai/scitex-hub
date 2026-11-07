@@ -53,6 +53,14 @@ class Command(BaseCommand):
             action="store_true",
             help="Confirm and execute migration (safety gate)",
         )
+        parser.add_argument(
+            "--package-layout",
+            action="store_true",
+            help=(
+                "Migrate user_library rows from the legacy hub papers/ layout "
+                "to the package MASTER/<paper_id>/ layout (scitex-scholar)"
+            ),
+        )
 
     def handle(self, *args, **options):
         username = options.get("user")
@@ -100,6 +108,11 @@ class Command(BaseCommand):
             "already_migrated": 0,
         }
 
+        if options.get("package_layout"):
+            self._migrate_package_layout(users, stats, dry_run=dry_run)
+            self._print_summary(stats, dry_run)
+            return
+
         # Process each user
         for user in users:
             self.stdout.write(f"\n{'=' * 60}")
@@ -144,6 +157,9 @@ class Command(BaseCommand):
                 stats["already_migrated"] += stats_result.get("already_migrated", 0)
 
         # Final summary
+        self._print_summary(stats, dry_run)
+
+    def _print_summary(self, stats, dry_run):
         self.stdout.write("\n" + "=" * 60)
         self.stdout.write("Migration Summary:")
         self.stdout.write("=" * 60)
@@ -170,6 +186,98 @@ class Command(BaseCommand):
             )
         else:
             self.stdout.write(self.style.SUCCESS("\n✓ Migration complete"))
+
+    def _migrate_package_layout(self, users, stats, dry_run):
+        """Move legacy hub ``papers/`` library files into package MASTER/.
+
+        Rows already in ``user_library`` mode whose stored paths start with
+        ``papers/`` are re-added through UserLibraryService (which now
+        writes ``MASTER/<paper_id>/``) and the row paths updated. Legacy
+        ``papers/`` directories are removed when empty.
+        """
+        from apps.workspace.scholar_app.services import UserLibraryService
+
+        for user in users:
+            try:
+                service = UserLibraryService(user)
+            except Exception as e:
+                self.stdout.write(
+                    self.style.ERROR(
+                        f"ERROR: no library for {user.username}: {e}"
+                    )
+                )
+                continue
+            rows = UserLibrary.objects.filter(
+                user=user, storage_mode="user_library"
+            )
+            moved = 0
+            for entry in rows:
+                pdf_rel = entry.user_library_pdf_path or ""
+                bib_rel = entry.user_library_bibtex_path or ""
+                if not (pdf_rel.startswith("papers/") or bib_rel.startswith("papers/")):
+                    stats["already_migrated"] += 1
+                    continue
+                stats["total"] += 1
+                pdf_abs = (
+                    service.library_path / pdf_rel if pdf_rel else None
+                )
+                bib_abs = (
+                    service.library_path / bib_rel if bib_rel else None
+                )
+                if dry_run:
+                    self.stdout.write(f"  → Would move to MASTER: {pdf_rel or bib_rel}")
+                    stats["migrated"] += 1
+                    continue
+                try:
+                    with transaction.atomic():
+                        paper = entry.paper
+                        doi = getattr(paper, "doi", "") or ""
+                        if doi:
+                            identifier, id_type = doi, "doi"
+                        elif pdf_abs is not None:
+                            identifier, id_type = pdf_abs.stem, "web"
+                        else:
+                            identifier, id_type = (bib_abs.stem if bib_abs else "unknown"), "web"
+                        result = service.add_paper(
+                            identifier=identifier,
+                            id_type=id_type,
+                            pdf_path=(
+                                pdf_abs if pdf_abs and pdf_abs.exists() else None
+                            ),
+                            bibtex_content=(
+                                bib_abs.read_text(encoding="utf-8")
+                                if bib_abs and bib_abs.exists()
+                                else None
+                            ),
+                            metadata={
+                                "basic": {
+                                    "title": getattr(paper, "title", ""),
+                                }
+                            },
+                        )
+                        if "pdf" in result:
+                            entry.user_library_pdf_path = str(result["pdf"])
+                        if "bibtex" in result:
+                            entry.user_library_bibtex_path = str(result["bibtex"])
+                        entry.save(
+                            update_fields=[
+                                "user_library_pdf_path",
+                                "user_library_bibtex_path",
+                            ]
+                        )
+                        moved += 1
+                        stats["migrated"] += 1
+                except Exception as e:
+                    logger.error(f"Package-layout move failed for {entry}: {e}")
+                    stats["errors"] += 1
+            # Remove emptied legacy dirs
+            if not dry_run:
+                legacy_root = service.library_path / "papers"
+                if legacy_root.is_dir() and not any(legacy_root.iterdir()):
+                    legacy_root.rmdir()
+            self.stdout.write(
+                f"  {user.username}: {moved} entries moved to MASTER/"
+            )
 
     def _migrate_paper(
         self, library_entry: UserLibrary, service: UserLibraryService, dry_run: bool

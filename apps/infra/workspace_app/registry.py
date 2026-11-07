@@ -122,6 +122,14 @@ class ModuleConfig:
     is_active: bool = False
     is_dev: bool = False  # True for private (non-published) apps
     status: str = ""  # Module status: stable, wip, beta, deprecated
+    # Operator-marked experimental: shows the flask badge titled
+    # "Experimental" INSTEAD of the dev-only badge. Set from the manifest
+    # "experimental" key or MANIFEST_OVERRIDES; the leaf's own
+    # visibility/status stay untouched.
+    experimental: bool = False
+    # Operator-ordered badge silence for a specific tile (e.g. Storage):
+    # no badge of any kind renders. Hub-side override only.
+    hide_badges: bool = False
 
     # LLM integration
     ai_hint: str = ""  # Short description for data-ai-hint (shown to LLM)
@@ -151,6 +159,7 @@ class ModuleConfig:
     hidden_patterns: list = field(
         default_factory=lambda: ["__pycache__", "node_modules", ".git", ".venv"]
     )
+    pip_package: str = ""  # Registered owner; appended to preserve positional callers.
 
     def get_track_module(self) -> str:
         return self.track_module or self.name
@@ -200,6 +209,8 @@ _BUILTIN_MANIFEST_PATHS: list[str] = [
     "workspace/writer_app/manifest.json",
     "workspace/scholar_app/manifest.json",
     "workspace/figrecipe_app/manifest.json",
+    "workspace/journal_app/manifest.json",
+    "workspace/live_paper_app/manifest.json",
     "workspace/clew_app/manifest.json",
     # NOTE: infra/public_app/manifest.json is intentionally NOT listed here.
     # It declares name="tools", which collided with workspace/tools_app
@@ -223,46 +234,11 @@ _BUILTIN_MANIFEST_PATHS: list[str] = [
     "workspace/files_app/manifest.json",
 ]
 
-# Upstream plugin-app tiles (the package ships its own Django app; hub mounts
-# it and carries only a manifest + any tenancy glue). Appended CONDITIONALLY so
-# the launcher never shows a dead tile on a host where the package is not
-# installed — mirror of the guarded imports in settings_shared.py and the URL
-# guards in config/urls.py.
-# Each entry probes a TUPLE of names, canonical first. The board package was
-# renamed scitex-todo -> scitex-cards on 2026-07-16 and this probe kept asking
-# for the OLD name; scitex-cards 0.41.0 (2026-08-16) then DELETED the
-# `scitex_todo` alias outright, so the probe started returning None on a host
-# where the board is installed, mounted and reachable at /apps/cards/. The tile
-# would simply vanish from the launcher while the app kept working — a
-# user-visible regression with no error anywhere.
-#
-# Both names are accepted while both can be in play: an older wheel still ships
-# only the alias. Canonical first so hub stops depending on the deprecated name
-# the moment it can.
-for _pkg_names, _tile_manifest in (
-    (("scitex_cards", "scitex_todo"), "workspace/todo_app/manifest.json"),
-    (("scitex_storage",), "workspace/storage_app/manifest.json"),
-    (
-        ("scitex_agent_container._django",),
-        "workspace/agents_app/manifest.json",
-    ),
-):
-    try:
-        from importlib.util import find_spec as _find_spec
-
-        # A submodule probe raises ModuleNotFoundError when its parent package
-        # is absent. Absence is the expected state for optional apps, not an
-        # exceptional registry failure worth a traceback on every boot.
-        def _available(_name: str) -> bool:
-            try:
-                return _find_spec(_name) is not None
-            except ModuleNotFoundError:
-                return False
-
-        if any(_available(_name) for _name in _pkg_names):
-            _BUILTIN_MANIFEST_PATHS.append(_tile_manifest)
-    except Exception:
-        logger.exception("[registry] %s tile probe failed", _pkg_names[0])
+# Upstream plugin-app tiles (agents, cards, storage, ...) need NO hub-side
+# manifest and NO conditional probe here: the generic plugin mount lists
+# each tile from the plugin's OWN manifest (register_plugin_modules, via
+# the scitex.apps entry point), and only installed plugins are listed — so
+# the launcher never shows a dead tile, with zero hub-side package names.
 
 
 _SUPPORTED_SCHEMA_VERSIONS = {"1.0.0", "2.0.0"}
@@ -309,6 +285,31 @@ def _resolve_version(data: dict) -> str:
         return ""
 
 
+def _resolve_leaf_manifest(data: dict) -> dict:
+    """Read the INSTALLED leaf package's own ``_django/manifest.json``.
+
+    Leaf-icon rule (SDK PR #63 rule 6, operator rule): a leaf's icon+label
+    live in the leaf manifest; hub must not hand-carry copies that drift
+    (figrecipe read "FigRecipe" in hub vs "Figrecipe" in the leaf). The hub
+    manifest keeps its own icon/label keys as FALLBACK for leaves that do
+    not ship a manifest yet — but whenever the leaf manifest exists, the
+    leaf wins. Never raises: a missing dist or manifest degrades to ``{}``.
+    """
+    pkg = (data.get("pip_package", "") or "").replace("-", "_")
+    if not pkg:
+        return {}
+    try:
+        from importlib.resources import files as _files
+
+        text = (_files(pkg) / "_django" / "manifest.json").read_text(
+            encoding="utf-8"
+        )
+        leaf = json.loads(text)
+        return leaf if isinstance(leaf, dict) else {}
+    except Exception:
+        return {}
+
+
 def _resolve_availability(data: dict) -> str:
     """Validate the manifest's ``availability`` declaration.
 
@@ -343,11 +344,17 @@ def _manifest_to_module_config(data: dict) -> ModuleConfig:
     overrides = _MANIFEST_OVERRIDES.get(name, {})
     effective_data = {**data, **overrides}
 
+    leaf = _resolve_leaf_manifest(data)
+    # Leaf-icon rule: the leaf manifest's icon+label win when present; the
+    # hub manifest's own keys are fallback for leaves without one yet.
+    label = (leaf.get("label") or data["label"]).strip() or data["label"]
+    icon = (leaf.get("icon") or data.get("icon", "")).strip()
     return ModuleConfig(
         name=name,
-        label=data["label"],
+        label=label,
         app_name=data["app_name"],
-        icon_fa=data.get("icon", ""),
+        pip_package=data.get("pip_package") or ("scitex-hub" if data.get("builtin", True) else ""),
+        icon_fa=icon,
         icon_badge=data.get("icon_badge", ""),
         icon_svg_tab=overrides.get("icon_svg_tab", ""),
         icon_svg_nav=overrides.get("icon_svg_nav", ""),
@@ -360,9 +367,13 @@ def _manifest_to_module_config(data: dict) -> ModuleConfig:
         category=data.get("category", ""),
         availability=_resolve_availability(effective_data),
         scope=_resolve_scope(effective_data),
+        availability_reason=str(effective_data.get("availability_reason", "")),
+        builtin=bool(effective_data.get("builtin", True)),
         default_enabled=data.get("default_enabled", True),
         show_in_launcher=data.get("show_in_launcher", True),
         visibility=data.get("visibility", "public"),
+        experimental=bool(effective_data.get("experimental", False)),
+        hide_badges=bool(effective_data.get("hide_badges", False)),
         ai_hint=data.get("ai_hint", ""),
         accent_color=data.get("accent_color", ""),
         docs_slug=data.get("docs_slug", ""),

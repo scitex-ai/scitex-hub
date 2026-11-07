@@ -1,8 +1,8 @@
 {% extends "global_base.html" %}
 
-{% load static %}
+{% load static i18n %}
 
-{% block title %}Review Queue - Apps{% endblock %}
+{% block title %}{% trans "Review Queue" %} - {% trans "App Store" %}{% endblock %}
 {% block extra_css %}
     <link rel="stylesheet" href="{% static 'apps_app/css/apps.css' %}?v={{ build_id }}" />
 {% endblock %}
@@ -11,9 +11,9 @@
         <div class="ap-detail-header" style="margin-bottom: 24px;">
             <div class="ap-detail-meta">
                 <h1 class="ap-detail-title">
-                    <i class="fas fa-clipboard-check" aria-hidden="true"></i> Review Queue
+                    <i class="fas fa-clipboard-check" aria-hidden="true"></i> {% trans "Review Queue" %}
                 </h1>
-                <p class="ap-detail-short-desc">Pending app submissions for apps review</p>
+                <p class="ap-detail-short-desc">{% trans "Pending app submissions for apps review" %}</p>
             </div>
         </div>
         {% if submissions %}
@@ -36,16 +36,16 @@
                                        style="font-size: 1.1rem;
                                               font-weight: 600;
                                               color: var(--text-primary)">{{ sub.module.module_name }}</a>
-                                    <span class="ap-category-badge ap-category-{{ sub.module.category }}">{{ sub.module.get_category_display }}</span>
+                                    <span class="ap-category-badge ap-category-{{ sub.module.category }}">{% trans sub.module.get_category_display %}</span>
                                     {% if sub.status == "changes_requested" %}
                                         <span class="ap-badge"
                                               style="background: var(--color-attention-subtle, #bb8009);
                                                      color: #fff">
-                                            <i class="fas fa-edit" aria-hidden="true"></i> Changes Requested
+                                            <i class="fas fa-edit" aria-hidden="true"></i> {% trans "Changes Requested" %}
                                         </span>
                                     {% else %}
                                         <span class="ap-badge ap-badge-wip">
-                                            <i class="fas fa-clock" aria-hidden="true"></i> Pending
+                                            <i class="fas fa-clock" aria-hidden="true"></i> {% trans "Pending" %}
                                         </span>
                                     {% endif %}
                                 </div>
@@ -66,7 +66,7 @@
                                            style="margin-left: 12px;
                                                   color: var(--color-accent-fg)">
                                             <i class="fas fa-code-pull-request" aria-hidden="true"></i>
-                                            Registry PR
+                                            {% trans "Registry PR" %}
                                         </a>
                                     {% endif %}
                                     {% if sub.module.project %}
@@ -82,7 +82,7 @@
                             <div style="display: flex; flex-direction: column; gap: 8px; min-width: 280px;">
                                 <textarea class="review-note-input"
                                           id="note-{{ sub.id }}"
-                                          placeholder="Review notes (optional)..."
+                                          placeholder="{% trans 'Review notes (optional)...' %}"
                                           rows="2"
                                           style="width: 100%;
                                                  padding: 8px;
@@ -99,7 +99,7 @@
                                             style="flex: 1;
                                                    padding: 6px 12px;
                                                    font-size: 0.85rem">
-                                        <i class="fas fa-check" aria-hidden="true"></i> Approve
+                                        <i class="fas fa-check" aria-hidden="true"></i> {% trans "Approve" %}
                                     </button>
                                     <button class="ap-btn-action review-action-btn"
                                             data-id="{{ sub.id }}"
@@ -110,7 +110,7 @@
                                                    background: var(--color-attention-subtle, #bb8009);
                                                    color: #fff;
                                                    border: 1px solid var(--color-attention-muted, #9e6a03)">
-                                        <i class="fas fa-edit" aria-hidden="true"></i> Changes
+                                        <i class="fas fa-edit" aria-hidden="true"></i> {% trans "Changes" %}
                                     </button>
                                     <button class="ap-btn-action ap-btn-danger review-action-btn"
                                             data-id="{{ sub.id }}"
@@ -118,7 +118,7 @@
                                             style="flex: 1;
                                                    padding: 6px 12px;
                                                    font-size: 0.85rem">
-                                        <i class="fas fa-times" aria-hidden="true"></i> Reject
+                                        <i class="fas fa-times" aria-hidden="true"></i> {% trans "Reject" %}
                                     </button>
                                 </div>
                             </div>
@@ -132,8 +132,8 @@
                    style="font-size: 3rem;
                           margin-bottom: 16px;
                           display: block"></i>
-                <p style="font-size: 1.1rem;">No pending submissions</p>
-                <p style="font-size: 0.9rem;">All app submissions have been reviewed.</p>
+                <p style="font-size: 1.1rem;">{% trans "No pending submissions" %}</p>
+                <p style="font-size: 0.9rem;">{% trans "All app submissions have been reviewed." %}</p>
             </div>
         {% endif %}
     </div>

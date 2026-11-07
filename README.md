@@ -64,6 +64,11 @@ SciTeX Hub is an AI-native infrastructure so that researchers can focus on scien
 
 ## Architecture
 
+The [interface documentation dispatcher](docs/architecture/interface-documentation.md)
+composes installed Dev documentation and SDK Web API providers for humans and
+agents. Leaf packages own behavior; declarations, host admission and live API
+availability remain separate observations.
+
 ```mermaid
 graph TB
     subgraph workspace[apps/workspace]
@@ -115,7 +120,7 @@ make start                    # Start development environment
 # (or set SCITEX_HUB_TEST_USER_PASSWORD to choose it yourself)
 ```
 
-## Four Interfaces
+## Five Interfaces
 
 <details open>
 <summary><strong>Python API</strong></summary>
@@ -126,7 +131,7 @@ make start                    # Start development environment
 import scitex_hub
 
 # Version and health
-scitex_hub.__version__        # read from pyproject.toml (e.g. "0.17.0-alpha")
+scitex_hub.__version__        # installed distribution metadata (e.g. "0.22.0a0")
 scitex_hub.get_version()      # Version string
 scitex_hub.health_check()     # Local package info
 scitex_hub.health_check("https://scitex.ai/api/health/")  # Remote endpoint
@@ -227,16 +232,30 @@ for the live list.</sub>
 Skill files provide context-aware guidance to AI agents working within the SciTeX ecosystem.
 
 ```bash
-# Export skills to dotfiles (sync to Claude)
-scitex-dev skills export --package scitex-hub
+# List installed, package-owned skills through the central dispatcher
+scitex-dev dev skills list --package scitex-hub --json
 
-# List available skills
+# Read the Hub CLI-specific listing
 scitex-hub skills list
 ```
 
 Skills are stored in `src/scitex_hub/_skills/scitex-hub/` and cover deployment, development, testing, and more.
 
+For release staging/production, use the [canonical candidate-image runbook](src/scitex_hub/_skills/scitex-hub/12_deployment-production.md). It preserves serving jobs and data while qualifying one immutable app image; the generic rebuild script includes job cancellation.
+
 > **[Skills index](_skills/scitex-hub/SKILL.md)**
+
+</details>
+
+<details>
+<summary><strong>Web API documentation</strong></summary>
+
+The [interface dispatcher](docs/architecture/interface-documentation.md) composes
+installed leaf documentation and SDK inert Web declarations at `/docs/web-api/`.
+Select a normalized distribution with `?package=scitex-scholar`, for example.
+Leaf-owned installed skills remain readable when canonical API metadata is
+absent; declarations, host admission and live availability are separate states.
+The Hub does not invent domain endpoints or probe handlers to render docs.
 
 </details>
 
@@ -354,7 +373,20 @@ curl https://a2a.scitex.ai/v1/agents/ | jq '.agents | length'
 
 SciTeX Hub is in **alpha**. Core functionality is working and under active development. Data formats may change between releases — back up important work.
 
+The shared Cloud header keeps an **Alpha** badge visible on desktop and mobile.
+The landing page explains that features and APIs may change and that separate
+backups are needed. These notices describe product maturity independently of
+the deployed version number.
+
+The landing page's section navigator summarizes the connected research workflow
+and links directly to the app overview, provenance, deployment choices, open
+source, research demo, and pricing. It uses native anchors and remains available
+while scrolling. Photography source and licence records are kept in the asset
+directory's `PROVENANCE.md`.
+
 ## Contributing
+
+Existing MNIST projects have an explicit, guarded [Writer showcase plan/apply](docs/project-samples/mnist-writer.md). It derives example-only sections from the existing computed bundle, preserves authored files, and never seeds or compiles during a page GET.
 
 We welcome contributions! See [CONTRIBUTING.md](CONTRIBUTING.md).
 

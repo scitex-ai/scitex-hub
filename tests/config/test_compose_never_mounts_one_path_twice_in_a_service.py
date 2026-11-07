@@ -57,7 +57,23 @@ def mount_target(entry) -> str | None:
     text = str(entry).strip().strip('"').strip("'")
     if not text:
         return None
-    parts = text.split(":")
+    # Compose interpolation defaults contain colons, e.g. ${SECRET:-/dev/null}.
+    # Only separators outside a (possibly nested) interpolation split fields;
+    # never expand process environment while auditing checked-in declarations.
+    parts = []
+    depth = 0
+    start = 0
+    for index, character in enumerate(text):
+        if text.startswith("${", index):
+            depth += 1
+        elif character == "}" and depth:
+            depth -= 1
+        elif character == ":" and not depth:
+            parts.append(text[start:index])
+            start = index + 1
+    if depth:
+        raise ValueError("Unclosed Compose mount interpolation")
+    parts.append(text[start:])
     if len(parts) == 1:
         return parts[0]
     return parts[1]
@@ -191,3 +207,37 @@ def test_service_mounts_each_container_path_once(path, name, service):
         "whichever entry is redundant; if both are wanted for different "
         "reasons, they still cannot both apply."
     )
+
+
+@pytest.mark.parametrize(
+    "entry,target",
+    [
+        ("${SECRET:-/dev/null}:/run/secrets/one:ro", "/run/secrets/one"),
+        ("${SECRET:-${FALLBACK:-/dev/null}}:/run/secrets/two:ro", "/run/secrets/two"),
+        ("named:/app/data:rw", "/app/data"),
+        ("/app/cache", "/app/cache"),
+        ({"source": "named", "target": "/app/data"}, "/app/data"),
+    ],
+)
+def test_mount_target_respects_compose_interpolation(entry, target):
+    assert mount_target(entry) == target
+
+
+def test_distinct_interpolated_secret_mounts_do_not_collide():
+    service = {
+        "volumes": [
+            "${ONE:-/dev/null}:/run/secrets/one:ro",
+            "${TWO:-/dev/null}:/run/secrets/two:ro",
+        ]
+    }
+    assert duplicate_targets(service) == {}
+
+
+def test_interpolated_sources_still_detect_an_actual_target_collision():
+    entries = ["${ONE:-/dev/null}:/same:ro", "${TWO:-/dev/null}:/same:ro"]
+    assert duplicate_targets({"volumes": entries}) == {"/same": entries}
+
+
+def test_unclosed_mount_interpolation_refuses_instead_of_misparsing():
+    with pytest.raises(ValueError, match="Unclosed"):
+        mount_target("${BROKEN:-/source:/target:ro")

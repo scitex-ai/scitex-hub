@@ -4,6 +4,7 @@ import shutil
 from importlib.util import find_spec
 from pathlib import Path
 from types import SimpleNamespace
+from uuid import uuid4
 
 import pytest
 from django.contrib.auth.models import AnonymousUser, User
@@ -114,7 +115,9 @@ class TestRepositoryVcsRoutes(TestCase):
             get_project_filesystem_manager,
         )
 
-        self.owner = User.objects.create_user(username="vcs-owner")
+        # A DB transaction does not isolate on-disk project homes across
+        # xdist workers. Each fixture owns and cleans only its unique home.
+        self.owner = User.objects.create_user(username=f"vcs-{uuid4().hex}")
         self.public = Project.objects.create(
             owner=self.owner, slug="public-repo", name="public", visibility="public"
         )
@@ -130,20 +133,20 @@ class TestRepositoryVcsRoutes(TestCase):
             root = get_project_filesystem_manager(self.owner).get_project_root_path(project)
             assert root == expected_root
             (root / "README.md").write_text("NORMAL")
-            (root / ".git" / "objects" / "pack").mkdir(parents=True)
+            (root / ".git" / "objects" / "pack").mkdir(parents=True, exist_ok=True)
             (root / ".git" / "HEAD").write_text("SECRET")
             self.roots[project.pk] = root
 
     def test_public_normal_blob_is_positive_control(self):
-        response = self.client.get("/vcs-owner/public-repo/blob/README.md?mode=raw")
+        response = self.client.get(f"/{self.owner.username}/public-repo/blob/README.md?mode=raw")
         assert response.status_code == 200
 
     def test_blob_tree_raw_and_archive_shapes_hide_git(self):
         paths = (
-            "/vcs-owner/public-repo/blob/.git/HEAD?mode=raw",
-            "/vcs-owner/public-repo/tree/main/.git/HEAD",
-            "/vcs-owner/public-repo/raw/.git/HEAD/",
-            "/vcs-owner/public-repo/archive/.git/HEAD/",
+            f"/{self.owner.username}/public-repo/blob/.git/HEAD?mode=raw",
+            f"/{self.owner.username}/public-repo/tree/main/.git/HEAD",
+            f"/{self.owner.username}/public-repo/raw/.git/HEAD/",
+            f"/{self.owner.username}/public-repo/archive/.git/HEAD/",
         )
         assert {self.client.get(path).status_code for path in paths} == {404}
 

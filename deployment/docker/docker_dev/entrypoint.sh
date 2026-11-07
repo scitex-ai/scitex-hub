@@ -52,17 +52,8 @@ fi
 # ============================================
 sync_slurm_uid || echo_warning "SLURM UID sync skipped - terminal may have issues"
 
-# ============================================
-# Clean SLURM State (Prevent Stuck Nodes)
-# ============================================
-# Cancel stuck COMPLETING jobs and reset node state from previous runs
-if command -v scancel &>/dev/null; then
-    scancel --state=COMPLETING 2>/dev/null || true
-    for node in $(sinfo -h -o"%N" 2>/dev/null); do
-        scontrol update NodeName="$node" State=resume 2>/dev/null || true
-    done
-    echo_success "SLURM state cleaned"
-fi
+# Preserve existing jobs and node states during web and worker starts.
+# Scheduler recovery is an explicit operator action, not app initialization.
 
 # ============================================
 # Install SciTeX + Ecosystem Packages (Editable Mode)
@@ -116,11 +107,10 @@ fi
 start_platform_vite() {
     cd /app || return 0
 
-    # Ensure node_modules exists
-    if [ ! -d "node_modules" ]; then
-        echo_warning "Installing Node dependencies..."
-        npm install --silent 2>&1 | grep -v "npm WARN" || true
-    fi
+    # Bind-mounted source peers are available now. Existing node_modules may
+    # belong to an older manifest; synchronize and validate the full graph.
+    echo_info "Synchronizing development frontend dependencies..."
+    bash /app/scripts/deploy/install_dev_frontend.sh /app >>/app/logs/dev-frontend-install.log 2>&1
 
     # SCITEX_HUB_VITE_USE_BUILD=true means Django ignores this dev server and
     # reads staticfiles/vite/.vite/manifest.json instead (see
@@ -152,11 +142,10 @@ start_platform_vite() {
             if npm run build >>/app/logs/vite-build.log 2>&1; then
                 echo_success "Vite build complete (staticfiles/vite/.vite/manifest.json)"
             else
-                # Loud, not fatal: Django's own system check (public_app.E001)
-                # refuses the boot and names the missing path, which is the
-                # single place that message belongs. Duplicating the refusal
-                # here would just make the real one harder to find.
-                echo_warning "Vite build FAILED -- see /app/logs/vite-build.log. Django will refuse to start (public_app.E001)."
+                # An older manifest may still exist. Do not serve it as proof
+                # that the current source compiled successfully.
+                echo_error "Vite build FAILED -- see /app/logs/vite-build.log. Refusing startup."
+                return 1
             fi
             return 0
             ;;

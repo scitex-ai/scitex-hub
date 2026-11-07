@@ -47,7 +47,7 @@ _REPO_ROOT = Path(__file__).resolve().parents[3]
 EXPECTED_TILE_ORDER = [
     # FOUNDATION (operator groups, 2026-09-14 16:3xZ)
     "My Projects",
-    "Agents",
+    "Agent Container",
     "Cards",
     "Storage",
     # WORK (Stats keeps its slot until its app lands)
@@ -57,7 +57,7 @@ EXPECTED_TILE_ORDER = [
     "Writer",
     "Chat",
     "Clew",
-    "App Creator",
+    "SDK",
     # PUBLISH
     "Public Projects",
     # SYSTEM
@@ -73,6 +73,18 @@ EXPECTED_TILE_ORDER = [
     "Console",
     "Tools",
 ]
+
+
+#: Tile labels that live in LEAF manifests (other repos), not in this tree.
+#: SSoT per leaf (operator short-tile decision, 2026-10-23); mirrored here
+#: because this test must stay deterministic in every environment (CI
+#: runners have no sibling checkouts and no leaf packages guaranteed
+#: installed). Update a pin in the same change that relabels the leaf.
+_PLUGIN_LABEL_PINS = {
+    "agent-container": "Agent Container",  # scitex-agent-container manifest
+    "scitex-cards": "Cards",  # scitex-cards manifest
+    "storage": "Storage",  # scitex-storage manifest
+}
 
 
 def _manifest_labels():
@@ -91,6 +103,9 @@ def _manifest_labels():
     from apps.workspace.apps_app.planned_apps import PLANNED_APPS
 
     labels.update({app.id: app.name_en for app in PLANNED_APPS})
+    # Plugin tiles: the leaf manifest is the SSoT (read live by the
+    # launcher); the pin above is this test's deterministic copy of it.
+    labels.update(_PLUGIN_LABEL_PINS)
     return labels
 
 
@@ -141,6 +156,14 @@ class GridLauncherTest(TestCase):
         response = self.client.get("/apps/my-projects/")
         # Assert
         assert b'data-dock-item="my_projects"' in response.content
+
+    def test_mobile_menu_does_not_duplicate_my_projects(self):
+        # Arrange
+        self.client.force_login(self.staff)
+        # Act
+        response = self.client.get("/apps/my-projects/")
+        # Assert
+        assert b"<span>My Projects</span>" not in response.content
 
 
 @pytest.fixture(name="compiled_catalogs")

@@ -1,53 +1,29 @@
 ---
 description: |
   [TOPIC] Deploy to Staging
-  [DETAILS] Deploy SciTeX Hub to staging — sync versions, build Docker, verify..
+  [DETAILS] Stage the qualified immutable app image with isolated user data through the canonical deployment contract.
 tags: [scitex-hub-deployment-staging]
 ---
 
-# Deploy to Staging
+# Stage the qualified production artifact
 
-## Prerequisites
-- Ensure scitex packages are latest and synchronized (`scitex dev versions list --json`)
-- If scitex version was bumped locally, MUST be released to PyPI before Docker build
-  (Dockerfile.prod installs from PyPI, not local source)
+Follow [the canonical image deployment runbook](12_deployment-production.md),
+particularly **Qualify once, stage the same artifact**. It owns the shared
+build, resource limits, backups, image admission and verification sequence.
 
-## Step 1: Sync versions
-```bash
-scitex dev versions list --json
-scitex dev versions sync --confirm --host nas
-```
+Staging is selected through `scripts/deploy/compose.sh staging ...`; the shared
+resolver supplies `deployment/docker/envs/.env.staging` and the base/staging
+Compose files. Its build points to the production Dockerfile (the compatibility
+path `deployment/docker/Dockerfile.prod` resolves to
+`deployment/docker/docker_prod/Dockerfile.prod`). For release qualification,
+build once through the production candidate path and stage that exact immutable
+artifact with `--no-build`; do not independently rebuild a different graph.
 
-## Step 2: Verify Dockerfile pins correct version
-```bash
-grep 'scitex\[all\]==' ~/proj/scitex-hub/deployment/docker/Dockerfile.prod
-```
-
-## Step 3: Sync NAS repo
-```bash
-ssh nas "cd ~/proj/scitex-hub && git -C ~/proj/scitex-hub pull origin develop"
-```
-
-## Step 4: Build staging in screen (survives SSH disconnect)
-
-**NEVER run raw `docker build` on NAS** — use `make rebuild` which has cgroup protections:
-```bash
-TIMESTAMP=$(date +%Y%m%d-%H%M%S)
-ssh nas "screen -dmS staging-$TIMESTAMP bash -c 'cd ~/proj/scitex-hub && make ENV=staging YES=1 rebuild 2>&1 | tee /tmp/scitex-staging-$TIMESTAMP.log'"
-```
-
-Monitor:
-```bash
-ssh nas "tail -20 /tmp/scitex-staging-$TIMESTAMP.log"
-ssh nas "screen -ls"
-```
-
-## Step 5: Verify staging
-```bash
-# Check containers
-ssh nas 'docker ps --format "{{.Names}}: {{.Status}}" | grep staging'
-# Check site
-ssh nas 'curl -sL -o /dev/null -w "%{http_code}" http://localhost:8001/'
-# Read Django logs
-ssh nas 'docker logs scitex-hub-staging-django-1 --tail 30'
-```
+A supplied `SCITEX_HUB_APP_IMAGE` selects all three app roles and derives
+image-only mode. Without it, staging keeps its historical editable default.
+Use the existing `SCITEX_SLURM_USER_DATA_ROOT` bind parameter for an explicitly
+owned isolated test-user directory; verify the database, volumes and actual
+resolved mounts before a staged swap. Never run the generic job-cancelling
+`rebuild.sh`, broad `down`, or unconditional no-cache build as a staging recipe.
+Ports and route readiness come from the resolved reviewed configuration rather
+than stale hardcoded port numbers. Preserve production and unrelated services.

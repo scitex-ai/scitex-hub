@@ -1,22 +1,21 @@
 {% extends "global_base.html" %}
-{% load static i18n scitex_project_picker %}
+{% load static i18n scitex_project_picker scitex_static %}
 {% block title %}{{ app_label }}{% endblock %}
 {% block extra_css %}
     <link rel="stylesheet" href="{% static 'apps_app/css/appmaker.css' %}?v={{ build_id }}" />
+    <link rel="stylesheet" href="{% app_static 'scitex_sdk/ui/css/app/app-header.css' %}" />
 {% endblock %}
 {% block content %}
     <div class="appmaker" id="appmaker-workspace">
-        <header class="appmaker-head stx-app-header">
-            <div class="stx-app-header__identity">
-                <h1 class="appmaker-title">{{ app_label }}</h1>
-                <span class="appmaker-head-meta">
+        <div data-stx-app-header data-app-title="{{ app_label }}"{% if app_version %} data-app-version="{{ app_version }}"{% endif %}>
+            {% scitex_project_picker scope="project" current=project %}
+        </div>
+        <script type="module" src="{% app_static 'scitex_sdk/ui/js/app/app-header.js' %}"></script>
+        <div class="appmaker-head">
+            <span class="appmaker-head-meta">
                     <i class="fas fa-lock" aria-hidden="true"></i>
                     {% trans "Private project" %} · {{ request.user.username }}/{{ project.slug }}
-                </span>
-            </div>
-            <div class="stx-app-header__slot--project-selector">
-                {% scitex_project_picker scope="project" current=project %}
-            </div>
+            </span>
             <div class="appmaker-actions">
                 <div class="appmaker-action">
                     <button type="button"
@@ -43,7 +42,7 @@
                     <span class="appmaker-action-note" id="appmaker-publish-note">{% trans "Coming soon — requires verified phone, card and ORCID" %}</span>
                 </div>
             </div>
-        </header>
+        </div>
         <div class="appmaker-grid">
             <section class="appmaker-panel appmaker-files-panel" aria-labelledby="appmaker-files-title">
                 <h2 class="appmaker-panel-title" id="appmaker-files-title">{% trans "Files" %}</h2>

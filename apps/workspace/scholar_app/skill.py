@@ -19,7 +19,7 @@ register(
             "Enrich metadata (abstracts, impact factors, DOIs)",
             "Save papers to library collections",
         ],
-        url_route="scholar_app:index",
+        url_route="scholar-leaf:index",
         module_description=(
             "Literature management: search papers (CrossRef/OpenAlex/Semantic Scholar), "
             "manage bibliography, explore citation graphs, download PDFs."

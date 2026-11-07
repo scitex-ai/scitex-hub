@@ -4,7 +4,7 @@
 
 {% block title %}{{ section_title }} - Web API Documentation - SciTeX{% endblock %}
 {% block meta_description %}
-    {{ section_title }} - Complete API reference for integrating with SciTeX modules.
+    {{ section_title }} - Installed provider declarations, interface contracts and explicit availability gaps.
 {% endblock %}
 {% block extra_css %}
     <link rel="stylesheet" href="{% static 'shared/css/components/minimal-hero.css' %}" />
@@ -17,21 +17,8 @@
             <div class="api-hero-header" style="justify-content: center">
                 <h1 class="minimal-hero-title">Web API Documentation</h1>
                 <div class="api-hero-actions">
-                    <span class="api-version-badge">v{{ version|default:"0.7.0-alpha" }}</span>
-                    <div class="download-dropdown">
-                        <button class="btn-download" id="download-btn">
-                            <i class="fas fa-download"></i> Download Docs
-                            <i class="fas fa-caret-down"></i>
-                        </button>
-                        <div class="download-menu" id="download-menu">
-                            <a href="{% url 'public_app:api_docs_download' fmt='md' %}">
-                                <i class="fas fa-file-alt"></i> Markdown (.md)
-                            </a>
-                            <a href="{% url 'public_app:api_docs_download' fmt='pdf' %}">
-                                <i class="fas fa-file-pdf"></i> PDF
-                            </a>
-                        </div>
-                    </div>
+                    <span class="api-version-badge">v{{ version|default:"unknown" }}</span>
+                    <a class="btn-download" href="/docs/web-api/catalog.json{% if interface_catalog.selected_package %}?package={{ interface_catalog.selected_package|urlencode }}{% endif %}">Provider metadata (.json)</a>
                 </div>
             </div>
         </header>
@@ -39,24 +26,10 @@
         <div class="api-alpha-notice" style="margin-top: 0.5rem">
             <i class="fas fa-flask"></i>
             <div>
-                <strong>Alpha Release</strong> — API endpoints and rate limits are provisional.
-                <br />
-                Campaign API Key: <code>{{ campaign_token }}</code>
+                Installed provider metadata is read-only. Registration does not grant access or prove an enabled endpoint.
             </div>
         </div>
     </div>
-    <!-- API Settings Data for JS -->
-    <script type="application/json" id="api-settings-data">
-    {
-        "localUrl": "{{ request.build_absolute_uri|slice:':-1' }}",
-        "cloudUrl": "https://scitex.ai",
-        "campaignToken": "{{ campaign_token }}",
-        "userApiKey": "{% if user_api_key %}{{ user_api_key }}{% else %}{% endif %}",
-        "isAuthenticated": {% if user.is_authenticated %}true{% else %}false{% endif %},
-        "username": "{% if user.is_authenticated %}{{ user.username }}{% else %}{% endif %}",
-        "testPassword": "{% if debug and user.is_authenticated %}{{ test_password|default:'' }}{% else %}{% endif %}"
-    }
-    </script>
     <div class="container py-2">
         <div class="api-layout">
             {% include "public_app/pages/api-docs-partials/sidebar_sections.html" %}
@@ -66,7 +39,4 @@
             </main>
         </div>
     </div>
-{% endblock %}
-{% block extra_js %}
-    {% vite_script 'public_app/pages/api-docs' %}
 {% endblock %}

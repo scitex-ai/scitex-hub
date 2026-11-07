@@ -4,6 +4,7 @@
   "name": "settings",
   "label": "Settings",
   "icon": "fas fa-gear",
+  "hub_native": true,
   "category": "utility",
   "url": "/accounts/settings/",
   "description": "Account settings: profile, appearance, account and privacy."

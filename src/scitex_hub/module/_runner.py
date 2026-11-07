@@ -11,15 +11,19 @@ from __future__ import annotations
 
 import importlib.util
 import json
-import logging
 import sys
 from pathlib import Path
 from typing import Any
 
+import scitex_logging as slogging
+
 from ._decorator import _inject_params
 from ._renderer import render_outputs
 
-logger = logging.getLogger(__name__)
+logger = slogging.getLogger(__name__)
+# PS-220: `_cli_main` is a console entry point, so its success line keeps
+# stdout (getLogger writes to stderr) and gains the SciTeX level.
+console = slogging.getConsole(__name__)
 
 
 def discover_module_func(module_path: str | Path) -> Any:
@@ -101,7 +105,7 @@ def _build_injectables(project_path: Path) -> dict[str, Any]:
     except ImportError:
         pass
 
-    injectables["logger"] = logging.getLogger("scitex_hub.module.user")
+    injectables["logger"] = slogging.getLogger("scitex_hub.module.user")
 
     return injectables
 
@@ -126,9 +130,9 @@ def _cli_main() -> None:
 
     result = run_module(args.module_path, args.project_path, args.output_dir)
     if result["error"]:
-        print(f"ERROR: {result['error']}", file=sys.stderr)
+        logger.error(f"ERROR: {result['error']}")
         sys.exit(1)
-    print(f"OK: {len(result['outputs'])} output(s) written")
+    console.success(f"OK: {len(result['outputs'])} output(s) written")
 
 
 if __name__ == "__main__":

@@ -41,8 +41,10 @@ from __future__ import annotations
 import fcntl
 import json
 import os
+import signal
 import subprocess
 import sys
+import time
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Iterator
@@ -64,17 +66,20 @@ WORKTREE_SRC = Path(__file__).resolve().parents[3] / "src"
 UNREACHABLE_REMOTE = "/nonexistent/dev-preview-origin.git"
 
 # A tick whose rebuild sleeps far longer than the ``/usr/bin/timeout`` it runs
-# under; ``sys.argv``: clone, state_dir. Real signal, real process, real state.
+# under; argv: clone, state_dir, ready marker, startup delay.
+# The marker arms the timeout only after the real rebuild has begun.
 SLOW_TICK_DRIVER = """\
 import sys
 import time
 from pathlib import Path
 
+time.sleep(float(sys.argv[4]))
 from scitex_hub._dev_preview import Actions, Config, sync
 
 
 def slow_rebuild(clone):
-    time.sleep(30)
+    Path(sys.argv[3]).write_text("rebuild started", encoding="utf-8")
+    time.sleep(120)
     return 0
 
 
@@ -514,43 +519,65 @@ def test_action_raising_a_foreign_exception_still_counts_toward_the_hold(
     )
 
 
+@pytest.mark.parametrize("startup_delay", [0, 4])
 def test_tick_killed_by_timeout_mid_action_counts_as_an_attempt(
-    repos: Repos, tmp_path: Path
+    repos: Repos, tmp_path: Path, startup_delay: int
 ):
     """``/usr/bin/timeout`` SIGTERMs the tick during a slow rebuild; state must remember it."""
     # Arrange
     _baseline(repos)
     head = repos.push(DOCKERFILE)
     driver = tmp_path / "slow_tick.py"
+    ready = tmp_path / "rebuild-ready"
     driver.write_text(SLOW_TICK_DRIVER, encoding="utf-8")
     env = dict(os.environ)
     env["PYTHONPATH"] = os.pathsep.join(
         [str(WORKTREE_SRC), env.get("PYTHONPATH", "")]
     ).rstrip(os.pathsep)
     # Act
-    completed = subprocess.run(
+    process = subprocess.Popen(
         [
             "/usr/bin/timeout",
-            "3",
+            "--kill-after=5",
+            "60",
             sys.executable,
             str(driver),
             str(repos.clone),
             str(repos.state_dir),
+            str(ready),
+            str(startup_delay),
         ],
         env=env,
-        capture_output=True,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
         text=True,
-        timeout=60,
-        check=False,
+        start_new_session=True,
     )
+    try:
+        deadline = time.monotonic() + 30
+        while (
+            not ready.exists()
+            and process.poll() is None
+            and time.monotonic() < deadline
+        ):
+            time.sleep(0.01)
+        assert ready.exists(), "Real rebuild never reached its readiness boundary"
+        # GNU timeout handles SIGALRM through its real deadline-expiry path.
+        # Interpreter startup and git preparation cannot consume that deadline.
+        process.send_signal(signal.SIGALRM)
+        stdout, stderr = process.communicate(timeout=15)
+    finally:
+        if process.poll() is None:
+            os.killpg(process.pid, signal.SIGKILL)
+            process.communicate(timeout=10)
     attempt = repos.state()["attempts"].get(head, {})
     # Assert
     assert (
-        completed.returncode,
+        process.returncode,
         attempt.get("action"),
         attempt.get("count"),
         attempt.get("rc"),
-    ) == (124, "rebuild", 1, RC_KILLED), (completed.stdout, completed.stderr)
+    ) == (124, "rebuild", 1, RC_KILLED), (stdout, stderr)
 
 
 def test_local_commit_with_unchanged_origin_is_refused_without_actions(repos: Repos):

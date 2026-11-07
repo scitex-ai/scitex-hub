@@ -33,11 +33,23 @@
   flex-shrink: 0;
 }
 
-/* Navy #1a2a40 circle lifts to ~#243752 on the dark header; white S stays white. */
-[data-theme="dark"] .header-logo-icon,
-[data-theme="dark"] .sidebar-logo-icon,
-[data-theme="dark"] .stx-leaf-site-header-logo img {
-  filter: brightness(1.37);
+/* Theme-aware brand mark (operator 2026-10-26): per-theme ASSETS, never
+   filters (see logo.css — a filter cannot know what the file contains).
+   Light = env favicon; dark = gold CTA disc. html[data-theme] is the
+   single rendered truth (theme-switcher.ts). */
+.header-logo-icon--dark {
+  display: none;
+}
+[data-theme="dark"] .header-logo-icon--light {
+  display: none;
+}
+[data-theme="dark"] .header-logo-icon--dark {
+  display: block;
+  filter: none;
+}
+.header-logo-icon--light,
+.header-logo-icon--dark {
+  filter: none;
 }
 
 /* Ensure logo link has proper spacing */

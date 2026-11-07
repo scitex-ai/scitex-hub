@@ -12,12 +12,12 @@ name: release
 #   2. build         — wheel + sdist, uploaded as workflow artifact.
 #   3. publish       — PyPI via OIDC trusted publisher.
 #   4. release       — GitHub Release with CHANGELOG notes + artifacts.
-#   5. sync-main     — open a develop→main PR (admin-merge) so main
+#   5. sync-main     — open a develop→main PR for ordinary review so main
 #                      always equals the latest released commit. Skipped
 #                      if main already matches.
 #
-# Manual re-run: the workflow also accepts a `version` input via
-# workflow_dispatch so you can re-publish without re-tagging.
+# An explicit workflow_dispatch can select an existing immutable tag; it does
+# not move tags or bypass tests, protected environments or ordinary review.
 
 on:
   push:
@@ -31,90 +31,20 @@ on:
 
 jobs:
   test:
-    # Plain Python, no privileged step — the same shape the push/PR pytest
-    # matrix already runs green on this pool, so this one is migrated rather
-    # than exempted.
-    runs-on: ubuntu-latest
-    strategy:
-      fail-fast: false
-      matrix:
-        python-version: ["3.11", "3.12", "3.13"]
-    # Mirror the push/PR pytest matrix exactly: PostgreSQL is the only engine
-    # Django supports, so the release gate has to run against one too.
-    services:
-      postgres:
-        image: postgres:16
-        env:
-          POSTGRES_DB: scitex_test
-          POSTGRES_USER: scitex
-          POSTGRES_PASSWORD: scitex_test_pass  # pragma: allowlist secret
-        ports:
-          - 5432:5432
-        options: >-
-          --health-cmd pg_isready
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
-    steps:
-      - name: Resolve version
-        id: ver
-        run: |
-          if [ "${{ github.event_name }}" = "push" ]; then
-            v="${GITHUB_REF#refs/tags/}"
-          else
-            v="${{ inputs.version }}"
-          fi
-          echo "version=$v" >> "$GITHUB_OUTPUT"
-      - uses: actions/checkout@v4
-        with:
-          ref: ${{ steps.ver.outputs.version }}
-          fetch-depth: 0
-      - uses: astral-sh/setup-uv@v7
-        with:
-          cache-dependency-glob: pyproject.toml
-      - name: Install (best-effort fallback chain)
-        # uv venv, not bare pip: the pool's toolcache Python is uv-managed and
-        # refuses pip under PEP 668, and these runners are org-pooled so the
-        # shared interpreter must not be mutated. --seed so the venv carries a
-        # real pip for anything downstream that shells it.
-        run: |
-          uv venv --seed --python ${{ matrix.python-version }} .venv
-          echo "$PWD/.venv/bin" >> "$GITHUB_PATH"
-          P=.venv/bin/python
-          uv pip install --python $P -e ".[all,dev]" \
-            || uv pip install --python $P -e ".[dev]" \
-            || uv pip install --python $P -e .
-      - name: Run pytest
-        # Django settings hard-fail (ValueError, per "no silent fallback")
-        # if SCITEX_HUB_DJANGO_SECRET_KEY is unset. CI doesn't need a real
-        # secret, so we set an obviously-fake one for the test process only.
-        env:
-          SCITEX_HUB_DJANGO_SECRET_KEY: ci-test-secret-do-not-use-in-prod  # pragma: allowlist secret
-          # settings_dev.py: require_env("SCITEX_HUB_GITEA_SSH_PORT_DEV")
-          # (already set in tests.yml; mirror it here so the release-tag
-          # pipeline matches the push/PR matrix).
-          SCITEX_HUB_GITEA_SSH_PORT_DEV: "2222"
-          # Point Django at the postgres service declared above.
-          SCITEX_HUB_DB_NAME_DEV: scitex_test
-          SCITEX_HUB_DB_USER_DEV: scitex
-          SCITEX_HUB_DB_PASSWORD_DEV: scitex_test_pass  # pragma: allowlist secret
-          SCITEX_HUB_DB_HOST_DEV: localhost
-          SCITEX_HUB_DB_PORT_DEV: "5432"
-          # No Redis broker in this job; run Celery tasks inline.
-          SCITEX_HUB_TEST_MODE: "1"
-        run: |
-          if [ -d tests ]; then
-            pytest tests/ -x
-          else
-            echo "no tests/ directory — skipping pytest"
-          fi
+    # Reuse the complete admitted PostgreSQL/frontend/Python matrix. Publication
+    # must not run a cheaper second suite with a different dependency profile.
+    uses: ./.github/workflows/pytest-matrix-on-ubuntu-py3-11-3-12-3-13.yml
+    with:
+      release_tag: ${{ github.event_name == 'push' && github.ref_name || inputs.version }}
+    secrets: inherit
 
   build:
     needs: test
     # Same reasoning as `test`: a pure `python -m build`, nothing privileged.
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, Linux, X64, scitex-docker]
     outputs:
       version: ${{ steps.ver.outputs.version }}
+      prerelease: ${{ steps.release_metadata.outputs.prerelease }}
     steps:
       - name: Resolve version
         id: ver
@@ -129,13 +59,21 @@ jobs:
         with:
           ref: ${{ steps.ver.outputs.version }}
           fetch-depth: 0
+      - name: Verify tag and package version
+        id: release_metadata
+        env:
+          RELEASE_TAG: ${{ steps.ver.outputs.version }}
+        run: python3 .github/ci/check_release_version.py --tag "$RELEASE_TAG"
       - uses: astral-sh/setup-uv@v7
         with:
           cache-dependency-glob: pyproject.toml
       - name: Install build tools
+        env:
+          UV_PYTHON_INSTALL_DIR: ${{ runner.temp }}/hub-managed-python-${{ github.run_id }}-${{ github.run_attempt }}-${{ github.job }}-3.12
         # See `test` above for why this is uv-in-a-venv and not bare pip.
         run: |
-          uv venv --seed --python 3.12 .venv
+          uv venv --seed --managed-python --python 3.12 .venv
+          .venv/bin/python -c "import sysconfig; sysconfig.get_config_vars(); print('managed Python sysconfig OK')"
           echo "$PWD/.venv/bin" >> "$GITHUB_PATH"
           uv pip install --python .venv/bin/python build
       - name: Build distribution
@@ -147,7 +85,7 @@ jobs:
 
   publish:
     needs: build
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, Linux, X64, scitex-docker]
     environment:
       name: pypi
       url: https://pypi.org/p/scitex-hub
@@ -162,7 +100,7 @@ jobs:
 
   release:
     needs: [build, publish]
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, Linux, X64, scitex-docker]
     permissions:
       contents: write
     steps:
@@ -188,18 +126,23 @@ jobs:
       - name: Create GitHub Release
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          RELEASE_PRERELEASE: ${{ needs.build.outputs.prerelease }}
         run: |
-          gh release create "${{ needs.build.outputs.version }}" \
+          flags=()
+          if [ "$RELEASE_PRERELEASE" = true ]; then
+            flags+=(--prerelease)
+          fi
+          gh release create "${{ needs.build.outputs.version }}" "${flags[@]}" \
             --title "${{ needs.build.outputs.version }}" \
             --notes-file release-notes.md \
             dist/*
 
   sync-main:
     # Open develop→main PR so main always equals the latest released
-    # commit. Branch-protected mains require PR review; this job tries
-    # admin-merge but leaves the PR open if that isn't allowed.
+    # commit. Branch protection and ordinary review remain authoritative;
+    # publication never grants permission to merge a branch.
     needs: publish
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, Linux, X64, scitex-docker]
     permissions:
       contents: write
       pull-requests: write
@@ -229,5 +172,4 @@ jobs:
           else
             echo "Reusing existing PR #${EXISTING}"
           fi
-          gh pr merge "$EXISTING" --merge --admin \
-            || echo "Admin merge unavailable; PR left open for manual merge."
+          echo "PR #${EXISTING} remains open for normal review and CI."

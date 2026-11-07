@@ -19,9 +19,11 @@ if [ ! -d "$DOCKER_DIR" ]; then
     exit 1
 fi
 
-# Centralized logging - all logs go to ./logs/
-mkdir -p "$GIT_ROOT/logs"
-LOG_PATH="$GIT_ROOT/logs/server.sh.log"
+# Centralized logging - runtime artifact, kept out of the repo tree per
+# PS-102 (top-level logs/ is forbidden). GITIGNORED/ is gitignored, so
+# dev-server logs never trip the project-structure audit.
+mkdir -p "$GIT_ROOT/GITIGNORED/logs"
+LOG_PATH="$GIT_ROOT/GITIGNORED/logs/server.sh.log"
 LOCAL_LOG="$THIS_DIR/.server.sh.log"
 
 # Create symlink from local directory to centralized log
@@ -942,7 +944,7 @@ main() {
     exit_code=$?
 } 2>&1 | tee -a "$LOG_PATH"
 
-tail -f ./logs/*.log
+tail -f ./GITIGNORED/logs/*.log
 
 exit ${exit_code:-0}
 

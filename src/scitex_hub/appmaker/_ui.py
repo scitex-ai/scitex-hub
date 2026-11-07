@@ -27,10 +27,11 @@ Usage::
 from __future__ import annotations
 
 import json
-import logging
 from typing import Any, Optional
 
-logger = logging.getLogger(__name__)
+import scitex_logging as slogging
+
+logger = slogging.getLogger(__name__)
 
 
 def navigate_to(url: str) -> list[dict[str, Any]]:

@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""App Creator: private project scaffold, safe "Apply to file", owner-only private run."""
+"""SDK: private project scaffold, safe "Apply to file", owner-only private run."""
 
 import json
 import tempfile

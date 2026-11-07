@@ -2,7 +2,9 @@
 
 from __future__ import annotations
 
+import json
 from importlib.util import find_spec
+from pathlib import Path
 
 import pytest
 from django.contrib.auth.models import User
@@ -40,10 +42,10 @@ def test_plain_user_can_install_agents_and_only_their_row_changes(client):
     alice = User.objects.create_user("agents-alice")
     bob = User.objects.create_user("agents-bob")
     ensure_builtin_modules()
-    agents = AppsModule.objects.get(module_name="agents")
+    agents = AppsModule.objects.get(module_name="agent-container")
 
     client.force_login(alice)
-    response = client.post("/apps/store/api/agents/install/")
+    response = client.post("/apps/store/api/agent-container/install/")
 
     assert response.status_code == 200
     assert ModuleInstallation.objects.filter(user=alice, module=agents).exists()
@@ -54,48 +56,88 @@ def test_plain_user_can_install_agents_and_only_their_row_changes(client):
 def test_anonymous_user_cannot_install_agents(client):
     ensure_builtin_modules()
 
-    response = client.post("/apps/store/api/agents/install/")
+    response = client.post("/apps/store/api/agent-container/install/")
 
     assert response.status_code == 302
     assert "/auth/login/" in response.url
-    assert not ModuleInstallation.objects.filter(module__module_name="agents").exists()
+    assert not ModuleInstallation.objects.filter(
+        module__module_name="agent-container"
+    ).exists()
 
 
 @pytest.mark.django_db
-def test_cards_dependency_hold_blocks_install_and_toggle(client):
-    user = User.objects.create_user("cards-held-user")
+def test_retired_cards_identity_cannot_be_installed_or_toggled(client):
+    # The pre-rebrand todo catalog row is deliberately retired (migration
+    # 0023); it must not return as a second Cards installation.
+    user = User.objects.create_user("cards-retired-user")
     client.force_login(user)
     ensure_builtin_modules()
 
     install = client.post("/apps/store/api/todo/install/")
     toggle = client.post("/apps/store/api/todo/toggle/")
 
-    assert (install.status_code, toggle.status_code) == (409, 409)
-    assert not ModuleInstallation.objects.filter(
-        user=user, module__module_name="todo"
-    ).exists()
-    launcher = client.get("/")
-    assert b"canonical per-tenant store verification" in launcher.content
+    observed = (
+        (install.status_code, toggle.status_code),
+        ModuleInstallation.objects.filter(
+            user=user, module__module_name="todo"
+        ).exists(),
+        set(
+            AppsModule.objects.filter(
+                module_name__in=["todo", "scitex-cards"]
+            ).values_list("module_name", flat=True)
+        ),
+    )
+    assert observed == ((404, 404), False, {"scitex-cards"})
+
+
+@pytest.mark.django_db
+def test_coming_soon_module_cannot_be_installed_or_toggled(client):
+    # A real unavailable catalog entry still exercises the 409 admission
+    # guard; a removed historical identity cannot prove this behavior.
+    user = User.objects.create_user("held-module-user")
+    client.force_login(user)
+    held = AppsModule.objects.create(
+        module_name="owned-held-module", availability="coming_soon", visibility="public"
+    )
+
+    install = client.post("/apps/store/api/owned-held-module/install/")
+    toggle = client.post("/apps/store/api/owned-held-module/toggle/")
+
+    assert (
+        (install.status_code, toggle.status_code),
+        ModuleInstallation.objects.filter(user=user, module=held).exists(),
+    ) == ((409, 409), False)
 
 
 @pytest.mark.django_db
 @requires_agents_django
-def test_launcher_routes_uninstalled_agents_to_store_then_installed_agents_to_app(client):
+def test_launcher_routes_builtin_agent_container_straight_to_the_app(client):
+    # Arrange — the agent tile is a builtin foundation tile (leaf manifest
+    # `builtin: true`): it links straight at /apps/agent-container/ for
+    # everyone, with no store detour. Installing it explicitly still records
+    # the row (the install endpoint is idempotent, not gated on builtin).
     user = User.objects.create_user("agents-launcher")
     client.force_login(user)
     ensure_builtin_modules()
 
-    before = next(t for t in client.get("/").context["tiles"] if t["name"] == "agents")
-    client.post("/apps/store/api/agents/install/")
-    after = next(t for t in client.get("/").context["tiles"] if t["name"] == "agents")
+    # Act
+    before = next(
+        t for t in client.get("/").context["tiles"] if t["name"] == "agent-container"
+    )
+    client.post("/apps/store/api/agent-container/install/")
+    after = next(
+        t for t in client.get("/").context["tiles"] if t["name"] == "agent-container"
+    )
 
+    # Assert — a builtin tile reads installed from the row itself, so it is
+    # reachable (and already "installed") before any explicit install call.
     assert (before["is_installed"], before["launch_url"]) == (
-        False,
-        "/apps/store/agents/",
+        True,
+        "/apps/agent-container/",
     )
     assert (after["is_installed"], after["launch_url"]) == (
         True,
-        "/apps/agents/",
+        "/apps/agent-container/",
     )
 
 
@@ -106,7 +148,7 @@ def test_plain_user_route_reaches_upstream_identity_scope(client, monkeypatch):
     client.force_login(user)
     monkeypatch.setattr(upstream.RemoteFleet, "from_environment", lambda: _Fleet())
 
-    response = client.get("/apps/agents/api/fleet")
+    response = client.get("/apps/agent-container/api/fleet")
 
     assert response.status_code == 200
     payload = response.json()
@@ -122,24 +164,30 @@ def test_staff_route_still_reaches_upstream(client, monkeypatch):
     client.force_login(staff)
     monkeypatch.setattr(upstream.RemoteFleet, "from_environment", lambda: _Fleet())
 
-    response = client.get("/apps/agents/api/fleet")
+    response = client.get("/apps/agent-container/api/fleet")
 
     assert response.status_code == 200
     assert response.json()["identity"] == "agents-staff"
 
 
-def test_agents_manifest_is_public_free_install_and_cards_names_blocker():
-    from apps.infra.workspace_app import registry
+def test_agent_container_leaf_manifest_declares_the_foundation_tile():
+    """The single Agent Container tile is leaf-declared (operator 2026-10-23).
 
-    agents = registry._manifest_to_module_config(
-        registry._load_manifest(registry._APPS_ROOT / "workspace/agents_app/manifest.json")
-    )
-    cards = registry._manifest_to_module_config(
-        registry._load_manifest(registry._APPS_ROOT / "workspace/todo_app/manifest.json")
+    Hub reads the installed leaf manifest live (registry._resolve_leaf_manifest):
+    slug "agent-container" tiles into foundation with the short label. This pins
+    the hub side of that cross-repo contract; the leaf side is pinned by the
+    leaf repo's own tests. Skipped where the leaf package is not installed.
+    """
+    leaf = pytest.importorskip(
+        "scitex_agent_container._django",
+        reason="scitex-agent-container is not installed",
     )
 
-    assert agents.visibility == "public"
-    assert agents.builtin is False and agents.availability == "available"
-    assert cards.availability == "coming_soon"
-    assert "scitex-cards 0.53.1" in cards.availability_reason
-    assert "per-tenant store" in cards.availability_reason
+    # Arrange
+    manifest_path = Path(leaf.__file__).resolve().parent / "manifest.json"
+    # Act
+    manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+    # Assert
+    assert manifest["slug"] == "agent-container"
+    assert manifest["label"] == "Agent Container"
+    assert manifest["group"] == "foundation"

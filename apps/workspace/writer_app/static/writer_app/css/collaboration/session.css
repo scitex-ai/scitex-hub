@@ -1,9 +1,6 @@
 /* SciTeX Writer - Collaborative Modular Editor */
 
-/* Utility Classes */
-.hidden {
-  display: none !important;
-}
+/* .hidden lives in shared/common.css (STX-UI111). */
 
 .hidden-data {
   display: none;

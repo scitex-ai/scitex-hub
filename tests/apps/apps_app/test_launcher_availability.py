@@ -272,6 +272,12 @@ class LauncherTemplateAvailabilityTest(TestCase):
         # Act
         resp = self.client.get("/")
         # Assert
+        assert expected in resp.content
+
+    def test_writer_tile_carries_available_state(self):
+        # Act
+        resp = self.client.get("/")
+        # Assert
         match = re.search(
             rb'<a[^>]*class="launcher-tile"[^>]*data-module="writer"[^>]*>',
             resp.content,

@@ -2,19 +2,23 @@
 
 from __future__ import annotations
 
-import logging
 import os
 import sys
 from pathlib import Path
 
-logger = logging.getLogger(__name__)
+import scitex_logging as slogging
+
+logger = slogging.getLogger(__name__)
+# PS-220: the dev-server walkthrough is CLI stdout, not diagnostics, so it
+# keeps stdout (getLogger writes to stderr) and gains the SciTeX level.
+console = slogging.getConsole(__name__)
 
 
 def dev_server(app_dir: str | Path, port: int = 8000) -> None:
     """Set up a local app for development in the SciTeX workspace.
 
     Validates the app, creates a symlink into apps/ if needed,
-    and prints remaining manual steps.
+    and reports remaining manual steps.
 
     Parameters
     ----------
@@ -28,8 +32,8 @@ def dev_server(app_dir: str | Path, port: int = 8000) -> None:
 
     # Check basic structure
     if not (root / "apps.py").exists():
-        print(f"Error: {root} does not look like a SciTeX Hub app (missing apps.py).")
-        print("Run 'scitex-hub app init' first to scaffold the boilerplate.")
+        console.error(f"Error: {root} does not look like a SciTeX Hub app (missing apps.py).")
+        console.error("Run 'scitex-hub app init' first to scaffold the boilerplate.")
         sys.exit(1)
 
     # Run validation
@@ -37,18 +41,18 @@ def dev_server(app_dir: str | Path, port: int = 8000) -> None:
 
     errors = validate(str(root))
     if errors:
-        print(f"  Validation found {len(errors)} issue(s):")
+        console.error(f"  Validation found {len(errors)} issue(s):")
         for err in errors:
-            print(f"    x {err}")
-        print()
-        print("  Fix these issues before proceeding.")
+            console.error(f"    x {err}")
+        console.info("")
+        console.error("  Fix these issues before proceeding.")
         sys.exit(1)
 
-    print(f"  App:  {app_name}")
-    print(f"  Dir:  {root}")
-    print(f"  Port: {port}")
-    print("  Validation: PASSED")
-    print()
+    console.info(f"  App:  {app_name}")
+    console.info(f"  Dir:  {root}")
+    console.info(f"  Port: {port}")
+    console.success("  Validation: PASSED")
+    console.info("")
 
     # Try to create symlink
     project_root = _find_project_root()
@@ -57,33 +61,33 @@ def dev_server(app_dir: str | Path, port: int = 8000) -> None:
         symlink_target = apps_dir / app_name
         if symlink_target.exists():
             if symlink_target.is_symlink():
-                print(f"  Symlink exists: apps/{app_name} -> {root}")
+                console.info(f"  Symlink exists: apps/{app_name} -> {root}")
             else:
-                print(f"  apps/{app_name} already exists (not a symlink)")
+                console.warning(f"  apps/{app_name} already exists (not a symlink)")
         else:
             try:
                 symlink_target.symlink_to(root)
-                print(f"  Created symlink: apps/{app_name} -> {root}")
+                console.success(f"  Created symlink: apps/{app_name} -> {root}")
             except OSError as exc:
-                print(f"  Could not create symlink: {exc}")
-                print(f"  Run manually: ln -s {root} {symlink_target}")
-        print()
+                console.warning(f"  Could not create symlink: {exc}")
+                console.warning(f"  Run manually: ln -s {root} {symlink_target}")
+        console.info("")
 
     # Print remaining steps
-    print("  Next steps:")
-    print()
-    print("  1. Push your app to a Gitea repository")
-    print()
-    print("  2. Dev Install from the workspace:")
-    print("     Hub → Explore → click 'Dev Install' on your repo")
-    print("     Your app appears as a workspace tab immediately.")
-    print()
-    print(f"  3. Open http://127.0.0.1:{port} and switch to your app tab")
-    print()
-    print("  Tip: Run 'scitex-hub app validate .' to check your app.")
-    print()
-    print("  Note: Do NOT edit registry.py or INSTALLED_APPS —")
-    print("  those are for platform-builtin modules only.")
+    console.info("  Next steps:")
+    console.info("")
+    console.info("  1. Push your app to a Gitea repository")
+    console.info("")
+    console.info("  2. Dev Install from the workspace:")
+    console.info("     Hub → Explore → click 'Dev Install' on your repo")
+    console.info("     Your app appears as a workspace tab immediately.")
+    console.info("")
+    console.info(f"  3. Open http://127.0.0.1:{port} and switch to your app tab")
+    console.info("")
+    console.info("  Tip: Run 'scitex-hub app validate .' to check your app.")
+    console.info("")
+    console.info("  Note: Do NOT edit registry.py or INSTALLED_APPS —")
+    console.info("  those are for platform-builtin modules only.")
 
 
 def _find_project_root() -> Path | None:

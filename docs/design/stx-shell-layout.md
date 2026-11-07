@@ -173,3 +173,35 @@ Two classes sharing a common base at `static/shared/ts/components/resizer/`:
 - PDF iframe must be hidden during resizer drag (visibility hack) or it swallows mouse events
 - Double-rAF needed to suppress CSS transitions during initial layout restore from localStorage
 - `position: relative` required on `.selector-nav-item` for `::after` pseudo-element positioning
+
+## Site Dock Overlay Contract
+
+Measured 2026-10-22 (SDK + FigRecipe reports): the fixed bottom
+site-dock (`nav.site-dock`, ~153px tall) floats over leaf-app content.
+Rules, evidenced by `tests/templates/test_site_dock_overlay_contract.py`
++ `tests/templates/test_leaf_dock_scroll_clearance.py`:
+
+1. **No layout reservation** — leaf pages take no bottom padding for the
+   dock (`leaf-host-chrome.css` keeps only `env(safe-area-inset-bottom)`).
+   Source: `static/shared/css/layouts/leaf-host-chrome.css`,
+   `static/shared/css/components/site-dock.css`.
+2. **Scroll alignment, without artificial children** — scroll containers use
+   `scroll-padding-bottom: calc(var(--site-dock-scroll-clearance) + 24px)`.
+   This changes focus/scroll alignment, not the available scroll range. No
+   `::after` spacer is added: on nested flex containers each spacer consumes
+   actual height, shrinking both the workspace and its app content. The
+   existing dock grip and focus avoidance expose controls when content does
+   not naturally overflow. On phones, actual content scrolling also collapses
+   the dock transiently without changing the saved preference.
+3. **Focus avoidance is the dock's own job** — `site-dock.ts`
+   `avoidFocusedControl` lifts the dock (`--site-dock-focus-shift`) when
+   keyboard focus lands under it; inputs never need per-page hacks.
+4. **Minimize is the user escape hatch** — grip tap collapses the dock to
+   a 94x44 pill (`site-dock--minimized`, persisted per device); Enter on
+   the grip restores. Verified live 2026-10-22 on /apps/sdk/ and
+   /apps/figrecipe/.
+5. **Highlight rule** — app leaf routes map to the global Apps
+   destination (`active_dock_key`, operator 2026-09-17), EXCEPT tool
+   surfaces in `LEAF_NO_HIGHLIGHT_PREFIXES` (currently `/apps/sdk/`),
+   which highlight nothing rather than a wrong destination.
+   Source: `apps/infra/workspace_app/site_dock.py`.

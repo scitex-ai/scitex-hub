@@ -139,6 +139,11 @@ export class ElementScanner {
       // Skip our own overlay elements
       if (element.closest("#element-inspector-overlay")) continue;
 
+      // Skip the global header subtree — site chrome, never the debug
+      // target; its box/label would sit between the header and the
+      // application contents (operator direction, 2026-10-20).
+      if (element.closest("header.global-header")) continue;
+
       // Skip script, style, and other non-visual elements
       const tagName = element.tagName.toLowerCase();
       if (
@@ -441,6 +446,8 @@ export class ElementScanner {
       if (!el || !el.tagName) continue;
       if (el.closest("#element-inspector-overlay")) continue;
       if (el.closest(".element-inspector-layer-picker")) continue;
+      // The global header is site chrome, not a selection target.
+      if (el.closest("header.global-header")) continue;
       const tag = el.tagName.toLowerCase();
       if (["html", "body", "script", "style", "head"].includes(tag)) continue;
       elements.push(el);

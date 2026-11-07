@@ -88,7 +88,7 @@ class LandingHeaderFooterTodoBatchTest(SimpleTestCase):
         return self.client.get("/landing/").content.decode("utf-8")
 
     def _hero(self):
-        return _first(self._page(), "section", lambda a: a.get("id") == "home")
+        return _first(self._page(), "section", lambda a: a.get("id") == "overview")
 
     def _hero_actions(self):
         return _first(self._hero(), "div", _has_class("landing-v2-actions"))

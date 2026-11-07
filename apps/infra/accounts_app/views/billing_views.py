@@ -95,6 +95,22 @@ def payment_step(request):
         # the "any existing user can enter the signup payment flow" defect.
         return redirect("accounts_app:billing")
 
+    #
+    # Free first: a $0 plan recorded on the authority owes no card and no
+    # provider round-trip (it can never be on the chargeable allowlist, by
+    # design). The webhook only ever confirms paid subscriptions, so without
+    # this a free newcomer sat on this step forever.
+    from apps.infra.public_app.services.billing_provider import resolve_free_plan
+
+    free_row = resolve_free_plan(
+        (request.GET.get("plan") or "").strip() or authority.pricing_id
+    )
+    if free_row is not None:
+        from apps.infra.auth_app.onboarding import mark_activated
+
+        mark_activated(user, pricing_id=free_row["id"])
+        return redirect(first_product_url())
+
     if not card_registration_is_open():
         # No card can be taken yet (provider not configured). Still render THIS
         # step rather than borrowing the generic billing page: the funnel stays one
@@ -135,6 +151,18 @@ def payment_step(request):
     if authority.pricing_id != row["id"]:
         authority.pricing_id = row["id"]
         authority.save(update_fields=["pricing_id", "updated_at"])
+
+    # A $0 plan owes no card and no provider round-trip: the webhook only ever
+    # confirms PAID subscriptions, so without this a free newcomer sat on this
+    # step forever. Advancing here is not guessing — the plan is resolved.
+    # (Reached when the recorded plan resolved on the chargeable allowlist at
+    # $0 — e.g. a deployment that configured a $0 Stripe price. The common
+    # free case is handled by the resolve_free_plan branch above.)
+    if float(row.get("amount") or 0) <= 0:
+        from apps.infra.auth_app.onboarding import mark_activated
+
+        mark_activated(user, pricing_id=row["id"])
+        return redirect(first_product_url())
 
     state = trial_state(
         has_usable_card=user.payment_methods.filter(is_usable=True).exists(),

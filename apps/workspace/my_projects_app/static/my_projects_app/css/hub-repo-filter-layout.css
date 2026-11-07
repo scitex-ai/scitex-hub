@@ -1,0 +1,12 @@
+/* Host layout only: reserve a usable filter row beside the project actions. */
+@media (max-width: 768px) {
+  .hub-repos-header {
+    flex-wrap: wrap;
+  }
+
+  .hub-repos-header .hub-repo-filter-wrap {
+    order: 1;
+    flex: 1 1 100%;
+    max-width: none;
+  }
+}

@@ -1,0 +1,18 @@
+.context-report-viewer, .context-report-viewer * { box-sizing: border-box; }
+.context-report-viewer { color: var(--text-primary); }
+.context-report-viewer textarea { display: block; width: 100%; min-height: 9rem; padding: .75rem; color: var(--text-primary); background: var(--bg-secondary); border: 1px solid var(--border-default); border-radius: .25rem; font: inherit; }
+.context-report-viewer label { display: block; margin-block: .5rem; }
+.context-report-viewer input[type="file"] { max-width: 100%; margin-block: .5rem 1rem; }
+.context-report-viewer pre { max-width: 100%; overflow-x: auto; }
+.context-report-actions { display: flex; flex-wrap: wrap; gap: .75rem; margin-block: .75rem; }
+.context-report-viewer button { min-height: 44px; }
+.context-report-status { min-height: 1.5em; }
+.context-report-scroll { max-width: 100%; overflow-x: auto; }
+.context-report-viewer table { width: 100%; min-width: 42rem; border-collapse: collapse; }
+.context-report-viewer th, .context-report-viewer td { padding: .5rem; border-bottom: 1px solid var(--border-default); text-align: left; }
+.context-report-viewer th { white-space: nowrap; }
+.context-report-viewer th[scope="row"] { white-space: normal; overflow-wrap: anywhere; }
+.context-report-mobile-hint { display: none; }
+.context-report-viewer progress { max-width: 10rem; width: 100%; accent-color: var(--accent); }
+.context-report-viewer dd { margin-bottom: .5rem; }
+@media (max-width: 600px) { .context-report-mobile-hint { display: block; } .context-report-viewer textarea { font-size: 16px; } }

@@ -126,8 +126,18 @@ def mark_verified(user, source: str = "email") -> OnboardingState:
     nothing behind, so "has this account finished signing up?" had no answer.
     """
     with transaction.atomic():
+        # The funnel OWNS the plan choice from signup: it was recorded on the
+        # marker (allowlisted ?plan=, else the newcomer default), so carrying
+        # it onto the authority is not guessing — DELETING it (the old code)
+        # is what produced the "will not guess" dead-end for every newcomer.
+        marker = PendingSignup.objects.filter(user=user).first()
+        signup_plan = (marker.plan if marker is not None else "") or ""
         PendingSignup.objects.filter(user=user).delete()
-        return _ensure(user, source=source)
+        row = _ensure(user, source=source)
+        if signup_plan and not row.pricing_id:
+            row.pricing_id = signup_plan
+            row.save(update_fields=["pricing_id", "updated_at"])
+        return row
 
 
 def begin_social_signup(user, provider: str) -> OnboardingState:
@@ -138,8 +148,16 @@ def begin_social_signup(user, provider: str) -> OnboardingState:
     past the payment step. Social signups do not go through OTP (the provider
     already proved the address), so this is the equivalent of
     :func:`mark_verified`, not of :func:`begin_signup`.
+
+    A social signup names no plan, so without a default it would land on the
+    "will not guess" dead-end. The newcomer default applies: free, PRODUCT-ready
+    via the payment step's $0 path, upgradeable later.
     """
-    return _ensure(user, source=provider or "social")
+    row = _ensure(user, source=provider or "social")
+    if not row.pricing_id:
+        row.pricing_id = "subscription-free"
+        row.save(update_fields=["pricing_id", "updated_at"])
+    return row
 
 
 def mark_activated(user, *, pricing_id: str = "") -> Optional[OnboardingState]:
@@ -210,3 +228,33 @@ def next_url(user) -> str:
     if step_for(user) == PAYMENT:
         return payment_step_url()
     return getattr(settings, "LOGIN_REDIRECT_URL", "/") or "/"
+
+
+def resolve_post_login_url(user, unsafe_next=None, request=None) -> str:
+    """Post-login destination honoring a login-gate ``?next=`` (B2 beta triage).
+
+    The funnel is still the authority: an account that owes a payment method
+    goes to the payment step no matter what ``next`` says. Otherwise a
+    same-origin ``next`` is honored so a gate like ``/apps/stats/`` returns
+    the user to the app that was requested; anything else (missing, external,
+    protocol-relative) falls back to :func:`next_url`'s ordinary destination.
+
+    Validation closes the open redirect the raw ``redirect(request.GET["next"])``
+    form previously allowed.
+    """
+    from django.conf import settings
+    from django.utils.http import url_has_allowed_host_and_scheme
+
+    if step_for(user) == PAYMENT:
+        from apps.infra.accounts_app.funnel import payment_step_url
+
+        return payment_step_url()
+    default = getattr(settings, "LOGIN_REDIRECT_URL", "/") or "/"
+    if unsafe_next and request is not None:
+        if url_has_allowed_host_and_scheme(
+            unsafe_next,
+            allowed_hosts={request.get_host()},
+            require_https=request.is_secure(),
+        ):
+            return unsafe_next
+    return default

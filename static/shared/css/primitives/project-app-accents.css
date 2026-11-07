@@ -5,9 +5,11 @@
 [data-theme="light"] {
   --app-accent-my_projects: var(--stx-accent);
   --app-accent-public_projects: var(--stx-accent);
+  --app-accent-live-paper: var(--stx-accent);
 }
 
 [data-theme="dark"] {
   --app-accent-my_projects: var(--stx-accent);
   --app-accent-public_projects: var(--stx-accent);
+  --app-accent-live-paper: var(--stx-accent);
 }

@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 # File: tests/config/test_i18n_landing.py
-"""Japanese landing page: automatic language selection, catalogs, and switcher.
+"""Japanese landing page: explicit language choice, catalogs, and switcher.
 
 WHY THIS FILE EXISTS
 --------------------
@@ -42,7 +42,7 @@ from pathlib import Path
 import pytest
 from django.conf import settings
 from django.template.loader import render_to_string
-from django.test import Client, RequestFactory
+from django.test import RequestFactory
 from django.urls import NoReverseMatch, reverse
 from django.utils import translation
 
@@ -50,13 +50,15 @@ PROJECT_ROOT = Path(__file__).resolve().parents[2]
 HERO_TEMPLATE = "public_app/landing_partials/landing_hero.html"
 DEMOS_TEMPLATE = "public_app/landing_partials/landing_demos.html"
 COMMITMENT_TEMPLATE = "public_app/landing_partials/landing_commitment.html"
+OSS_TEMPLATE = "public_app/landing_partials/landing_opensource.html"
+MODULES_TEMPLATE = "public_app/landing_partials/landing_modules.html"
 SWITCHER_TEMPLATE = "global_base_partials/language_switcher.html"
 
 # One string per surface, chosen because each proves a DIFFERENT link in the
 # chain: the constant path (branding.py -> context processor), the plain
 # template path, and the interpolating one (blocktrans).
-CTA_EN = "Try SciTeX™ Cloud with 30-day Free Trial"
-CTA_JA = "30日間無料トライアルで SciTeX™ クラウドを試す"
+CTA_EN = "Try SciTeX® Cloud with 30-day Free Trial"
+CTA_JA = "30日間無料トライアルで SciTeX® クラウドを試す"
 
 
 def _reverse_or_none(name):
@@ -292,15 +294,18 @@ def test_hero_renders_english(hero_context):
     assert expected in html
 
 
-def test_hero_blocktrans_keeps_the_interpolated_version(hero_context):
-    """A blocktrans whose placeholder name drifts drops the value silently."""
-    # Arrange
-    expected_version = "0.1.0"
-    # Act
+def test_hero_alpha_warning_is_translated_without_a_retired_version_placeholder(hero_context):
+    """The current warning is plain translated copy; package versions live elsewhere."""
+    english = "SciTeX® Cloud is in alpha."
+    with translation.override("en"):
+        english_html = render_to_string(HERO_TEMPLATE, hero_context)
     with translation.override("ja"):
-        html = render_to_string(HERO_TEMPLATE, hero_context)
-    # Assert
-    assert expected_version in html
+        japanese = translation.gettext(english)
+        japanese_html = render_to_string(HERO_TEMPLATE, hero_context)
+    assert japanese != english
+    assert english in english_html
+    assert japanese in japanese_html
+    assert english not in japanese_html
 
 
 def test_hero_blocktrans_is_translated(hero_context):
@@ -329,6 +334,13 @@ PARTIAL_CASES = [
     (COMMITMENT_TEMPLATE, "科学への私たちの約束", "Our Commitment to Science"),
     (COMMITMENT_TEMPLATE, "研究者お一人おひとりへ", "To Individual Researchers"),
     (COMMITMENT_TEMPLATE, "利益よりも科学を優先します", "Prioritize science over profit"),
+    # The redesigned sections keep source repositories separate from the demo.
+    (OSS_TEMPLATE, "すべての層をオープンソースで", "Open source, throughout the stack"),
+    (MODULES_TEMPLATE, "主張から根拠となるデータまでたどる", "Trace claims back to their sources"),
+    (MODULES_TEMPLATE, "順方向に記録し、逆方向に検証する。", "Record Forward. Verify Backward."),
+    (MODULES_TEMPLATE, "SciTeX をインストール", "Install SciTeX"),
+    (MODULES_TEMPLATE, "その他のデモ動画", "More demo videos"),
+    (MODULES_TEMPLATE, "AIエージェント + SciTeX®", "AI Agent + SciTeX®"),
 ]
 
 
@@ -554,18 +566,24 @@ def _landing(client_cookie=None):
 
 def test_landing_pricing_renders_fully_english_by_default():
     html = _landing()
-    # Two-plan row (Free pane dropped 2026-09-12): Cloud | On-Prem. Prices are
+    # Unified compare-plans table (Free-on-Cool, 662f236fc): four columns,
+    # one CTA per column, Pro recommended, academic in-cell. Prices are
     # ALWAYS USD on the marketing card (operator: "drop the yen at all").
     assert '<html lang="en"' in html
-    assert "Cloud" in html and "SciTeX Self-Hosted" in html
-    assert "$19/mo" in html and "$39/mo" in html
-    assert 'data-variant="academic"' in html and 'data-variant="general"' in html
-    assert "30-day free trial" in html
-    assert "32 GB Cool storage included" in html
+    assert "SciTeX® Cloud Free" in html and "SciTeX® Cloud Pro" in html
+    assert "SciTeX® Self-Hosted (AGPL)" in html
+    assert "SciTeX® Self-Hosted (Enterprise)" in html
+    assert "Recommended" in html
+    assert "Create a free account" in html and "Start with Pro" in html
+    assert "Get the source" in html and "Contact us" in html
+    assert "$39/mo" in html and "$19/mo" in html
+    assert "academic (50% off)" in html
+    assert "2 GB included" in html and "32 GB included" in html
     assert "$10 compute credit per billing cycle (Coming soon)" in html
-    assert "internet egress per billing cycle" in html
+    # Free needs no card: no card-required copy anywhere on the page.
+    assert "Card required" not in html
     # NO Japanese price data leaks into the English default
-    for ja in ("クラウド", "月額 1,490円", "通常利用の範囲の通信", "円相当"):
+    for ja in ("クラウド", "無料アカウントを作成", "込み", "円相当", "月額"):
         assert ja not in html, f"Japanese {ja!r} leaked into the English default landing"
 
 
@@ -574,13 +592,16 @@ def test_landing_pricing_renders_fully_japanese_when_selected():
     # JA renders the plan copy Japanese, but prices stay USD (operator:
     # "always use USD for clarity" — the yen reference lives on /tokushoho/).
     assert '<html lang="ja"' in html
-    assert "クラウド" in html and "セルフホスト" in html
-    assert "$19/mo" in html and "$39/mo" in html
-    assert "学術" in html and "非学術" in html
-    assert "30日間の無料トライアル" in html
-    assert "Cool ストレージ 32 GB 込み" in html
+    assert "おすすめ" in html and "セルフホスト" in html
+    assert "無料アカウントを作成" in html and "Pro で始める" in html
+    assert "ソースを取得" in html and "お問い合わせ" in html
+    assert "無料" in html
+    assert "$39/mo" in html and "$19/mo" in html
+    assert "アカデミック (50% オフ)" in html
+    assert "2 GB 込み" in html and "32 GB 込み" in html
     assert "計算クレジット $10 / 請求サイクル（近日提供）" in html
-    assert "インターネットへの送信" in html
+    # Free needs no card: no card-required copy anywhere on the page.
+    assert "Card required" not in html
     # NO Japanese yen price (the SSoT yen values) leaks onto the USD card
-    for jp in ("月額 1,490円", "円相当の計算クレジット"):
+    for jp in ("月額", "円相当", "¥"):
         assert jp not in html, f"JPY {jp!r} leaked onto the USD landing"

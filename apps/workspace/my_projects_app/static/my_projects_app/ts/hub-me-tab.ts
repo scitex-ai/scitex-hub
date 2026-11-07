@@ -264,22 +264,6 @@ export function filterRepoCards(query: string): void {
     noResults.classList.toggle(HIDDEN, visible > 0 || !cards.length);
 }
 
-/** Bind Ctrl+K to focus the repo filter input. */
-export function initRepoFilterShortcut(): void {
-  document.addEventListener("keydown", (e: KeyboardEvent) => {
-    if (e.ctrlKey && !e.altKey && !e.shiftKey && e.key === "k") {
-      const filter = document.getElementById(
-        "hub-repo-filter",
-      ) as HTMLInputElement | null;
-      if (filter) {
-        e.preventDefault();
-        filter.focus();
-        filter.select();
-      }
-    }
-  });
-}
-
 /** Close all Me tab dropdowns (call on outside click). */
 export function closeMeProjectDropdowns(): void {
   document

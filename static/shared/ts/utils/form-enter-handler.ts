@@ -1,20 +1,20 @@
 /**
- * Global: Prevent Enter key from submitting forms & route Enter to action buttons.
+ * Global: Route Enter to action buttons while preserving explicit HTML methods.
  *
- * 1. Block non-POST form submissions (JS-driven forms should not reload).
+ * 1. Guard legacy implicit-method forms; explicit GET/POST retain native behavior.
  * 2. Enter key in any input → find & click the nearest action button with visual feedback.
  *
  * Extracted from global_body_scripts.html inline <script>.
  */
 
-// 1. Block non-POST form submissions
+// 1. Preserve declared native methods; JS form owners may still cancel them.
 document.addEventListener(
   "submit",
   (e: Event) => {
     const form = e.target as HTMLFormElement;
     if (form.tagName !== "FORM") return;
     const method = (form.getAttribute("method") || "").toLowerCase();
-    if (method === "post") return;
+    if (method === "post" || method === "get") return;
     e.preventDefault();
   },
   true,

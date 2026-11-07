@@ -1,0 +1,50 @@
+/* Alpha status belongs to the platform chrome, including leaf-hosted pages.
+   Keep the existing header height so workspace panes retain their viewport. */
+.header-build-meta.header-build-meta--alpha {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  min-width: 0;
+  column-gap: 0.45rem;
+  row-gap: 3px;
+  line-height: 1.2;
+}
+
+.header-alpha-notice {
+  grid-column: 1 / -1;
+  min-width: 0;
+  padding: 2px 6px;
+  border: 1px solid var(--status-warning-border);
+  border-left: 3px solid var(--status-warning-text);
+  border-radius: 0;
+  background: var(--status-warning-bg);
+  color: var(--status-warning-text);
+  font-size: 11px;
+  line-height: 1.2;
+}
+
+.header-alpha-line {
+  display: block;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.landing-v2-alpha.cloud-alpha-banner {
+  padding: 12px 16px;
+  border: 1px solid var(--status-warning-border);
+  border-left: 3px solid var(--status-warning-text);
+  background: var(--status-warning-bg);
+  color: var(--status-warning-text);
+}
+
+.cloud-alpha-banner strong {
+  display: block;
+  margin-bottom: 4px;
+  font-weight: 700;
+}
+
+
+.cloud-alpha-banner a {
+  color: inherit;
+  text-decoration: underline;
+}

@@ -46,16 +46,16 @@
                         {# Identity slice matches the header badge (Visitor #NNN); the #}
                         {# idle timeout is the enforced PoolAllocator constant, so the #}
                         {# lifetime claim can never drift from the actual reaper.      #}
-                        <strong>Visitor #{{ visitor_username|slice:"8:" }} · temporary workspace.</strong>
-                        Reclaimed after ~{{ visitor_idle_timeout_minutes }} min idle — sign up to keep your work.
+                        <strong>{% blocktrans with n=visitor_username|slice:"8:" %}Visitor #{{ n }} · temporary workspace.{% endblocktrans %}</strong>
+                        {% blocktrans with mins=visitor_idle_timeout_minutes %}Reclaimed after ~{{ mins }} min idle — sign up to keep your work.{% endblocktrans %}
                     {% else %}
-                        <strong>You're browsing read-only.</strong>
-                        Sign in to edit, run code, and keep your work.
+                        <strong>{% trans "You're browsing read-only." %}</strong>
+                        {% trans "Sign in to edit, run code, and keep your work." %}
                     {% endif %}
                 </div>
                 <div class="launcher-guest-cta-actions">
-                    <a href="/auth/login/?next={{ request.path }}" class="launcher-guest-btn launcher-guest-btn-signin">Sign in</a>
-                    <a href="/auth/signup/" class="launcher-guest-btn launcher-guest-btn-signup">Sign up</a>
+                    <a href="/auth/login/?next={{ request.path }}" class="launcher-guest-btn launcher-guest-btn-signin">{% trans "Sign in" %}</a>
+                    <a href="/auth/signup/" class="launcher-guest-btn launcher-guest-btn-signup">{% trans "Sign up" %}</a>
                 </div>
             </div>
         {% endif %}
@@ -67,7 +67,7 @@
             {% include "apps_app/partials/first_run_checklist.html" %}
         {% endif %}
         <div class="launcher-section-head">
-            <h2>All apps</h2>
+            <h2>{% trans "All apps" %}</h2>
         </div>
         <div class="launcher-pager">
             {# Desktop page arrows (launcher/pager.ts unhides them when there is #}
@@ -138,18 +138,18 @@
         <dialog id="launcher-display-dialog" class="launcher-display-dialog" aria-labelledby="launcher-display-title">
             <form method="dialog" id="launcher-display-form">
                 <header class="launcher-display-header">
-                    <button type="button" id="launcher-display-cancel" class="launcher-display-cancel">Cancel</button>
-                    <h3 id="launcher-display-title">Edit app display</h3>
-                    <button type="submit" class="launcher-display-save">Save</button>
+                    <button type="button" id="launcher-display-cancel" class="launcher-display-cancel">{% trans "Cancel" %}</button>
+                    <h3 id="launcher-display-title">{% trans "Edit app display" %}</h3>
+                    <button type="submit" class="launcher-display-save">{% trans "Save" %}</button>
                 </header>
-                <label>Display name <input id="launcher-display-name" name="display_name" maxlength="100" autocomplete="off" required /></label>
-                <label>Font Awesome icon <input id="launcher-display-icon" name="icon" placeholder="fas fa-flask" /></label>
-                <label>Icon color <input id="launcher-display-color" name="icon_color" type="color" value="#ffffff" /></label>
+                <label>{% trans "Display name" %} <input id="launcher-display-name" name="display_name" maxlength="100" autocomplete="off" required /></label>
+                <label>{% trans "Font Awesome icon" %} <input id="launcher-display-icon" name="icon" placeholder="fas fa-flask" /></label>
+                <label>{% trans "Icon color" %} <input id="launcher-display-color" name="icon_color" type="color" value="#ffffff" /></label>
                 <div class="launcher-display-actions">
-                    <button type="button" id="launcher-display-favorite"><i class="far fa-star" aria-hidden="true"></i> Add to Favorites</button>
-                    <button type="button" id="launcher-display-reset">Reset to manifest defaults</button>
+                    <button type="button" id="launcher-display-favorite"><i class="far fa-star" aria-hidden="true"></i> {% trans "Add to Favorites" %}</button>
+                    <button type="button" id="launcher-display-reset">{% trans "Reset to manifest defaults" %}</button>
                     <button type="button" id="launcher-display-uninstall" class="launcher-display-uninstall" hidden>
-                        <i class="fas fa-minus-circle" aria-hidden="true"></i> Uninstall app
+                        <i class="fas fa-minus-circle" aria-hidden="true"></i> {% trans "Uninstall app" %}
                     </button>
                 </div>
             </form>

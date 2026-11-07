@@ -18,10 +18,16 @@ from __future__ import annotations
 
 import json
 
+import scitex_logging as slogging
 from scitex_dev import try_import_optional
 
 FastMCP = try_import_optional("fastmcp", "FastMCP", extra="mcp", pkg="scitex-hub")
 FASTMCP_AVAILABLE = FastMCP is not None
+
+# PS-220: an MCP server's stdout is the PROTOCOL channel (stdio transport), so
+# its status and failure notices must not be written there — scitex_logging
+# owns stderr, and a diagnostic on stdout would corrupt the wire.
+logger = slogging.getLogger(__name__)
 
 __all__ = ["mcp", "run_server", "main", "FASTMCP_AVAILABLE"]
 
@@ -90,19 +96,19 @@ def run_server(transport: str = "stdio", host: str = "0.0.0.0", port: int = 8086
     if not FASTMCP_AVAILABLE:
         import sys
 
-        print("=" * 60)
-        print("Requires 'fastmcp' package: pip install fastmcp")
-        print("=" * 60)
+        logger.error("=" * 60)
+        logger.error("Requires 'fastmcp' package: pip install fastmcp")
+        logger.error("=" * 60)
         sys.exit(1)
 
     if transport == "stdio":
         mcp.run(transport="stdio")
     elif transport == "sse":
-        print(f"Starting scitex-hub MCP (SSE) on {host}:{port}")
-        print(f"Remote: ssh -R {port}:localhost:{port} remote-host")
+        logger.info(f"Starting scitex-hub MCP (SSE) on {host}:{port}")
+        logger.info(f"Remote: ssh -R {port}:localhost:{port} remote-host")
         mcp.run(transport="sse", host=host, port=port)
     elif transport == "http":
-        print(f"Starting scitex-hub MCP (HTTP) on {host}:{port}")
+        logger.info(f"Starting scitex-hub MCP (HTTP) on {host}:{port}")
         mcp.run(transport="streamable-http", host=host, port=port)
     else:
         raise ValueError(f"Unknown transport: {transport}")

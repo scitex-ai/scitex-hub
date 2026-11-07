@@ -33,7 +33,10 @@ from django.contrib.auth.models import AnonymousUser
 from django.test import RequestFactory
 from django.urls import resolve
 
-MOUNT = "/apps/scholar/v2/"
+MOUNT = "/apps/scholar/"
+# CUTOVER (CCT 2760) + CCT 2795: the leaf lives at the plain cutover root
+# now, NOT at /v2/ (the compat alias was transitional scaffolding and is
+# deleted). These tests guard the root mount — the user path itself.
 
 # Every route the leaf publishes, so a new upstream route that hub forgets to
 # gate shows up as a failure here rather than as an open endpoint.

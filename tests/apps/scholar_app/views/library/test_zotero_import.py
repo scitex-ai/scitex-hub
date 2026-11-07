@@ -1,6 +1,16 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""Tests for apps/workspace/scholar_app/views/library/zotero_import.py"""
+"""Tests for apps/workspace/scholar_app/views/library/zotero_import.py.
+
+CUTOVER (CCT 2760) + OPERATOR ROUTE RULE (CCT 2763/2764): /apps/scholar/
+serves the Scholar LEAF now. The hub-native zotero endpoints live ONLY at
+/apps/scholar/old-direct/ in dev (dev-gated, never in production) — the
+``scholar_old_direct`` fixture (tests/apps/scholar_app/conftest.py) turns
+the gate on around each HTTP test so the test client resolves the SAME
+views through the parity reference. Assertions are unchanged: same views,
+same contract, only the prefix moved. (TestPaperToDict drives no HTTP and
+needs no fixture; TestProjectWorkspace is e2e for a never-wired route.)
+"""
 
 import json
 import types
@@ -12,6 +22,8 @@ from django.test import Client
 
 class TestZoteroStatus:
     """Tests for the wired zotero status endpoint."""
+
+    pytestmark = pytest.mark.usefixtures("scholar_old_direct")
 
     @pytest.fixture
     def client(self):
@@ -30,7 +42,7 @@ class TestZoteroStatus:
         # Arrange
         client.force_login(user)
         # Act
-        response = client.get("/apps/scholar/api/library/zotero/status/")
+        response = client.get("/apps/scholar/old-direct/api/library/zotero/status/")
         # Assert
         assert response.status_code == 200
         assert response.json()["available"] is False
@@ -39,13 +51,15 @@ class TestZoteroStatus:
     def test_status_requires_login(self, client):
         """Unauthenticated users are redirected."""
         # Arrange / Act
-        response = client.get("/apps/scholar/api/library/zotero/status/")
+        response = client.get("/apps/scholar/old-direct/api/library/zotero/status/")
         # Assert
         assert response.status_code in (302, 403)
 
 
 class TestZoteroImport:
     """Tests for zotero_import endpoint."""
+
+    pytestmark = pytest.mark.usefixtures("scholar_old_direct")
 
     @pytest.fixture
     def client(self):
@@ -63,7 +77,7 @@ class TestZoteroImport:
         """Unauthenticated users are redirected."""
         # Arrange / Act
         response = client.post(
-            "/apps/scholar/api/library/zotero/import/",
+            "/apps/scholar/old-direct/api/library/zotero/import/",
             data=json.dumps({"mode": "all"}),
             content_type="application/json",
         )
@@ -77,7 +91,7 @@ class TestZoteroImport:
         client.force_login(user)
         # Act
         response = client.post(
-            "/apps/scholar/api/library/zotero/import/",
+            "/apps/scholar/old-direct/api/library/zotero/import/",
             data="not-json",
             content_type="application/json",
         )

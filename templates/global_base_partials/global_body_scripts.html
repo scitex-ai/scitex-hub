@@ -1,5 +1,9 @@
 {% load static vite %}
 
+<!-- Load-error fallback banner FIRST: it must be registered before any
+     other bundle can fail, so a failed script/stylesheet renders an error
+     state instead of a blank region (UX standard, operator 2026-10-16). -->
+{% vite_script 'shared/utils/load-error-banner' %}
 <!-- Global: Prevent Enter key from submitting forms & route Enter to action buttons -->
 <link rel="stylesheet" href="{% static 'shared/css/utils/form-enter-handler.css' %}" />
 {% vite_script 'shared/utils/form-enter-handler' %}
@@ -22,7 +26,7 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/highlightjs-line-numbers.js/2.8.0/highlightjs-line-numbers.min.js" integrity="sha384-+ch8x/dgaV//v6Sa8m4v5+7KScnpCuxHqilN8njQ013CEKg3Fbd8Q3oN9tfpouLh" crossorigin="anonymous"></script>
 <!-- Markdown rendering (marked.js) + HTML sanitization (DOMPurify) for AI chat -->
 <script src="https://cdn.jsdelivr.net/npm/marked@11.1.1/marked.min.js" integrity="sha384-zbcZAIxlvJtNE3Dp5nxLXdXtXyxwOdnILY1TDPVmKFhl4r4nSUG1r8bcFXGVa4Te" crossorigin="anonymous"></script>
-<script src="https://cdn.jsdelivr.net/npm/dompurify@3.0.6/dist/purify.min.js" integrity="sha384-cwS6YdhLI7XS60eoDiC+egV0qHp8zI+Cms46R0nbn8JrmoAzV9uFL60etMZhAnSu" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/dompurify@3.4.17/dist/purify.min.js" integrity="sha384-P0JNneQf81HOl9VwNXK76cQ9VMD6Nfsnepxb0cCOg8+UzEdzgPHAPV4wVQrvYQSx" crossorigin="anonymous"></script>
 <!-- Global utility scripts (Vite) -->
 {% vite_script 'shared/utils/tooltip-auto-position' %}
 {% vite_script 'shared/utils/main' %}
@@ -30,10 +34,12 @@
 {% vite_script 'shared/code-blocks' %}
 {% vite_script 'shared/utils/django-messages' %}
 {% vite_script 'shared/components/confirm-modal' %}
-<!-- Development Tools (only in DEBUG mode) -->
-{% if DEBUG %}
-    {% vite_script 'shared/utils/element-inspector' %}
-{% endif %}
+<!-- Development Tools: the Alt+I element inspector is served by
+     ElementInspectorMiddleware (the single hub emission path) — do NOT add
+     a second copy here. A duplicate evaluation constructs a second inspector
+     with its own keydown listener, which double-invokes Alt+I and creates
+     duplicate overlays (card hub-element-inspector-double-invocation-20261019).
+     The middleware already skips pages whose shell provides its own copy. -->
 <!-- Click-to-expand for collapsed panels (global) -->
 {% vite_script 'shared/collapsible-panel-click-expand' %}
 <!-- Global Header Scripts (Vite) -->
@@ -53,31 +59,31 @@
 <!-- Product Tour (step-by-step guided walkthrough) -->
 {% vite_script 'shared/components/product-tour' %}
 <!-- Workspace file tree auto-init (three-col shared worktree pane) -->
-{% vite_script 'shared/workspace-tree-init' %}
+{% if not minimal_shell %}{% vite_script 'shared/workspace-tree-init' %}{% endif %}
 <!-- Workspace viewer pane auto-init (file viewer/editor) -->
-{% vite_script 'shared/workspace-viewer-init' %}
+{% if not minimal_shell %}{% vite_script 'shared/workspace-viewer-init' %}{% endif %}
 <!-- Global AI Chat floating panel -->
-{% vite_script 'shared/workspace-panel-resizer' %}
+{% if not minimal_shell %}{% vite_script 'shared/workspace-panel-resizer' %}{% endif %}
 <!-- Unified resizer system (horizontal + vertical data-attribute resizers) -->
 {% vite_script 'shared/resizer' %}
 {% vite_script 'shared/global-ai-chat' %}
 <!-- Workspace Sidebar — pane switching, expand/collapse, mobile drawer -->
-{% vite_script 'shared/workspace-sidebar' %}
+{% if not minimal_shell %}{% vite_script 'shared/workspace-sidebar' %}{% endif %}
 <!-- Chat Welcome — bridges welcome input to AI chat backend -->
 {% vite_script 'shared/components/chat-welcome' %}
 <!-- Context-aware zoom: Ctrl+Wheel / Ctrl++/-/0 per pane (self-initializing) -->
 {% vite_script 'shared/components/context-zoom-init' %}
 <!-- App Navigation History (unified back/forward via browser history API) -->
-{% vite_script 'shared/app-navigation-history' %}
+{% if not minimal_shell %}{% vite_script 'shared/app-navigation-history' %}{% endif %}
 <!-- Module Tab Switcher (AJAX tab switching for three-col workspace layout) -->
-{% vite_script 'shared/module-tab-switcher' %}
+{% if not minimal_shell %}{% vite_script 'shared/module-tab-switcher' %}{% endif %}
 <!-- Module Reorder (drag-drop ordering, persists to backend, syncs tab bar + apps) -->
-{% vite_script 'shared/module-reorder' %}
+{% if not minimal_shell %}{% vite_script 'shared/module-reorder' %}{% endif %}
 <!-- Ctrl+P/N input history for all text inputs -->
 {% vite_script 'shared/utils/input-history' %}
 <!-- Module Tab Context Menu (right-click to manage modules) -->
-{% vite_script 'shared/components/module-tab-context-menu' %}
+{% if not minimal_shell %}{% vite_script 'shared/components/module-tab-context-menu' %}{% endif %}
 <!-- Nav Prefetch — preload module pages on hover for instant switching -->
-{% vite_script 'shared/components/nav-prefetch' %}
+{% if not minimal_shell %}{% vite_script 'shared/components/nav-prefetch' %}{% endif %}
 <!-- Dev App Install/Uninstall (Hub Explore + Apps browse) -->
-{% vite_script 'apps_app/dev-install' %}
+{% if not minimal_shell %}{% vite_script 'apps_app/dev-install' %}{% endif %}

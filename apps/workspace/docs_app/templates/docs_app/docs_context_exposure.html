@@ -1,0 +1,50 @@
+{% extends base_template|default:"global_base.html" %}
+{% load i18n vite %}
+{% block title %}{% trans "Context exposure" %}{% endblock %}
+{% block content %}
+<section class="container py-2 context-report-viewer" data-context-report-viewer>
+    <h1>{% trans "Context exposure" %}</h1>
+    <p>{% trans "View a Dev report of caller-selected MCP definitions and skill headers. Installed, advertised, and actually loaded client context are different observations." %}</p>
+    <p>{% trans "The file stays in this browser. This page does not upload reports, launch tools, read conversations, or save your input." %}</p>
+    <details>
+        <summary>{% trans "Export a compatible report" %}</summary>
+        <p>{% trans "The companion Dev context exporter is a new capability. Check your installed CLI help before using this command; older releases may not provide it." %}</p>
+        <pre><code>scitex dev context measure --input snapshot.json --json &gt; context-report.json</code></pre>
+        <p>{% trans "Supply the MCP definitions actually advertised by your selected server and only selected skill headers, with explicit provider ownership. An installed package list is not a client-context snapshot." %}</p>
+        <p><a href="/docs/web-api/">{% trans "Installed package declarations and owned skill guides" %}</a></p>
+    </details>
+    <label for="context-report-file">{% trans "Open local report JSON (up to 2 MiB)" %}</label>
+    <input id="context-report-file" data-context-file type="file" accept="application/json,.json" />
+    <label for="context-report-json">{% trans "Or paste report JSON" %}</label>
+    <textarea id="context-report-json" data-context-json maxlength="2097152" spellcheck="false" autocomplete="off"></textarea>
+    <div class="context-report-actions">
+        <button type="button" class="btn btn-primary" data-context-read>{% trans "View report" %}</button>
+        <button type="button" class="btn btn-secondary" data-context-clear>{% trans "Clear" %}</button>
+    </div>
+    <p class="context-report-status" data-context-status role="status" aria-live="polite">{% trans "No report loaded. The viewer has not measured this browser or your agent." %}</p>
+    <noscript>{% trans "JavaScript is required for local report viewing. No file is sent to the server." %}</noscript>
+    <div data-context-output hidden>
+        <h2>{% trans "Measured snapshot" %}</h2>
+        <dl>
+            <dt>{% trans "Normalized snapshot UTF-8 bytes" %}</dt><dd data-context-value="total-bytes"></dd>
+            <dt>{% trans "Unicode code points in normalized JSON" %}</dt><dd data-context-value="total-characters"></dd>
+            <dt>{% trans "Shared instructions as a JSON string (bytes)" %}</dt><dd data-context-value="instruction-bytes"></dd>
+            <dt>{% trans "Raw shared-instruction bytes / code points" %}</dt><dd><span data-context-value="instruction-raw-bytes"></span> / <span data-context-value="instruction-raw-characters"></span></dd>
+            <dt>{% trans "Snapshot JSON framing bytes" %}</dt><dd data-context-value="framing-bytes"></dd>
+            <dt>{% trans "Tokens / tokenizer" %}</dt><dd>{% trans "Not measured / not selected" %}</dd>
+            <dt>{% trans "Total client context" %}</dt><dd>{% trans "Not observed" %}</dd>
+        </dl>
+        <h2>{% trans "Recorded provider ownership" %}</h2>
+        <p>{% trans "Owner rows exclude shared instructions and snapshot framing. Bars compare recorded owners with the largest row; they are not a percentage of a model context window." %}</p>
+        <p class="context-report-mobile-hint">{% trans "On small screens, scroll the ownership table horizontally." %}</p>
+        <div class="context-report-scroll" role="region" aria-label="{% trans 'Provider ownership measurements' %}" tabindex="0">
+            <table>
+                <thead><tr><th>{% trans "Declared owner" %}</th><th>{% trans "MCP tools" %}</th><th>{% trans "Skill headers" %}</th><th>{% trans "Code points" %}</th><th>{% trans "UTF-8 bytes" %}</th><th>{% trans "Relative size" %}</th></tr></thead>
+                <tbody data-context-owner-rows></tbody>
+            </table>
+        </div>
+        <p>{% trans "Unattributed means no owner mapping was supplied. Declared mappings come from the report and are not independently verified here. Tool-name prefixes are not ownership evidence. Tool results, skill bodies, protocol framing and the remaining client conversation are outside this report." %}</p>
+    </div>
+</section>
+{% vite_script 'docs_app/context-exposure' %}
+{% endblock %}

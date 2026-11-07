@@ -1,0 +1,59 @@
+{% extends "global_base.html" %}
+
+{% load static %}
+{% load i18n %}
+
+{% block title %}{% trans "Funding - SciTeX" %}{% endblock %}
+{% block meta_description %}
+    {% trans "Fund SciTeX open-source development and sustainability. SciTeX Inc. stewards SciTeX, an AGPL-3.0 research infrastructure." %}
+{% endblock %}
+{% block extra_css %}
+    <link rel="stylesheet" href="{% static 'shared/css/components/minimal-hero.css' %}" />
+    <link rel="stylesheet" href="{% static 'public_app/css/donate.css' %}" />
+{% endblock %}
+{% block content %}
+    {% comment %}
+    Every funding figure on this page renders from data/funding.json
+    (the operator's funding manifest) through funding.funding_plan() —
+    the same file /.well-known/funding.json serves. The plan badge reads
+    plan.amount_display, plan.currency and plan.frequency: never type an
+    amount here. A literal amount in this file is a regression.
+    English is the msgid; Japanese is in locale/ja/LC_MESSAGES/django.po.
+    {% endcomment %}
+    <div class="container py-4">
+        <header class="minimal-hero">
+            <h1 class="minimal-hero-title">{% trans "Fund Open Science" %}</h1>
+            <p class="minimal-hero-subtitle">
+                {% trans "Help sustain free, open-source tools for every researcher." %}
+            </p>
+        </header>
+    </div>
+    <div class="container py-4">
+        <div class="donate-options">
+            <div class="donate-card donate-card-primary">
+                <div class="donate-card-badge">{{ plan.amount_display }} {{ plan.currency }} {{ plan.frequency }}</div>
+                <div class="donate-card-icon">
+                    <i class="fas fa-heart"></i>
+                </div>
+                <h3>{{ plan.name }}</h3>
+                <p>{{ plan.description }}</p>
+                <p class="plan-note">{{ plan.frequency_display }}</p>
+                <a href="mailto:{{ plan.entity_email }}" class="donate-card-btn">
+                    {% trans "Contact us to fund" %} <i class="fas fa-external-link-alt"></i>
+                </a>
+            </div>
+        </div>
+    </div>
+    <div class="container py-4">
+        <p class="text-muted">
+            {% blocktrans trimmed with steward=plan.entity_name manifest_url="/.well-known/funding.json" %}
+                Stewarded by {{ steward }}. Machine-readable manifest:
+            {% endblocktrans %}
+            <a href="/.well-known/funding.json"><code>/.well-known/funding.json</code></a>
+        </p>
+        <p>
+            <a href="{% url 'public_app:donate' %}">{% trans "Donate" %}</a> /
+            <a href="{% url 'public_app:pricing' %}">{% trans "View Pricing Plans" %}</a>
+        </p>
+    </div>
+{% endblock %}

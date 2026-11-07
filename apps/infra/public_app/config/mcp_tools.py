@@ -8,10 +8,7 @@ the API docs page and exposed via the ``/api/mcp/tools/`` endpoint.
 
 from __future__ import annotations
 
-import inspect
-import logging
-
-logger = logging.getLogger(__name__)
+from apps.infra.mcp_api.discovery import get_tool_metadata
 
 # Module prefix -> (display name, FontAwesome icon)
 _MODULE_META: dict[str, tuple[str, str]] = {
@@ -38,17 +35,11 @@ _MODULE_META: dict[str, tuple[str, str]] = {
 
 
 def _get_return_type(tool_obj) -> str:
-    """Extract return type annotation from the tool's underlying function."""
-    if not hasattr(tool_obj, "fn") or tool_obj.fn is None:
-        return "str"
-    try:
-        sig = inspect.signature(tool_obj.fn)
-        ann = sig.return_annotation
-        if ann != inspect.Parameter.empty:
-            return ann.__name__ if hasattr(ann, "__name__") else str(ann)
-    except Exception:
-        pass
-    return "str"
+    """Describe the advertised JSON output type without accessing a callback."""
+    schema = tool_obj.get("outputSchema") or {}
+    if schema.get("x-fastmcp-wrap-result"):
+        schema = schema.get("properties", {}).get("result", {})
+    return schema.get("type", "unspecified")
 
 
 def _extract_first_line(description: str | None) -> str:
@@ -70,9 +61,7 @@ def _extract_first_line(description: str | None) -> str:
 
 def _build_params(tool_obj) -> list[dict]:
     """Build parameter list from tool's JSON schema."""
-    if not hasattr(tool_obj, "parameters") or not tool_obj.parameters:
-        return []
-    schema = tool_obj.parameters
+    schema = tool_obj["inputSchema"]
     props = schema.get("properties", {})
     required = set(schema.get("required", []))
     params = []
@@ -89,7 +78,7 @@ def _build_params(tool_obj) -> list[dict]:
     return params
 
 
-def get_mcp_tools() -> list[dict]:
+def get_mcp_tools(mcp_server=None) -> list[dict]:
     """Introspect the scitex MCP server and return tool catalog.
 
     Returns a list of category dicts, each with:
@@ -98,19 +87,7 @@ def get_mcp_tools() -> list[dict]:
     - prefix: module prefix (e.g. "plt_")
     - tools: list of tool dicts with name, desc, params, returns
     """
-    try:
-        from scitex._mcp_tools._compat import get_tools_sync
-        from scitex.mcp_server import FASTMCP_AVAILABLE
-        from scitex.mcp_server import mcp as mcp_server
-    except ImportError:
-        logger.warning("scitex MCP server not available")
-        return []
-
-    if not FASTMCP_AVAILABLE or mcp_server is None:
-        logger.warning("FastMCP not installed or MCP server not initialized")
-        return []
-
-    all_tools = get_tools_sync(mcp_server)
+    all_tools = get_tool_metadata(mcp_server)
 
     # Group by module prefix
     modules: dict[str, list] = {}
@@ -129,8 +106,8 @@ def get_mcp_tools() -> list[dict]:
         for tool_obj in modules[prefix]:
             tools_list.append(
                 {
-                    "name": tool_obj.name,
-                    "desc": _extract_first_line(tool_obj.description),
+                    "name": tool_obj["name"],
+                    "desc": _extract_first_line(tool_obj.get("description")),
                     "params": _build_params(tool_obj),
                     "returns": _get_return_type(tool_obj),
                 }

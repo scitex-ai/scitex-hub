@@ -13,8 +13,12 @@ from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
 from django.shortcuts import redirect, render
+from django.utils.html import format_html
+from scitex_logging import getLogger
 
 from .services import UserContainerManager
+
+logger = getLogger(__name__)
 
 
 @login_required
@@ -189,7 +193,7 @@ def workspace_module_content(request, module):
     if not mod_config or not mod_config.partial_template:
         from django.http import HttpResponseNotFound
 
-        return HttpResponseNotFound(f"Module '{module}' not found")
+        return HttpResponseNotFound(format_html("Module '{}' not found", module))
 
     from apps.infra.project_app.services.project_utils import get_current_project
 
@@ -198,15 +202,17 @@ def workspace_module_content(request, module):
     )
 
     ctx = mod_config.build_context(request, current_project)
-    return render(request, mod_config.partial_template, ctx)
+    from ._api_docs_metadata import stamp_module_docs_response
+
+    return stamp_module_docs_response(
+        render(request, mod_config.partial_template, ctx), mod_config
+    )
 
 
 def _serve_dev_module(request, module):
     """Serve a dev-installed app's partial template with sandboxed context."""
-    from django.http import HttpResponse, HttpResponseNotFound
-    from django.template import engines
-
-    from scitex_app.paths import parse_dev_module_name
+    from django.http import HttpResponseNotFound
+    from scitex_sdk.app.paths import parse_dev_module_name
 
     from apps.workspace.apps_app.models import DevInstallation
     from apps.workspace.apps_app.services.dev_app_loader import resolve_dev_template
@@ -222,7 +228,9 @@ def _serve_dev_module(request, module):
     # package used `split("__")`, so the same name could parse two different ways.
     parsed = parse_dev_module_name(module)
     if not parsed:
-        return HttpResponseNotFound(f"Dev module '{module}' template not found")
+        return HttpResponseNotFound(
+            format_html("Dev module '{}' template not found", module)
+        )
 
     owner, repo = parsed
 
@@ -238,11 +246,15 @@ def _serve_dev_module(request, module):
     if dev_install is None:
         # Deliberately the SAME 404 as a missing template. A distinct "not yours"
         # would turn this endpoint into an oracle for other users' installed apps.
-        return HttpResponseNotFound(f"Dev module '{module}' template not found")
+        return HttpResponseNotFound(
+            format_html("Dev module '{}' template not found", module)
+        )
 
     template_path = resolve_dev_template(module)
     if not template_path:
-        return HttpResponseNotFound(f"Dev module '{module}' template not found")
+        return HttpResponseNotFound(
+            format_html("Dev module '{}' template not found", module)
+        )
 
     # Build context: run views.py context builder inside Apptainer (if available)
     context = {"request": request}
@@ -266,16 +278,25 @@ def _serve_dev_module(request, module):
     context.update(extra_ctx)
     context["current_project"] = current_project
 
+    return _render_dev_template(template_path, context, request, module)
+
+
+def _render_dev_template(template_path, context, request, module):
+    """Render an authorized template without reflecting diagnostic details."""
+    from django.http import HttpResponse, HttpResponseServerError
+    from django.template import engines
+
     try:
         raw = template_path.read_text(encoding="utf-8")
         engine = engines["django"]
         tpl = engine.from_string(raw)
         html = tpl.render(context, request)
         return HttpResponse(html)
-    except Exception as e:
-        from django.http import HttpResponseServerError
-
-        return HttpResponseServerError(f"Dev module '{module}' render error: {e}")
+    except Exception:
+        logger.error("Developer module template rendering failed")
+        return HttpResponseServerError(
+            format_html("Dev module '{}' could not be rendered", module)
+        )
 
 
 # EOF

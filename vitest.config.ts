@@ -1,5 +1,6 @@
 import { defineConfig } from "vitest/config";
 import path from "path";
+import { discoverScitexSdkRoot, scitexSdkSubpathAliasesFromRoot } from "./vite.sdk-exports";
 
 const __dirname = new URL(".", import.meta.url).pathname;
 
@@ -17,6 +18,8 @@ export default defineConfig({
   },
   resolve: {
     alias: {
+      // CI supplies the normal installed SDK, using its own public exports.
+      ...scitexSdkSubpathAliasesFromRoot(discoverScitexSdkRoot(__dirname)),
       // Shared-source alias (mirrors vite.config.ts "@" → static/shared/ts) so
       // writer/console/etc. source files that import "@/utils/..." resolve
       // under vitest.

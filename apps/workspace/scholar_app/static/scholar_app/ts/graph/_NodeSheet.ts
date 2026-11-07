@@ -6,19 +6,12 @@
 import type { NetworkNode } from "./types";
 import { gt } from "./_graph-i18n";
 import { getCsrfToken } from "../common/_scholar-index/utilities";
+import { getSelectedProjectId as selectedProjectId } from "../common/_project-context";
 
 export function escapeHtml(text: string): string {
   const div = document.createElement("div");
   div.textContent = text;
   return div.innerHTML;
-}
-
-function selectedProjectId(): string | null {
-  const stored = sessionStorage.getItem("scholar_selected_project_id");
-  if (stored) return stored;
-  return (
-    document.getElementById("scholar-global-config")?.dataset.projectId ?? null
-  );
 }
 
 async function addToLibrary(

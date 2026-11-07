@@ -1,6 +1,8 @@
 {% load i18n landing_i18n %}
-{% load static %}
-{% load module_icons %}
+{% load static scitex_static %}
+{% load module_icons branding_tags %}
+{% hub_package_metadata as hub_package %}
+<link rel="stylesheet" href="{% app_static 'shared/css/components/cloud-alpha-notice.css' %}" />
 
 <!-- hook-bypass: inline-style -->
 <!-- GitHub-Style Global Header -->
@@ -31,13 +33,27 @@
             {# always renders (/landing/) — tapping the logo must never bounce #}
             {# back to the same page and read as a dead touch target. #}
             <a href="{{ header_logo_href|default:'/' }}" class="header-logo" title="Home">
+                {# Theme-aware brand mark (operator 2026-10-26): env favicon #}
+                {# in light mode, gold CTA disc in dark mode. CSS keys off #}
+                {# html[data-theme]; both preloaded so the toggle is instant. #}
                 <img src="{% static SCITEX_FAVICON %}"
                      alt="SciTeX{% if SCITEX_ENV_MARKER %} ({{ SCITEX_ENV_MARKER }}){% endif %}"
-                     class="header-logo-icon" />
+                     class="header-logo-icon header-logo-icon--light" />
+                <img src="{% static SCITEX_FAVICON_DARK %}"
+                     alt=""
+                     aria-hidden="true"
+                     class="header-logo-icon header-logo-icon--dark" />
             </a>
-            <span class="header-build-meta">
-                <span class="header-hub-version" title="SciTeX Hub version"><span class="header-hub-product">SciTeX™ Cloud </span>v{{ SCITEX_HUB_VERSION }}</span>
+            <span class="header-build-meta header-build-meta--alpha">
+                <span class="header-hub-version"
+                      data-package="{{ hub_package.name }}"
+                      data-package-version="{{ hub_package.version }}"
+                      data-package-description="{{ hub_package.description }}"
+                      title="{{ hub_package.name }} v{{ hub_package.version }}{% if hub_package.description %}: {{ hub_package.description }}{% endif %}"><span class="header-hub-product">SciTeX® Cloud </span>v{{ hub_package.version }}</span>
                 <time id="header-local-clock" class="header-local-clock" aria-label="Local time"></time>
+                <span class="header-alpha-notice" role="note" aria-label="{% trans 'SciTeX® Cloud is in alpha. Features may change. Keep separate backups of important work.' %}">
+                    <span class="header-alpha-line">{% trans "Alpha — Features may change. Keep backups." %}</span>
+                </span>
             </span>
             {% if user.is_authenticated %}
                 <!-- AI Assistant Toggle (right of logo) -->
@@ -120,6 +136,25 @@
             <i class="fas fa-circle-half-stroke" aria-hidden="true"></i>
             <span data-theme-toggle-label>{% trans "Switch to dark mode" %}</span>
         </button>
+        <div class="mobile-menu-item mobile-menu-item--indent mobile-menu-lang" role="group" aria-label="{% trans 'Language' %}">
+            <i class="fas fa-globe" aria-hidden="true"></i>
+            {% get_current_language as CURRENT_LANGUAGE %}
+            {# One sliding EN|JA toggle: a single POST of the OPPOSITE language, #}
+            {# so it flips with or without JS. The thumb is pure CSS, keyed off #}
+            {# data-lang (server-rendered initial state). #}
+            <form action="{% url 'set_language' %}" method="post" class="mobile-menu-lang-form">
+                {% csrf_token %}
+                <input type="hidden" name="next" value="{{ request.get_full_path }}" />
+                <button type="submit" name="language" value="{% if CURRENT_LANGUAGE == 'en' %}ja{% else %}en{% endif %}"
+                        class="mobile-menu-lang-toggle" data-lang="{{ CURRENT_LANGUAGE }}"
+                        role="switch" aria-checked="{% if CURRENT_LANGUAGE == 'ja' %}true{% else %}false{% endif %}"
+                        aria-label="{% if CURRENT_LANGUAGE == 'en' %}{% trans 'Language: English. Activate to switch to Japanese.' %}{% else %}{% trans 'Language: Japanese. Activate to switch to English.' %}{% endif %}">
+                    <span class="mobile-menu-lang-thumb" aria-hidden="true"></span>
+                    <span class="mobile-menu-lang-opt" data-opt="en" aria-hidden="true">EN</span>
+                    <span class="mobile-menu-lang-opt" data-opt="ja" aria-hidden="true">JA</span>
+                </button>
+            </form>
+        </div>
         <button type="button" class="mobile-menu-item mobile-menu-item--indent" id="product-tour-btn" aria-label="{% trans 'Product tour' %}">
             <i class="fas fa-question-circle" aria-hidden="true"></i>
             <span>{% trans "Product tour" %}</span>
@@ -154,11 +189,12 @@
         <!-- Visitor-mode row removed 2026-09-11 (visitor retirement): there is
              no longer a visitor/readonly role. -->
         {% if not user.is_authenticated %}
-            <a href="/auth/signin/" class="mobile-menu-item">
+            <div class="mobile-menu-item mobile-menu-item--section">{% trans "Account" %}</div>
+            <a href="/auth/signin/" class="mobile-menu-item mobile-menu-item--indent">
                 <i aria-hidden="true" class="fas fa-sign-in-alt"></i>
                 <span>{% trans "Sign In" %}</span>
             </a>
-            <a href="/auth/signup/" class="mobile-menu-item">
+            <a href="/auth/signup/" class="mobile-menu-item mobile-menu-item--indent">
                 <i aria-hidden="true" class="fas fa-user-plus"></i>
                 <span>{% trans "Sign Up" %}</span>
             </a>
@@ -196,7 +232,7 @@
             <i aria-hidden="true" class="fas fa-scale-balanced"></i>
             <span>{% trans "Legal Notice" %}</span>
         </a>
-        <a href="{% url 'public_app:contact' %}" class="mobile-menu-item mobile-menu-item--indent">
+        <a href="{% url 'public_app:contact' %}" class="mobile-menu-item mobile-menu-item--indent mobile-menu-item--last">
             <i aria-hidden="true" class="fas fa-envelope"></i>
             <span>{% trans "Contact" %}</span>
         </a>

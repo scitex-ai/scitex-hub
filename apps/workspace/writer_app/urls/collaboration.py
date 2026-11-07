@@ -9,12 +9,24 @@ from ..views.collaboration.comments import (
     resolve_comment,
     update_comment,
 )
+from ..views.collaboration.presence import active_api, heartbeat_api
 
 urlpatterns = [
     path(
         "",
         TemplateView.as_view(template_name="writer_app/collaboration/session.html"),
         name="session",
+    ),
+    # Presence heartbeat (leaf editor collab pane polls these)
+    path(
+        "presence/heartbeat/",
+        heartbeat_api,
+        name="presence-heartbeat",
+    ),
+    path(
+        "presence/active/",
+        active_api,
+        name="presence-active",
     ),
     # Comment/annotation API
     path(

@@ -22,6 +22,17 @@ class TestRegistryManifestLoading:
 
         from apps.infra.workspace_app.registry import (
             _BUILTIN_MANIFEST_PATHS,
+            _BUILTIN_MODULES,
+        )
+
+        assert len(_BUILTIN_MODULES) == len(_BUILTIN_MANIFEST_PATHS)
+
+    def test_loads_each_builtin_module_once(self):
+        # get_all_modules() also includes runtime-discovered entry-point apps.
+        # A published optional package must not make this builtin integrity
+        # check fail merely because the environment now contains one more app.
+        from apps.infra.workspace_app.registry import (
+            _BUILTIN_MANIFEST_PATHS,
             get_all_modules,
         )
 
@@ -156,7 +167,7 @@ class TestAppManagementAPI:
         info = get_info("writer")
         assert info["name"] == "writer"
         assert info["label"] == "Writer"
-        assert info["icon"] == "fas fa-pen"
+        assert info["icon"] == "fas fa-file-alt"
 
     def test_get_info_unknown_app(self):
         from scitex_hub.appmaker import get_info

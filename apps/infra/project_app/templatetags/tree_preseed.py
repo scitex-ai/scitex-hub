@@ -28,15 +28,25 @@ def tree_preseed_script(context, project):
 
     # Writer's page and the shell's worktree pane both call this; a second copy
     # doubled the HTML (~300 KB each) and rebuilt the tree.
+    #
+    # Callers may pass the raw slug string (e.g. /apps/live-paper/?project=
+    # <owner>/<slug>) instead of a Project model. A blind project.pk then
+    # raised AttributeError -> dev 500, masking the real downstream error.
+    # Guard: only models seed; anything else skips (the tree falls back to
+    # the API call).
+    pk = getattr(project, "pk", None)
+    if pk is None:
+        logger.debug("Tree preseed skipped: not a project model: %r", project)
+        return ""
     request = context.get("request")
     seeded = getattr(request, "_tree_preseeded", None) if request is not None else None
-    if seeded is not None and project.pk in seeded:
+    if seeded is not None and pk in seeded:
         return ""
     if request is not None:
         if seeded is None:
             seeded = set()
             request._tree_preseeded = seeded
-        seeded.add(project.pk)
+        seeded.add(pk)
 
     try:
         from apps.infra.project_app.services.file_tree_builder import (

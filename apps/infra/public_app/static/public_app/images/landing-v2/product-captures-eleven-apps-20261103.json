@@ -1,0 +1,656 @@
+{
+  "capture_origin": "https://compute-03-net.scitex.ai",
+  "viewport": [
+    1440,
+    900
+  ],
+  "device_scale_factor": 1,
+  "asset_substitution": false,
+  "captures": [
+    {
+      "app": "agent-container",
+      "captured_at_utc": "2026-11-02T21:11:20Z",
+      "path": "/apps/agent-container/",
+      "raw_sha256": "2776a19961402fa337a66c5c2385d51699e26cccdce46892ad9d052f81c7c623",
+      "privacy_masked_png_sha256": "2776a19961402fa337a66c5c2385d51699e26cccdce46892ad9d052f81c7c623",
+      "privacy_filtered_original_only": true,
+      "unmasked_operational_capture_persisted": false,
+      "privacy_mask_selectors": ".stx-app-header__project,.stx-app-project-selector,.project-scope-selector,#site-project-selector,.site-header__user,.user-menu,.account-menu,[data-user-menu],[role=tooltip],.agent-row:not([data-agent-name^=\"scitex-\"]):not([data-agent-name=\"figrecipe\"]) .c-name span:not(.dot),.agents-diag,.diag,pre,.c-workdir,.c-auth,.c-model,.agent-workdir,.agent-auth,.agent-last-message,.agents-log,.agents-chat-messages,.fleet-message-text",
+      "privacy_additional_styles": "",
+      "privacy_iframe_selectors": "",
+      "short_description": "Cached fleet inventory; no conversation or control action.",
+      "sample_description": "Actual cached roster with21rows. Visible liveness labels are cached inventory metadata, not task/goal completion. Non-public agent labels and account/project controls hidden; no agent conversation/control/tail/status or goal command executed.",
+      "source_checkout_observed": "58a7fc189d820b182066ce24a30cec983516d2ed",
+      "actual_browser_status": 200,
+      "javascript_errors": 0,
+      "new_capture_post_requests_allowed": false,
+      "renditions": [
+        {
+          "file": "agent-container-20261102-768.webp",
+          "width": 768,
+          "height": 480,
+          "bytes": 14520,
+          "sha256": "837d82c7308f7f451a3ef167d96ceb0da27e652b87882c0dd2cd6d98234dc29d"
+        },
+        {
+          "file": "agent-container-20261102-1200.webp",
+          "width": 1200,
+          "height": 750,
+          "bytes": 26864,
+          "sha256": "ea502e6ce7d779e03c7f3708231f83eae0cf1b7b9d1665c22bf50e7a5fdc19e5"
+        },
+        {
+          "file": "agent-container-20261102-1200.jpg",
+          "width": 1200,
+          "height": 750,
+          "bytes": 60106,
+          "sha256": "460419ee3c58f9d9950598a4e803219c94c3eb72f633df30eadc9bce9b0a757c"
+        }
+      ],
+      "cached_inventory": true,
+      "visible_roster_rows": 21,
+      "gallery_category": "infrastructure",
+      "gallery_label": "Agent Container",
+      "gallery_slide_index": 2,
+      "capture_version": "0.38.6",
+      "capture_version_basis": "visible_capture_header",
+      "source_declared_version": "0.38.6",
+      "capture_version_note": "Captured header v0.38.6; recorded source declares v0.38.6 at 58a7fc189d82."
+    },
+    {
+      "app": "cards",
+      "captured_at_utc": "2026-11-03T01:51:47Z",
+      "path": "/apps/cards/board-v3",
+      "raw_sha256": "8b517e1ab7c3f579ff87e11ea22fbe6a7690c21a0002d3ae1b77e3d1165c23c3",
+      "privacy_masked_png_sha256": "8b517e1ab7c3f579ff87e11ea22fbe6a7690c21a0002d3ae1b77e3d1165c23c3",
+      "privacy_filtered_original_only": true,
+      "unmasked_operational_capture_persisted": false,
+      "privacy_mask_selectors": ".stx-app-header__project,.stx-app-project-selector,.project-scope-selector,#site-project-selector,.site-header__user,.user-menu,.account-menu,[data-user-menu],[role=tooltip],.ww-lane-title,.ww-lane-header,.card-agent,.card-assignee,.tl-lane-label,#filterbar-chips,.site-header .username,.sw-island-title,.tl-card-meta",
+      "privacy_additional_styles": "",
+      "privacy_iframe_selectors": "",
+      "short_description": "Four synthetic MNIST workflow examples in the actual Board.",
+      "sample_description": "Actual dedicated Board Timeline Simple view filtered to the MNIST example project, with Show done enabled. Four clearly labelled Demo status cards illustrate workflow stages; they are not verified research progress. Human-owned fixtures have no runnable tasks or notification recipients. Native read-only browser controls, no DM/model actions, no asset substitution, and unchanged account project preferences.",
+      "source_checkout_observed": "bfebb541a36cf0d8438b92ca86904a7ca0c426b6",
+      "actual_browser_status": 200,
+      "javascript_errors": 0,
+      "new_capture_post_requests_allowed": false,
+      "renditions": [
+        {
+          "file": "cards-board-mnist-20261103-768.webp",
+          "width": 768,
+          "height": 480,
+          "bytes": 10844,
+          "sha256": "84f50265116bdda7092e5697b5fc5f5a7b75bf6882c503171384504bfe90c2e8"
+        },
+        {
+          "file": "cards-board-mnist-20261103-1200.webp",
+          "width": 1200,
+          "height": 750,
+          "bytes": 22122,
+          "sha256": "2b34472980d99821fa4af99addc01e5ec567c4bbd09e58aac5d012f431575482"
+        },
+        {
+          "file": "cards-board-mnist-20261103-1200.jpg",
+          "width": 1200,
+          "height": 750,
+          "bytes": 57716,
+          "sha256": "8afc9f7fb00f775150faac0021066ac2c714f5134fe4f9a99e9d848ca3264930"
+        }
+      ],
+      "gallery_category": "infrastructure",
+      "gallery_label": "Cards",
+      "gallery_slide_index": 3,
+      "capture_version": "0.56.22",
+      "capture_version_basis": "visible_capture_header",
+      "source_declared_version": "0.56.22",
+      "capture_version_note": "Captured header v0.56.22; unchanged Cards source declares v0.56.22 at bfebb541a36c. Hub sidebar ownership fix enables the native Board; fixture seed is separately documented.",
+      "synthetic_example": true,
+      "visible_fixture_cards": 4,
+      "hub_sidebar_owner_fix": "fc46fb5782ef114bae90ae5d30e391c0f071831b",
+      "viewport": [
+        1440,
+        875
+      ],
+      "natural_app_crop": {
+        "x": 67,
+        "y": 65,
+        "width": 1296,
+        "height": 810
+      }
+    },
+    {
+      "app": "storage",
+      "captured_at_utc": "2026-11-02T21:11:27Z",
+      "path": "/apps/storage/",
+      "raw_sha256": "ee4dac6e75749317e8e773aad99854e6af88f960cc38a5e40fc930c902ae5fa3",
+      "privacy_masked_png_sha256": "ee4dac6e75749317e8e773aad99854e6af88f960cc38a5e40fc930c902ae5fa3",
+      "privacy_filtered_original_only": true,
+      "unmasked_operational_capture_persisted": false,
+      "privacy_mask_selectors": ".stx-app-header__project,.stx-app-project-selector,.project-scope-selector,#site-project-selector,.site-header__user,.user-menu,.account-menu,[data-user-menu],[role=tooltip],code,pre,.volume-path,.storage-path,.storage-current-path,.breadcrumb,[data-path-label],.storage-breadcrumb,.volume-root",
+      "privacy_additional_styles": "",
+      "privacy_iframe_selectors": "h1,.gen,#crumb,#tip",
+      "short_description": "MNIST project storage usage with a rendered sunburst.",
+      "sample_description": "Actual requester-authorized MNIST project usage iframe;36SVGsegments rendered. Path/generation/breadcrumb labels hidden. No move, delete, duplicate scan or capacity recommendation performed.",
+      "source_checkout_observed": "310ffb6c41d483e7afec32d8b31db31fe712c300",
+      "actual_browser_status": 200,
+      "javascript_errors": 0,
+      "new_capture_post_requests_allowed": false,
+      "renditions": [
+        {
+          "file": "storage-20261102-768.webp",
+          "width": 768,
+          "height": 480,
+          "bytes": 13180,
+          "sha256": "3d60296bc0a09bdb7ff6521b7a86b45cdcd2bd8683dc6304494620f393d447fb"
+        },
+        {
+          "file": "storage-20261102-1200.webp",
+          "width": 1200,
+          "height": 750,
+          "bytes": 24910,
+          "sha256": "27a6763beacd1db94d631d3ef999212db8d70b7f2fbbf9265ff2043a67988f84"
+        },
+        {
+          "file": "storage-20261102-1200.jpg",
+          "width": 1200,
+          "height": 750,
+          "bytes": 48569,
+          "sha256": "9674de1ef8008319f26710ff19f1f75259439b5a88e93576e5f6cbf0f0fc7fe4"
+        }
+      ],
+      "rendered_svg_segments": 36,
+      "gallery_category": "infrastructure",
+      "gallery_label": "Storage",
+      "gallery_slide_index": 4,
+      "capture_version": "0.6.16",
+      "capture_version_basis": "visible_capture_header",
+      "source_declared_version": "0.6.16",
+      "capture_version_note": "Captured header v0.6.16; recorded source declares v0.6.16 at 310ffb6c41d4."
+    },
+    {
+      "app": "scholar",
+      "captured_at_utc": "2026-11-02T16:02:13Z",
+      "path": "/apps/scholar/",
+      "raw_sha256": "64be329e497718d586d92bfe52d4f397b09fcfd396c51c8809c51f87a5b4db06",
+      "privacy_masked_png_sha256": "9e4cc87516c602fc65e7b151436e63428ac8b14816ad7511777e7c8093eb9e08",
+      "privacy_mask_selectors": ".stx-app-header__project,.stx-app-project-selector,.project-scope-selector,#site-project-selector,.site-header__user,.user-menu,.account-menu,[data-user-menu],[role=tooltip]",
+      "sample_description": "Actual MNIST project library with four curated real references and native metadata reader. No search, enrichment, download or Graph operation. No abstract is stored for the selected reference.",
+      "source_checkout_observed": "ca410ea9f3444720d533f1233574dcea2c5535ee",
+      "reader_geometry": {
+        "titleWidth": 241,
+        "titleHeight": 45,
+        "closeWidth": 44,
+        "closeHeight": 44,
+        "readerVisible": true,
+        "papers": 4
+      },
+      "served_reader_stylesheet": [
+        {
+          "path": "/static/scholar/css/library-reader.css",
+          "status": 200,
+          "sha256": "623735bc562ea3018760502ab1e368944b9722146b53ac851689ef072e61b3f1"
+        }
+      ],
+      "renditions": [
+        {
+          "file": "scholar-20261102-768.webp",
+          "width": 768,
+          "height": 480,
+          "bytes": 25948,
+          "sha256": "db4b0107baf0428bba3081ccc7b50db853d1263a268dd7f9d631b24090910f5d"
+        },
+        {
+          "file": "scholar-20261102-1200.webp",
+          "width": 1200,
+          "height": 750,
+          "bytes": 52730,
+          "sha256": "78fe9f288d7534fb9d98ff1f01c212b588462e3d1f28905e89aafefaa95dbf19"
+        },
+        {
+          "file": "scholar-20261102-1200.jpg",
+          "width": 1200,
+          "height": 750,
+          "bytes": 104655,
+          "sha256": "3cef4cbca353d8fb1d0fc7d9879e607db60096698b939f1671106c10671b0aa9"
+        }
+      ],
+      "gallery_category": "research",
+      "gallery_label": "Scholar",
+      "gallery_slide_index": 5,
+      "capture_version": "1.29.1",
+      "capture_version_basis": "visible_capture_header",
+      "source_declared_version": "1.29.1",
+      "capture_version_note": "Captured header v1.29.1; recorded source declares v1.29.1 at ca410ea9f344."
+    },
+    {
+      "app": "stats",
+      "captured_at_utc": "2026-11-02T15:34:36Z",
+      "path": "/apps/stats/",
+      "raw_sha256": "c6fcf691b3a11dd81ab89c13af14aac53943078c812b3ea2148b7ba10aa156fb",
+      "privacy_masked_png_sha256": "c11628b52c34f7368d25f848702ff1af0b356bcc52a78056d1fcdb737b0632a5",
+      "privacy_mask_selectors": ".stx-app-header__project,.stx-app-project-selector,.project-scope-selector,#site-project-selector,.site-header__user,.user-menu,.account-menu,[data-user-menu],.project-files-panel,.file-tree,[role=tooltip]",
+      "sample_description": "Built-in two-group sample; real Welch test result. Not MNIST data.",
+      "source_checkout_observed": "6d47e5eb4654ecef95306ac846919a4e89da17f4",
+      "renditions": [
+        {
+          "file": "stats-20261102-768.webp",
+          "width": 768,
+          "height": 480,
+          "bytes": 24048,
+          "sha256": "09a82e2b47a0de35eff8d43debd89f0670df57aaa5776c732d5c91b228d9d2a6"
+        },
+        {
+          "file": "stats-20261102-1200.webp",
+          "width": 1200,
+          "height": 750,
+          "bytes": 48464,
+          "sha256": "9dafb9833a155868ed90d6858dbd5b3c10ee812d13923daad9bff968962ab971"
+        },
+        {
+          "file": "stats-20261102-1200.jpg",
+          "width": 1200,
+          "height": 750,
+          "bytes": 90441,
+          "sha256": "16c46919c7af4813a101afbd5fdb7d8ec03007017aa529765d8383dc6ecb95ea"
+        }
+      ],
+      "gallery_category": "research",
+      "gallery_label": "Stats",
+      "gallery_slide_index": 6,
+      "capture_version": "1.0.0",
+      "capture_version_basis": "captured_source_declaration_only",
+      "source_declared_version": "1.0.0",
+      "capture_version_note": "No app-version badge is visible in the screenshot. Version v1.0.0 comes only from recorded source 6d47e5eb4654, not observed installed runtime metadata."
+    },
+    {
+      "app": "figrecipe",
+      "captured_at_utc": "2026-11-02T23:01:41Z",
+      "path": "/apps/figrecipe/",
+      "raw_sha256": "b19331b0dd2c527b6d71aa8a220da25f19c245354c4099e3d344073347e635e1",
+      "privacy_masked_png_sha256": "b19331b0dd2c527b6d71aa8a220da25f19c245354c4099e3d344073347e635e1",
+      "privacy_mask_selectors": ".stx-app-header__project,.stx-app-project-selector,.project-scope-selector,#site-project-selector,.site-header__user,.user-menu,.account-menu,[data-user-menu],.project-files-panel,.file-tree,[role=tooltip]",
+      "sample_description": "Actual FigRecipe Figure view with three synthetic example recipes in its native Figure/Panel/Data hierarchy. Training line selected with eight-point Details. One figure canvas is visible at a time; Figure1/2/3 navigation and Objects tree remain visible. Synthetic values are interface examples, not MNIST findings.",
+      "source_checkout_observed": "8c808b6969f0f6f4c8bfe001722d17bd27026185",
+      "renditions": [
+        {
+          "file": "figrecipe-20261103-scene-768.webp",
+          "width": 768,
+          "height": 480,
+          "bytes": 18752,
+          "sha256": "facaf1d6e74b12b5d9342b7cde91b937cddc623ec3661002cd30bde537ccf0b3"
+        },
+        {
+          "file": "figrecipe-20261103-scene-1200.webp",
+          "width": 1200,
+          "height": 750,
+          "bytes": 36786,
+          "sha256": "dc9520b3ac8a85aa7eec1c415dda9364124b628ca3d20d9c624ea426e6a04a26"
+        },
+        {
+          "file": "figrecipe-20261103-scene-1200.jpg",
+          "width": 1200,
+          "height": 750,
+          "bytes": 99221,
+          "sha256": "98bff44fff17fecf15074240915e03dda5dbf9a73b120feeaf5795555b2e1a44"
+        }
+      ],
+      "privacy_filtered_original_only": true,
+      "unmasked_operational_capture_persisted": false,
+      "short_description": "Figure editing with three synthetic examples and a selected line.",
+      "actual_browser_status": 200,
+      "javascript_errors": 0,
+      "synthetic_interface_example": true,
+      "synthetic_example_note": "Invented illustrative curves; not MNIST results or research findings.",
+      "visible_figures_navigation": 3,
+      "visible_object_tree_entries": 3,
+      "visible_canvas_count": 1,
+      "selected_element": "ax0_line0",
+      "new_capture_post_requests_allowed": true,
+      "capture_post_boundary": {
+        "endpoint": "/apps/figrecipe/api/switch",
+        "purpose": "Native existing-recipe render action only, scoped to three uniquely named synthetic fixture recipes; save/autosave/project edits/model calls blocked.",
+        "requests": [
+          {
+            "path": "/apps/figrecipe/api/switch",
+            "synthetic_recipe": "02_synthetic_group_comparison.yaml"
+          },
+          {
+            "path": "/apps/figrecipe/api/switch",
+            "synthetic_recipe": "03_synthetic_response_curve.yaml"
+          }
+        ]
+      },
+      "fixture_root": "figures/landing-figrecipe-demo-20261103",
+      "native_view_actions": [
+        "Load existing recipes with shipped addFigure action",
+        "Select Figure1",
+        "Fit to screen then native zoomOut three times",
+        "Select Training line through native SVG click handler",
+        "Minimize dock"
+      ],
+      "gallery_category": "research",
+      "gallery_label": "FigRecipe",
+      "gallery_slide_index": 7,
+      "capture_version": "0.44.0",
+      "capture_version_basis": "visible_capture_header",
+      "source_declared_version": "0.44.1",
+      "capture_version_note": "Captured header v0.44.0; recorded source declares v0.44.1 at 8c808b6969f0. Header/source mismatch: this development screenshot uses a source overlay; do not describe the capture as an unmodified 0.44.0 release.",
+      "synthetic_fixture_files": [
+        {
+          "path": "01_synthetic_learning_curve.png",
+          "bytes": 78887,
+          "sha256": "a59b0f02a3132c8bb7813b2ed341a55c2610160a809fc1d97df8d7b5f5fda1f8"
+        },
+        {
+          "path": "01_synthetic_learning_curve.yaml",
+          "bytes": 7332,
+          "sha256": "50211d51c3f510392cff2da15a2ddd12f52b589bddcae7ac20aaca66f5302769"
+        },
+        {
+          "path": "01_synthetic_learning_curve_data/plot_000_x.csv",
+          "bytes": 24,
+          "sha256": "3c04196a0c3c647a6a2f2e8e8e640a233650cd6e4237de8d3be8c6d9d4d07635"
+        },
+        {
+          "path": "01_synthetic_learning_curve_data/plot_000_y.csv",
+          "bytes": 48,
+          "sha256": "d9c632a4c9457814e7737479d2b5c991a5579f2c90dde21e8700ec437e1fcf17"
+        },
+        {
+          "path": "01_synthetic_learning_curve_data/plot_001_x.csv",
+          "bytes": 24,
+          "sha256": "3c04196a0c3c647a6a2f2e8e8e640a233650cd6e4237de8d3be8c6d9d4d07635"
+        },
+        {
+          "path": "01_synthetic_learning_curve_data/plot_001_y.csv",
+          "bytes": 46,
+          "sha256": "c82960bda32feaee3983193e3ac04477885870f70ee97fb2cdf4a58aeb79a82c"
+        },
+        {
+          "path": "02_synthetic_group_comparison.png",
+          "bytes": 41959,
+          "sha256": "009384de46c0723a29eb20bc16fbbdeba485035f96277a263226d34d53ed69ac"
+        },
+        {
+          "path": "02_synthetic_group_comparison.yaml",
+          "bytes": 6638,
+          "sha256": "2db321fbab901bcae8bd792506f488d9ce46291c09d65fda514b1e375441af23"
+        },
+        {
+          "path": "02_synthetic_group_comparison_data/bar_000_height.csv",
+          "bytes": 18,
+          "sha256": "5d0b6904327d6775741932d1561b82657859cbccc44baa0c7c224bbdeeb8cdae"
+        },
+        {
+          "path": "03_synthetic_response_curve.png",
+          "bytes": 70372,
+          "sha256": "d9aa3f75ce2f0bac3b7560fa510af46882afd679a0ff215e88201e8d080efb0c"
+        },
+        {
+          "path": "03_synthetic_response_curve.yaml",
+          "bytes": 6583,
+          "sha256": "581011fd81f41bd1c4f06a3e01971d7e6afe1012b64fd68e68b0f8e57cea2a57"
+        },
+        {
+          "path": "03_synthetic_response_curve_data/plot_000_x.csv",
+          "bytes": 18,
+          "sha256": "cf8ad1d080b9016be5316199f8fb3567197fc86c8f7375aeed9f49eb3abab1eb"
+        },
+        {
+          "path": "03_synthetic_response_curve_data/plot_000_y.csv",
+          "bytes": 32,
+          "sha256": "b68c25300cfff323da200849ac406d4d953cd02eaef64fda27ed631ddb774120"
+        },
+        {
+          "path": "README-EXAMPLE.txt",
+          "bytes": 212,
+          "sha256": "292d64be75439fd6701190801cb19488e84a89ae53bf6100e5c301c0a6888a15"
+        }
+      ]
+    },
+    {
+      "app": "writer",
+      "captured_at_utc": "2026-11-02T16:14:47Z",
+      "path": "/apps/writer/",
+      "raw_sha256": "ef654fbddf07831853f62e84322eccb9204316223b4616f6cd129c602e74cba5",
+      "privacy_masked_png_sha256": "8c3f49765c6d9f38fd629355f263574c4db7c41d16913434beef1abd74eb1495",
+      "privacy_mask_selectors": ".stx-app-header__project,.stx-app-project-selector,.project-scope-selector,#site-project-selector,.site-header__user,.user-menu,.account-menu,[data-user-menu],[role=tooltip]",
+      "sample_description": "Actual seeded MNIST example Abstract source with genuine single-section compiled PDF, explicitly not a research finding. No manuscript save or full compilation.",
+      "source_checkout_observed": "6b9795b5de02a1eb6f228c7e708b370575bc46fe",
+      "approved_abstract_content_sha256": "6933993915a0903e8b14b294756430f88a3b10a44209760c326a5ca79b1f3f2c",
+      "preview_pdf_sha256": "c60728aa3910c56534be7af09caa453d0274d15e26cf8d103562161288a2d364",
+      "protected_source_hashes_unchanged": true,
+      "full_writer_manuscript_pdf_untouched": true,
+      "renditions": [
+        {
+          "file": "writer-20261102-768.webp",
+          "width": 768,
+          "height": 480,
+          "bytes": 17582,
+          "sha256": "dd81f362564424c7840a19480f307af05b21cb7306a5eec74cfc2a8ea626b315"
+        },
+        {
+          "file": "writer-20261102-1200.webp",
+          "width": 1200,
+          "height": 750,
+          "bytes": 35476,
+          "sha256": "cdc4f4768c5b70c530805668b2465b124f08725e1d79fce286feab0f6ee80f2b"
+        },
+        {
+          "file": "writer-20261102-1200.jpg",
+          "width": 1200,
+          "height": 750,
+          "bytes": 65446,
+          "sha256": "491a80c7fefaf5fccc4322635c0bd60762d6f0fa5c8e99a2058d47cbcdade72d"
+        }
+      ],
+      "gallery_category": "research",
+      "gallery_label": "Writer",
+      "gallery_slide_index": 8,
+      "capture_version": "2.43.19",
+      "capture_version_basis": "visible_capture_header",
+      "source_declared_version": "2.43.19",
+      "capture_version_note": "Captured header v2.43.19; recorded source declares v2.43.19 at 6b9795b5de02."
+    },
+    {
+      "app": "live-paper",
+      "captured_at_utc": "2026-11-02T15:39:59Z",
+      "path": "/apps/live-paper/",
+      "raw_sha256": "a933b65d886af11982e0e455a9756ffc43a3b979904258b5a9630b02efdbe89d",
+      "privacy_masked_png_sha256": "08dec69d1ee0f478ff63c97190186f065b2762e615e453b963e746a06d929fa5",
+      "privacy_mask_selectors": ".stx-app-header__project,.stx-app-project-selector,.project-scope-selector,#site-project-selector,.site-header__user,.user-menu,.account-menu,[data-user-menu],.launcher-active-project,.project-files-panel,.file-tree,[role=tooltip]",
+      "sample_description": "Existing computed MNIST demonstration bundle; example claims, not research findings.",
+      "source_checkout_observed": "51378eb2f31e402ac66416211666459e44a6ca99",
+      "renditions": [
+        {
+          "file": "live-paper-20261102-768.webp",
+          "width": 768,
+          "height": 480,
+          "bytes": 14392,
+          "sha256": "1a0bb10b9e092a6ea9bea2c1306a8241c47ecd889ee101b01f7efd13dbf86045"
+        },
+        {
+          "file": "live-paper-20261102-1200.webp",
+          "width": 1200,
+          "height": 750,
+          "bytes": 28216,
+          "sha256": "3f6b1a8e793496b7eef79f12965404bd1b5ac02c3824cef5cdf2fe8354125e73"
+        },
+        {
+          "file": "live-paper-20261102-1200.jpg",
+          "width": 1200,
+          "height": 750,
+          "bytes": 62091,
+          "sha256": "df170f478f4a4680be67ed6437a64a3256f1275c006ddbc33f92dba85c45ce94"
+        }
+      ],
+      "gallery_category": "publication",
+      "gallery_label": "Live Paper",
+      "gallery_slide_index": 9,
+      "capture_version": "0.2.20",
+      "capture_version_basis": "visible_capture_header",
+      "source_declared_version": "0.2.20",
+      "capture_version_note": "Captured header v0.2.20; recorded source declares v0.2.20 at 51378eb2f31e."
+    },
+    {
+      "app": "agentic-journal",
+      "captured_at_utc": "2026-11-02T21:05:32Z",
+      "path": "/apps/agentic-journal/",
+      "raw_sha256": "44210d7239c5be73a9cefe66b931976235393d8086df2d58beb8edac969623db",
+      "privacy_masked_png_sha256": "44210d7239c5be73a9cefe66b931976235393d8086df2d58beb8edac969623db",
+      "privacy_filtered_original_only": true,
+      "unmasked_operational_capture_persisted": false,
+      "privacy_mask_selectors": ".stx-app-header__project,.stx-app-project-selector,.project-scope-selector,#site-project-selector,.site-header__user,.user-menu,.account-menu,[data-user-menu],[role=tooltip],.journal-submissions,.archive-item,[data-submission-id],.submission-id,code,pre",
+      "privacy_additional_styles": "",
+      "privacy_iframe_selectors": "",
+      "short_description": "Author guidance and submission workflow; empty archive.",
+      "sample_description": "Actual user-scoped author guidance and submission workflow; archive empty at capture time. No submission, example-load, review, publication or model call performed.",
+      "source_checkout_observed": "f0491346e861ab618be949fdebeab644ef98d44b",
+      "actual_browser_status": 200,
+      "javascript_errors": 0,
+      "new_capture_post_requests_allowed": false,
+      "renditions": [
+        {
+          "file": "agentic-journal-20261102-768.webp",
+          "width": 768,
+          "height": 480,
+          "bytes": 23804,
+          "sha256": "16b5ed6001e301301186ca665284947938e71474fd76c6fc94f609d67c75e464"
+        },
+        {
+          "file": "agentic-journal-20261102-1200.webp",
+          "width": 1200,
+          "height": 750,
+          "bytes": 48402,
+          "sha256": "cf699d7e797094fcdd06a9e01471bb00db01bd05831dba7f7abee4bafbbe3e1c"
+        },
+        {
+          "file": "agentic-journal-20261102-1200.jpg",
+          "width": 1200,
+          "height": 750,
+          "bytes": 86256,
+          "sha256": "8ed147ec5986ebe3958635b5d47c3000ee9ded2241674b5cdc230e4a5225ac6b"
+        }
+      ],
+      "gallery_category": "publication",
+      "gallery_label": "Agentic Journal",
+      "gallery_slide_index": 10,
+      "capture_version": "0.1.0a4",
+      "capture_version_basis": "visible_capture_header",
+      "source_declared_version": "0.1.0a4",
+      "capture_version_note": "Captured header v0.1.0a4; recorded source declares v0.1.0a4 at f0491346e861."
+    },
+    {
+      "app": "sdk",
+      "captured_at_utc": "2026-11-02T21:48:59Z",
+      "path": "/apps/sdk/",
+      "raw_sha256": "e8fabfdb85cae37b6d1ebe7bacad9f578add4f4578d563331c7c55103be693cd",
+      "privacy_masked_png_sha256": "e8fabfdb85cae37b6d1ebe7bacad9f578add4f4578d563331c7c55103be693cd",
+      "privacy_filtered_original_only": true,
+      "unmasked_operational_capture_persisted": false,
+      "privacy_mask_selectors": ".stx-app-header__project,.stx-app-project-selector,.project-scope-selector,#site-project-selector,.site-header__user,.user-menu,.account-menu,[data-user-menu],[role=tooltip],[data-owner],[data-project-path]",
+      "privacy_value_mask_selectors": "#stx-target,#stx-appdir,#stx-server,#stx-token",
+      "short_description": "SDK starter catalog and creation form; no app created or validated.",
+      "sample_description": "Actual default SDK creator view with4starteroptions. Owner/project and target/app/server/token path fields privacy-filtered beforePNGpersistence. No scaffold/create/validate/dev-install/publish operation or filesystem/user write performed. Interface capture is not a claim of backend feature health.",
+      "source_checkout_observed": "88d2b7facbc2b60d966af04d6378bd249b318ebd",
+      "actual_browser_status": 200,
+      "javascript_errors": 0,
+      "post_requests_allowed": false,
+      "starter_options": 4,
+      "renditions": [
+        {
+          "file": "sdk-20261102-768.webp",
+          "width": 768,
+          "height": 480,
+          "bytes": 15220,
+          "sha256": "42b9e91d522a55209d2391ea5800bb39eaa1ede2bec7a2ac78ff508375c731ac"
+        },
+        {
+          "file": "sdk-20261102-1200.webp",
+          "width": 1200,
+          "height": 750,
+          "bytes": 29844,
+          "sha256": "5393e39ca9f3ca6347797982cf56326b0305f935f274f181f5ad276cb16ece99"
+        },
+        {
+          "file": "sdk-20261102-1200.jpg",
+          "width": 1200,
+          "height": 750,
+          "bytes": 61601,
+          "sha256": "392729f602dfbfbf1635226301f18e6b5c2f87f299c54ad20e40ae7e7c7a1bb4"
+        }
+      ],
+      "gallery_category": "platform",
+      "gallery_label": "SDK",
+      "gallery_slide_index": 1,
+      "capture_version": "0.3.18",
+      "capture_version_basis": "visible_capture_header",
+      "source_declared_version": "0.3.18",
+      "capture_version_note": "Captured header v0.3.18; recorded source declares v0.3.18 at 88d2b7facbc2."
+    },
+    {
+      "app": "hub",
+      "captured_at_utc": "2026-11-02T15:38:33Z",
+      "path": "/apps/",
+      "raw_sha256": "d54678882ceb0647d29a517bc0af6d9d05a1a0d6d396aeaad5b1ee64d9df1cf0",
+      "privacy_masked_png_sha256": "30114306bad0bbe17972069ed2e9e31dddc5e2f38f96df1388a993685cda8a9f",
+      "privacy_mask_selectors": ".stx-app-header__project,.stx-app-project-selector,.project-scope-selector,#site-project-selector,.site-header__user,.user-menu,.account-menu,[data-user-menu],.launcher-active-project,.project-files-panel,.file-tree,[role=tooltip]",
+      "sample_description": "Current application launcher; no availability or runtime-health claim.",
+      "source_checkout_observed": "4a2babbdb115dcdb7c4cc82979807e7eae8afd18",
+      "renditions": [
+        {
+          "file": "hub-20261102-768.webp",
+          "width": 768,
+          "height": 480,
+          "bytes": 11996,
+          "sha256": "a633ca0957a9635858aec1e22081d427951b786bd92bf844204d6b7db452752b"
+        },
+        {
+          "file": "hub-20261102-1200.webp",
+          "width": 1200,
+          "height": 750,
+          "bytes": 21232,
+          "sha256": "2b4f7c870543f34de003a45b9fd1e295c6913287688c5f975d324d64547f3bf7"
+        },
+        {
+          "file": "hub-20261102-1200.jpg",
+          "width": 1200,
+          "height": 750,
+          "bytes": 47462,
+          "sha256": "2a3341e86ca6166d21e16b75df9db65d10ba2b90a6daf3ce0e7f0187f1742ee4"
+        }
+      ],
+      "gallery_category": "platform",
+      "gallery_label": "Hub",
+      "gallery_slide_index": 0,
+      "capture_version": "0.21.0",
+      "capture_version_basis": "visible_capture_header",
+      "source_declared_version": "0.21.0",
+      "capture_version_note": "Captured header v0.21.0; recorded source declares v0.21.0 at 4a2babbdb115. This is the platform Cloud header shown above the Hub launcher."
+    }
+  ],
+  "allowed_stateless_post_exceptions": [
+    "/apps/stats/api/recommend-test",
+    "/apps/stats/api/run",
+    "/apps/stats/api/plot",
+    "/apps/figrecipe/api/switch"
+  ],
+  "prohibited_actions": "No project save, recipe write, full manuscript compile, annotation, message, model call, graph backfill, or application response substitution. One pinned Abstract preview compilation is explicitly recorded separately.",
+  "allowed_scoped_preview_exception": {
+    "path": "/apps/writer/api/preview",
+    "section_path": "01_manuscript/contents/abstract.tex",
+    "content_sha256": "6933993915a0903e8b14b294756430f88a3b10a44209760c326a5ca79b1f3f2c",
+    "maximum_requests": 1,
+    "description": "One actual approved Abstract-only compile/cache request; all manuscript saves/full compilations/other POSTs blocked. Source/facts/root PDF byte hashes unchanged."
+  },
+  "schema": "scitex-hub.landing-product-captures/v1",
+  "historical_manifest": "product-captures-20261102.json",
+  "historical_manifest_sha256": "ee1422beb82d1796a5391c714966694085a6614dd465c32b5e372503ec7aad6f",
+  "new_four_capture_policy": "GET-only application capture; no DM/messages/goals/models/control/POSTs/moves/deletes/submissions. Images persist privacy-filtered originals only.",
+  "retained_capture_exception_notes": "Stats sample computation and pinned Writer Abstract preview exceptions belong only to the five retained earlier captures; they were not repeated during the new four captures.",
+  "previous_nine_app_manifest": "product-captures-nine-apps-20261103.json",
+  "previous_nine_app_manifest_sha256": "524528c95260b654a975d52fd6b71384cfdec221339e14779f8614c1dc65151b",
+  "sdk_capture_policy": "GET-only default SDK creator view. No scaffold/create/validate/filesystem/user mutations, POSTs, model calls, dev-install or publish.",
+  "hub_capture_source_manifest": "product-captures-20261102.json",
+  "hub_capture_source_manifest_sha256": "ee1422beb82d1796a5391c714966694085a6614dd465c32b5e372503ec7aad6f"
+}

@@ -69,7 +69,20 @@ _DEV_DEFAULT_TAB_ORDER = 95
 # Tombstones for retired/renamed built-ins. Existing database rows can remain
 # until the deployment migration runs; they must never reappear as community
 # apps in step 2 below.
-_RETIRED_MODULE_IDS = frozenset({"home", "discovery", "slides"})
+#
+# "todo" (2026-09-27): the pre-rebrand identity of the Cards board. The leaf
+# is mounted and tiled as "scitex-cards"; a stale public "todo" catalog row
+# (label "Cards", icon "fas fa-list-check") rendered a DUPLICATE Work tile
+# next to the plugin one (prod DB). Tombstoned here and deleted by migration
+# 0023; the /apps/todo/ -> /apps/cards/ URL redirect is unaffected.
+#
+# "agents" (2026-10-23): the pre-slug-rename identity of the Agent Container
+# tile. The leaf is mounted and tiled as "agent-container" (label
+# "Agent Container", foundation); a stale public "agents" catalog row
+# rendered the duplicate tile next to the plugin one (prod DB). Tombstoned
+# here and deleted by migration 0025; the /apps/agents/ ->
+# /apps/agent-container/ URL redirect is unaffected.
+_RETIRED_MODULE_IDS = frozenset({"home", "discovery", "slides", "todo", "agents"})
 
 # Rendered as an empty "+" slot, not an app (operator, 2026-09-14): always the
 # last cell of Work, never reorderable, never dockable.
@@ -227,11 +240,12 @@ def _build_tiles(request) -> list[dict]:
         if not can_internal and mod.visibility == "internal":
             seen.add(mod.name)
             continue
-        # NO mount gate here. Operator ruling 2026-09-14 15:48Z: Cards and
-        # Agents are PRE-INSTALLED apps shown to everyone; only their CONTENT
-        # depends on the user ("removing the whole app is wrong"). An earlier
-        # version hid their tiles with can_open_mounted_app(); the mounts keep
-        # their own per-user handling, the grid does not second-guess them.
+        # NO mount gate here. Operator ruling 2026-09-14 15:48Z: pre-installed
+        # apps are shown to everyone; only their CONTENT depends on the user
+        # ("removing the whole app is wrong"). An earlier version hid gated
+        # tiles with a per-app gate table; the mounts keep their own
+        # per-user handling (generic mount-policy guard), the grid does not
+        # second-guess them.
         # Some registered modules are workspace panes / nav items, not
         # standalone launcher apps (Clew opens within a manuscript; comms
         # is reached from the workspace rather than the grid). They opt out
@@ -271,6 +285,8 @@ def _build_tiles(request) -> list[dict]:
                 "icon_fa": mod.icon_fa or "fas fa-puzzle-piece",
                 "icon_badge": mod.icon_badge,
                 "is_dev_only": _is_dev_only(mod.visibility, row),
+                "experimental": mod.experimental,
+                "hide_badges": mod.hide_badges,
                 "launch_url": (
                     mod.get_url()
                     if (row and row.is_builtin) or mod.name in installed_names
@@ -278,6 +294,7 @@ def _build_tiles(request) -> list[dict]:
                 ),
                 "availability": availability,
                 "scope": mod.scope,
+                "availability_reason": mod.availability_reason,
                 # Coming-soon tiles must never navigate (operator: a tap
                 # effect is fine, navigation is not). The template drops
                 # the href from this single flag.
@@ -333,6 +350,7 @@ def _build_tiles(request) -> list[dict]:
                 # No registry entry here, so the catalog row IS the SSoT.
                 "availability": row.availability,
                 "scope": "user",
+                "availability_reason": "",
                 "is_launchable": row.availability != "coming_soon",
                 "description": row.short_description,
                 # Community store apps are not in the registry (no manifest
@@ -368,6 +386,7 @@ def _build_tiles(request) -> list[dict]:
                     # gating their launch would block the dev loop itself.
                     "availability": "available",
                     "scope": "user",
+                    "availability_reason": "",
                     "is_launchable": True,
                     "description": dev.description,
                     # Dev-installed apps carry no manifest version — mark "dev".
@@ -401,6 +420,7 @@ def _build_tiles(request) -> list[dict]:
                 "category": link.category,
                 "availability": "available",
                 "scope": "user",
+                "availability_reason": "",
                 "is_launchable": True,
                 "description": link.description,
                 "version": "",
@@ -454,7 +474,26 @@ def _build_tiles(request) -> list[dict]:
         tile["user_ordered"] = tile["name"] in user_orders
         tile["group"] = group_of(tile["name"])
         tile["is_add_slot"] = tile["name"] == APP_CREATOR_SLOT
+        if tile["is_add_slot"]:
+            tile["creator_starters"] = _creator_starter_previews()
     return tiles
+
+
+def _creator_starter_previews() -> list[dict]:
+    """Starter preview for the App Creator slot (operator screenshot fix).
+
+    Returns [{icon, label}] from the SDK-owned STARTERS so the tile shows
+    WHAT the creator builds, not just a dashed box. SDK import failure
+    degrades to [] and the tile renders as before — the slot must never
+    break the launcher.
+    """
+    try:
+        from scitex_sdk.creator import STARTERS
+    except ImportError:
+        return []
+    return [
+        {"icon": starter.icon, "label": starter.label} for starter in STARTERS
+    ]
 
 
 def _first_login_context(request):

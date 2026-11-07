@@ -114,6 +114,14 @@ class UserProfile(models.Model):
         default="dark",
         help_text="Site theme preference (light/dark)",
     )
+    theme_explicit = models.BooleanField(
+        default=False,
+        help_text="True only after the user explicitly saved a theme via "
+        "the save-theme endpoint. Distinguishes a real choice from the "
+        "auto-created row default so get-theme never serves an unchosen "
+        "default as source 'profile' (it would clobber an explicit "
+        "localStorage choice on every load).",
+    )
     code_theme_light = models.CharField(
         max_length=50,
         default="atom-one-light",
@@ -229,6 +237,11 @@ class PendingSignup(models.Model):
     #: rather than implied by its existence.
     reconciled_at = models.DateTimeField(null=True, blank=True)
     reconciled_by = models.CharField(max_length=255, blank=True, default="")
+    #: Pricing plan id the signup funnel placed this account on
+    #: (``subscription-free`` when the signup named none). Exists as
+    #: ``hub_dev.auth_app_pendingsignup.plan`` NOT NULL on the fleet store;
+    #: the model must declare it or every signup dies with IntegrityError.
+    plan = models.CharField(max_length=32, default="subscription-free")
 
     class Meta:
         verbose_name = "Pending Signup"

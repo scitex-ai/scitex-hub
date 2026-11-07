@@ -414,7 +414,7 @@ class EmailService:
                 "approved": (
                     "Approved",
                     "#28a745",
-                    "Your app is now live in the marketplace!",
+                    "Your app is now live in the App Store!",
                 ),
                 "rejected": (
                     "Rejected",

@@ -25,6 +25,8 @@
           href="{% static 'scholar_app/css/common/06-ui-components.css' %}?v=1764328804" />
     <link rel="stylesheet"
           href="{% static 'scholar_app/css/common/07-stx-shell-layout.css' %}?v=1764328804" />
+    <link rel="stylesheet"
+          href="{% static 'scholar_app/css/common/07b-tab-split-layout.css' %}?v=1764328804" />
     <!-- Tab-specific CSS -->
     <link rel="stylesheet" href="{% static 'shared/css/common.css' %}" />
     <link rel="stylesheet" href="{% static 'scholar_app/css/index.css' %}" />
@@ -91,7 +93,7 @@
                        derives the template from the URLconf so that cannot recur.
                     {% endcomment %}
                     <a href="#search" class="scholar-tab" data-tab="search">
-                        <i class="fas fa-search"></i> <span class="scholar-tab-label-long">Search databases</span><span class="scholar-tab-label-short">Search</span>
+                        <i class="fas fa-search"></i> <span class="scholar-tab-label-long">Search from DBs</span><span class="scholar-tab-label-short">Search</span>
                     </a>
                     <a href="#library" class="scholar-tab" data-tab="library">
                         <i class="fas fa-book-reader"></i> Library
@@ -101,7 +103,11 @@
                         <i class="fas fa-project-diagram"></i> <span class="scholar-tab-label-long">Citation Graph</span><span class="scholar-tab-label-short">Citations</span>
                     </a>
                 </nav>
-                <div class="pane-header-actions"></div>
+                <div class="pane-header-actions">
+            {% if user.is_authenticated %}
+            {% include "scholar_app/partials/project_picker.html" %}
+            {% endif %}
+        </div>
             </div>
             <div class="pane-content">
                 <!-- Search Tab Content -->

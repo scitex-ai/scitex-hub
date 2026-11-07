@@ -9,13 +9,14 @@ Designed to run both inside Apptainer containers and on the host.
 from __future__ import annotations
 
 import json
-import logging
 import shutil
 import subprocess
 from pathlib import Path
 from typing import Any, Optional
 
-logger = logging.getLogger(__name__)
+import scitex_logging as slogging
+
+logger = slogging.getLogger(__name__)
 
 
 def check_deps(manifest: dict[str, Any]) -> dict[str, list[str]]:

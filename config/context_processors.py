@@ -101,20 +101,21 @@ def debug_mode(request):
 
 
 def scitex_version(request):
-    """
-    Expose SciTeX Hub version to all templates.
-    Single source of truth: settings.SCITEX_HUB_VERSION
-    """
-    return {"SCITEX_HUB_VERSION": get_scitex_hub_version()}
+    """Expose the installed distribution identity to all templates."""
+    from config.package_metadata import get_hub_package_metadata
+
+    package = get_hub_package_metadata()
+    return {
+        "SCITEX_HUB_VERSION": package["version"],
+        "SCITEX_HUB_DESCRIPTION": package["description"],
+    }
 
 
 def get_scitex_hub_version():
-    """
-    Get version from Django settings (single source of truth).
-    settings.SCITEX_HUB_VERSION is the scitex-hub web app version,
-    separate from pyproject.toml which is for the pypi package.
-    """
-    return getattr(settings, "SCITEX_HUB_VERSION", "0.0.0")
+    """Return the installed package version, including in editable deployments."""
+    from config.package_metadata import get_hub_package_metadata
+
+    return get_hub_package_metadata()["version"]
 
 
 def umami_analytics(request):
@@ -253,10 +254,25 @@ def writer_api_base(request):
     keeps getting an empty context key here (falls through to the
     template's own ``default:'/'``, unused since no other page reads
     ``api_base``).
+
+    CUTOVER: /apps/writer/ (+ viewer/) now serves the LEAF editor/viewer
+    (same templates, same ``{{ api_base|default:'/' }}`` read). The leaf
+    dispatches its API at its own root (``<path:endpoint>``; HANDLERS keys
+    already carry their own "api/" prefix), so the leaf pages need
+    ``api_base == "/apps/writer/"`` — without this branch the cutover
+    default relapses scitex-hub#146 Part B (fetches to ``/`` root, 404).
+    Old-direct v2 paths keep working through the suffix branch above
+    (``/apps/writer/old-direct/editor-v2/`` derives
+    ``/apps/writer/old-direct/v2/`` — the old-direct API mouth).
     """
     path = request.path
     if path.endswith("/editor-v2/") or path.endswith("/viewer-v2/"):
         return {"api_base": path.rsplit("/", 2)[0] + "/v2/"}
+    if path in ("/apps/writer/", "/apps/writer/viewer/"):
+        # The leaf default mount (cutover): the editor/viewer shell at the
+        # leaf root, whose API lives at the same root ("/" would point the
+        # SPA at hub's site root, where no writer handlers exist).
+        return {"api_base": "/apps/writer/"}
     if path.endswith("/live/"):
         # "v2/" (not "api/"): HANDLERS keys already carry their own "api/"
         # prefix (e.g. "api/claims") — see
@@ -315,8 +331,10 @@ def mounted_app_launcher(request):
     has no reason to be routed to the SciTeX app store).
     """
     path = request.path
+    from apps.workspace.apps_app.services.plugin_guards import plugin_mount_prefixes
+
     is_mounted_standalone_page = path.startswith(
-        ("/apps/cards/", "/apps/storage/")
+        plugin_mount_prefixes()
     ) or path.endswith(("/editor-v2/", "/viewer-v2/"))
     if not is_mounted_standalone_page:
         return {}
@@ -355,6 +373,10 @@ def scitex_env(request):
         "IS_STAGING": env == branding.ENV_STAGING,
         "IS_PRODUCTION": env == branding.ENV_PRODUCTION,
         "SCITEX_FAVICON": branding.favicon_for_env(env),
+        # Dark-mode header logo (operator 2026-10-26): gold CTA disc; light
+        # mode reuses SCITEX_FAVICON. Templates render both; CSS keys off
+        # html[data-theme].
+        "SCITEX_FAVICON_DARK": branding.favicon_dark_for_env(env),
         # "dev" / "staging" / "standalone", or None in hub production. Same
         # marker the tab title uses, so chrome and tab never disagree.
         "SCITEX_ENV_MARKER": branding.title_marker(env, settings.SCITEX_APP_MODE),

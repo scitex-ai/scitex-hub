@@ -31,33 +31,8 @@
                     you use apps to work on them.
                 {% endblocktrans %}
             </p>
-            <ul>
-                <li>
-                    <strong>{% trans "Projects" %}</strong> &mdash; {% trans "a folder for one piece of research: files, manuscripts, figures and data." %}
-                </li>
-                <li>
-                    <strong>Scholar</strong> &mdash; {% trans "search and collect literature." %}
-                </li>
-                <li>
-                    <strong>Writer</strong> &mdash; {% trans "write manuscripts." %}
-                </li>
-                <li>
-                    <strong>FigRecipe</strong> &mdash; {% trans "make figures." %}
-                </li>
-                <li>
-                    <strong>Stats</strong> &mdash; {% trans "run statistical analyses." %}
-                </li>
-                <li>
-                    <strong>Chat</strong> &mdash; {% trans "talk with an AI assistant about your work." %}
-                </li>
-                <li>
-                    <strong>Cards</strong> &mdash; {% trans "keep track of tasks." %}
-                </li>
-                <li>
-                    <strong>Agents</strong> &mdash; {% trans "see and manage AI agents." %}
-                </li>
-            </ul>
         </section>
+        {% include "docs_app/partials/interface_architecture.html" %}
         <!-- Start here -->
         <span id="start-here"></span>
         <section class="api-section">

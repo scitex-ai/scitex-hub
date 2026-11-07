@@ -23,9 +23,11 @@ from apps.infra.workspace_app.middleware_site_content_frame import (
 
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
 FRAME_CSS = PROJECT_ROOT / "static" / FRAME_STYLESHEET
-HEAD_STYLES = PROJECT_ROOT / "templates" / "global_base_partials" / "global_head_styles.html"
+HEAD_STYLES = (
+    PROJECT_ROOT / "templates" / "global_base_partials" / "global_head_styles.html"
+)
 STANDALONE_PAGE = (
-    '<html><head><title>Leaf</title></head>'
+    "<html><head><title>Leaf</title></head>"
     '<body><div id="workspace-three-col"></div></body></html>'
 )
 
@@ -39,8 +41,8 @@ def _desktop_rule_for(selector: str) -> str:
     return ""
 
 
-def _inject(html: str) -> str:
-    request = RequestFactory().get("/apps/scholar/v2/")
+def _inject(html: str, path: str = "/apps/scholar/") -> str:
+    request = RequestFactory().get(path)
     request.user = AnonymousUser()
     response = HttpResponse(html, content_type="text/html; charset=utf-8")
     inject_frame_stylesheet(request, response)
@@ -110,7 +112,62 @@ def test_standalone_leaf_page_gets_the_hub_site_header():
     rendered = _inject(html)
 
     # Assert
-    assert "data-leaf-site-header" in rendered.split('id="workspace-three-col"', 1)[0]
+    assert 'class="global-header"' in rendered.split('id="workspace-three-col"', 1)[0]
+
+
+def test_standalone_leaf_page_gets_the_hamburger_menu():
+    # Arrange
+    html = STANDALONE_PAGE
+
+    # Act
+    rendered = _inject(html)
+
+    # Assert
+    assert 'id="mobile-hamburger-btn"' in rendered
+
+
+def test_standalone_leaf_page_gets_the_search_box():
+    # Arrange
+    html = STANDALONE_PAGE
+
+    # Act
+    rendered = _inject(html)
+
+    # Assert
+    assert 'id="global-search"' in rendered
+
+
+def test_standalone_leaf_page_gets_no_title_only_substitute():
+    # Arrange
+    html = STANDALONE_PAGE
+
+    # Act
+    rendered = _inject(html)
+
+    # Assert
+    assert "stx-leaf-site-header" not in rendered
+
+
+def test_leaf_search_is_disabled_without_the_hub_js_bundle():
+    # Arrange
+    html = STANDALONE_PAGE
+
+    # Act
+    rendered = _inject(html)
+
+    # Assert
+    assert 'data-search-open disabled aria-disabled="true"' in rendered
+
+
+def test_embed_mode_gets_no_header():
+    # Arrange
+    html = STANDALONE_PAGE
+
+    # Act
+    rendered = _inject(html, path="/apps/scholar/?embed=1")
+
+    # Assert
+    assert 'id="mobile-hamburger-btn"' not in rendered
 
 
 def test_site_header_skips_a_body_tag_inside_a_comment():
@@ -121,18 +178,33 @@ def test_site_header_skips_a_body_tag_inside_a_comment():
     rendered = _inject(html)
 
     # Assert
-    assert "data-leaf-site-header" in rendered.split("-->", 1)[1]
+    assert 'id="mobile-hamburger-btn"' in rendered.split("-->", 1)[1]
 
 
 def test_leaf_page_with_its_own_app_header_gets_no_second_header():
     # Arrange
-    html = STANDALONE_PAGE.replace("<body>", '<body><header class="app-header"></header>')
+    html = STANDALONE_PAGE.replace(
+        "<body>", '<body><header class="app-header"></header>'
+    )
 
     # Act
     rendered = _inject(html)
 
     # Assert
-    assert "data-leaf-site-header" not in rendered
+    assert "mobile-hamburger-btn" not in rendered
+
+
+def test_leaf_page_with_a_global_header_class_gets_no_second_header():
+    # Arrange
+    html = STANDALONE_PAGE.replace(
+        "<body>", '<body><header class="global-header"></header>'
+    )
+
+    # Act
+    rendered = _inject(html)
+
+    # Assert
+    assert "mobile-hamburger-btn" not in rendered
 
 
 def test_standalone_leaf_tab_icon_is_the_hub_favicon():
@@ -142,7 +214,9 @@ def test_standalone_leaf_tab_icon_is_the_hub_favicon():
     from config.context_processors import scitex_env
 
     default_href = static("scitex_ui/img/scitex-favicon.svg")
-    html = STANDALONE_PAGE.replace("</head>", f'<link rel="icon" href="{default_href}" /></head>')
+    html = STANDALONE_PAGE.replace(
+        "</head>", f'<link rel="icon" href="{default_href}" /></head>'
+    )
     request = RequestFactory().get("/")
     request.user = AnonymousUser()
     hub_href = static(scitex_env(request)["SCITEX_FAVICON"])
@@ -154,12 +228,19 @@ def test_standalone_leaf_tab_icon_is_the_hub_favicon():
     assert f'rel="icon" href="{hub_href}"' in rendered
 
 
-def test_page_without_the_standalone_shell_is_left_unchanged():
+def test_page_without_standalone_shell_gets_only_registered_docs_metadata():
     # Arrange
-    html = "<html><head></head><body><main id=\"main-content\"></main></body></html>"
+    html = '<html><head></head><body><main id="main-content"></main></body></html>'
 
     # Act
     rendered = _inject(html)
 
     # Assert
-    assert rendered == html
+    expected = html.replace(
+        "<body>", '<body data-stx-api-docs-url="/docs/web-api/?package=scitex-scholar">'
+    )
+    assert (
+        rendered,
+        FRAME_STYLESHEET in rendered,
+        'class="global-header"' in rendered,
+    ) == (expected, False, False)

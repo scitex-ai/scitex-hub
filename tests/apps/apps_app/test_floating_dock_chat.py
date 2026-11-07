@@ -22,10 +22,20 @@ def test_dock_chat_item_carries_the_float_toggle_hook():
     # Act
     html = render_to_string(
         "global_base_partials/site_dock.html",
-        {"site_dock_items": [item], "site_dock_capacity": 5},
+        {"site_dock_enabled": True, "site_dock_items": [item], "site_dock_capacity": 5},
     )
     # Assert
     assert "data-dock-chat-toggle" in html
+
+
+def test_disabled_dock_does_not_render_the_chat_toggle():
+    item = DockItem(key="chat", label="Chat", icon="fas fa-comment", url="/chat/")
+    html = render_to_string(
+        "global_base_partials/site_dock.html",
+        {"site_dock_enabled": False, "site_dock_items": [item], "site_dock_capacity": 5},
+    )
+    assert "data-dock-chat-toggle" not in html
+    assert "data-site-dock" not in html
 
 
 def test_embed_request_renders_no_dock():
@@ -39,6 +49,18 @@ def test_embed_request_renders_no_dock():
 
 def test_any_framed_document_renders_no_recursive_dock():
     # Arrange: defense in depth if an iframe navigation ever loses ?embed=1.
+    request = RequestFactory().get(
+        "/accounts/settings/ai-providers/", HTTP_SEC_FETCH_DEST="iframe"
+    )
+    request.user = type("User", (), {"is_authenticated": True})()  # type: ignore[attr-defined]
+    # Act
+    renders = should_render_dock(request)
+    # Assert
+    assert renders is False
+
+
+def test_any_iframe_document_renders_no_nested_dock():
+    # Arrange
     request = RequestFactory().get(
         "/accounts/settings/ai-providers/", HTTP_SEC_FETCH_DEST="iframe"
     )

@@ -40,12 +40,12 @@ MIDDLEWARE = [
     "apps.infra.project_app.middleware.AuthenticatedProjectSessionMiddleware",
     # Desktop 90% content frame for leaf apps that render scitex-ui's own shell.
     "apps.infra.workspace_app.middleware_site_content_frame.SiteContentFrameMiddleware",
-    # Scope the mounted scitex-todo board (/todo/) to the requesting
-    # user's workspace store + enforce the phase-1 read-only gate. Must
-    # run AFTER Authentication so request.user is final; no-ops in one
-    # prefix check for every other path (and when
-    # the scitex_cards package is not installed).
-    "apps.workspace.todo_app.middleware.TodoBoardTenancyMiddleware",
+    # Generic mount-policy guard for plugin apps (scitex.apps): enforces each
+    # leaf's own manifest mount_policy (audience, tenancy, query-seam
+    # discard, write allowlist + CSRF re-arm) with zero app-specific code.
+    # Must run AFTER Authentication so request.user is final; no-ops in one
+    # prefix check for every non-plugin path.
+    "apps.workspace.apps_app.services.plugin_guards.PluginMountGuardMiddleware",
     # Site-wide dock on leaf-app pages that do not extend global_base.html
     # (hub pages render it themselves; the data-site-dock marker prevents a
     # second copy). Operator 2026-09-14: the dock on EVERY page.

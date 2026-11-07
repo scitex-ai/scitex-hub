@@ -13,12 +13,18 @@ the message placeholder are left alone by this change, so a blanket "no 'Commit'
 anywhere" check would be wrong — what must not survive is the ACTION label.
 """
 
+from pathlib import Path
+from tempfile import TemporaryDirectory
+
 from django.contrib.auth.models import User
-from django.test import Client, TestCase
+from django.test import Client, TestCase, override_settings
 
 from apps.infra.project_app.models import Project
 from apps.infra.project_app.services.project_filesystem import (
     get_project_filesystem_manager,
+)
+from tests.apps.workspace.writer_app._old_direct_gate import (
+    writer_old_direct_urls,
 )
 
 PASSWORD = "TestPass123!"  # pragma: allowlist secret
@@ -27,6 +33,16 @@ RETIRED_ACTION_LABELS = (">Commit<", "Commit Changes")
 
 
 class SaveCheckpointLabelTest(TestCase):
+    @classmethod
+    def setUpClass(cls):
+        # Database workers are isolated; their real project directories must be too.
+        directory = TemporaryDirectory(prefix="writer-owned-workspace-")
+        cls.addClassCleanup(directory.cleanup)
+        settings_override = override_settings(BASE_DIR=Path(directory.name).resolve())
+        settings_override.enable()
+        cls.addClassCleanup(settings_override.disable)
+        super().setUpClass()
+
     @classmethod
     def setUpTestData(cls):
         cls.owner = User.objects.create_user(username="label-owner", password=PASSWORD)
@@ -38,11 +54,15 @@ class SaveCheckpointLabelTest(TestCase):
         )
 
     def _page(self):
+        # CUTOVER: the hub index adapter lives ONLY at old-direct in dev
+        # now (same view, same assertions — only the prefix moved; the gate
+        # reloads the real root urlconf because the suite runs prod-shaped).
         client = Client()
         client.login(username="label-owner", password=PASSWORD)
-        return client.get(
-            f"/apps/writer/?project={self.owner.username}/{self.project.slug}"
-        )
+        with writer_old_direct_urls():
+            return client.get(
+                f"/apps/writer/old-direct/?project={self.owner.username}/{self.project.slug}"
+            )
 
     def test_the_save_action_is_labelled_save_checkpoint(self):
         # Arrange / Act

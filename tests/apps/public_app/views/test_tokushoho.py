@@ -28,7 +28,9 @@ from django.utils import translation
 
 from apps.infra.public_app.templatetags.landing_i18n import translate_dynamic
 
-PROJECT_ROOT = Path(__file__).resolve().parents[4]  # tests/apps/public_app/views/ -> repo root
+PROJECT_ROOT = (
+    Path(__file__).resolve().parents[4]
+)  # tests/apps/public_app/views/ -> repo root
 
 
 @pytest.fixture(scope="module", autouse=True)
@@ -45,8 +47,10 @@ def compiled_catalogs():
     """
     script = PROJECT_ROOT / "scripts" / "i18n" / "compile_catalogs.py"
     result = subprocess.run(
-        [sys.executable, str(script)], cwd=PROJECT_ROOT,
-        capture_output=True, text=True,
+        [sys.executable, str(script)],
+        cwd=PROJECT_ROOT,
+        capture_output=True,
+        text=True,
     )
     assert result.returncode == 0, (
         f"catalog compilation failed ({result.returncode}):\n"
@@ -54,6 +58,7 @@ def compiled_catalogs():
     )
     translation.trans_real._translations.clear()
     yield
+
 
 TEST_PLANS = [
     {
@@ -99,11 +104,7 @@ def commerce_settings_clean_env():
     """
     from config.settings import settings_commerce
 
-    saved = {
-        key: os.environ.pop(key)
-        for key in _COMPANY_ENV_KEYS
-        if key in os.environ
-    }
+    saved = {key: os.environ.pop(key) for key in _COMPANY_ENV_KEYS if key in os.environ}
     yield settings_commerce
     os.environ.update(saved)
     importlib.reload(settings_commerce)
@@ -141,6 +142,21 @@ class TestTokushohoPage:
         # Assert
         assert expected in content
 
+    def test_unavailable_fx_never_invents_yen_prices(self, client, monkeypatch):
+        monkeypatch.setattr(
+            "apps.infra.public_app.views.legal.get_usd_jpy_rate",
+            lambda: {"rate": None, "as_of": "", "source": ""},
+        )
+
+        response = client.get(reverse("public_app:tokushoho"))
+
+        rows = response.context["published_price_rows"]
+        assert (
+            bool(rows),
+            response.context["fx_rate_display"],
+            {row["price_jpy"] for row in rows},
+        ) == (True, None, {"—"})
+
     def test_tokushoho_missing_fields_render_pending_notices(self, client, settings):
         # Arrange: empty values (no-fake-data guard — an unset field must
         # render 準備中, never a fabricated value)
@@ -159,7 +175,10 @@ class TestTokushohoPage:
         # Act
         content = client.get(url).content.decode("utf-8")
         # Assert
-        assert "〒420-0857 静岡県静岡市葵区御幸町３－２１ペガサートビル７階静岡市コ・クリエーションスペース内" in content
+        assert (
+            "〒420-0857 静岡県静岡市葵区御幸町３－２１ペガサートビル７階静岡市コ・クリエーションスペース内"
+            in content
+        )
 
     def test_tokushoho_default_renders_representative_phone(self, client):
         # Arrange: no overrides — the committed config default applies
@@ -171,7 +190,7 @@ class TestTokushohoPage:
         assert "+81-80-4022-3567" in content
 
     def test_tokushoho_without_billing_plans_publishes_the_price_list(
-        self, client, settings
+        self, client, settings, monkeypatch
     ):
         """No Stripe plan configured is the PRODUCTION state, and the page must
         still say what every priced offer costs.
@@ -191,6 +210,16 @@ class TestTokushohoPage:
         from apps.infra.public_app.pricing import published_price_rows
 
         settings.BILLING_PLANS = []
+        # The live FX supplier may truthfully be unavailable offline. Supply
+        # a deterministic rate only at its external-provider boundary.
+        monkeypatch.setattr(
+            "apps.infra.public_app.views.legal.get_usd_jpy_rate",
+            lambda: {
+                "rate": 150.0,
+                "as_of": "Mon, 02 Nov 2026 00:00:00 +0000",
+                "source": "owned-test-fixture",
+            },
+        )
         # The view wraps the whole render in translation.override("ja"), so the
         # page shows the JAPANESE translations of the EN-source SSoT. Compute the
         # rows the same way (under ja) — otherwise the baked price/storage/
@@ -222,26 +251,36 @@ class TestTokushohoPage:
         # We assert the deterministic structure instead: the 円換算（参考）
         # column is present, the FX method (rate + formula) is explained, and
         # every row shows a USD price plus a yen reference.
-        assert "円換算（参考）" in content, "the 円換算（参考） column header is missing"
+        assert (
+            "円換算（参考）" in content
+        ), "the 円換算（参考） column header is missing"
         assert "USD" in content and "円" in content
         # The rate explanation: "1ドル = N円" + the formula + the as-of date.
-        assert re.search(r"1ドル = \d+(\.\d+)?円", content), "the FX rate is not explained"
-        assert "計算式" in content or "四捨五入" in content, "the conversion method is not explained"
+        assert re.search(
+            r"1ドル = \d+(\.\d+)?円", content
+        ), "the FX rate is not explained"
+        assert (
+            "計算式" in content or "四捨五入" in content
+        ), "the conversion method is not explained"
         for row in rows:
             # USD price (deterministic) must be on the page…
-            assert row["price"] in content, f"{row['label']}: USD price {row['price']!r} missing"
+            assert (
+                row["price"] in content
+            ), f"{row['label']}: USD price {row['price']!r} missing"
             # …and that row must carry a yen reference (digits + 円, non-empty).
         # Every row has a non-empty yen reference in its column (the "from"
         # rows prefix it with 〜, e.g. 〜307,500円).
         # Free rows (the AGPL / Academic self-hosted licenses) show "—".
         priced = [row for row in rows if row["usd_amount"]]
         yen_cells = re.findall(r">〜?\d[\d,]*円<", content)
-        assert len(yen_cells) >= len(priced), (
-            f"expected >= {len(priced)} yen reference cells, found {len(yen_cells)}: {yen_cells}"
-        )
+        assert len(yen_cells) >= len(
+            priced
+        ), f"expected >= {len(priced)} yen reference cells, found {len(yen_cells)}: {yen_cells}"
         for row in rows:
             for item in row["included"]:
-                assert item in content, f"{row['label']}: included item {item!r} not on the page"
+                assert (
+                    item in content
+                ), f"{row['label']}: included item {item!r} not on the page"
         # Assert — the 定期購入 disclosures business asked for (operator ruling
         # 2026-09-10, trial model revision: 30-day trial; if continuing, the
         # first 30 days are billed from the registration date; if not, the
@@ -255,13 +294,14 @@ class TestTokushohoPage:
             "日割りの返金はありません",
             "お支払い済みの期間の末日までご利用いただけます",
             "個別対応します",
-            "SciTeX Cloud Academic（学術）",
         ):
             assert needle in content, f"{needle!r} missing from the 特商法 page"
         # The old "free 30 days then auto-bill on day 31" model is gone.
         assert "31日目に初回の月額課金が自動で始まり" not in content
         assert "メールのリンクは必要ありません" not in content
-        assert "サブスク・学生" not in content, "the 学生 name was renamed to 学術 on 2026-09-03 (business.yaml PR #54)"
+        assert (
+            "サブスク・学生" not in content
+        ), "the 学生 name was renamed to 学術 on 2026-09-03 (business.yaml PR #54)"
         assert "審査完了後に開始" in content, (
             "The page must state that online card payment opens after the "
             "Stripe review — that is the only part still 準備中."
@@ -306,13 +346,16 @@ class TestTokushohoPage:
         spliced = copy.deepcopy(real)
         spliced["published_prices"].append(unreleased)
         control = next(
-            r for r in catalogue
+            r
+            for r in catalogue
             if r.get("available_from") and not str(r.get("withheld", "")).strip()
         )
 
         # Act
         with mock.patch.object(pricing, "load_pricing", return_value=spliced):
-            content = client.get(reverse("public_app:tokushoho")).content.decode("utf-8")
+            content = client.get(reverse("public_app:tokushoho")).content.decode(
+                "utf-8"
+            )
 
         # Assert — control: the real catalogue still renders through the patch.
         # The page forces translation.override("ja"), so the control row's label
@@ -329,9 +372,9 @@ class TestTokushohoPage:
         )
 
         # Assert — retired
-        assert "SciTeX Lab" not in content and "100,000" not in content, (
-            "The retired Lab tier (月額 100,000円) is back on the 特商法 page."
-        )
+        assert (
+            "SciTeX Lab" not in content and "100,000" not in content
+        ), "The retired Lab tier (月額 100,000円) is back on the 特商法 page."
         # Assert — withheld (amount settled, presentation not; see pricing.json)
         for row in catalogue:
             if str(row.get("withheld", "")).strip():
@@ -363,9 +406,7 @@ class TestTokushohoPage:
         # Act
         content = client.get(url).content.decode("utf-8")
         # Assert
-        assert (
-            "提供開始後のお客様都合による返品・返金はお受けいたしません" in content
-        )
+        assert "提供開始後のお客様都合による返品・返金はお受けいたしません" in content
 
     def test_tokushoho_includes_operating_environment_row(self, client):
         # Arrange
@@ -401,7 +442,10 @@ class TestCommerceSettingsDefaults:
         module = importlib.reload(module)
         # Assert: registered address — registered office; 〒420-0857
         # operator-confirmed 2026-07-17 (grant, 日本郵便 lookup)
-        assert module.COMPANY_ADDRESS == "〒420-0857 静岡県静岡市葵区御幸町３－２１ペガサートビル７階静岡市コ・クリエーションスペース内"
+        assert (
+            module.COMPANY_ADDRESS
+            == "〒420-0857 静岡県静岡市葵区御幸町３－２１ペガサートビル７階静岡市コ・クリエーションスペース内"
+        )
 
     def test_company_phone_defaults_to_representative_number(
         self, commerce_settings_clean_env

@@ -31,11 +31,16 @@ import {
   recordVisit,
 } from "./_site-dock/history-stack";
 import { initChatPanel } from "./_site-dock/chat-panel";
+import {
+  initContentScrollAvoidance,
+  PHONE_MAX_WIDTH,
+} from "./_site-dock/content-scroll";
 import { enforceDockBoundary } from "./_site-dock/dock-boundary";
 import {
   FOCUS_AVOID_CLASS,
   FOCUS_SHIFT_VAR,
   focusAvoidanceShift,
+  isFocusAvoidanceTarget,
 } from "./_site-dock/focus-avoid";
 import {
   gripTap,
@@ -47,6 +52,7 @@ import {
 } from "./_site-dock/minimize";
 import {
   type DockPosition,
+  clampDockToViewport,
   fromPixels,
   parsePosition,
   toPixels,
@@ -107,6 +113,8 @@ class SiteDock {
   private back: HTMLButtonElement | null;
   private forward: HTMLButtonElement | null;
   private stack: HistoryStack;
+  private scrollCollapsed = false;
+  private clearScrollIntent = (): void => {};
 
   constructor(dock: HTMLElement) {
     this.dock = dock;
@@ -124,14 +132,39 @@ class SiteDock {
     this.restorePosition();
     syncDockHeight(this.dock);
     window.addEventListener("resize", () => {
+      if (this.scrollCollapsed && window.innerWidth > PHONE_MAX_WIDTH) {
+        this.scrollCollapsed = false;
+        setMinimized(this.dock, false, false);
+      }
       this.restorePosition();
       syncDockHeight(this.dock);
     });
+    // Re-park once the stylesheets and fonts have settled. restorePosition()
+    // measures the dock's live box, and at DOMContentLoaded that box can still
+    // be the unstyled one — the fractions then convert to pixels for the wrong
+    // size and the dock (or the minimized pill) parks off-screen with nothing
+    // to bring it back until a resize (launcher page #2, 2026-09-27). Skipped
+    // mid-drag so a press that started before load is never yanked away.
+    // The module itself can execute after load (slow dev servers), so a load
+    // already past means re-park now instead of waiting for an event that
+    // will never fire.
+    const reparkAfterSettle = (): void => {
+      if (this.dock.classList.contains("site-dock--dragging")) return;
+      this.restorePosition();
+      syncDockHeight(this.dock);
+    };
+    if (document.readyState === "complete") reparkAfterSettle();
+    else window.addEventListener("load", reparkAfterSettle);
     if (typeof ResizeObserver !== "undefined") {
       new ResizeObserver(() => syncDockHeight(this.dock)).observe(this.dock);
     }
     this.initDrag();
     this.initFocusAvoidance();
+    this.clearScrollIntent = initContentScrollAvoidance(this.dock, () => {
+      this.scrollCollapsed = true;
+      setMinimized(this.dock, true, false);
+      this.avoidFocusedControl(document.activeElement);
+    });
     this.initHistory();
     initChatPanel(this.dock);
   }
@@ -142,10 +175,9 @@ class SiteDock {
     this.dock.classList.remove(FOCUS_AVOID_CLASS);
     this.dock.style.removeProperty(FOCUS_SHIFT_VAR);
     if (
-      !(target instanceof HTMLElement) ||
+      !isFocusAvoidanceTarget(target) ||
       this.dock.contains(target) ||
-      this.dock.classList.contains("site-dock--floating") ||
-      isMinimized(this.dock)
+      this.dock.classList.contains("site-dock--floating")
     ) {
       return;
     }
@@ -191,9 +223,15 @@ class SiteDock {
 
   private float(pos: DockPosition): void {
     this.dock.classList.add("site-dock--floating");
-    const { left, top } = toPixels(pos, this.box(), this.viewport());
-    this.dock.style.left = `${left}px`;
-    this.dock.style.top = `${top}px`;
+    const box = this.box();
+    const vp = this.viewport();
+    const { left, top } = toPixels(pos, box, vp);
+    // Clamp the RESULT against the live box, not just the fractions: the box
+    // above can be stale (pre-stylesheet, or a minimized pill measured while
+    // expanded), and then even clamped fractions park a corner off-screen.
+    const pinned = clampDockToViewport(left, top, box, vp);
+    this.dock.style.left = `${pinned.left}px`;
+    this.dock.style.top = `${pinned.top}px`;
   }
 
   private dockToBottom(): void {
@@ -213,10 +251,14 @@ class SiteDock {
     this.restorePosition();
   }
 
-  private toggleMinimized(on: boolean): void {
+  private toggleMinimized(on: boolean, at?: { x: number; y: number }): void {
+    this.clearScrollIntent();
     const before = this.dock.getBoundingClientRect();
+    const gripBefore = this.grabber?.getBoundingClientRect();
     const wasFloating = this.dock.classList.contains("site-dock--floating");
-    setMinimized(this.dock, on);
+    const persist = !this.scrollCollapsed;
+    this.scrollCollapsed = false;
+    setMinimized(this.dock, on, persist);
     if (!wasFloating) {
       // A bottom-docked launcher stays centred at the exact same anchor. Do
       // not resurrect an old stored floating position just because its width
@@ -225,12 +267,20 @@ class SiteDock {
       return;
     }
 
-    // A floating launcher contracts/expands around its current centre rather
-    // than treating its old top-left as the new anchor and jumping sideways.
-    const after = this.box();
-    const left = before.left + before.width / 2 - after.width / 2;
-    const top = before.top + before.height / 2 - after.height / 2;
-    this.settle(left, top);
+    // Anchor at the CLICK point when known (operator 2026-10-26): the click
+    // lands under the cursor after the toggle, so repeated taps never walk
+    // the dock. Falls back to the grabber centre (never the box centre —
+    // the grip sits off-centre, so centring the box walks it sideways,
+    // operator 2026-09-26).
+    const boxAfter = this.dock.getBoundingClientRect();
+    const gripAfter = this.grabber?.getBoundingClientRect();
+    const anchorX = at?.x
+      ?? (gripBefore ? gripBefore.left + gripBefore.width / 2 : before.left + before.width / 2);
+    const anchorY = at?.y
+      ?? (gripBefore ? gripBefore.top + gripBefore.height / 2 : before.top + before.height / 2);
+    const gripOffsetX = gripAfter ? gripAfter.left - boxAfter.left : boxAfter.width / 2;
+    const gripOffsetY = gripAfter ? gripAfter.top - boxAfter.top : boxAfter.height / 2;
+    this.settle(anchorX - gripOffsetX, anchorY - gripOffsetY);
   }
 
   private initDrag(): void {
@@ -293,7 +343,12 @@ class SiteDock {
         }
         // A cancelled press (e.g. the browser took the gesture) is not a tap.
         if (e.type === "pointercancel") return;
-        this.toggleMinimized(gripTap(isMinimized(this.dock)) === "minimize");
+        // Pass the release point: the toggle anchors there, so the grabber
+        // lands under the cursor instead of walking by its centre.
+        this.toggleMinimized(gripTap(isMinimized(this.dock)) === "minimize", {
+          x: e.clientX,
+          y: e.clientY,
+        });
       };
 
       grabber.addEventListener("pointermove", onMove);

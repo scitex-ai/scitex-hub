@@ -13,6 +13,8 @@ from typing import Callable
 from django.core.cache import cache
 from django.http import HttpRequest, HttpResponse, JsonResponse
 
+from ..services.network_jail import jailed_get
+
 logger = logging.getLogger(__name__)
 
 # Rate limit settings
@@ -125,9 +127,11 @@ def rate_limit(func: Callable) -> Callable:
 def search_external_sources(
     query: str, sources: list[str], limit: int
 ) -> tuple[list[dict], dict]:
-    """Search external academic sources in parallel."""
-    import requests
+    """Search external academic sources in parallel.
 
+    Slice 1: all egress goes through the network jail (allowlisted
+    public hosts; caller query travels as params only).
+    """
     from ..views.search.api_crossref import _parse_crossref_results
     from ..views.search.api_openalex import _parse_openalex_results
     from ..views.search.engines import (
@@ -164,7 +168,7 @@ def search_external_sources(
             headers = {
                 "User-Agent": "SciTeX/1.0 (https://scitex.ai; mailto:contact@scitex.ai)"
             }
-            response = requests.get(url, params=params, headers=headers, timeout=60)
+            response = jailed_get(url, params=params, headers=headers, timeout=60)
             response.raise_for_status()
             return "crossref", _parse_crossref_results(response.json(), query), None
         except Exception as e:
@@ -182,7 +186,7 @@ def search_external_sources(
             headers = {
                 "User-Agent": "SciTeX/1.0 (https://scitex.ai; mailto:contact@scitex.ai)"
             }
-            response = requests.get(url, params=params, headers=headers, timeout=60)
+            response = jailed_get(url, params=params, headers=headers, timeout=60)
             response.raise_for_status()
             return "openalex", _parse_openalex_results(response.json()), None
         except Exception as e:

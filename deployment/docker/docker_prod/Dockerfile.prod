@@ -28,8 +28,23 @@
 # version pin would invalidate SLURM/Apptainer builds too (~10 min wasted).
 # As separate stages, they build in parallel and cache independently.
 #
-# Multi-stage builds: each FROM starts a fresh cache chain. The final runtime
-# stage cherry-picks artifacts from each builder via COPY --from=.
+# Multi-stage builds each start a fresh cache chain. The final runtime
+# cherry-picks artifacts from each builder via COPY --from=.
+# Storage's official upstream musl artifact is pinned by version and SHA;
+# do not feed fclones to the apt dependency federation.
+FROM alpine:3.22 AS storage-tools-builder
+RUN apk add --no-cache ca-certificates curl \
+    && test "$(uname -m)" = x86_64 \
+    && curl --fail --location --retry 3 \
+      https://github.com/pkolaczk/fclones/releases/download/v0.35.0/fclones-0.35.0-linux-musl-x86_64.tar.gz \
+      -o /tmp/fclones.tar.gz \
+    && echo "9eae0466e5b78871cf25822e503ee9efbfa28dc36cc167060c4a4920306389ac  /tmp/fclones.tar.gz" | sha256sum -c - \
+    && tar -xzf /tmp/fclones.tar.gz -C /tmp \
+    && mkdir /out \
+    && cp /tmp/target/x86_64-unknown-linux-musl/release/fclones /out/fclones \
+    && chmod 755 /out/fclones \
+    && /out/fclones --version
+
 
 # ============================================
 # Stage 1: SLURM Client (from source)
@@ -97,8 +112,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 
 FROM alpine:latest AS tool-builder
 
-COPY deployment/docker/docker_prod/bin/yq_linux_amd64 /usr/local/bin/yq
-RUN chmod +x /usr/local/bin/yq
+COPY --chmod=755 deployment/docker/docker_prod/bin/yq_linux_amd64 /usr/local/bin/yq
+RUN chmod 755 /usr/local/bin/yq
 
 # ============================================
 # Stage 3b: whisper.cpp (Speech-to-Text)
@@ -332,6 +347,7 @@ RUN --mount=type=cache,target=/root/.cache/ms-playwright \
 # Cherry-picks from all builder stages. Only runtime deps, no compilers.
 
 FROM python:3.11-slim-bookworm AS runtime
+COPY --from=storage-tools-builder /out/fclones /usr/local/bin/fclones
 
 LABEL maintainer="ywatanabe@scitex.ai"
 LABEL description="SciTeX Hub - NAS"
@@ -364,6 +380,10 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     git \
     gosu \
     parallel \
+    # Fast file finder (Storage page scan needs fd or fdfind on PATH)
+    fd-find \
+    rsync \
+    rsync \
     # --- Container management ---
     docker.io \
     uidmap \
@@ -523,11 +543,8 @@ RUN useradd -m -u 1000 scitex && \
 COPY --from=python-builder /usr/local/bin/uv /usr/local/bin/uv
 RUN uv pip install --system --no-cache daphne==4.1.2 psycopg2-binary
 
-# package.json first — npm install is cached unless deps change
-COPY --chown=scitex:scitex package.json ./
-RUN --mount=type=cache,target=/root/.npm \
-    npm install && \
-    touch node_modules/.install-timestamp
+# Local file: npm dependencies require the release-matched sibling sources.
+# Install the complete frontend graph only after source and final Python wheels.
 
 # Application source (changes every deploy; immutable policy snapshot follows)
 COPY --chown=scitex:scitex . .
@@ -535,9 +552,9 @@ COPY --chown=scitex:scitex . .
 # Immutable production-image policy. Keep the verifier and every policy input
 # outside the application-writable /app tree so root-init never executes
 # mutable application code as root. These COPY instructions default to root.
-COPY pyproject.toml /opt/scitex-image-contract/pyproject.toml
-COPY scripts/deploy/preflight_contract.json /opt/scitex-image-contract/scripts/deploy/preflight_contract.json
-COPY scripts/deploy/verify_image_dependency_contract.py /opt/scitex-image-contract/scripts/deploy/verify_image_dependency_contract.py
+COPY --chmod=644 pyproject.toml /opt/scitex-image-contract/pyproject.toml
+COPY --chmod=644 scripts/deploy/preflight_contract.json /opt/scitex-image-contract/scripts/deploy/preflight_contract.json
+COPY --chmod=644 scripts/deploy/verify_image_dependency_contract.py /opt/scitex-image-contract/scripts/deploy/verify_image_dependency_contract.py
 
 # --- Layer B: scitex-cloud install (changes every deploy) ---
 # This is the second half of the two-layer strategy. scitex[all] is already
@@ -559,6 +576,9 @@ LABEL org.scitex-hub.dependency-resolution=${SCITEX_HUB_DEPENDENCY_RESOLUTION}
 
 # /apps/docs/python/ resolves this generated tree from installed package data.
 RUN python -c "from importlib.resources import files; p = files('scitex_hub').joinpath('_sphinx_html/index.html'); assert p.is_file() and '<html' in p.read_text(encoding='utf-8').lower()"
+
+# Skills are installed package interfaces, not expendable documentation.
+RUN python -c "from importlib.resources import files; p = files('scitex_hub').joinpath('_skills'); assert p.joinpath('scitex-hub/SKILL.md').is_file(); assert p.joinpath('scitex-hub/12_deployment-production.md').is_file(); assert p.joinpath('scitex-hub-project/SKILL.md').is_file()"
 
 # --- Layer C0: Anchor — cache ecosystem packages (bump rarely) ---
 # Pinned versions to cache the dependency tree. Only update when
@@ -623,8 +643,15 @@ RUN python -c "from importlib.resources import files; p = files('scitex_hub').jo
 #   18 png + 56 csv + 1 npz), stackplot_ys.csv among them, and no member name
 #   containing a glob star, in the artifact this line installs.
 RUN uv pip install --system --no-cache \
-    # 0.34.8 (2026-09-17): recorder/style correctness train, validated together.
-    "figrecipe==0.34.8" \
+    # 0.36.0 (2026-10-09): FigRecipe leaf-move pilot
+    # (card hub-figrecipe-leaf-move-20261009). First release carrying the
+    # leaf-owned SDK Django surface the hub adapter prefers:
+    # figrecipe._django.workspace.build_workspace_context plus
+    # templates/figrecipe/{workspace,workspace_partial}.html. The previous
+    # ==0.34.8 pin predates that surface, so any image built on it can only
+    # ever serve the hub fallback. Pin stays exact per this file's convention.
+    # 0.44.1 publishes the explicit native SDK project-jail capabilities.
+    "figrecipe==0.44.1" \
     "scitex-io==0.2.3" \
     "scitex-stats==0.2.6" \
     "scitex-plt==0.24.0" \
@@ -661,7 +688,8 @@ RUN uv pip install --system --no-cache \
     # ensure_workspace + manuscript compile produced a 5-page PDF.
     # 2.43.6 (2026-09-17): PDF provenance names the code that ran and both
     # stamp writers share one template.
-    "scitex-writer==2.43.6" \
+    # 2.43.19 is the current qualified public plugin/section implementation.
+    "scitex-writer==2.43.19" \
     # 0.7.1 (2026-09-03): clone_scitex_minimal returns CloneOutcome.failed(reason=...)
     # instead of a bare False, so a failed visitor reset records WHY it failed
     # (prod 2026-08-31: "the template reported NO reason"). Verified against the
@@ -706,22 +734,41 @@ RUN uv pip install --system --no-cache --upgrade \
     "openalex-local" \
     "crossref-local"
 
-# Note: Vite build runs at runtime (not here) because Docker volume mounts
-# for static_volume would shadow build-time output. npm deps are cached above
-# (and .dockerignore keeps `COPY . .` from clobbering them), so startup skips
-# `npm install` — but the Vite build itself is NOT fast.
-#
-# MEASURED 2026-07-30 on a full build: 2m14.9s wall / 2m26.3s CPU
-# (443 rollup entry points, 600 output files, 10.46 MB emitted).
-# The note here previously claimed "~10s", wrong by ~13x. Budget accordingly:
-# the NAS CPU is weaker than the machine that produced that figure, so the
-# real boot cost is >= 2m15s, not less.
+# Cache layers may retain orphan helpers belonging to superseded third-party
+# versions. Preserve every SciTeX/direct scientific capability and explicit
+# runtime input, then compile ONE complete closure. The seeded output file is
+# uv's version PREFERENCE input (not -c constraints); conflicts may change a
+# cached version. Sync removes only packages outside that resolved closure.
+RUN python scripts/deploy/installed_runtime_roots.py \
+        /opt/scitex-image-contract/runtime-roots.in \
+        /opt/scitex-image-contract/runtime.lock && \
+    uv pip compile --no-cache /opt/scitex-image-contract/runtime-roots.in \
+        --output-file /opt/scitex-image-contract/runtime.lock && \
+    uv pip sync --system --no-cache /opt/scitex-image-contract/runtime.lock && \
+    python scripts/deploy/installed_runtime_roots.py --verify-closure \
+        /opt/scitex-image-contract/runtime-roots.manifest.json && \
+    uv pip check --system
+
+# Bake the complete frontend closure after the final normal Python graph.
+# Source releases match installed versions; only verified wheel-owned SDK/LP
+# providers satisfy local npm peers. No editable Python install occurs here.
+# The artifact survives runtime static-volume shadowing under root-owned /opt.
+RUN --mount=type=cache,target=/root/.npm \
+    python scripts/deploy/bake_frontend.py --app-root /app --artifact /opt/scitex-frontend && \
+    chown -R scitex:scitex /app/staticfiles
+COPY --chmod=644 scripts/deploy/_frontend_artifact.py /opt/scitex-frontend-tools/_frontend_artifact.py
+RUN chmod 755 /opt/scitex-frontend /opt/scitex-frontend-tools && \
+    chmod 644 /opt/scitex-frontend-tools/_frontend_artifact.py
+ENV SCITEX_HUB_FRONTEND_MODE=baked SCITEX_APPS_PYTHON_MODE=image-only
 
 # Entrypoint scripts
-COPY deployment/docker/common/scripts/root-init.sh /root-init.sh
-COPY deployment/docker/common/scripts/image-runtime.sh /image-runtime.sh
-COPY deployment/docker/common/scripts/entrypoint-prod.sh /entrypoint.sh
-RUN chmod +x /root-init.sh /image-runtime.sh /entrypoint.sh
+COPY --chmod=755 deployment/docker/common/scripts/root-init.sh /root-init.sh
+COPY --chmod=755 deployment/docker/common/scripts/image-runtime.sh /image-runtime.sh
+COPY --chmod=755 deployment/docker/common/scripts/entrypoint-prod.sh /entrypoint.sh
+RUN chmod 755 /root-init.sh /image-runtime.sh /entrypoint.sh
+# COPY --chmod also affects newly created policy parent directories. Files
+# stay read-only to the application, while its verifier needs directory search.
+RUN find /opt/scitex-image-contract -type d -exec chmod 755 {} +
 
 # --------------------------------------------
 # Smoke test (fail the build early if critical tools are broken)
@@ -798,10 +845,25 @@ RUN python -c "import scitex.io" && \
 # Authoritative relationship gate. This runs after every runtime-stage install
 # and inspects installed versions, Requires-Dist edges, and import contracts in
 # the environment that is actually shipped.
-RUN python /opt/scitex-image-contract/scripts/deploy/verify_image_dependency_contract.py
+RUN uv pip check --system && \
+    python /opt/scitex-image-contract/scripts/deploy/verify_image_dependency_contract.py
 
-# Back to root — root-init.sh handles UID fixup then drops to scitex
+# Finish image-owned mutable defaults AFTER every install/import gate. Docker
+# creates root-owned missing ancestors for nested runtime mounts; precreate the
+# entire bootstrap chain so /app/data/users never creates an inaccessible parent.
+# These are image defaults only: runtime473 never repairs mounted user/config data.
 USER root
+RUN install -d -m 700 -o scitex -g scitex \
+        /app/data /app/data/users /app/data/slurm /app/logs /app/run \
+        /app/.scitex /app/.scitex/logs /app/.scitex/hub \
+        /app/.scitex/hub/runtime /app/.scitex/hub/runtime/logs && \
+    chown -R scitex:scitex /app/data /app/.scitex /app/logs /app/run
+COPY --chmod=644 scripts/deploy/verify_default_bootstrap.py /opt/scitex-image-contract/scripts/deploy/verify_default_bootstrap.py
+RUN --network=none python -I -S /opt/scitex-image-contract/scripts/deploy/verify_default_bootstrap.py --constructor
+# Real root-init entrypoint, synthetic private mount roots and standard-library
+# final command only. Never starts Django, a database, a model, or an app server.
+RUN --network=none --mount=type=tmpfs,target=/app/data/users --mount=type=tmpfs,target=/app/.scitex \
+    python -I -S /opt/scitex-image-contract/scripts/deploy/verify_default_bootstrap.py --full-root-init
 
 # ============================================
 # Runtime Configuration

@@ -97,6 +97,7 @@ export function getSelectedPapers(): PaperData[] {
           snippetEl?.textContent?.trim() ||
           "",
         doi: cardEl.dataset?.doi || "",
+        pmid: cardEl.dataset?.pmid || "",
         source:
           card.querySelector(".source-badge")?.textContent?.trim() ||
           cardEl.dataset?.source ||
@@ -336,6 +337,7 @@ export function updateToolbarState(): void {
 
   // Update selection-dependent buttons
   const selectionButtons = [
+    "saveSelectedBtn",
     "openUrlsBtn",
     "exportSelectedBibtex",
     "downloadSelectedPdfs",
@@ -350,6 +352,19 @@ export function updateToolbarState(): void {
     "abstractToggleBtn",
   ) as HTMLButtonElement;
   if (abstractBtn) abstractBtn.disabled = !hasResults;
+
+  // Keep the Select-all master checkbox in sync with rendered cards
+  const selectAll = document.getElementById(
+    "selectAllResults",
+  ) as HTMLInputElement | null;
+  if (selectAll) {
+    const total = document.querySelectorAll(
+      ".result-card .paper-select, .result-card .paper-select-checkbox",
+    ).length;
+    selectAll.checked = total > 0 && selectedCount === total;
+    selectAll.indeterminate =
+      selectedCount > 0 && selectedCount < total;
+  }
 }
 
 // Note: Button handlers (abstract toggle, save, open URLs, export) are now

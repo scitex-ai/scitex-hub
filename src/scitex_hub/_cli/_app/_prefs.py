@@ -43,10 +43,10 @@ def prefs_get(app_name, json_output) -> None:
         return
 
     if not prefs:
-        console.print(f"[yellow]No preferences saved for {app_name}[/yellow]")
+        console.warning(f"[yellow]No preferences saved for {app_name}[/yellow]")
         return
 
-    console.print(_json.dumps(prefs, indent=2))
+    emit_json(prefs or {})
 
 
 @app_prefs.command("set")
@@ -65,7 +65,7 @@ def prefs_set(app_name, key_values) -> None:
     prefs: dict = {}
     for kv in key_values:
         if "=" not in kv:
-            console.print(f"[red]Invalid format:[/red] {kv} (expected key=value)")
+            console.error(f"[red]Invalid format:[/red] {kv} (expected key=value)")
             raise SystemExit(1)
         key, val = kv.split("=", 1)
         try:
@@ -74,7 +74,7 @@ def prefs_set(app_name, key_values) -> None:
             prefs[key] = val
 
     set_prefs(app_name, prefs)
-    console.print(f"[green]Saved preferences for {app_name}[/green]")
+    console.success(f"[green]Saved preferences for {app_name}[/green]")
 
 
 @app_prefs.command("delete")
@@ -99,9 +99,9 @@ def prefs_delete(app_name, dry_run, yes) -> None:
     from scitex_hub.appmaker import delete_prefs
 
     if delete_prefs(app_name):
-        console.print(f"[green]Deleted preferences for {app_name}[/green]")
+        console.success(f"[green]Deleted preferences for {app_name}[/green]")
     else:
-        console.print(f"[yellow]No preferences found for {app_name}[/yellow]")
+        console.warning(f"[yellow]No preferences found for {app_name}[/yellow]")
 
 
 @app_prefs.command("list")
@@ -123,10 +123,10 @@ def prefs_list(json_output) -> None:
         return
 
     if not all_prefs:
-        console.print("[yellow]No preferences saved[/yellow]")
+        console.warning("[yellow]No preferences saved[/yellow]")
         return
 
-    console.print(_json.dumps(all_prefs, indent=2))
+    emit_json(all_prefs or {})
 
 
 # EOF

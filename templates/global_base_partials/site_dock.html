@@ -1,12 +1,11 @@
 {% load i18n static vite %}
-{# Site-wide dock; items and their order come from apps/infra/workspace_app/site_dock.py. #}
-{% if site_dock_items %}
+{% if site_dock_enabled %}
     <link rel="stylesheet" href="{% static 'shared/css/components/app-icon.css' %}?v={{ build_id }}" />
     <link rel="stylesheet" href="{% static 'shared/css/components/site-dock.css' %}?v={{ build_id }}" />
     <link rel="stylesheet" href="{% static 'shared/css/components/site-dock-grip.css' %}?v={{ build_id }}" />
     <link rel="stylesheet" href="{% static 'shared/css/components/site-dock-chat.css' %}?v={{ build_id }}" />
     <nav class="site-dock" id="site-dock" data-site-dock data-dock-capacity="{{ site_dock_capacity }}" aria-label="{% trans 'Dock' %}">
-        {# Order: Back, grip, apps, Forward. On a phone the apps take row 1 and row 2 reads [<] [grip] [>]. #}
+        <!-- Order: Back, grip, apps, Forward. On a phone the apps take row 1 and row 2 reads [<] [grip] [>]. -->
         <button type="button"
                 class="site-dock-item site-dock-history"
                 data-dock-back

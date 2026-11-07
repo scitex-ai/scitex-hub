@@ -198,6 +198,15 @@ def build_apptainer_exec_cmd(
         container_path: Override the container to use. Defaults to shared container.
     """
     container = container_path or _get_container_path()
+    # Existing callers select configured SIF files or sandbox directories on
+    # the execution host. This validates native argument syntax, not image
+    # provenance or site admission; remote image URIs are outside that contract.
+    if (
+        not isinstance(container, str)
+        or not Path(container).is_absolute()
+        or any(ord(character) < 32 or ord(character) == 127 for character in container)
+    ):
+        raise ValueError("Container image must be an absolute native path")
     cmd = [
         "apptainer",
         "exec",
@@ -211,7 +220,7 @@ def build_apptainer_exec_cmd(
         cmd.extend(["--bind", bind])
     for key, val in (env_vars or {}).items():
         cmd.extend(["--env", f"{key}={val}"])
-    cmd.append(container)
+    cmd.extend(["--", container])
     cmd.extend(inner_cmd)
     return cmd
 
