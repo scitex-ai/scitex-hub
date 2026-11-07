@@ -81,3 +81,13 @@ def test_unicode_citation_key_is_preserved_without_path_separators(tmp_path):
     assert (
         tmp_path / "scitex/scholar/bib_files" / filename
     ).read_text() == "@article{渡邉2026}"
+
+
+def test_long_unicode_metadata_fits_filesystem_filename_limit(tmp_path):
+    filename = _write_paper_bib(
+        tmp_path, "文献" * 12, "渡邉" * 48, "@article{unicode-long}"
+    )
+    assert len(filename.encode("utf-8")) <= 255
+    assert (
+        tmp_path / "scitex/scholar/bib_files" / filename
+    ).read_text() == "@article{unicode-long}"

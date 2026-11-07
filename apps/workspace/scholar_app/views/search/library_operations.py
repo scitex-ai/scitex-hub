@@ -94,8 +94,16 @@ def _write_paper_bib(
 
     from apps.infra.platform_app.services.paths import resolve_within
 
-    safe_source = re.sub(r"[^\w-]", "_", str(source)[:24])
-    safe_key = re.sub(r"[^\w-]", "_", str(citation_key)[:96])
+    safe_source = (
+        re.sub(r"[^\w-]", "_", str(source)[:24])
+        .encode("utf-8")[:48]
+        .decode("utf-8", errors="ignore")
+    )
+    safe_key = (
+        re.sub(r"[^\w-]", "_", str(citation_key)[:96])
+        .encode("utf-8")[:128]
+        .decode("utf-8", errors="ignore")
+    )
     timestamp = datetime.now().strftime("%Y%m%d-%H%M%S")
     unique = uuid.uuid4().hex[:6]
     filename = f"search_{safe_source}_{safe_key}_{timestamp}_{unique}.bib"
