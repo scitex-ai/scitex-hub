@@ -11,6 +11,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.22.0a7] - 2026-11-07
+
 ### Fixed
 
 - Reject keys belonging to inactive accounts in the shared API-key validator.
