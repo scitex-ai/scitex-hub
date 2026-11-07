@@ -13,6 +13,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- Reject keys belonging to inactive accounts in the shared API-key validator.
+  Apply expiry, account and scope checks to HTTP MCP authentication; the complete
+  host MCP server requires an active platform operator with `mcp` or `*` scope.
+  Report authentication-store failures as unavailable rather than invalid keys.
 - Discover mounted MCP tools through protocol metadata and execute them through
   FastMCP's public client. REST calls retain schema validation, middleware and
   existing access/exclusion policies without requiring a private function handle.

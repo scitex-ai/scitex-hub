@@ -52,6 +52,18 @@ the bridge, including current Hub and legacy Cloud mount aliases. Discovery and
 the documentation catalog use the same protocol schemas; discovery never calls
 the registered tool implementations.
 
+The HTTP `/mcp` route hosts the complete umbrella server and has the same
+operator boundary: its API key must belong to an active platform superuser and
+carry `mcp` or `*` scope. Expired/revoked keys and inactive accounts receive 401;
+valid keys without operator identity or the required scope receive 403. A failed
+authentication database lookup returns 503, not a false invalid-key verdict.
+Campaign tokens do not grant this host authority. Local MCP servers and scoped
+leaf Web APIs retain their own access contracts.
+
+All shared API-key consumers reject an inactive owner through
+`accounts_app.auth.resolve_api_key`, consistently with the identity endpoint.
+Refused credentials do not update successful-use timestamps.
+
 ## Development rollout and verification
 
 Source qualification is distinct from deployment. Coordinate the reviewed Dev

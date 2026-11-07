@@ -125,7 +125,7 @@ def test_catalog_declares_operator_access_for_private_tools(owned_registry):
         (True, True, [], 403),
         (True, True, ["api"], 200),
         (True, True, ["*"], 200),
-        (True, False, ["api"], 403),
+        (True, False, ["api"], 401),
     ],
 )
 def test_real_api_key_requires_operator_identity_and_scope(
