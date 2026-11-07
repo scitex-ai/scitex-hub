@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import json
 import os
+import re
 from contextlib import ExitStack
 from datetime import datetime
 from pathlib import Path
@@ -91,15 +92,14 @@ def _write_paper_bib(
     """Write one .bib file under the project's bib_files dir. Returns filename."""
     import uuid
 
-    safe_source = "".join(
-        c if (c.isalnum() or c in ("-", "_")) else "_" for c in str(source)
-    )[:24]
-    safe_key = "".join(
-        c if (c.isalnum() or c in ("-", "_")) else "_" for c in str(citation_key)
-    )[:96]
+    safe_source = re.sub(r"[^\w-]", "_", str(source))[:24]
+    safe_key = re.sub(r"[^\w-]", "_", str(citation_key))[:96]
     timestamp = datetime.now().strftime("%Y%m%d-%H%M%S")
     unique = uuid.uuid4().hex[:6]
     filename = f"search_{safe_source}_{safe_key}_{timestamp}_{unique}.bib"
+
+    if not re.fullmatch(r"[\w-]+\.bib", filename):
+        raise ValueError("Invalid bibliography filename")
 
     # Pin every directory by descriptor. Path.resolve() followed by write_text()
     # leaves a check/write race if a project directory is swapped for a symlink.
@@ -136,12 +136,10 @@ def _save_papers_to_project_path(
     aborting the whole batch. Filesystem-only: no DB access.
     """
     from apps.infra.project_app.services.bibliography_manager import (
-        ensure_bibliography_structure,
         regenerate_bibliography,
     )
 
     project_path = Path(project_path)
-    ensure_bibliography_structure(project_path)
 
     saved = 0
     skipped = 0
@@ -369,7 +367,6 @@ def save_paper(request):
     """
     from apps.infra.project_app.models import Project
     from apps.infra.project_app.services.bibliography_manager import (
-        ensure_bibliography_structure,
         regenerate_bibliography,
     )
 
@@ -412,7 +409,6 @@ def save_paper(request):
 
     try:
         project_path = Path(project.git_clone_path)
-        ensure_bibliography_structure(project_path)
 
         source = paper["source"] or "unknown"
         filename = _write_paper_bib(project_path, source, citation_key, bibtex_entry)
