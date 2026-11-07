@@ -68,7 +68,7 @@ def test_mounted_execution_retains_protocol_validation(tmp_path):
         "container_exec",
     ],
 )
-def test_excluded_tools_remain_absent_and_public_policy_is_preserved(
+def test_excluded_tools_remain_absent_and_names_do_not_grant_public_execution(
     tmp_path, forbidden_name
 ):
     server = FastMCP("owned-policy")
@@ -85,7 +85,7 @@ def test_excluded_tools_remain_absent_and_public_policy_is_preserved(
 
     registry = discover_tools(server)
     assert set(registry) == {"docs_search"}
-    assert registry["docs_search"].is_public
+    assert registry["docs_search"].is_public is False
     assert asyncio.run(registry["docs_search"].fn()) == "local documentation"
     assert not marker.exists()
 

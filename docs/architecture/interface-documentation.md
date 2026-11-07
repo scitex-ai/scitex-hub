@@ -37,12 +37,13 @@ attribute for an unknown owner, suppressing stale body inheritance, and use
 ## Generic MCP REST compatibility bridge
 
 The separate `/api/v1/tools/` bridge discovers MCP protocol metadata. MCP
-registration does not grant a project-scoped Web API admission. Private generic
+registration does not grant a project-scoped Web API admission. Generic
 tools require an authenticated, active platform superuser; an API key must also
 carry `api` or `*` scope. Ordinary users, staff users without superuser status,
-and inactive operators cannot execute them. Public tools retain the bridge's
-existing public-tool policy. Listings distinguish `access: public` from
-`access: operator` and state the private-tool requirements.
+and inactive operators cannot execute them. Tool execution is never made public by a
+`docs_`, `introspect_`, or other name prefix. Listings remain publicly readable,
+advertise `access: operator` and `is_public: false`, and state the requirements
+in `tool_execution_access`. Public documentation/catalog routes remain available.
 
 Project clients use the leaf Web APIs described by the SDK contracts and
 authorized by the host's project capabilities. A generic tool's filesystem

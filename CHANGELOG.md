@@ -17,6 +17,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   Apply expiry, account and scope checks to HTTP MCP authentication; the complete
   host MCP server requires an active platform operator with `mcp` or `*` scope.
   Report authentication-store failures as unavailable rather than invalid keys.
+- Remove name-based anonymous execution grants from the generic MCP REST bridge.
+  All generic tools require an active operator with `api` or `*` key scope;
+  public metadata stays readable and advertises the execution requirements.
 - Discover mounted MCP tools through protocol metadata and execute them through
   FastMCP's public client. REST calls retain schema validation, middleware and
   existing access/exclusion policies without requiring a private function handle.
@@ -26,9 +29,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Exclude agent and container operations from the generic MCP REST bridge;
   host execution and lifecycle operations require dedicated control-plane
   authorization.
-- Restrict private generic MCP REST tools to active platform superusers; API
-  keys additionally require `api` or `*` scope. Advertise this requirement in
-  the tool listing. User/project operations continue through scoped leaf APIs.
 
 ## [0.22.0a6] - 2026-11-06
 

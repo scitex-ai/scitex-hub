@@ -37,15 +37,6 @@ EXCLUDED_PREFIXES = frozenset(
     }
 )
 
-# Tools that can be accessed without authentication
-PUBLIC_PREFIXES = frozenset(
-    {
-        "scholar_search",
-        "introspect_",
-        "docs_",
-    }
-)
-
 
 @dataclass
 class ToolInfo:
@@ -91,14 +82,6 @@ def _is_excluded(name: str) -> bool:
         for candidate in names
         for prefix in EXCLUDED_PREFIXES
     )
-
-
-def _is_public(name: str) -> bool:
-    """Return True if this tool can be accessed without authentication."""
-    for prefix in PUBLIC_PREFIXES:
-        if name.startswith(prefix):
-            return True
-    return False
 
 
 def _bind_tool(server, name: str) -> Callable:
@@ -180,7 +163,9 @@ def discover_tools(mcp_server=None) -> dict[str, ToolInfo]:
             fn=_bind_tool(mcp_server, tool_name),
             namespace=namespace,
             url_path=url_path,
-            is_public=_is_public(tool_name),
+            # A tool name does not declare safe public execution. Public
+            # user/project APIs are admitted through the leaf SDK contracts.
+            is_public=False,
             tags=[namespace],
         )
 

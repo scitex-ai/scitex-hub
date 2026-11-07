@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""Tests for apps/accounts_app/views/api_keys_views.py and MCP auth in config.asgi.
+"""Tests for API-key views, hashing, scope membership and key metadata.
+Host MCP admission lives in test_mcp_api_key_validation.py.
 
 All tests use the real Django test DB (pytest-django `django_db` mark) and
 real `User.objects.create_user` / `APIKey.create_key` calls — no mocks.
