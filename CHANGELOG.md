@@ -22,6 +22,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Exclude agent and container operations from the generic MCP REST bridge;
   host execution and lifecycle operations require dedicated control-plane
   authorization.
+- Restrict private generic MCP REST tools to active platform superusers; API
+  keys additionally require `api` or `*` scope. Advertise this requirement in
+  the tool listing. User/project operations continue through scoped leaf APIs.
 
 ## [0.22.0a6] - 2026-11-06
 

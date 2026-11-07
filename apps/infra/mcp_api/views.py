@@ -274,6 +274,7 @@ def list_tools(request: Request) -> JsonResponse:
                 "method": "POST",
                 "parameters": tool_info.parameters,
                 "is_public": tool_info.is_public,
+                "access": "public" if tool_info.is_public else "operator",
             }
         )
 
@@ -291,6 +292,8 @@ def list_tools(request: Request) -> JsonResponse:
 
     return JsonResponse(
         {
+            "private_tool_access": "active platform superuser; API keys also require api or * scope",
+            "project_operations": "Use the leaf app's scoped Web API.",
             "total": len(registry),
             "categories": len(categories),
             "namespaces": categories,
