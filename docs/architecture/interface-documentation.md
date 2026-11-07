@@ -34,6 +34,24 @@ metadata before mounting a replacement pane. They keep an explicit empty pane
 attribute for an unknown owner, suppressing stale body inheritance, and use
 `stxAppHeader.mount(pane)` rather than relying on cached modules to run again.
 
+## Generic MCP REST compatibility bridge
+
+The separate `/api/v1/tools/` bridge discovers MCP protocol metadata. MCP
+registration does not grant a project-scoped Web API admission. Private generic
+tools require an authenticated, active platform superuser; an API key must also
+carry `api` or `*` scope. Ordinary users, staff users without superuser status,
+and inactive operators cannot execute them. Public tools retain the bridge's
+existing public-tool policy. Listings distinguish `access: public` from
+`access: operator` and state the private-tool requirements.
+
+Project clients use the leaf Web APIs described by the SDK contracts and
+authorized by the host's project capabilities. A generic tool's filesystem
+arguments and optional active-project default do not establish that boundary.
+Agent/container operations and explicit code-execution tools are excluded from
+the bridge, including current Hub and legacy Cloud mount aliases. Discovery and
+the documentation catalog use the same protocol schemas; discovery never calls
+the registered tool implementations.
+
 ## Development rollout and verification
 
 Source qualification is distinct from deployment. Coordinate the reviewed Dev

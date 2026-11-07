@@ -5,7 +5,7 @@
 All MCP tools are dispatched through a single view class that:
 1. Resolves the tool from the URL path
 2. Validates parameters against the tool's JSON schema
-3. Calls the tool function directly (no MCP protocol overhead)
+3. Invokes the tool through FastMCP's public client, retaining middleware
 4. Returns the result as JSON
 """
 
@@ -274,6 +274,7 @@ def list_tools(request: Request) -> JsonResponse:
                 "method": "POST",
                 "parameters": tool_info.parameters,
                 "is_public": tool_info.is_public,
+                "access": "public" if tool_info.is_public else "operator",
             }
         )
 
@@ -291,6 +292,8 @@ def list_tools(request: Request) -> JsonResponse:
 
     return JsonResponse(
         {
+            "private_tool_access": "active platform superuser; API keys also require api or * scope",
+            "project_operations": "Use the leaf app's scoped Web API.",
             "total": len(registry),
             "categories": len(categories),
             "namespaces": categories,
