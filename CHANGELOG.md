@@ -11,6 +11,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- Bind the mounted Scholar library to Hub's persistent per-user directory for
+  both reads and imports. Reuse the existing library service's path policy
+  without initializing storage during listing; retain login gating and reject
+  unsafe owner path components before resolving a directory.
+
 ### Security
 
 - Reject Scholar API keys owned by disabled accounts and evaluate expiring keys
