@@ -335,7 +335,7 @@
     display: none;
   }
 
-  .settings-nav-cascade[data-settings-navigation-ready="true"] {
+  .settings-nav-cascade {
     display: flex;
     flex-direction: column;
     gap: 8px;
@@ -344,6 +344,11 @@
     border: 1px solid var(--border-default);
     border-radius: 6px;
     padding: 8px;
+  }
+
+  /* Keep ordinary links available until the enhancement is usable. */
+  .settings-nav-cascade:not([data-settings-navigation-ready="true"]) {
+    display: none;
   }
 
   .settings-nav-cascade-row {
