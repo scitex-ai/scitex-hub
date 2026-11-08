@@ -1,4 +1,4 @@
-{% load i18n %}
+{% load i18n vite %}
 
 <!-- Settings Navigation - Reusable partial -->
 {% comment %}
@@ -57,31 +57,7 @@ falls back to the sidebar list via CSS.
         </select>
     </div>
 </div>
-<script>
-(function () {
-    var group = document.getElementById('settings-cascade-group');
-    var page = document.getElementById('settings-cascade-page');
-    if (!group || !page) return;
-    var options = Array.prototype.slice.call(page.options);
-    function visibleOptions() {
-        return options.filter(function (o) { return !o.hidden; });
-    }
-    function filter() {
-        options.forEach(function (o) { o.hidden = o.dataset.group !== group.value; });
-        var visible = visibleOptions();
-        var currentVisible = visible.some(function (o) { return o.selected; });
-        if (!currentVisible && visible.length) {
-            visible.forEach(function (o) { o.selected = false; });
-            visible[0].selected = true;
-        }
-    }
-    group.addEventListener('change', filter);
-    page.addEventListener('change', function () {
-        if (page.value) window.location.href = page.value;
-    });
-    filter();
-})();
-</script>
+{% vite_script 'accounts_app/settings-navigation' %}
 <noscript>
     <style>
         @media (max-width: 768px) {

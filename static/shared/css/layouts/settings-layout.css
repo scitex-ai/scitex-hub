@@ -310,8 +310,9 @@
 /* Phone settings nav: three cascading selects (Section > Group > Page).
    The full 13-item list used to fill the first phone screen, so a settings
    page's own content started below the fold (site audit 2026-09-14, D7). On
-   phones the sidebar list hides and the cascade sits above the content; the
-   desktop sidebar is untouched. Markup: accounts_app/partials/settings_nav.html. */
+   phones the initialized cascade replaces the sidebar list. Until its script
+   is ready, the ordinary links remain usable. The desktop sidebar is untouched.
+   Markup: accounts_app/partials/settings_nav.html. */
 .settings-nav-cascade {
   display: none;
 }
@@ -330,7 +331,7 @@
     background: none;
   }
 
-  .settings-nav-full {
+  .settings-nav-cascade[data-settings-navigation-ready="true"] ~ .settings-nav-full {
     display: none;
   }
 
@@ -343,6 +344,11 @@
     border: 1px solid var(--border-default);
     border-radius: 6px;
     padding: 8px;
+  }
+
+  /* Keep ordinary links available until the enhancement is usable. */
+  .settings-nav-cascade:not([data-settings-navigation-ready="true"]) {
+    display: none;
   }
 
   .settings-nav-cascade-row {

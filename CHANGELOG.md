@@ -13,6 +13,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Security
 
+- Restrict the mobile settings selector to its original local destinations.
+  Reject external URLs and changed or injected options, mount handlers once,
+  and keep the ordinary settings links visible until the enhancement is ready.
+
 - Use the shared API-key scope policy in Scholar authentication, accepting
   explicit wildcard keys while still requiring every requested permission.
 
