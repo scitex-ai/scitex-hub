@@ -19,6 +19,15 @@ existing image configuration files for the application identity. No deployment
 mounts or host user data exist in that build step. Never move this recursive
 image-state ownership preparation into runtime startup.
 
+The project vocabulary is a relative link to its canonical packaged resource.
+`scripts/deploy/materialize_image_vocabulary.py` replaces only that reviewed
+link with an identical regular file in image defaults before ownership setup.
+It refuses changed links, symbolic parents and different existing contents.
+It is not called by runtime initialization and does not repair mounted config.
+The unchanged constructor still rejects every remaining symbolic state entry;
+`tests/config/test_image_vocabulary_defaults.py` exercises both that refusal
+and the admitted regular-file result.
+
 Precreate `/app/data` as well as `/app/data/users`: otherwise Docker can create
 an inaccessible root-owned parent when attaching only the nested users mount.
 `scripts/deploy/verify_default_bootstrap.py --constructor` checks the actual
