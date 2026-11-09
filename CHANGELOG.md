@@ -11,6 +11,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.22.0a7] - 2026-11-09
+
+### Changed
+
+- Require the qualified public `scitex-dev` 0.62.20 and `scitex-scholar`
+  1.29.2 releases. Preserve normal dependency resolution and the image's
+  complete runtime-capability checks.
+
 ### Security
 
 - Restrict the mobile settings selector to its original local destinations.
@@ -28,9 +36,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Reject Scholar API keys owned by disabled accounts and evaluate expiring keys
   with Django's timezone-aware clock instead of an invalid model-field call.
 
-## [0.22.0a7] - 2026-11-07
-
 ### Fixed
+
+- Stop documentation qualification when its complete dependency installation
+  fails. Keep the standalone audit corpus pinned to the declared Dev floor.
+
+- Ship the existing Hub CLI vocabulary in its package namespace, so installed
+  consumers can discover the same domain nouns and verbs used by source
+  audits. Keep one canonical resource through the relative project link.
 
 - Reconcile the stable/development histories without restoring retired app
   wrappers or visitor runtime. Retain host-label collision and startup-role

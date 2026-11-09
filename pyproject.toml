@@ -99,7 +99,7 @@ dependencies = [
     # 1.12.0 supplies the optional graph capability report consumed by Hub.
     # 1.13.0 supplies storage.master_* (leaf owns MASTER writes; hub thin).
     # 1.29.1 uses SDK branding without a missing production static-manifest asset.
-    "scitex-scholar>=1.29.1",
+    "scitex-scholar>=1.29.2",
     # 0.2.16 supplies the shared SDK header/viewer integration in the
     # currently supported application cohort.
     # Live-paper mount (hub #1108): apps/workspace/live_paper_app/mount.py
@@ -269,7 +269,7 @@ dependencies = [
     # configures nothing is exactly the caller that DOES reach it.
     # 0.56.8 is the version measured good here, not proven to be the minimum.
     # 0.62.11 preserves explicit skill ownership through metadata reads.
-    "scitex-dev>=0.62.16",
+    "scitex-dev>=0.62.20",
     # `scitex-audio` owns the whisper.cpp transcription pipeline that
     # llm_app/views/stt.py delegates to (`scitex_audio.transcribe`).
     # Declared DIRECTLY rather than relied on transitively: llm_app/views/chat.py
@@ -622,7 +622,7 @@ dev = [
     # decides the three required checks; the audit workflow's own pin cannot
     # substitute for it. Keep the two identical — if they drift, the matrix
     # and the audit test different versions and one of them is lying.
-    "scitex-dev>=0.62.16",
+    "scitex-dev>=0.62.20",
     # The board-tenancy suite is guarded by `_TODO_INSTALLED`
     # (middleware.py:115, find_spec("scitex_cards")). Without this package
     # installed, every one of those tests SKIPS and the job exits 0 — a
@@ -687,6 +687,7 @@ where = ["src"]
 
 [tool.setuptools.package-data]
 scitex_hub = [
+    "_cli_audit_dict.yaml",
     "skills/*.md",
     "skills/references/*.md",
     "_skills/**/*.md",
