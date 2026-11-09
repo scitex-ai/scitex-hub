@@ -38,6 +38,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- Stop documentation qualification when its complete dependency installation
+  fails. Keep the standalone audit corpus pinned to the declared Dev floor.
+
 - Ship the existing Hub CLI vocabulary in its package namespace, so installed
   consumers can discover the same domain nouns and verbs used by source
   audits. Keep one canonical resource through the relative project link.

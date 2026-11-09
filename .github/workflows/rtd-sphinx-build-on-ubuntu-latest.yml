@@ -60,9 +60,8 @@ jobs:
         run: |
           set -euo pipefail
           uv venv --python 3.11 .venv
-          uv pip install --python .venv/bin/python -e ".[all]" \
-            || uv pip install --python .venv/bin/python -e ".[dev]" \
-            || uv pip install --python .venv/bin/python -e .
+          # A failed full install must fail documentation qualification too.
+          uv pip install --python .venv/bin/python -e ".[all]"
           # Later steps invoke sphinx-build bare, across several steps.
           echo "$PWD/.venv/bin" >> "$GITHUB_PATH"
 
