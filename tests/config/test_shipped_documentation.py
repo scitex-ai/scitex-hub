@@ -14,6 +14,21 @@ import pytest
 ROOT = Path(__file__).resolve().parents[2]
 
 
+def test_shipped_documentation_has_no_untracked_build_inputs():
+    bundle = ROOT / "src/scitex_hub/_sphinx_html"
+    tracked = set(
+        subprocess.check_output(
+            ["git", "ls-files", "--", "src/scitex_hub/_sphinx_html"],
+            cwd=ROOT,
+            text=True,
+        ).splitlines()
+    )
+    files = {
+        str(path.relative_to(ROOT)) for path in bundle.rglob("*") if path.is_file()
+    }
+    assert files <= tracked, sorted(files - tracked)
+
+
 def test_sphinx_import_root_does_not_depend_on_invocation_directory(
     tmp_path, monkeypatch
 ):

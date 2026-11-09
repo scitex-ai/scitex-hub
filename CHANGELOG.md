@@ -41,7 +41,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Refresh the shipped documentation from the selected source instead of
   retaining the 0.18.1 HTML. Validate its version and documented help routes,
   correct canonical CLI examples, and keep Sphinx build caches outside the
-  distributed HTML tree.
+  distributed HTML tree. Track the public source-link and theme assets so
+  a fresh Git build has the same inputs as the maintainer's working tree.
 
 - Stop documentation qualification when its complete dependency installation
   fails. Keep the standalone audit corpus pinned to the declared Dev floor.

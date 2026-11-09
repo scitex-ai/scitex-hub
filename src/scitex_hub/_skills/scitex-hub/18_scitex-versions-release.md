@@ -24,7 +24,9 @@ sphinx-build -W -d docs/sphinx/_build/doctrees -b html docs/sphinx docs/sphinx/_
 ```
 
 Replace the shipped HTML with that output and retain `.nojekyll`. Keep the
-doctree cache outside the HTML bundle. The version/help controls in
+doctree cache outside the HTML bundle. Stage the bundle's public source-link
+and theme assets through its narrow ignore exceptions; an untracked local
+asset is not a reproducible release input. The version/help/Git-input controls in
 `tests/config/test_shipped_documentation.py` reject a stale bundled version;
 they do not validate every prose claim. A green docs job builds separate HTML
 and does not establish that the committed wheel inputs were refreshed. The

@@ -1,0 +1,6 @@
+scitex\_hub.module
+==================
+
+.. automodule:: scitex_hub.module
+
+   
