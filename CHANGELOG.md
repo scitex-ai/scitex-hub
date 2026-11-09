@@ -38,6 +38,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- Materialize the reviewed project vocabulary link as a private regular file
+  during image construction. Keep the canonical source resource and the
+  constructor's symbolic-link refusal; do not alter mounted runtime config.
+
 - Refresh the shipped documentation from the selected source instead of
   retaining the 0.18.1 HTML. Validate its version and documented help routes,
   correct canonical CLI examples, and keep Sphinx build caches outside the
