@@ -5,32 +5,32 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>scitex_hub.appmaker._launcher &mdash; SciTeX Hub v0.18.1</title>
+  <title>scitex_hub.appmaker._launcher &mdash; SciTeX Hub v0.22.0a7</title>
       <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=b86133f3" />
       <link rel="stylesheet" type="text/css" href="../../../_static/css/theme.css?v=9edc463e" />
       <link rel="stylesheet" type="text/css" href="../../../_static/copybutton.css?v=76b2166b" />
 
-  
+
       <script src="../../../_static/jquery.js?v=5d32c60e"></script>
       <script src="../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-      <script src="../../../_static/documentation_options.js?v=1e56ff10"></script>
+      <script src="../../../_static/documentation_options.js?v=af24e983"></script>
       <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
       <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
       <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
       <script src="../../../_static/copybutton.js?v=f281be69"></script>
     <script src="../../../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../../../genindex.html" />
-    <link rel="search" title="Search" href="../../../search.html" /> 
+    <link rel="search" title="Search" href="../../../search.html" />
 </head>
 
-<body class="wy-body-for-nav"> 
+<body class="wy-body-for-nav">
   <div class="wy-grid-for-nav">
     <nav data-toggle="wy-nav-shift" class="wy-nav-side">
       <div class="wy-side-scroll">
         <div class="wy-side-nav-search" >
 
-          
-          
+
+
           <a href="../../../index.html" class="icon icon-home">
             SciTeX Hub
           </a>
@@ -71,15 +71,9 @@
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="../../../cli.html">CLI Reference</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="../../../cli.html#global-options">Global Options</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../../cli.html#project-management">Project Management</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../../cli.html#three-way-sync">Three-Way Sync</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../../cli.html#git-hosting-gitea">Git Hosting (Gitea)</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../../cli.html#app-management">App Management</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../../cli.html#cloud-sdk">Cloud SDK</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../../cli.html#infrastructure">Infrastructure</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../../cli.html#mcp-server">MCP Server</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../../cli.html#utilities">Utilities</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../cli.html#discover-commands">Discover commands</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../cli.html#command-groups">Command groups</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../cli.html#source-and-validation">Source and validation</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="../../../sync.html">Three-Way Sync</a><ul>
@@ -121,17 +115,6 @@
 <li class="toctree-l2"><a class="reference internal" href="../../../app_platform.html#app-submission-and-review">App Submission and Review</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../app_platform.html#separation-of-concerns">Separation of Concerns</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../app_platform.html#reference">Reference</a></li>
-</ul>
-</li>
-<li class="toctree-l1"><a class="reference internal" href="../../../visitor_pool_security.html">Visitor Pool Security</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="../../../visitor_pool_security.html#background-the-fix">Background: the fix</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../../visitor_pool_security.html#layer-1-reset-workspace-after">Layer 1 — <code class="docutils literal notranslate"><span class="pre">&#64;reset_workspace_after</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../../visitor_pool_security.html#layer-2-ensure-clean-workspace">Layer 2 — <code class="docutils literal notranslate"><span class="pre">&#64;ensure_clean_workspace</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../../visitor_pool_security.html#layer-3-reset-visitor-pool-on-container-restart">Layer 3 — <code class="docutils literal notranslate"><span class="pre">reset_visitor_pool</span></code> on container restart</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../../visitor_pool_security.html#what-gets-cleared">What gets cleared</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../../visitor_pool_security.html#pool-lifecycle-diagram">Pool lifecycle diagram</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../../visitor_pool_security.html#operations">Operations</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../../visitor_pool_security.html#further-reading">Further reading</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="../../../api/index.html">API Reference</a><ul>
@@ -184,27 +167,31 @@
 </div>
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
-             
+
   <h1>Source code for scitex_hub.appmaker._launcher</h1><div class="highlight"><pre>
-<span></span><span class="sd">&quot;&quot;&quot;App launcher — local development setup for SciTeX Hub app plugins.&quot;&quot;&quot;</span>
+<span></span><span class="sd">"""App launcher — local development setup for SciTeX Hub app plugins."""</span>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">__future__</span><span class="w"> </span><span class="kn">import</span> <span class="n">annotations</span>
 
-<span class="kn">import</span><span class="w"> </span><span class="nn">logging</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">sys</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">Path</span>
 
-<span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">scitex_logging</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">slogging</span>
+
+<span class="n">logger</span> <span class="o">=</span> <span class="n">slogging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
+<span class="c1"># PS-220: the dev-server walkthrough is CLI stdout, not diagnostics, so it</span>
+<span class="c1"># keeps stdout (getLogger writes to stderr) and gains the SciTeX level.</span>
+<span class="n">console</span> <span class="o">=</span> <span class="n">slogging</span><span class="o">.</span><span class="n">getConsole</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
 
 
 <div class="viewcode-block" id="dev_server">
 <a class="viewcode-back" href="../../../api/_autosummary/scitex_hub.appmaker.html#scitex_hub.appmaker.dev_server">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">dev_server</span><span class="p">(</span><span class="n">app_dir</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="n">Path</span><span class="p">,</span> <span class="n">port</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">8000</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Set up a local app for development in the SciTeX workspace.</span>
+<span class="w">    </span><span class="sd">"""Set up a local app for development in the SciTeX workspace.</span>
 
 <span class="sd">    Validates the app, creates a symlink into apps/ if needed,</span>
-<span class="sd">    and prints remaining manual steps.</span>
+<span class="sd">    and reports remaining manual steps.</span>
 
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
@@ -212,14 +199,14 @@
 <span class="sd">        Path to the app plugin directory.</span>
 <span class="sd">    port : int</span>
 <span class="sd">        Port number for the dev server (default: 8000).</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
     <span class="n">root</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">app_dir</span><span class="p">)</span><span class="o">.</span><span class="n">resolve</span><span class="p">()</span>
     <span class="n">app_name</span> <span class="o">=</span> <span class="n">root</span><span class="o">.</span><span class="n">name</span>
 
     <span class="c1"># Check basic structure</span>
-    <span class="k">if</span> <span class="ow">not</span> <span class="p">(</span><span class="n">root</span> <span class="o">/</span> <span class="s2">&quot;apps.py&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">exists</span><span class="p">():</span>
-        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Error: </span><span class="si">{</span><span class="n">root</span><span class="si">}</span><span class="s2"> does not look like a SciTeX Hub app (missing apps.py).&quot;</span><span class="p">)</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Run &#39;scitex-hub app init&#39; first to scaffold the boilerplate.&quot;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="p">(</span><span class="n">root</span> <span class="o">/</span> <span class="s2">"apps.py"</span><span class="p">)</span><span class="o">.</span><span class="n">exists</span><span class="p">():</span>
+        <span class="n">console</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Error: </span><span class="si">{</span><span class="n">root</span><span class="si">}</span><span class="s2"> does not look like a SciTeX Hub app (missing apps.py)."</span><span class="p">)</span>
+        <span class="n">console</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">"Run 'scitex-hub app init' first to scaffold the boilerplate."</span><span class="p">)</span>
         <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
 
     <span class="c1"># Run validation</span>
@@ -227,64 +214,64 @@
 
     <span class="n">errors</span> <span class="o">=</span> <span class="n">validate</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">root</span><span class="p">))</span>
     <span class="k">if</span> <span class="n">errors</span><span class="p">:</span>
-        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  Validation found </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">errors</span><span class="p">)</span><span class="si">}</span><span class="s2"> issue(s):&quot;</span><span class="p">)</span>
+        <span class="n">console</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">"  Validation found </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">errors</span><span class="p">)</span><span class="si">}</span><span class="s2"> issue(s):"</span><span class="p">)</span>
         <span class="k">for</span> <span class="n">err</span> <span class="ow">in</span> <span class="n">errors</span><span class="p">:</span>
-            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;    x </span><span class="si">{</span><span class="n">err</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-        <span class="nb">print</span><span class="p">()</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;  Fix these issues before proceeding.&quot;</span><span class="p">)</span>
+            <span class="n">console</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">"    x </span><span class="si">{</span><span class="n">err</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+        <span class="n">console</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">""</span><span class="p">)</span>
+        <span class="n">console</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">"  Fix these issues before proceeding."</span><span class="p">)</span>
         <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
 
-    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  App:  </span><span class="si">{</span><span class="n">app_name</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  Dir:  </span><span class="si">{</span><span class="n">root</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  Port: </span><span class="si">{</span><span class="n">port</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;  Validation: PASSED&quot;</span><span class="p">)</span>
-    <span class="nb">print</span><span class="p">()</span>
+    <span class="n">console</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">"  App:  </span><span class="si">{</span><span class="n">app_name</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+    <span class="n">console</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">"  Dir:  </span><span class="si">{</span><span class="n">root</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+    <span class="n">console</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">"  Port: </span><span class="si">{</span><span class="n">port</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+    <span class="n">console</span><span class="o">.</span><span class="n">success</span><span class="p">(</span><span class="s2">"  Validation: PASSED"</span><span class="p">)</span>
+    <span class="n">console</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">""</span><span class="p">)</span>
 
     <span class="c1"># Try to create symlink</span>
     <span class="n">project_root</span> <span class="o">=</span> <span class="n">_find_project_root</span><span class="p">()</span>
     <span class="k">if</span> <span class="n">project_root</span><span class="p">:</span>
-        <span class="n">apps_dir</span> <span class="o">=</span> <span class="n">project_root</span> <span class="o">/</span> <span class="s2">&quot;apps&quot;</span>
+        <span class="n">apps_dir</span> <span class="o">=</span> <span class="n">project_root</span> <span class="o">/</span> <span class="s2">"apps"</span>
         <span class="n">symlink_target</span> <span class="o">=</span> <span class="n">apps_dir</span> <span class="o">/</span> <span class="n">app_name</span>
         <span class="k">if</span> <span class="n">symlink_target</span><span class="o">.</span><span class="n">exists</span><span class="p">():</span>
             <span class="k">if</span> <span class="n">symlink_target</span><span class="o">.</span><span class="n">is_symlink</span><span class="p">():</span>
-                <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  Symlink exists: apps/</span><span class="si">{</span><span class="n">app_name</span><span class="si">}</span><span class="s2"> -&gt; </span><span class="si">{</span><span class="n">root</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+                <span class="n">console</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">"  Symlink exists: apps/</span><span class="si">{</span><span class="n">app_name</span><span class="si">}</span><span class="s2"> -&gt; </span><span class="si">{</span><span class="n">root</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
             <span class="k">else</span><span class="p">:</span>
-                <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  apps/</span><span class="si">{</span><span class="n">app_name</span><span class="si">}</span><span class="s2"> already exists (not a symlink)&quot;</span><span class="p">)</span>
+                <span class="n">console</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="sa">f</span><span class="s2">"  apps/</span><span class="si">{</span><span class="n">app_name</span><span class="si">}</span><span class="s2"> already exists (not a symlink)"</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="k">try</span><span class="p">:</span>
                 <span class="n">symlink_target</span><span class="o">.</span><span class="n">symlink_to</span><span class="p">(</span><span class="n">root</span><span class="p">)</span>
-                <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  Created symlink: apps/</span><span class="si">{</span><span class="n">app_name</span><span class="si">}</span><span class="s2"> -&gt; </span><span class="si">{</span><span class="n">root</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+                <span class="n">console</span><span class="o">.</span><span class="n">success</span><span class="p">(</span><span class="sa">f</span><span class="s2">"  Created symlink: apps/</span><span class="si">{</span><span class="n">app_name</span><span class="si">}</span><span class="s2"> -&gt; </span><span class="si">{</span><span class="n">root</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
             <span class="k">except</span> <span class="ne">OSError</span> <span class="k">as</span> <span class="n">exc</span><span class="p">:</span>
-                <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  Could not create symlink: </span><span class="si">{</span><span class="n">exc</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-                <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  Run manually: ln -s </span><span class="si">{</span><span class="n">root</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">symlink_target</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-        <span class="nb">print</span><span class="p">()</span>
+                <span class="n">console</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="sa">f</span><span class="s2">"  Could not create symlink: </span><span class="si">{</span><span class="n">exc</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+                <span class="n">console</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="sa">f</span><span class="s2">"  Run manually: ln -s </span><span class="si">{</span><span class="n">root</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">symlink_target</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+        <span class="n">console</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">""</span><span class="p">)</span>
 
     <span class="c1"># Print remaining steps</span>
-    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;  Next steps:&quot;</span><span class="p">)</span>
-    <span class="nb">print</span><span class="p">()</span>
-    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;  1. Push your app to a Gitea repository&quot;</span><span class="p">)</span>
-    <span class="nb">print</span><span class="p">()</span>
-    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;  2. Dev Install from the workspace:&quot;</span><span class="p">)</span>
-    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;     Hub → Explore → click &#39;Dev Install&#39; on your repo&quot;</span><span class="p">)</span>
-    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;     Your app appears as a workspace tab immediately.&quot;</span><span class="p">)</span>
-    <span class="nb">print</span><span class="p">()</span>
-    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  3. Open http://127.0.0.1:</span><span class="si">{</span><span class="n">port</span><span class="si">}</span><span class="s2"> and switch to your app tab&quot;</span><span class="p">)</span>
-    <span class="nb">print</span><span class="p">()</span>
-    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;  Tip: Run &#39;scitex-hub app validate .&#39; to check your app.&quot;</span><span class="p">)</span>
-    <span class="nb">print</span><span class="p">()</span>
-    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;  Note: Do NOT edit registry.py or INSTALLED_APPS —&quot;</span><span class="p">)</span>
-    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;  those are for platform-builtin modules only.&quot;</span><span class="p">)</span></div>
+    <span class="n">console</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">"  Next steps:"</span><span class="p">)</span>
+    <span class="n">console</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">""</span><span class="p">)</span>
+    <span class="n">console</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">"  1. Push your app to a Gitea repository"</span><span class="p">)</span>
+    <span class="n">console</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">""</span><span class="p">)</span>
+    <span class="n">console</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">"  2. Dev Install from the workspace:"</span><span class="p">)</span>
+    <span class="n">console</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">"     Hub → Explore → click 'Dev Install' on your repo"</span><span class="p">)</span>
+    <span class="n">console</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">"     Your app appears as a workspace tab immediately."</span><span class="p">)</span>
+    <span class="n">console</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">""</span><span class="p">)</span>
+    <span class="n">console</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">"  3. Open http://127.0.0.1:</span><span class="si">{</span><span class="n">port</span><span class="si">}</span><span class="s2"> and switch to your app tab"</span><span class="p">)</span>
+    <span class="n">console</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">""</span><span class="p">)</span>
+    <span class="n">console</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">"  Tip: Run 'scitex-hub app validate .' to check your app."</span><span class="p">)</span>
+    <span class="n">console</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">""</span><span class="p">)</span>
+    <span class="n">console</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">"  Note: Do NOT edit registry.py or INSTALLED_APPS —"</span><span class="p">)</span>
+    <span class="n">console</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">"  those are for platform-builtin modules only."</span><span class="p">)</span></div>
 
 
 
 <span class="k">def</span><span class="w"> </span><span class="nf">_find_project_root</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="n">Path</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Walk up from cwd to find the scitex-hub project root.&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""Walk up from cwd to find the scitex-hub project root."""</span>
     <span class="n">current</span> <span class="o">=</span> <span class="n">Path</span><span class="o">.</span><span class="n">cwd</span><span class="p">()</span>
     <span class="k">for</span> <span class="n">parent</span> <span class="ow">in</span> <span class="p">[</span><span class="n">current</span><span class="p">,</span> <span class="o">*</span><span class="n">current</span><span class="o">.</span><span class="n">parents</span><span class="p">]:</span>
-        <span class="k">if</span> <span class="p">(</span><span class="n">parent</span> <span class="o">/</span> <span class="s2">&quot;manage.py&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">exists</span><span class="p">()</span> <span class="ow">and</span> <span class="p">(</span><span class="n">parent</span> <span class="o">/</span> <span class="s2">&quot;apps&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">exists</span><span class="p">():</span>
+        <span class="k">if</span> <span class="p">(</span><span class="n">parent</span> <span class="o">/</span> <span class="s2">"manage.py"</span><span class="p">)</span><span class="o">.</span><span class="n">exists</span><span class="p">()</span> <span class="ow">and</span> <span class="p">(</span><span class="n">parent</span> <span class="o">/</span> <span class="s2">"apps"</span><span class="p">)</span><span class="o">.</span><span class="n">exists</span><span class="p">():</span>
             <span class="k">return</span> <span class="n">parent</span>
     <span class="c1"># Check SCITEX_HUB_ROOT env var</span>
-    <span class="n">env_root</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;SCITEX_HUB_ROOT&quot;</span><span class="p">)</span>
+    <span class="n">env_root</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"SCITEX_HUB_ROOT"</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">env_root</span><span class="p">:</span>
         <span class="n">root</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">env_root</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">root</span><span class="o">.</span><span class="n">exists</span><span class="p">():</span>
@@ -308,7 +295,7 @@
   Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
     <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
     provided by <a href="https://readthedocs.org">Read the Docs</a>.
-   
+
 
 </footer>
         </div>
@@ -319,7 +306,7 @@
       jQuery(function () {
           SphinxRtdTheme.Navigation.enable(true);
       });
-  </script> 
+  </script>
 
 </body>
 </html>

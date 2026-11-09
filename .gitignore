@@ -960,3 +960,8 @@ GITIGNORE/
 # here as a durable guard. Remove each line when its module is merged.)
 tests/config/test_agent_container_mount.py
 tests/apps/auth_app/test_email_delivery_check.py
+## Public Sphinx bundle inputs: source links and theme icons ship with the HTML.
+!src/scitex_hub/_sphinx_html/_sources/**/*.rst.txt
+!src/scitex_hub/_sphinx_html/_static/**/*.svg
+!src/scitex_hub/_sphinx_html/_static/**/*.png
+src/scitex_hub/_sphinx_html/.doctrees/

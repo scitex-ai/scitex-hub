@@ -1,0 +1,517 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>scitex_sdk.app.appmaker._validate &mdash; SciTeX Hub v0.22.0a7</title>
+      <link rel="stylesheet" type="text/css" href="../../../../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../../../../_static/css/theme.css?v=9edc463e" />
+      <link rel="stylesheet" type="text/css" href="../../../../_static/copybutton.css?v=76b2166b" />
+
+
+      <script src="../../../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../../../_static/documentation_options.js?v=af24e983"></script>
+      <script src="../../../../_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="../../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
+      <script src="../../../../_static/clipboard.min.js?v=a7894cd8"></script>
+      <script src="../../../../_static/copybutton.js?v=f281be69"></script>
+    <script src="../../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../search.html" />
+</head>
+
+<body class="wy-body-for-nav">
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+
+
+          <a href="../../../../index.html" class="icon icon-home">
+            SciTeX Hub
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../installation.html">Installation</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../../../installation.html#requirements">Requirements</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../installation.html#install-from-pypi">Install from PyPI</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../installation.html#install-from-source">Install from Source</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../installation.html#verify-installation">Verify Installation</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../setup.html">Setup Guide</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../../../setup.html#what-you-get">What You Get</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../setup.html#prerequisites">Prerequisites</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../setup.html#quick-start-development">Quick Start (Development)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../setup.html#step-by-step-development-setup">Step-by-Step Development Setup</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../setup.html#production-setup">Production Setup</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../setup.html#cli-only-install">CLI-Only Install</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../setup.html#configuration-reference">Configuration Reference</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../setup.html#common-commands">Common Commands</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../setup.html#architecture">Architecture</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../setup.html#troubleshooting">Troubleshooting</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../quickstart.html">Quick Start</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../../../quickstart.html#deployment">Deployment</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../quickstart.html#cli-only-install">CLI-Only Install</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../quickstart.html#common-operations">Common Operations</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../cli.html">CLI Reference</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../../../cli.html#discover-commands">Discover commands</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../cli.html#command-groups">Command groups</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../cli.html#source-and-validation">Source and validation</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../sync.html">Three-Way Sync</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../../../sync.html#architecture">Architecture</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../sync.html#commands">Commands</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../sync.html#conflict-handling">Conflict Handling</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../sync.html#state-tracking">State Tracking</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../sync.html#typical-workflows">Typical Workflows</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../sync.html#implementation">Implementation</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../mcp.html">MCP Server</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../../../mcp.html#available-tools">Available Tools</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../mcp.html#setup-for-claude-desktop">Setup for Claude Desktop</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../mcp.html#setup-for-claude-code">Setup for Claude Code</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../mcp.html#environment-source-file-env-src">Environment Source File (<code class="docutils literal notranslate"><span class="pre">ENV_SRC</span></code>)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../mcp.html#cli-commands">CLI Commands</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../app_platform.html">App Platform</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../../../app_platform.html#workspace-layout">Workspace Layout</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../app_platform.html#platform-services">Platform Services</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../../../app_platform.html#datastore">DataStore</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../app_platform.html#filevault">FileVault</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../app_platform.html#jobqueue">JobQueue</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../app_platform.html#scitexbridge">ScitexBridge</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../app_platform.html#externalapi">ExternalAPI</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../app_platform.html#realtimehub">RealtimeHub</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../app_platform.html#frontendkit">FrontendKit</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../app_platform.html#app-registration">App Registration</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../../../app_platform.html#built-in-apps">Built-in Apps</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../app_platform.html#external-pip-installed-apps">External (pip-installed) Apps</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../app_platform.html#context-bootstrap">Context Bootstrap</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../app_platform.html#dev-install-workflow">Dev Install Workflow</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../app_platform.html#app-submission-and-review">App Submission and Review</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../app_platform.html#separation-of-concerns">Separation of Concerns</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../app_platform.html#reference">Reference</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../api/index.html">API Reference</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../../../api/scitex_hub.html">scitex_hub Package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../api/index.html#package-overview">Package Overview</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../../../api/_autosummary/scitex_hub.html">scitex_hub</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../../../api/_autosummary/scitex_hub.html#scitex_hub.get_version"><code class="docutils literal notranslate"><span class="pre">get_version()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../../api/_autosummary/scitex_hub.html#scitex_hub.health_check"><code class="docutils literal notranslate"><span class="pre">health_check()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../../api/_autosummary/scitex_hub.html#scitex_hub.get_context"><code class="docutils literal notranslate"><span class="pre">get_context()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../../api/_autosummary/scitex_hub.html#scitex_hub.eval_js"><code class="docutils literal notranslate"><span class="pre">eval_js()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../../api/_autosummary/scitex_hub.html#scitex_hub.ui_action"><code class="docutils literal notranslate"><span class="pre">ui_action()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../../api/_autosummary/scitex_hub.html#scitex_hub.CloudClient"><code class="docutils literal notranslate"><span class="pre">CloudClient</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../../api/_autosummary/scitex_hub.html#scitex_hub.Environment"><code class="docutils literal notranslate"><span class="pre">Environment</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../../api/_autosummary/scitex_hub.html#scitex_hub.get_environment"><code class="docutils literal notranslate"><span class="pre">get_environment()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../../api/_autosummary/scitex_hub.html#scitex_hub.DockerManager"><code class="docutils literal notranslate"><span class="pre">DockerManager</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../../api/_autosummary/scitex_hub.account.html">scitex_hub.account</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../../api/_autosummary/scitex_hub.appmaker.html">scitex_hub.appmaker</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../../api/_autosummary/scitex_hub.module.html">scitex_hub.module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../../api/_autosummary/scitex_hub.project.html">scitex_hub.project</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../../api/_autosummary/scitex_hub.sdk.html">scitex_hub.sdk</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../../index.html">SciTeX Hub</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">scitex_sdk.app.appmaker._validate</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+
+  <h1>Source code for scitex_sdk.app.appmaker._validate</h1><div class="highlight"><pre>
+<span></span><span class="sd">"""App validator — check structure, security, manifest, templates, and CSS.</span>
+
+<span class="sd">Split from a single 537-line module. This file is the ORCHESTRATOR and the</span>
+<span class="sd">import surface: every name the old module exposed is re-exported here, so</span>
+<span class="sd">`from scitex_sdk.app.appmaker._validate import &lt;anything&gt;` keeps working. The checks</span>
+<span class="sd">themselves live one concern per module:</span>
+
+<span class="sd">    _app_layout    required files, and the manifest reads the others depend on</span>
+<span class="sd">    _security      forbidden patterns in the app's own Python</span>
+<span class="sd">    _manifest      manifest.json schema and content</span>
+<span class="sd">    _frame         workspace frame rules for templates and CSS</span>
+<span class="sd">    _dependencies  the manifest's `dependencies` shape</span>
+<span class="sd">    _prefix        mount-prefix safety for request URLs</span>
+<span class="sd">"""</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">__future__</span><span class="w"> </span><span class="kn">import</span> <span class="n">annotations</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">scitex_logging</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">slogging</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">Path</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">._app_layout</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
+    <span class="n">REQUIRED_FILES</span><span class="p">,</span>
+    <span class="n">_get_app_name</span><span class="p">,</span>
+    <span class="n">_get_frontend_type</span><span class="p">,</span>
+    <span class="n">_is_embedded_package</span><span class="p">,</span>
+    <span class="n">validate_structure</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">._bundle</span><span class="w"> </span><span class="kn">import</span> <span class="n">DEFAULT_MAX_BUNDLE_SIZE</span><span class="p">,</span> <span class="n">validate_bundle_size</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">._css</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
+    <span class="n">APP_CONTAINERS</span><span class="p">,</span>
+    <span class="n">BODY_STATE_CLASSES</span><span class="p">,</span>
+    <span class="n">SHARED_COMPONENT_CLASSES</span><span class="p">,</span>
+    <span class="n">SHELL_INSTANCE_NAMES</span><span class="p">,</span>
+    <span class="n">SHELL_INSTANCE_PREFIXES</span><span class="p">,</span>
+    <span class="n">SHELL_TOKEN_PREFIXES</span><span class="p">,</span>
+    <span class="n">CssScanReport</span><span class="p">,</span>
+    <span class="n">NotAnAppDirectoryError</span><span class="p">,</span>
+    <span class="n">css_files</span><span class="p">,</span>
+    <span class="n">validate_css_canonical</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">._css_finding</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
+    <span class="n">CssFinding</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">._dependencies</span><span class="w"> </span><span class="kn">import</span> <span class="n">validate_dependencies</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">._frame</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
+    <span class="n">FORBIDDEN_BLOCK_OVERRIDES</span><span class="p">,</span>
+    <span class="n">PROTECTED_SELECTORS</span><span class="p">,</span>
+    <span class="n">validate_css</span><span class="p">,</span>
+    <span class="n">validate_css_advisory</span><span class="p">,</span>
+    <span class="n">validate_templates</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">._js</span><span class="w"> </span><span class="kn">import</span> <span class="n">DANGEROUS_JS_PATTERNS</span><span class="p">,</span> <span class="n">JS_SKIP_DIRS</span><span class="p">,</span> <span class="n">validate_js</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">._manifest</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
+    <span class="n">GROUP_FOUNDATION</span><span class="p">,</span>
+    <span class="n">GROUP_PUBLICATION</span><span class="p">,</span>
+    <span class="n">GROUP_WORK</span><span class="p">,</span>
+    <span class="n">MANIFEST_REQUIRED_KEYS</span><span class="p">,</span>
+    <span class="n">VALID_GROUPS</span><span class="p">,</span>
+    <span class="n">normalize_group</span><span class="p">,</span>
+    <span class="n">validate_manifest</span><span class="p">,</span>
+    <span class="n">validate_manifest_advisory</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">._prefix</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
+    <span class="n">MOUNT_IDENTIFIERS</span><span class="p">,</span>
+    <span class="n">PLATFORM_ROUTE_PREFIXES</span><span class="p">,</span>
+    <span class="n">PREFIX_INFERRED_BASE</span><span class="p">,</span>
+    <span class="n">PREFIX_REQUEST_LITERAL</span><span class="p">,</span>
+    <span class="n">PREFIX_SCAN_SUFFIXES</span><span class="p">,</span>
+    <span class="n">PREFIX_SKIP_DIRS</span><span class="p">,</span>
+    <span class="n">PREFIX_URL_BINDING</span><span class="p">,</span>
+    <span class="n">_prefix_finding_class</span><span class="p">,</span>
+    <span class="n">validate_prefix_safety</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">._privileges</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
+    <span class="n">VALID_API_SCOPES</span><span class="p">,</span>
+    <span class="n">VALID_FILESYSTEM_SCOPES</span><span class="p">,</span>
+    <span class="n">VALID_NETWORK_SCOPES</span><span class="p">,</span>
+    <span class="n">VALID_PRIVILEGE_TYPES</span><span class="p">,</span>
+    <span class="n">validate_privileges</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">._security</span><span class="w"> </span><span class="kn">import</span> <span class="n">FORBIDDEN_PATTERNS</span><span class="p">,</span> <span class="n">validate_security</span>
+
+<span class="n">log</span> <span class="o">=</span> <span class="n">slogging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
+
+<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="s2">"APP_CONTAINERS"</span><span class="p">,</span>
+    <span class="s2">"BODY_STATE_CLASSES"</span><span class="p">,</span>
+    <span class="s2">"CssFinding"</span><span class="p">,</span>
+    <span class="s2">"CssScanReport"</span><span class="p">,</span>
+    <span class="s2">"DANGEROUS_JS_PATTERNS"</span><span class="p">,</span>
+    <span class="s2">"DEFAULT_MAX_BUNDLE_SIZE"</span><span class="p">,</span>
+    <span class="s2">"FORBIDDEN_BLOCK_OVERRIDES"</span><span class="p">,</span>
+    <span class="s2">"FORBIDDEN_PATTERNS"</span><span class="p">,</span>
+    <span class="s2">"GROUP_FOUNDATION"</span><span class="p">,</span>
+    <span class="s2">"GROUP_PUBLICATION"</span><span class="p">,</span>
+    <span class="s2">"GROUP_WORK"</span><span class="p">,</span>
+    <span class="s2">"JS_SKIP_DIRS"</span><span class="p">,</span>
+    <span class="s2">"MANIFEST_REQUIRED_KEYS"</span><span class="p">,</span>
+    <span class="s2">"MOUNT_IDENTIFIERS"</span><span class="p">,</span>
+    <span class="s2">"PLATFORM_ROUTE_PREFIXES"</span><span class="p">,</span>
+    <span class="s2">"PREFIX_INFERRED_BASE"</span><span class="p">,</span>
+    <span class="s2">"PREFIX_REQUEST_LITERAL"</span><span class="p">,</span>
+    <span class="s2">"PREFIX_SCAN_SUFFIXES"</span><span class="p">,</span>
+    <span class="s2">"PREFIX_SKIP_DIRS"</span><span class="p">,</span>
+    <span class="s2">"PREFIX_URL_BINDING"</span><span class="p">,</span>
+    <span class="s2">"PROTECTED_SELECTORS"</span><span class="p">,</span>
+    <span class="s2">"REQUIRED_FILES"</span><span class="p">,</span>
+    <span class="s2">"SHARED_COMPONENT_CLASSES"</span><span class="p">,</span>
+    <span class="s2">"SHELL_INSTANCE_NAMES"</span><span class="p">,</span>
+    <span class="s2">"SHELL_INSTANCE_PREFIXES"</span><span class="p">,</span>
+    <span class="s2">"NotAnAppDirectoryError"</span><span class="p">,</span>
+    <span class="s2">"SHELL_TOKEN_PREFIXES"</span><span class="p">,</span>
+    <span class="s2">"VALID_API_SCOPES"</span><span class="p">,</span>
+    <span class="s2">"VALID_FILESYSTEM_SCOPES"</span><span class="p">,</span>
+    <span class="s2">"VALID_GROUPS"</span><span class="p">,</span>
+    <span class="s2">"VALID_NETWORK_SCOPES"</span><span class="p">,</span>
+    <span class="s2">"VALID_PRIVILEGE_TYPES"</span><span class="p">,</span>
+    <span class="s2">"css_files"</span><span class="p">,</span>
+    <span class="s2">"normalize_group"</span><span class="p">,</span>
+    <span class="s2">"validate"</span><span class="p">,</span>
+    <span class="s2">"validate_bundle_size"</span><span class="p">,</span>
+    <span class="s2">"validate_css"</span><span class="p">,</span>
+    <span class="s2">"validate_css_advisory"</span><span class="p">,</span>
+    <span class="s2">"validate_css_canonical"</span><span class="p">,</span>
+    <span class="s2">"validate_dependencies"</span><span class="p">,</span>
+    <span class="s2">"validate_js"</span><span class="p">,</span>
+    <span class="s2">"validate_manifest"</span><span class="p">,</span>
+    <span class="s2">"validate_manifest_advisory"</span><span class="p">,</span>
+    <span class="s2">"validate_prefix_safety"</span><span class="p">,</span>
+    <span class="s2">"validate_privileges"</span><span class="p">,</span>
+    <span class="s2">"validate_security"</span><span class="p">,</span>
+    <span class="s2">"validate_structure"</span><span class="p">,</span>
+    <span class="s2">"validate_templates"</span><span class="p">,</span>
+    <span class="s2">"validate_with_warnings"</span><span class="p">,</span>
+<span class="p">]</span>
+
+
+<div class="viewcode-block" id="validate">
+<a class="viewcode-back" href="../../../../api/_autosummary/scitex_hub.appmaker.html#scitex_hub.appmaker.validate">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">validate</span><span class="p">(</span>
+    <span class="n">app_dir</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="n">Path</span><span class="p">,</span>
+    <span class="o">*</span><span class="p">,</span>
+    <span class="n">check_prefix_safety</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+    <span class="n">check_js_safety</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+    <span class="n">check_bundle_size</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+    <span class="n">check_privileges</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+    <span class="n">check_css_canonical</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">"""Run all validations on a local app directory.</span>
+
+<span class="sd">    Returns list of error strings (empty = valid). Everything returned here is a</span>
+<span class="sd">    FAILURE; advisory findings come back separately from</span>
+<span class="sd">    validate_with_warnings().</span>
+
+<span class="sd">    `check_prefix_safety` defaults to True as of 2026-09-05; the rest still</span>
+<span class="sd">    default to False. A caller that names no keyword therefore gets the prefix</span>
+<span class="sd">    rule, which is a BEHAVIOUR CHANGE for every existing call site.</span>
+<span class="sd">    """</span>
+    <span class="n">errors</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">validate_with_warnings</span><span class="p">(</span>
+        <span class="n">app_dir</span><span class="p">,</span>
+        <span class="n">check_prefix_safety</span><span class="o">=</span><span class="n">check_prefix_safety</span><span class="p">,</span>
+        <span class="n">check_js_safety</span><span class="o">=</span><span class="n">check_js_safety</span><span class="p">,</span>
+        <span class="n">check_bundle_size</span><span class="o">=</span><span class="n">check_bundle_size</span><span class="p">,</span>
+        <span class="n">check_privileges</span><span class="o">=</span><span class="n">check_privileges</span><span class="p">,</span>
+        <span class="n">check_css_canonical</span><span class="o">=</span><span class="n">check_css_canonical</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="k">return</span> <span class="n">errors</span></div>
+
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">validate_with_warnings</span><span class="p">(</span>
+    <span class="n">app_dir</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="n">Path</span><span class="p">,</span>
+    <span class="o">*</span><span class="p">,</span>
+    <span class="n">check_prefix_safety</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+    <span class="n">check_js_safety</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+    <span class="n">check_bundle_size</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+    <span class="n">check_privileges</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+    <span class="n">check_css_canonical</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]]:</span>
+<span class="w">    </span><span class="sd">"""Run all validations, separating FAILURES from ADVICE.</span>
+
+<span class="sd">    Returns `(errors, warnings)`. Errors fail a build; warnings are reported and</span>
+<span class="sd">    change nothing.</span>
+
+<span class="sd">    WHY THE TIER EXISTS. `validate()` returned one flat list and its only</span>
+<span class="sd">    consumer does `raise SystemExit(1)` on any entry, so "should" and "must"</span>
+<span class="sd">    were indistinguishable to the thing acting on them. Two findings were worded</span>
+<span class="sd">    as advice and enforced as failures, and one of them was UNCLEARABLE: an app</span>
+<span class="sd">    could not satisfy it without introducing the collision the rule's own</span>
+<span class="sd">    remediation would cause. A rule nobody can clear does not raise quality — it</span>
+<span class="sd">    teaches people to stop running the validator.</span>
+
+<span class="sd">    NOT an argument for softening the other error-tier findings. Their wording</span>
+<span class="sd">    matches their enforcement, including the forbidden `version` key, whose</span>
+<span class="sd">    message cites the incident where every hub app tile showed a wrong version.</span>
+
+<span class="sd">    THE `check_*` DEFAULT IS THE ARMING SWITCH — flipping one to True is the</span>
+<span class="sd">    whole of "arm that rule". They are named keywords rather than one blanket</span>
+<span class="sd">    flag so each stays greppable and individually revisitable; each rule's own</span>
+<span class="sd">    docstring says whether it is armed, and if not, what has to be true first.</span>
+
+<span class="sd">        check_prefix_safety   request URLs that break under a mount   ARMED</span>
+<span class="sd">        check_js_safety       dangerous patterns in the app's JS      not armed</span>
+<span class="sd">        check_bundle_size     total shipped size against a threshold  not armed</span>
+<span class="sd">        check_privileges      shape of the privilege declaration      not armed</span>
+<span class="sd">        check_css_canonical   the canonical workspace-CSS rule        not armed</span>
+
+<span class="sd">    `check_css_canonical` is the ONE that supersedes rather than adds: it is</span>
+<span class="sd">    the same spec `validate_css` enforces, measured properly. It is off, and it</span>
+<span class="sd">    does not turn `validate_css` off, so today the two coexist and only the old</span>
+<span class="sd">    one runs. That is deliberate and temporary — arming it means replacing the</span>
+<span class="sd">    call above, not adding to it, and the replacement waits on scitex-hub</span>
+<span class="sd">    re-measuring their five findings against THIS implementation. Whoever arms</span>
+<span class="sd">    it must delete the `validate_css` call in the same change; leaving both</span>
+<span class="sd">    would report one CSS defect twice under two wordings.</span>
+
+<span class="sd">    This paragraph read "EVERY `check_*` KEYWORD IS OFF BY DEFAULT" until the</span>
+<span class="sd">    day one was not. It is listed per-rule now because a sentence quantified</span>
+<span class="sd">    over all of them goes false the first time any single one is armed, and a</span>
+<span class="sd">    docstring that is false about the arming state of a GATE is worse than no</span>
+<span class="sd">    docstring — the reader has no reason to doubt it.</span>
+
+<span class="sd">    The last three were PORTED from `scitex_sdk.app.validator.AppValidator`, where</span>
+<span class="sd">    they worked, were tested, were described to app developers by the shipped</span>
+<span class="sd">    skill doc — and were called by nothing. The CLI read no `.js` file at all.</span>
+<span class="sd">    Bringing them into the live path is additive: none of them has a counterpart</span>
+<span class="sd">    here, so none can contradict a verdict this module already gives.</span>
+<span class="sd">    """</span>
+    <span class="n">errors</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">warnings</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">root</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">app_dir</span><span class="p">)</span>
+    <span class="n">is_embedded</span> <span class="o">=</span> <span class="n">_is_embedded_package</span><span class="p">(</span><span class="n">root</span><span class="p">)</span>
+    <span class="n">frontend_type</span> <span class="o">=</span> <span class="n">_get_frontend_type</span><span class="p">(</span><span class="n">root</span><span class="p">)</span>
+
+    <span class="n">errors</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">validate_structure</span><span class="p">(</span><span class="n">app_dir</span><span class="p">))</span>
+    <span class="n">errors</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">validate_security</span><span class="p">(</span><span class="n">app_dir</span><span class="p">))</span>
+    <span class="n">errors</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">validate_manifest</span><span class="p">(</span><span class="n">app_dir</span><span class="p">))</span>
+    <span class="n">warnings</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">validate_manifest_advisory</span><span class="p">(</span><span class="n">app_dir</span><span class="p">))</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">is_embedded</span> <span class="ow">or</span> <span class="p">(</span><span class="n">frontend_type</span> <span class="ow">and</span> <span class="n">frontend_type</span> <span class="o">!=</span> <span class="s2">"react"</span><span class="p">):</span>
+        <span class="c1"># SKIP ONLY COMPILED-REACT FRONTENDS, which is what the old comment here</span>
+        <span class="c1"># actually claimed ("embedded packages use compiled React builds") — but</span>
+        <span class="c1"># the condition tested `not is_embedded`, and _is_embedded_package()</span>
+        <span class="c1"># returns True from the DIRECTORY NAME alone (any `_`-prefixed dir).</span>
+        <span class="c1">#</span>
+        <span class="c1"># So every app living in `_django/` had template and CSS validation</span>
+        <span class="c1"># unconditionally off, compiled React or not. scitex-scholar found this</span>
+        <span class="c1"># in their own package: manifest declares frontend_type "vanilla" with</span>
+        <span class="c1"># no React build anywhere, hand-written Django templates and CSS — i.e.</span>
+        <span class="c1"># exactly what these two validators check — and neither ever ran. Two</span>
+        <span class="c1"># checks listed, invoked, and structurally unreachable.</span>
+        <span class="c1">#</span>
+        <span class="c1"># The file already knew how to ask: the index_partial check below reads</span>
+        <span class="c1"># frontend_type. This pair did not.</span>
+        <span class="c1">#</span>
+        <span class="c1"># The predicate is deliberately NOT the simpler `frontend_type !=</span>
+        <span class="c1"># "react"`. frontend_type is inconsistent in the wild — "html",</span>
+        <span class="c1"># "django", "vanilla" all appear, and the default differs by module</span>
+        <span class="c1"># ("" here, "django" in _django.py) — so only "react" reliably means</span>
+        <span class="c1"># compiled. Written this way the change is STRICTLY ADDITIVE:</span>
+        <span class="c1">#   non-embedded, any type   -&gt; runs (unchanged)</span>
+        <span class="c1">#   embedded + "react"       -&gt; skipped (unchanged)</span>
+        <span class="c1">#   embedded + declared other-&gt; RUNS (the fix)</span>
+        <span class="c1">#   embedded + undeclared    -&gt; skipped (unchanged; an undeclared app</span>
+        <span class="c1">#                               may well be a React build, and guessing</span>
+        <span class="c1">#                               would invent findings on compiled output)</span>
+        <span class="c1"># No app loses a check it has today.</span>
+        <span class="n">errors</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">validate_templates</span><span class="p">(</span><span class="n">app_dir</span><span class="p">))</span>
+        <span class="n">errors</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">validate_css</span><span class="p">(</span><span class="n">app_dir</span><span class="p">))</span>
+        <span class="c1"># Gated identically to validate_css above, deliberately: an app whose</span>
+        <span class="c1"># CSS is not being checked must not start receiving CSS advice about</span>
+        <span class="c1"># files nothing else read.</span>
+        <span class="n">warnings</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">validate_css_advisory</span><span class="p">(</span><span class="n">app_dir</span><span class="p">))</span>
+    <span class="n">errors</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">validate_dependencies</span><span class="p">(</span><span class="n">app_dir</span><span class="p">))</span>
+    <span class="k">if</span> <span class="n">check_prefix_safety</span><span class="p">:</span>
+        <span class="c1"># DELIBERATELY OUTSIDE the `if not is_embedded` branch above. Every app</span>
+        <span class="c1"># carrying this defect today (scholar, writer, figrecipe) IS an embedded</span>
+        <span class="c1"># `_django` package, so gating this on `not is_embedded` would skip</span>
+        <span class="c1"># precisely the population it exists to measure — and pass, forever.</span>
+        <span class="c1"># GUARDED because validate_prefix_safety now REFUSES a path that is not</span>
+        <span class="c1"># there rather than answering "clean" about it. That refusal is right</span>
+        <span class="c1"># for a direct caller and wrong here: validate() already reports a</span>
+        <span class="c1"># missing app directory as findings, and a gate reading those findings</span>
+        <span class="c1"># must not start receiving an exception instead. The refusal is for the</span>
+        <span class="c1"># peer running the rule against their own tree by hand; the findings</span>
+        <span class="c1"># list is for the publication path.</span>
+        <span class="k">if</span> <span class="n">Path</span><span class="p">(</span><span class="n">app_dir</span><span class="p">)</span><span class="o">.</span><span class="n">is_dir</span><span class="p">():</span>
+            <span class="n">errors</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">validate_prefix_safety</span><span class="p">(</span><span class="n">app_dir</span><span class="p">))</span>
+    <span class="c1"># The three ported checks sit OUTSIDE the embedded/react gate above, like</span>
+    <span class="c1"># the prefix rule and for the same reason: every app that would exercise</span>
+    <span class="c1"># them today (scholar, writer, figrecipe) is an embedded `_django` package,</span>
+    <span class="c1"># so gating on `not is_embedded` would skip exactly the population they</span>
+    <span class="c1"># exist to measure — and pass, forever.</span>
+    <span class="k">if</span> <span class="n">check_js_safety</span><span class="p">:</span>
+        <span class="n">errors</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">validate_js</span><span class="p">(</span><span class="n">app_dir</span><span class="p">))</span>
+    <span class="k">if</span> <span class="n">check_bundle_size</span><span class="p">:</span>
+        <span class="n">errors</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">validate_bundle_size</span><span class="p">(</span><span class="n">app_dir</span><span class="p">))</span>
+    <span class="k">if</span> <span class="n">check_privileges</span><span class="p">:</span>
+        <span class="n">errors</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">validate_privileges</span><span class="p">(</span><span class="n">app_dir</span><span class="p">))</span>
+    <span class="k">if</span> <span class="n">check_css_canonical</span><span class="p">:</span>
+        <span class="c1"># GUARDED like the prefix rule, and for the same reason: `css_files()`</span>
+        <span class="c1"># REFUSES a path that is not there rather than answering "clean" about</span>
+        <span class="c1"># it, which is right for a peer running the rule by hand and wrong for</span>
+        <span class="c1"># a gate that already reports a missing app directory as findings.</span>
+        <span class="c1">#</span>
+        <span class="c1"># The DENOMINATOR is dropped here on purpose. `validate()` returns a</span>
+        <span class="c1"># flat list of error strings and cannot carry `files_scanned` or</span>
+        <span class="c1"># `not_checked` without changing that contract — so a caller who needs</span>
+        <span class="c1"># to know WHAT WAS SCANNED must call `validate_css_canonical()` and read</span>
+        <span class="c1"># the report. This is exactly the loss that made "0 findings" mean two</span>
+        <span class="c1"># different things twice in one evening, and it is accepted here only</span>
+        <span class="c1"># because this path's zero is not published as a measurement.</span>
+        <span class="k">if</span> <span class="n">Path</span><span class="p">(</span><span class="n">app_dir</span><span class="p">)</span><span class="o">.</span><span class="n">is_dir</span><span class="p">():</span>
+            <span class="n">errors</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">validate_css_canonical</span><span class="p">(</span><span class="n">app_dir</span><span class="p">)</span><span class="o">.</span><span class="n">findings</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">errors</span><span class="p">,</span> <span class="n">warnings</span>
+
+
+<span class="c1"># EOF</span>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025-2026, SciTeX Team.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+</body>
+</html>

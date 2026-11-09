@@ -5,32 +5,32 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>scitex_hub._api &mdash; SciTeX Hub v0.18.1</title>
+  <title>scitex_hub._api &mdash; SciTeX Hub v0.22.0a7</title>
       <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=b86133f3" />
       <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css?v=9edc463e" />
       <link rel="stylesheet" type="text/css" href="../../_static/copybutton.css?v=76b2166b" />
 
-  
+
       <script src="../../_static/jquery.js?v=5d32c60e"></script>
       <script src="../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-      <script src="../../_static/documentation_options.js?v=1e56ff10"></script>
+      <script src="../../_static/documentation_options.js?v=af24e983"></script>
       <script src="../../_static/doctools.js?v=fd6eb6e6"></script>
       <script src="../../_static/sphinx_highlight.js?v=6ffebe34"></script>
       <script src="../../_static/clipboard.min.js?v=a7894cd8"></script>
       <script src="../../_static/copybutton.js?v=f281be69"></script>
     <script src="../../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../../genindex.html" />
-    <link rel="search" title="Search" href="../../search.html" /> 
+    <link rel="search" title="Search" href="../../search.html" />
 </head>
 
-<body class="wy-body-for-nav"> 
+<body class="wy-body-for-nav">
   <div class="wy-grid-for-nav">
     <nav data-toggle="wy-nav-shift" class="wy-nav-side">
       <div class="wy-side-scroll">
         <div class="wy-side-nav-search" >
 
-          
-          
+
+
           <a href="../../index.html" class="icon icon-home">
             SciTeX Hub
           </a>
@@ -71,15 +71,9 @@
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="../../cli.html">CLI Reference</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="../../cli.html#global-options">Global Options</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../cli.html#project-management">Project Management</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../cli.html#three-way-sync">Three-Way Sync</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../cli.html#git-hosting-gitea">Git Hosting (Gitea)</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../cli.html#app-management">App Management</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../cli.html#cloud-sdk">Cloud SDK</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../cli.html#infrastructure">Infrastructure</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../cli.html#mcp-server">MCP Server</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../cli.html#utilities">Utilities</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../cli.html#discover-commands">Discover commands</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../cli.html#command-groups">Command groups</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../cli.html#source-and-validation">Source and validation</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="../../sync.html">Three-Way Sync</a><ul>
@@ -121,17 +115,6 @@
 <li class="toctree-l2"><a class="reference internal" href="../../app_platform.html#app-submission-and-review">App Submission and Review</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../app_platform.html#separation-of-concerns">Separation of Concerns</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../app_platform.html#reference">Reference</a></li>
-</ul>
-</li>
-<li class="toctree-l1"><a class="reference internal" href="../../visitor_pool_security.html">Visitor Pool Security</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="../../visitor_pool_security.html#background-the-fix">Background: the fix</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../visitor_pool_security.html#layer-1-reset-workspace-after">Layer 1 — <code class="docutils literal notranslate"><span class="pre">&#64;reset_workspace_after</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../visitor_pool_security.html#layer-2-ensure-clean-workspace">Layer 2 — <code class="docutils literal notranslate"><span class="pre">&#64;ensure_clean_workspace</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../visitor_pool_security.html#layer-3-reset-visitor-pool-on-container-restart">Layer 3 — <code class="docutils literal notranslate"><span class="pre">reset_visitor_pool</span></code> on container restart</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../visitor_pool_security.html#what-gets-cleared">What gets cleared</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../visitor_pool_security.html#pool-lifecycle-diagram">Pool lifecycle diagram</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../visitor_pool_security.html#operations">Operations</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../visitor_pool_security.html#further-reading">Further reading</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="../../api/index.html">API Reference</a><ul>
@@ -184,20 +167,20 @@
 </div>
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
-             
+
   <h1>Source code for scitex_hub._api</h1><div class="highlight"><pre>
 <span></span><span class="ch">#!/usr/bin/env python3</span>
 <span class="c1"># -*- coding: utf-8 -*-</span>
 <span class="c1"># File: src/scitex_hub/api.py</span>
-<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">"""</span>
 <span class="sd">SciTeX Hub Python API - Programmatic access to cloud operations.</span>
 
 <span class="sd">Usage:</span>
 <span class="sd">    &gt;&gt;&gt; import scitex_hub</span>
 <span class="sd">    &gt;&gt;&gt; client = scitex_hub.CloudClient()</span>
-<span class="sd">    &gt;&gt;&gt; client.scholar_search(&quot;neural networks&quot;)</span>
-<span class="sd">    &gt;&gt;&gt; client.enrich_bibtex(&quot;@article{...}&quot;)</span>
-<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    &gt;&gt;&gt; client.scholar_search("neural networks")</span>
+<span class="sd">    &gt;&gt;&gt; client.enrich_bibtex("@article{...}")</span>
+<span class="sd">"""</span>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">__future__</span><span class="w"> </span><span class="kn">import</span> <span class="n">annotations</span>
 
@@ -210,7 +193,7 @@
 <div class="viewcode-block" id="CloudClient">
 <a class="viewcode-back" href="../../api/_autosummary/scitex_hub.html#scitex_hub.CloudClient">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">CloudClient</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Python client for SciTeX Hub API.</span>
+<span class="w">    </span><span class="sd">"""Python client for SciTeX Hub API.</span>
 
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
@@ -222,9 +205,9 @@
 <span class="sd">    Examples</span>
 <span class="sd">    --------</span>
 <span class="sd">    &gt;&gt;&gt; client = CloudClient()</span>
-<span class="sd">    &gt;&gt;&gt; result = client.scholar_search(&quot;machine learning&quot;)</span>
-<span class="sd">    &gt;&gt;&gt; print(result[&quot;papers&quot;])</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    &gt;&gt;&gt; result = client.scholar_search("machine learning")</span>
+<span class="sd">    &gt;&gt;&gt; print(result["papers"])</span>
+<span class="sd">    """</span>
 
 <div class="viewcode-block" id="CloudClient.__init__">
 <a class="viewcode-back" href="../../api/_autosummary/scitex_hub.html#scitex_hub.CloudClient.__init__">[docs]</a>
@@ -233,9 +216,9 @@
         <span class="n">api_key</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">base_url</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="p">):</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">api_key</span> <span class="o">=</span> <span class="n">api_key</span> <span class="ow">or</span> <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;SCITEX_HUB_API_KEY&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">api_key</span> <span class="o">=</span> <span class="n">api_key</span> <span class="ow">or</span> <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"SCITEX_HUB_API_KEY"</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">base_url</span> <span class="o">=</span> <span class="p">(</span>
-            <span class="n">base_url</span> <span class="ow">or</span> <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;SCITEX_HUB_URL&quot;</span><span class="p">)</span> <span class="ow">or</span> <span class="s2">&quot;https://scitex.ai&quot;</span>
+            <span class="n">base_url</span> <span class="ow">or</span> <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"SCITEX_HUB_URL"</span><span class="p">)</span> <span class="ow">or</span> <span class="s2">"https://scitex.ai"</span>
         <span class="p">)</span></div>
 
 
@@ -249,22 +232,22 @@
         <span class="n">files</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">dict</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">auth_required</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Make HTTP request to SciTeX Hub API.&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""Make HTTP request to SciTeX Hub API."""</span>
         <span class="kn">import</span><span class="w"> </span><span class="nn">requests</span>
 
-        <span class="n">url</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">base_url</span><span class="si">}{</span><span class="n">endpoint</span><span class="si">}</span><span class="s2">&quot;</span>
-        <span class="n">headers</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;X-Requested-With&quot;</span><span class="p">:</span> <span class="s2">&quot;XMLHttpRequest&quot;</span><span class="p">}</span>
+        <span class="n">url</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">base_url</span><span class="si">}{</span><span class="n">endpoint</span><span class="si">}</span><span class="s2">"</span>
+        <span class="n">headers</span> <span class="o">=</span> <span class="p">{</span><span class="s2">"X-Requested-With"</span><span class="p">:</span> <span class="s2">"XMLHttpRequest"</span><span class="p">}</span>
 
         <span class="k">if</span> <span class="n">auth_required</span><span class="p">:</span>
             <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">api_key</span><span class="p">:</span>
                 <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
-                    <span class="s2">&quot;API key required. Set SCITEX_HUB_API_KEY or pass api_key.&quot;</span>
+                    <span class="s2">"API key required. Set SCITEX_HUB_API_KEY or pass api_key."</span>
                 <span class="p">)</span>
-            <span class="n">headers</span><span class="p">[</span><span class="s2">&quot;Authorization&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;Bearer </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">api_key</span><span class="si">}</span><span class="s2">&quot;</span>
+            <span class="n">headers</span><span class="p">[</span><span class="s2">"Authorization"</span><span class="p">]</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">"Bearer </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">api_key</span><span class="si">}</span><span class="s2">"</span>
 
-        <span class="k">if</span> <span class="n">method</span><span class="o">.</span><span class="n">upper</span><span class="p">()</span> <span class="o">==</span> <span class="s2">&quot;GET&quot;</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">method</span><span class="o">.</span><span class="n">upper</span><span class="p">()</span> <span class="o">==</span> <span class="s2">"GET"</span><span class="p">:</span>
             <span class="n">response</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">url</span><span class="p">,</span> <span class="n">headers</span><span class="o">=</span><span class="n">headers</span><span class="p">,</span> <span class="n">params</span><span class="o">=</span><span class="n">data</span><span class="p">,</span> <span class="n">timeout</span><span class="o">=</span><span class="mi">60</span><span class="p">)</span>
-        <span class="k">elif</span> <span class="n">method</span><span class="o">.</span><span class="n">upper</span><span class="p">()</span> <span class="o">==</span> <span class="s2">&quot;POST&quot;</span><span class="p">:</span>
+        <span class="k">elif</span> <span class="n">method</span><span class="o">.</span><span class="n">upper</span><span class="p">()</span> <span class="o">==</span> <span class="s2">"POST"</span><span class="p">:</span>
             <span class="k">if</span> <span class="n">files</span><span class="p">:</span>
                 <span class="n">response</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">post</span><span class="p">(</span>
                     <span class="n">url</span><span class="p">,</span> <span class="n">headers</span><span class="o">=</span><span class="n">headers</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="n">data</span><span class="p">,</span> <span class="n">files</span><span class="o">=</span><span class="n">files</span><span class="p">,</span> <span class="n">timeout</span><span class="o">=</span><span class="mi">120</span>
@@ -272,20 +255,20 @@
             <span class="k">else</span><span class="p">:</span>
                 <span class="n">response</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">post</span><span class="p">(</span><span class="n">url</span><span class="p">,</span> <span class="n">headers</span><span class="o">=</span><span class="n">headers</span><span class="p">,</span> <span class="n">json</span><span class="o">=</span><span class="n">data</span><span class="p">,</span> <span class="n">timeout</span><span class="o">=</span><span class="mi">60</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Unknown method: </span><span class="si">{</span><span class="n">method</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Unknown method: </span><span class="si">{</span><span class="n">method</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
 
         <span class="n">response</span><span class="o">.</span><span class="n">raise_for_status</span><span class="p">()</span>
 
         <span class="k">try</span><span class="p">:</span>
             <span class="k">return</span> <span class="n">response</span><span class="o">.</span><span class="n">json</span><span class="p">()</span>
         <span class="k">except</span> <span class="n">json</span><span class="o">.</span><span class="n">JSONDecodeError</span><span class="p">:</span>
-            <span class="k">return</span> <span class="p">{</span><span class="s2">&quot;content&quot;</span><span class="p">:</span> <span class="n">response</span><span class="o">.</span><span class="n">text</span><span class="p">}</span></div>
+            <span class="k">return</span> <span class="p">{</span><span class="s2">"content"</span><span class="p">:</span> <span class="n">response</span><span class="o">.</span><span class="n">text</span><span class="p">}</span></div>
 
 
 <div class="viewcode-block" id="CloudClient.scholar_search">
 <a class="viewcode-back" href="../../api/_autosummary/scitex_hub.html#scitex_hub.CloudClient.scholar_search">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">scholar_search</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">query</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">limit</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">10</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Search papers via SciTeX Hub (public, no auth required).</span>
+<span class="w">        </span><span class="sd">"""Search papers via SciTeX Hub (public, no auth required).</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
@@ -298,11 +281,11 @@
 <span class="sd">        -------</span>
 <span class="sd">        dict</span>
 <span class="sd">            Search results with papers list.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_request</span><span class="p">(</span>
-            <span class="s2">&quot;GET&quot;</span><span class="p">,</span>
-            <span class="s2">&quot;/api/v1/scholar/search/&quot;</span><span class="p">,</span>
-            <span class="n">data</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;q&quot;</span><span class="p">:</span> <span class="n">query</span><span class="p">,</span> <span class="s2">&quot;limit&quot;</span><span class="p">:</span> <span class="n">limit</span><span class="p">},</span>
+            <span class="s2">"GET"</span><span class="p">,</span>
+            <span class="s2">"/api/v1/scholar/search/"</span><span class="p">,</span>
+            <span class="n">data</span><span class="o">=</span><span class="p">{</span><span class="s2">"q"</span><span class="p">:</span> <span class="n">query</span><span class="p">,</span> <span class="s2">"limit"</span><span class="p">:</span> <span class="n">limit</span><span class="p">},</span>
             <span class="n">auth_required</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
         <span class="p">)</span></div>
 
@@ -310,7 +293,7 @@
 <div class="viewcode-block" id="CloudClient.crossref_search">
 <a class="viewcode-back" href="../../api/_autosummary/scitex_hub.html#scitex_hub.CloudClient.crossref_search">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">crossref_search</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">query</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">rows</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">10</span><span class="p">,</span> <span class="n">offset</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Search CrossRef database via cloud proxy.</span>
+<span class="w">        </span><span class="sd">"""Search CrossRef database via cloud proxy.</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
@@ -325,18 +308,18 @@
 <span class="sd">        -------</span>
 <span class="sd">        dict</span>
 <span class="sd">            CrossRef search results.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_request</span><span class="p">(</span>
-            <span class="s2">&quot;GET&quot;</span><span class="p">,</span>
-            <span class="s2">&quot;/scholar/api/crossref/search/&quot;</span><span class="p">,</span>
-            <span class="n">data</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;query&quot;</span><span class="p">:</span> <span class="n">query</span><span class="p">,</span> <span class="s2">&quot;rows&quot;</span><span class="p">:</span> <span class="n">rows</span><span class="p">,</span> <span class="s2">&quot;offset&quot;</span><span class="p">:</span> <span class="n">offset</span><span class="p">},</span>
+            <span class="s2">"GET"</span><span class="p">,</span>
+            <span class="s2">"/scholar/api/crossref/search/"</span><span class="p">,</span>
+            <span class="n">data</span><span class="o">=</span><span class="p">{</span><span class="s2">"query"</span><span class="p">:</span> <span class="n">query</span><span class="p">,</span> <span class="s2">"rows"</span><span class="p">:</span> <span class="n">rows</span><span class="p">,</span> <span class="s2">"offset"</span><span class="p">:</span> <span class="n">offset</span><span class="p">},</span>
         <span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="CloudClient.crossref_by_doi">
 <a class="viewcode-back" href="../../api/_autosummary/scitex_hub.html#scitex_hub.CloudClient.crossref_by_doi">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">crossref_by_doi</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">doi</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Get CrossRef metadata by DOI.</span>
+<span class="w">        </span><span class="sd">"""Get CrossRef metadata by DOI.</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
@@ -347,11 +330,11 @@
 <span class="sd">        -------</span>
 <span class="sd">        dict</span>
 <span class="sd">            CrossRef metadata for the DOI.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_request</span><span class="p">(</span>
-            <span class="s2">&quot;GET&quot;</span><span class="p">,</span>
-            <span class="s2">&quot;/scholar/api/crossref/doi/&quot;</span><span class="p">,</span>
-            <span class="n">data</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;doi&quot;</span><span class="p">:</span> <span class="n">doi</span><span class="p">},</span>
+            <span class="s2">"GET"</span><span class="p">,</span>
+            <span class="s2">"/scholar/api/crossref/doi/"</span><span class="p">,</span>
+            <span class="n">data</span><span class="o">=</span><span class="p">{</span><span class="s2">"doi"</span><span class="p">:</span> <span class="n">doi</span><span class="p">},</span>
         <span class="p">)</span></div>
 
 
@@ -363,7 +346,7 @@
         <span class="n">use_cache</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
         <span class="n">timeout</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">120</span><span class="p">,</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Enrich BibTeX content with metadata.</span>
+<span class="w">        </span><span class="sd">"""Enrich BibTeX content with metadata.</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
@@ -378,22 +361,22 @@
 <span class="sd">        -------</span>
 <span class="sd">        str</span>
 <span class="sd">            Enriched BibTeX content.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="kn">import</span><span class="w"> </span><span class="nn">io</span>
 
         <span class="kn">import</span><span class="w"> </span><span class="nn">requests</span>
 
         <span class="c1"># Upload file</span>
-        <span class="n">files</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;bibtex_file&quot;</span><span class="p">:</span> <span class="p">(</span><span class="s2">&quot;input.bib&quot;</span><span class="p">,</span> <span class="n">io</span><span class="o">.</span><span class="n">StringIO</span><span class="p">(</span><span class="n">bibtex_content</span><span class="p">))}</span>
-        <span class="n">data</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;use_cache&quot;</span><span class="p">:</span> <span class="s2">&quot;true&quot;</span> <span class="k">if</span> <span class="n">use_cache</span> <span class="k">else</span> <span class="s2">&quot;false&quot;</span><span class="p">}</span>
+        <span class="n">files</span> <span class="o">=</span> <span class="p">{</span><span class="s2">"bibtex_file"</span><span class="p">:</span> <span class="p">(</span><span class="s2">"input.bib"</span><span class="p">,</span> <span class="n">io</span><span class="o">.</span><span class="n">StringIO</span><span class="p">(</span><span class="n">bibtex_content</span><span class="p">))}</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="p">{</span><span class="s2">"use_cache"</span><span class="p">:</span> <span class="s2">"true"</span> <span class="k">if</span> <span class="n">use_cache</span> <span class="k">else</span> <span class="s2">"false"</span><span class="p">}</span>
 
         <span class="n">headers</span> <span class="o">=</span> <span class="p">{</span>
-            <span class="s2">&quot;Authorization&quot;</span><span class="p">:</span> <span class="sa">f</span><span class="s2">&quot;Bearer </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">api_key</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span>
-            <span class="s2">&quot;X-Requested-With&quot;</span><span class="p">:</span> <span class="s2">&quot;XMLHttpRequest&quot;</span><span class="p">,</span>
+            <span class="s2">"Authorization"</span><span class="p">:</span> <span class="sa">f</span><span class="s2">"Bearer </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">api_key</span><span class="si">}</span><span class="s2">"</span><span class="p">,</span>
+            <span class="s2">"X-Requested-With"</span><span class="p">:</span> <span class="s2">"XMLHttpRequest"</span><span class="p">,</span>
         <span class="p">}</span>
 
         <span class="n">response</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">post</span><span class="p">(</span>
-            <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">base_url</span><span class="si">}</span><span class="s2">/scholar/bibtex/upload/&quot;</span><span class="p">,</span>
+            <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">base_url</span><span class="si">}</span><span class="s2">/scholar/bibtex/upload/"</span><span class="p">,</span>
             <span class="n">headers</span><span class="o">=</span><span class="n">headers</span><span class="p">,</span>
             <span class="n">files</span><span class="o">=</span><span class="n">files</span><span class="p">,</span>
             <span class="n">data</span><span class="o">=</span><span class="n">data</span><span class="p">,</span>
@@ -402,38 +385,38 @@
         <span class="n">response</span><span class="o">.</span><span class="n">raise_for_status</span><span class="p">()</span>
         <span class="n">result</span> <span class="o">=</span> <span class="n">response</span><span class="o">.</span><span class="n">json</span><span class="p">()</span>
 
-        <span class="k">if</span> <span class="ow">not</span> <span class="n">result</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;success&quot;</span><span class="p">):</span>
-            <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="n">result</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;error&quot;</span><span class="p">,</span> <span class="s2">&quot;Upload failed&quot;</span><span class="p">))</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">result</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"success"</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="n">result</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"error"</span><span class="p">,</span> <span class="s2">"Upload failed"</span><span class="p">))</span>
 
-        <span class="n">job_id</span> <span class="o">=</span> <span class="n">result</span><span class="p">[</span><span class="s2">&quot;job_id&quot;</span><span class="p">]</span>
+        <span class="n">job_id</span> <span class="o">=</span> <span class="n">result</span><span class="p">[</span><span class="s2">"job_id"</span><span class="p">]</span>
 
         <span class="c1"># Poll for completion</span>
         <span class="n">max_attempts</span> <span class="o">=</span> <span class="n">timeout</span> <span class="o">//</span> <span class="mi">2</span>
         <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">max_attempts</span><span class="p">):</span>
             <span class="n">status_response</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">get</span><span class="p">(</span>
-                <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">base_url</span><span class="si">}</span><span class="s2">/scholar/api/bibtex/job/</span><span class="si">{</span><span class="n">job_id</span><span class="si">}</span><span class="s2">/status/&quot;</span><span class="p">,</span>
+                <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">base_url</span><span class="si">}</span><span class="s2">/scholar/api/bibtex/job/</span><span class="si">{</span><span class="n">job_id</span><span class="si">}</span><span class="s2">/status/"</span><span class="p">,</span>
                 <span class="n">headers</span><span class="o">=</span><span class="n">headers</span><span class="p">,</span>
                 <span class="n">timeout</span><span class="o">=</span><span class="mi">30</span><span class="p">,</span>
             <span class="p">)</span>
             <span class="n">status_data</span> <span class="o">=</span> <span class="n">status_response</span><span class="o">.</span><span class="n">json</span><span class="p">()</span>
-            <span class="n">status</span> <span class="o">=</span> <span class="n">status_data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;status&quot;</span><span class="p">)</span>
+            <span class="n">status</span> <span class="o">=</span> <span class="n">status_data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"status"</span><span class="p">)</span>
 
-            <span class="k">if</span> <span class="n">status</span> <span class="o">==</span> <span class="s2">&quot;completed&quot;</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">status</span> <span class="o">==</span> <span class="s2">"completed"</span><span class="p">:</span>
                 <span class="n">download_response</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">get</span><span class="p">(</span>
-                    <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">base_url</span><span class="si">}</span><span class="s2">/scholar/api/bibtex/job/</span><span class="si">{</span><span class="n">job_id</span><span class="si">}</span><span class="s2">/download/&quot;</span><span class="p">,</span>
+                    <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">base_url</span><span class="si">}</span><span class="s2">/scholar/api/bibtex/job/</span><span class="si">{</span><span class="n">job_id</span><span class="si">}</span><span class="s2">/download/"</span><span class="p">,</span>
                     <span class="n">headers</span><span class="o">=</span><span class="n">headers</span><span class="p">,</span>
                     <span class="n">timeout</span><span class="o">=</span><span class="mi">60</span><span class="p">,</span>
                 <span class="p">)</span>
                 <span class="k">if</span> <span class="n">download_response</span><span class="o">.</span><span class="n">status_code</span> <span class="o">==</span> <span class="mi">200</span><span class="p">:</span>
                     <span class="k">return</span> <span class="n">download_response</span><span class="o">.</span><span class="n">text</span>
-                <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s2">&quot;Download failed&quot;</span><span class="p">)</span>
+                <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s2">"Download failed"</span><span class="p">)</span>
 
-            <span class="k">elif</span> <span class="n">status</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">&quot;failed&quot;</span><span class="p">,</span> <span class="s2">&quot;cancelled&quot;</span><span class="p">):</span>
-                <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Job </span><span class="si">{</span><span class="n">status</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="n">status</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">"failed"</span><span class="p">,</span> <span class="s2">"cancelled"</span><span class="p">):</span>
+                <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Job </span><span class="si">{</span><span class="n">status</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
 
             <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>
 
-        <span class="k">raise</span> <span class="ne">TimeoutError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Enrichment timed out after </span><span class="si">{</span><span class="n">timeout</span><span class="si">}</span><span class="s2">s&quot;</span><span class="p">)</span></div>
+        <span class="k">raise</span> <span class="ne">TimeoutError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Enrichment timed out after </span><span class="si">{</span><span class="n">timeout</span><span class="si">}</span><span class="s2">s"</span><span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="CloudClient.writer_compile">
@@ -441,9 +424,9 @@
     <span class="k">def</span><span class="w"> </span><span class="nf">writer_compile</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">project_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
-        <span class="n">document_type</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;manuscript&quot;</span><span class="p">,</span>
+        <span class="n">document_type</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"manuscript"</span><span class="p">,</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Compile LaTeX manuscript via cloud.</span>
+<span class="w">        </span><span class="sd">"""Compile LaTeX manuscript via cloud.</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
@@ -456,18 +439,18 @@
 <span class="sd">        -------</span>
 <span class="sd">        dict</span>
 <span class="sd">            Compilation result with PDF URL.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_request</span><span class="p">(</span>
-            <span class="s2">&quot;POST&quot;</span><span class="p">,</span>
-            <span class="s2">&quot;/writer/api/compile/&quot;</span><span class="p">,</span>
-            <span class="n">data</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;project_id&quot;</span><span class="p">:</span> <span class="n">project_id</span><span class="p">,</span> <span class="s2">&quot;document_type&quot;</span><span class="p">:</span> <span class="n">document_type</span><span class="p">},</span>
+            <span class="s2">"POST"</span><span class="p">,</span>
+            <span class="s2">"/writer/api/compile/"</span><span class="p">,</span>
+            <span class="n">data</span><span class="o">=</span><span class="p">{</span><span class="s2">"project_id"</span><span class="p">:</span> <span class="n">project_id</span><span class="p">,</span> <span class="s2">"document_type"</span><span class="p">:</span> <span class="n">document_type</span><span class="p">},</span>
         <span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="CloudClient.project_list_files">
 <a class="viewcode-back" href="../../api/_autosummary/scitex_hub.html#scitex_hub.CloudClient.project_list_files">[docs]</a>
-    <span class="k">def</span><span class="w"> </span><span class="nf">project_list_files</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">project_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">path</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;List files in a cloud project.</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">project_list_files</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">project_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">path</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">""</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">"""List files in a cloud project.</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
@@ -480,18 +463,18 @@
 <span class="sd">        -------</span>
 <span class="sd">        dict</span>
 <span class="sd">            File listing.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_request</span><span class="p">(</span>
-            <span class="s2">&quot;GET&quot;</span><span class="p">,</span>
-            <span class="s2">&quot;/project/api/files/&quot;</span><span class="p">,</span>
-            <span class="n">data</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;project_id&quot;</span><span class="p">:</span> <span class="n">project_id</span><span class="p">,</span> <span class="s2">&quot;path&quot;</span><span class="p">:</span> <span class="n">path</span><span class="p">},</span>
+            <span class="s2">"GET"</span><span class="p">,</span>
+            <span class="s2">"/project/api/files/"</span><span class="p">,</span>
+            <span class="n">data</span><span class="o">=</span><span class="p">{</span><span class="s2">"project_id"</span><span class="p">:</span> <span class="n">project_id</span><span class="p">,</span> <span class="s2">"path"</span><span class="p">:</span> <span class="n">path</span><span class="p">},</span>
         <span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="CloudClient.get_context">
 <a class="viewcode-back" href="../../api/_autosummary/scitex_hub.html#scitex_hub.CloudClient.get_context">[docs]</a>
-    <span class="k">def</span><span class="w"> </span><span class="nf">get_context</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">page</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Get web app context for AI agents.</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_context</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">page</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">""</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">"""Get web app context for AI agents.</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
@@ -503,14 +486,14 @@
 <span class="sd">        dict</span>
 <span class="sd">            Context including username, active skill, all skills,</span>
 <span class="sd">            available actions, and aggregated context.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_request</span><span class="p">(</span><span class="s2">&quot;GET&quot;</span><span class="p">,</span> <span class="s2">&quot;/llm/api/context/&quot;</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;page&quot;</span><span class="p">:</span> <span class="n">page</span><span class="p">})</span></div>
+<span class="sd">        """</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_request</span><span class="p">(</span><span class="s2">"GET"</span><span class="p">,</span> <span class="s2">"/llm/api/context/"</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="p">{</span><span class="s2">"page"</span><span class="p">:</span> <span class="n">page</span><span class="p">})</span></div>
 
 
 <div class="viewcode-block" id="CloudClient.eval_js">
 <a class="viewcode-back" href="../../api/_autosummary/scitex_hub.html#scitex_hub.CloudClient.eval_js">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">eval_js</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">code</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">timeout</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">10</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Evaluate JavaScript in the user&#39;s browser.</span>
+<span class="w">        </span><span class="sd">"""Evaluate JavaScript in the user's browser.</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
@@ -523,18 +506,18 @@
 <span class="sd">        -------</span>
 <span class="sd">        dict</span>
 <span class="sd">            Evaluation result from the browser.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_request</span><span class="p">(</span>
-            <span class="s2">&quot;POST&quot;</span><span class="p">,</span>
-            <span class="s2">&quot;/llm/api/eval-js/&quot;</span><span class="p">,</span>
-            <span class="n">data</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;code&quot;</span><span class="p">:</span> <span class="n">code</span><span class="p">,</span> <span class="s2">&quot;timeout&quot;</span><span class="p">:</span> <span class="n">timeout</span><span class="p">},</span>
+            <span class="s2">"POST"</span><span class="p">,</span>
+            <span class="s2">"/llm/api/eval-js/"</span><span class="p">,</span>
+            <span class="n">data</span><span class="o">=</span><span class="p">{</span><span class="s2">"code"</span><span class="p">:</span> <span class="n">code</span><span class="p">,</span> <span class="s2">"timeout"</span><span class="p">:</span> <span class="n">timeout</span><span class="p">},</span>
         <span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="CloudClient.ui_action">
 <a class="viewcode-back" href="../../api/_autosummary/scitex_hub.html#scitex_hub.CloudClient.ui_action">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">ui_action</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">steps</span><span class="p">:</span> <span class="nb">list</span><span class="p">,</span> <span class="n">delay_ms</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">900</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Drive browser UI actions via WebSocket relay.</span>
+<span class="w">        </span><span class="sd">"""Drive browser UI actions via WebSocket relay.</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
@@ -547,42 +530,42 @@
 <span class="sd">        -------</span>
 <span class="sd">        dict</span>
 <span class="sd">            Result with number of steps sent.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_request</span><span class="p">(</span>
-            <span class="s2">&quot;POST&quot;</span><span class="p">,</span>
-            <span class="s2">&quot;/llm/api/ui-action/&quot;</span><span class="p">,</span>
-            <span class="n">data</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;steps&quot;</span><span class="p">:</span> <span class="n">steps</span><span class="p">,</span> <span class="s2">&quot;delay_ms&quot;</span><span class="p">:</span> <span class="n">delay_ms</span><span class="p">},</span>
+            <span class="s2">"POST"</span><span class="p">,</span>
+            <span class="s2">"/llm/api/ui-action/"</span><span class="p">,</span>
+            <span class="n">data</span><span class="o">=</span><span class="p">{</span><span class="s2">"steps"</span><span class="p">:</span> <span class="n">steps</span><span class="p">,</span> <span class="s2">"delay_ms"</span><span class="p">:</span> <span class="n">delay_ms</span><span class="p">},</span>
         <span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="CloudClient.status">
 <a class="viewcode-back" href="../../api/_autosummary/scitex_hub.html#scitex_hub.CloudClient.status">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">status</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Check cloud service status.</span>
+<span class="w">        </span><span class="sd">"""Check cloud service status.</span>
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
 <span class="sd">        dict</span>
 <span class="sd">            Status information including cloud availability.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="kn">import</span><span class="w"> </span><span class="nn">requests</span>
 
         <span class="n">result</span> <span class="o">=</span> <span class="p">{</span>
-            <span class="s2">&quot;base_url&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">base_url</span><span class="p">,</span>
-            <span class="s2">&quot;api_key_configured&quot;</span><span class="p">:</span> <span class="nb">bool</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">api_key</span><span class="p">),</span>
+            <span class="s2">"base_url"</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">base_url</span><span class="p">,</span>
+            <span class="s2">"api_key_configured"</span><span class="p">:</span> <span class="nb">bool</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">api_key</span><span class="p">),</span>
         <span class="p">}</span>
 
         <span class="k">try</span><span class="p">:</span>
             <span class="n">response</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">get</span><span class="p">(</span>
-                <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">base_url</span><span class="si">}</span><span class="s2">/api/v1/status/&quot;</span><span class="p">,</span>
+                <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">base_url</span><span class="si">}</span><span class="s2">/api/v1/status/"</span><span class="p">,</span>
                 <span class="n">timeout</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span>
             <span class="p">)</span>
-            <span class="n">result</span><span class="p">[</span><span class="s2">&quot;cloud_status&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span>
-                <span class="s2">&quot;online&quot;</span> <span class="k">if</span> <span class="n">response</span><span class="o">.</span><span class="n">status_code</span> <span class="o">==</span> <span class="mi">200</span> <span class="k">else</span> <span class="s2">&quot;error&quot;</span>
+            <span class="n">result</span><span class="p">[</span><span class="s2">"cloud_status"</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span>
+                <span class="s2">"online"</span> <span class="k">if</span> <span class="n">response</span><span class="o">.</span><span class="n">status_code</span> <span class="o">==</span> <span class="mi">200</span> <span class="k">else</span> <span class="s2">"error"</span>
             <span class="p">)</span>
         <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
-            <span class="n">result</span><span class="p">[</span><span class="s2">&quot;cloud_status&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;unreachable&quot;</span>
-            <span class="n">result</span><span class="p">[</span><span class="s2">&quot;error&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">)</span>
+            <span class="n">result</span><span class="p">[</span><span class="s2">"cloud_status"</span><span class="p">]</span> <span class="o">=</span> <span class="s2">"unreachable"</span>
+            <span class="n">result</span><span class="p">[</span><span class="s2">"error"</span><span class="p">]</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">)</span>
 
         <span class="k">return</span> <span class="n">result</span></div>
 </div>
@@ -605,7 +588,7 @@
   Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
     <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
     provided by <a href="https://readthedocs.org">Read the Docs</a>.
-   
+
 
 </footer>
         </div>
@@ -616,7 +599,7 @@
       jQuery(function () {
           SphinxRtdTheme.Navigation.enable(true);
       });
-  </script> 
+  </script>
 
 </body>
 </html>

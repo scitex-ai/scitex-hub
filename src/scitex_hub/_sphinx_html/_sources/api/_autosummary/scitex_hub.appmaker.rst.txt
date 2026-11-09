@@ -1,0 +1,6 @@
+scitex\_hub.appmaker
+====================
+
+.. automodule:: scitex_hub.appmaker
+
+   

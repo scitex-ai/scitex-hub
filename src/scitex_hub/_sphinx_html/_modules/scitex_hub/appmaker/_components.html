@@ -5,32 +5,32 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>scitex_hub.appmaker._components &mdash; SciTeX Hub v0.18.1</title>
+  <title>scitex_hub.appmaker._components &mdash; SciTeX Hub v0.22.0a7</title>
       <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=b86133f3" />
       <link rel="stylesheet" type="text/css" href="../../../_static/css/theme.css?v=9edc463e" />
       <link rel="stylesheet" type="text/css" href="../../../_static/copybutton.css?v=76b2166b" />
 
-  
+
       <script src="../../../_static/jquery.js?v=5d32c60e"></script>
       <script src="../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-      <script src="../../../_static/documentation_options.js?v=1e56ff10"></script>
+      <script src="../../../_static/documentation_options.js?v=af24e983"></script>
       <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
       <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
       <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
       <script src="../../../_static/copybutton.js?v=f281be69"></script>
     <script src="../../../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../../../genindex.html" />
-    <link rel="search" title="Search" href="../../../search.html" /> 
+    <link rel="search" title="Search" href="../../../search.html" />
 </head>
 
-<body class="wy-body-for-nav"> 
+<body class="wy-body-for-nav">
   <div class="wy-grid-for-nav">
     <nav data-toggle="wy-nav-shift" class="wy-nav-side">
       <div class="wy-side-scroll">
         <div class="wy-side-nav-search" >
 
-          
-          
+
+
           <a href="../../../index.html" class="icon icon-home">
             SciTeX Hub
           </a>
@@ -71,15 +71,9 @@
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="../../../cli.html">CLI Reference</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="../../../cli.html#global-options">Global Options</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../../cli.html#project-management">Project Management</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../../cli.html#three-way-sync">Three-Way Sync</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../../cli.html#git-hosting-gitea">Git Hosting (Gitea)</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../../cli.html#app-management">App Management</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../../cli.html#cloud-sdk">Cloud SDK</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../../cli.html#infrastructure">Infrastructure</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../../cli.html#mcp-server">MCP Server</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../../cli.html#utilities">Utilities</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../cli.html#discover-commands">Discover commands</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../cli.html#command-groups">Command groups</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../cli.html#source-and-validation">Source and validation</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="../../../sync.html">Three-Way Sync</a><ul>
@@ -121,17 +115,6 @@
 <li class="toctree-l2"><a class="reference internal" href="../../../app_platform.html#app-submission-and-review">App Submission and Review</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../app_platform.html#separation-of-concerns">Separation of Concerns</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../app_platform.html#reference">Reference</a></li>
-</ul>
-</li>
-<li class="toctree-l1"><a class="reference internal" href="../../../visitor_pool_security.html">Visitor Pool Security</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="../../../visitor_pool_security.html#background-the-fix">Background: the fix</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../../visitor_pool_security.html#layer-1-reset-workspace-after">Layer 1 — <code class="docutils literal notranslate"><span class="pre">&#64;reset_workspace_after</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../../visitor_pool_security.html#layer-2-ensure-clean-workspace">Layer 2 — <code class="docutils literal notranslate"><span class="pre">&#64;ensure_clean_workspace</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../../visitor_pool_security.html#layer-3-reset-visitor-pool-on-container-restart">Layer 3 — <code class="docutils literal notranslate"><span class="pre">reset_visitor_pool</span></code> on container restart</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../../visitor_pool_security.html#what-gets-cleared">What gets cleared</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../../visitor_pool_security.html#pool-lifecycle-diagram">Pool lifecycle diagram</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../../visitor_pool_security.html#operations">Operations</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../../visitor_pool_security.html#further-reading">Further reading</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="../../../api/index.html">API Reference</a><ul>
@@ -184,78 +167,78 @@
 </div>
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
-             
+
   <h1>Source code for scitex_hub.appmaker._components</h1><div class="highlight"><pre>
-<span></span><span class="sd">&quot;&quot;&quot;Shared components catalog — available UI components for app plugins.</span>
+<span></span><span class="sd">"""Shared components catalog — available UI components for app plugins.</span>
 
 <span class="sd">Lists CSS and TypeScript components that apps can import from the shared</span>
 <span class="sd">static directory. Used by scaffold to generate import statements and by</span>
 <span class="sd">docs to show available components.</span>
-<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">"""</span>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">__future__</span><span class="w"> </span><span class="kn">import</span> <span class="n">annotations</span>
 
 <span class="n">SHARED_COMPONENTS</span> <span class="o">=</span> <span class="p">{</span>
-    <span class="s2">&quot;seekbar&quot;</span><span class="p">:</span> <span class="p">{</span>
-        <span class="s2">&quot;label&quot;</span><span class="p">:</span> <span class="s2">&quot;ScitexSeekbar&quot;</span><span class="p">,</span>
-        <span class="s2">&quot;description&quot;</span><span class="p">:</span> <span class="s2">&quot;Dual-handle range slider with value display&quot;</span><span class="p">,</span>
-        <span class="s2">&quot;css&quot;</span><span class="p">:</span> <span class="p">[],</span>
-        <span class="s2">&quot;ts&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;shared/ts/components/seekbar.ts&quot;</span><span class="p">],</span>
-        <span class="s2">&quot;usage&quot;</span><span class="p">:</span> <span class="s1">&#39;&lt;scitex-seekbar min=&quot;0&quot; max=&quot;100&quot; value=&quot;50&quot;&gt;&lt;/scitex-seekbar&gt;&#39;</span><span class="p">,</span>
+    <span class="s2">"seekbar"</span><span class="p">:</span> <span class="p">{</span>
+        <span class="s2">"label"</span><span class="p">:</span> <span class="s2">"ScitexSeekbar"</span><span class="p">,</span>
+        <span class="s2">"description"</span><span class="p">:</span> <span class="s2">"Dual-handle range slider with value display"</span><span class="p">,</span>
+        <span class="s2">"css"</span><span class="p">:</span> <span class="p">[],</span>
+        <span class="s2">"ts"</span><span class="p">:</span> <span class="p">[</span><span class="s2">"shared/ts/components/seekbar.ts"</span><span class="p">],</span>
+        <span class="s2">"usage"</span><span class="p">:</span> <span class="s1">'&lt;scitex-seekbar min="0" max="100" value="50"&gt;&lt;/scitex-seekbar&gt;'</span><span class="p">,</span>
     <span class="p">},</span>
-    <span class="s2">&quot;data-table&quot;</span><span class="p">:</span> <span class="p">{</span>
-        <span class="s2">&quot;label&quot;</span><span class="p">:</span> <span class="s2">&quot;DataTableManager&quot;</span><span class="p">,</span>
-        <span class="s2">&quot;description&quot;</span><span class="p">:</span> <span class="s2">&quot;Full spreadsheet component with selection, editing, virtual scroll, CSV import&quot;</span><span class="p">,</span>
-        <span class="s2">&quot;css&quot;</span><span class="p">:</span> <span class="p">[</span>
-            <span class="s2">&quot;shared/css/components/data-table/index.css&quot;</span><span class="p">,</span>
-            <span class="s2">&quot;shared/css/components/data-table/data-table.css&quot;</span><span class="p">,</span>
+    <span class="s2">"data-table"</span><span class="p">:</span> <span class="p">{</span>
+        <span class="s2">"label"</span><span class="p">:</span> <span class="s2">"DataTableManager"</span><span class="p">,</span>
+        <span class="s2">"description"</span><span class="p">:</span> <span class="s2">"Full spreadsheet component with selection, editing, virtual scroll, CSV import"</span><span class="p">,</span>
+        <span class="s2">"css"</span><span class="p">:</span> <span class="p">[</span>
+            <span class="s2">"shared/css/components/data-table/index.css"</span><span class="p">,</span>
+            <span class="s2">"shared/css/components/data-table/data-table.css"</span><span class="p">,</span>
         <span class="p">],</span>
-        <span class="s2">&quot;ts&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;shared/ts/components/data-table/DataTableManager.ts&quot;</span><span class="p">],</span>
-        <span class="s2">&quot;usage&quot;</span><span class="p">:</span> <span class="s2">&quot;new DataTableManager(container, options)&quot;</span><span class="p">,</span>
+        <span class="s2">"ts"</span><span class="p">:</span> <span class="p">[</span><span class="s2">"shared/ts/components/data-table/DataTableManager.ts"</span><span class="p">],</span>
+        <span class="s2">"usage"</span><span class="p">:</span> <span class="s2">"new DataTableManager(container, options)"</span><span class="p">,</span>
     <span class="p">},</span>
-    <span class="s2">&quot;resizer&quot;</span><span class="p">:</span> <span class="p">{</span>
-        <span class="s2">&quot;label&quot;</span><span class="p">:</span> <span class="s2">&quot;Resizer&quot;</span><span class="p">,</span>
-        <span class="s2">&quot;description&quot;</span><span class="p">:</span> <span class="s2">&quot;Horizontal/vertical panel splitter&quot;</span><span class="p">,</span>
-        <span class="s2">&quot;css&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;shared/css/components/resizer.css&quot;</span><span class="p">],</span>
-        <span class="s2">&quot;ts&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;shared/ts/components/resizer/index.ts&quot;</span><span class="p">],</span>
-        <span class="s2">&quot;usage&quot;</span><span class="p">:</span> <span class="s2">&quot;new HorizontalResizer(leftEl, rightEl, options)&quot;</span><span class="p">,</span>
+    <span class="s2">"resizer"</span><span class="p">:</span> <span class="p">{</span>
+        <span class="s2">"label"</span><span class="p">:</span> <span class="s2">"Resizer"</span><span class="p">,</span>
+        <span class="s2">"description"</span><span class="p">:</span> <span class="s2">"Horizontal/vertical panel splitter"</span><span class="p">,</span>
+        <span class="s2">"css"</span><span class="p">:</span> <span class="p">[</span><span class="s2">"shared/css/components/resizer.css"</span><span class="p">],</span>
+        <span class="s2">"ts"</span><span class="p">:</span> <span class="p">[</span><span class="s2">"shared/ts/components/resizer/index.ts"</span><span class="p">],</span>
+        <span class="s2">"usage"</span><span class="p">:</span> <span class="s2">"new HorizontalResizer(leftEl, rightEl, options)"</span><span class="p">,</span>
     <span class="p">},</span>
-    <span class="s2">&quot;confirm-modal&quot;</span><span class="p">:</span> <span class="p">{</span>
-        <span class="s2">&quot;label&quot;</span><span class="p">:</span> <span class="s2">&quot;ConfirmModal&quot;</span><span class="p">,</span>
-        <span class="s2">&quot;description&quot;</span><span class="p">:</span> <span class="s2">&quot;Modern confirmation dialog with customizable buttons&quot;</span><span class="p">,</span>
-        <span class="s2">&quot;css&quot;</span><span class="p">:</span> <span class="p">[],</span>
-        <span class="s2">&quot;ts&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;shared/ts/components/confirm-modal.ts&quot;</span><span class="p">],</span>
-        <span class="s2">&quot;usage&quot;</span><span class="p">:</span> <span class="s1">&#39;await confirmModal({ title: &quot;Delete?&quot;, message: &quot;...&quot;, confirmLabel: &quot;Delete&quot; })&#39;</span><span class="p">,</span>
+    <span class="s2">"confirm-modal"</span><span class="p">:</span> <span class="p">{</span>
+        <span class="s2">"label"</span><span class="p">:</span> <span class="s2">"ConfirmModal"</span><span class="p">,</span>
+        <span class="s2">"description"</span><span class="p">:</span> <span class="s2">"Modern confirmation dialog with customizable buttons"</span><span class="p">,</span>
+        <span class="s2">"css"</span><span class="p">:</span> <span class="p">[],</span>
+        <span class="s2">"ts"</span><span class="p">:</span> <span class="p">[</span><span class="s2">"shared/ts/components/confirm-modal.ts"</span><span class="p">],</span>
+        <span class="s2">"usage"</span><span class="p">:</span> <span class="s1">'await confirmModal({ title: "Delete?", message: "...", confirmLabel: "Delete" })'</span><span class="p">,</span>
     <span class="p">},</span>
-    <span class="s2">&quot;tabs&quot;</span><span class="p">:</span> <span class="p">{</span>
-        <span class="s2">&quot;label&quot;</span><span class="p">:</span> <span class="s2">&quot;Tabs&quot;</span><span class="p">,</span>
-        <span class="s2">&quot;description&quot;</span><span class="p">:</span> <span class="s2">&quot;Tab navigation component&quot;</span><span class="p">,</span>
-        <span class="s2">&quot;css&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;shared/css/components/tabs.css&quot;</span><span class="p">],</span>
-        <span class="s2">&quot;ts&quot;</span><span class="p">:</span> <span class="p">[],</span>
-        <span class="s2">&quot;usage&quot;</span><span class="p">:</span> <span class="s1">&#39;&lt;div class=&quot;tab-nav&quot;&gt;&lt;button class=&quot;tab-btn active&quot;&gt;Tab 1&lt;/button&gt;&lt;/div&gt;&#39;</span><span class="p">,</span>
+    <span class="s2">"tabs"</span><span class="p">:</span> <span class="p">{</span>
+        <span class="s2">"label"</span><span class="p">:</span> <span class="s2">"Tabs"</span><span class="p">,</span>
+        <span class="s2">"description"</span><span class="p">:</span> <span class="s2">"Tab navigation component"</span><span class="p">,</span>
+        <span class="s2">"css"</span><span class="p">:</span> <span class="p">[</span><span class="s2">"shared/css/components/tabs.css"</span><span class="p">],</span>
+        <span class="s2">"ts"</span><span class="p">:</span> <span class="p">[],</span>
+        <span class="s2">"usage"</span><span class="p">:</span> <span class="s1">'&lt;div class="tab-nav"&gt;&lt;button class="tab-btn active"&gt;Tab 1&lt;/button&gt;&lt;/div&gt;'</span><span class="p">,</span>
     <span class="p">},</span>
-    <span class="s2">&quot;toggles&quot;</span><span class="p">:</span> <span class="p">{</span>
-        <span class="s2">&quot;label&quot;</span><span class="p">:</span> <span class="s2">&quot;Toggles&quot;</span><span class="p">,</span>
-        <span class="s2">&quot;description&quot;</span><span class="p">:</span> <span class="s2">&quot;Toggle switch component&quot;</span><span class="p">,</span>
-        <span class="s2">&quot;css&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;shared/css/components/toggles.css&quot;</span><span class="p">],</span>
-        <span class="s2">&quot;ts&quot;</span><span class="p">:</span> <span class="p">[],</span>
-        <span class="s2">&quot;usage&quot;</span><span class="p">:</span> <span class="p">(</span>
-            <span class="s1">&#39;&lt;label class=&quot;toggle-switch&quot;&gt;&#39;</span>
-            <span class="s1">&#39;&lt;input type=&quot;checkbox&quot;&gt;&#39;</span>
-            <span class="s1">&#39;&lt;span class=&quot;toggle-slider&quot;&gt;&lt;/span&gt;&#39;</span>
-            <span class="s2">&quot;&lt;/label&gt;&quot;</span>
+    <span class="s2">"toggles"</span><span class="p">:</span> <span class="p">{</span>
+        <span class="s2">"label"</span><span class="p">:</span> <span class="s2">"Toggles"</span><span class="p">,</span>
+        <span class="s2">"description"</span><span class="p">:</span> <span class="s2">"Toggle switch component"</span><span class="p">,</span>
+        <span class="s2">"css"</span><span class="p">:</span> <span class="p">[</span><span class="s2">"shared/css/components/toggles.css"</span><span class="p">],</span>
+        <span class="s2">"ts"</span><span class="p">:</span> <span class="p">[],</span>
+        <span class="s2">"usage"</span><span class="p">:</span> <span class="p">(</span>
+            <span class="s1">'&lt;label class="toggle-switch"&gt;'</span>
+            <span class="s1">'&lt;input type="checkbox"&gt;'</span>
+            <span class="s1">'&lt;span class="toggle-slider"&gt;&lt;/span&gt;'</span>
+            <span class="s2">"&lt;/label&gt;"</span>
         <span class="p">),</span>
     <span class="p">},</span>
-    <span class="s2">&quot;dropdown&quot;</span><span class="p">:</span> <span class="p">{</span>
-        <span class="s2">&quot;label&quot;</span><span class="p">:</span> <span class="s2">&quot;Dropdown&quot;</span><span class="p">,</span>
-        <span class="s2">&quot;description&quot;</span><span class="p">:</span> <span class="s2">&quot;Dropdown menu component&quot;</span><span class="p">,</span>
-        <span class="s2">&quot;css&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;shared/css/components/dropdown.css&quot;</span><span class="p">],</span>
-        <span class="s2">&quot;ts&quot;</span><span class="p">:</span> <span class="p">[],</span>
-        <span class="s2">&quot;usage&quot;</span><span class="p">:</span> <span class="p">(</span>
-            <span class="s1">&#39;&lt;div class=&quot;dropdown&quot;&gt;&#39;</span>
-            <span class="s1">&#39;&lt;button class=&quot;dropdown-toggle&quot;&gt;Menu&lt;/button&gt;&#39;</span>
-            <span class="s1">&#39;&lt;div class=&quot;dropdown-menu&quot;&gt;...&lt;/div&gt;&#39;</span>
-            <span class="s2">&quot;&lt;/div&gt;&quot;</span>
+    <span class="s2">"dropdown"</span><span class="p">:</span> <span class="p">{</span>
+        <span class="s2">"label"</span><span class="p">:</span> <span class="s2">"Dropdown"</span><span class="p">,</span>
+        <span class="s2">"description"</span><span class="p">:</span> <span class="s2">"Dropdown menu component"</span><span class="p">,</span>
+        <span class="s2">"css"</span><span class="p">:</span> <span class="p">[</span><span class="s2">"shared/css/components/dropdown.css"</span><span class="p">],</span>
+        <span class="s2">"ts"</span><span class="p">:</span> <span class="p">[],</span>
+        <span class="s2">"usage"</span><span class="p">:</span> <span class="p">(</span>
+            <span class="s1">'&lt;div class="dropdown"&gt;'</span>
+            <span class="s1">'&lt;button class="dropdown-toggle"&gt;Menu&lt;/button&gt;'</span>
+            <span class="s1">'&lt;div class="dropdown-menu"&gt;...&lt;/div&gt;'</span>
+            <span class="s2">"&lt;/div&gt;"</span>
         <span class="p">),</span>
     <span class="p">},</span>
 <span class="p">}</span>
@@ -264,7 +247,7 @@
 <div class="viewcode-block" id="get_component">
 <a class="viewcode-back" href="../../../api/_autosummary/scitex_hub.appmaker.html#scitex_hub.appmaker.get_component">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">get_component</span><span class="p">(</span><span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Get a shared component by name.&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""Get a shared component by name."""</span>
     <span class="k">return</span> <span class="n">SHARED_COMPONENTS</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">name</span><span class="p">)</span></div>
 
 
@@ -272,7 +255,7 @@
 <div class="viewcode-block" id="get_all_components">
 <a class="viewcode-back" href="../../../api/_autosummary/scitex_hub.appmaker.html#scitex_hub.appmaker.get_all_components">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">get_all_components</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Get all available shared components.&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""Get all available shared components."""</span>
     <span class="k">return</span> <span class="nb">dict</span><span class="p">(</span><span class="n">SHARED_COMPONENTS</span><span class="p">)</span></div>
 
 
@@ -280,12 +263,12 @@
 <div class="viewcode-block" id="get_css_imports">
 <a class="viewcode-back" href="../../../api/_autosummary/scitex_hub.appmaker.html#scitex_hub.appmaker.get_css_imports">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">get_css_imports</span><span class="p">(</span><span class="n">component_names</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Get CSS import paths for a list of components.&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""Get CSS import paths for a list of components."""</span>
     <span class="n">imports</span> <span class="o">=</span> <span class="p">[]</span>
     <span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">component_names</span><span class="p">:</span>
         <span class="n">comp</span> <span class="o">=</span> <span class="n">SHARED_COMPONENTS</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">comp</span><span class="p">:</span>
-            <span class="n">imports</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">comp</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;css&quot;</span><span class="p">,</span> <span class="p">[]))</span>
+            <span class="n">imports</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">comp</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"css"</span><span class="p">,</span> <span class="p">[]))</span>
     <span class="k">return</span> <span class="n">imports</span></div>
 
 
@@ -293,12 +276,12 @@
 <div class="viewcode-block" id="get_ts_imports">
 <a class="viewcode-back" href="../../../api/_autosummary/scitex_hub.appmaker.html#scitex_hub.appmaker.get_ts_imports">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">get_ts_imports</span><span class="p">(</span><span class="n">component_names</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Get TypeScript import paths for a list of components.&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""Get TypeScript import paths for a list of components."""</span>
     <span class="n">imports</span> <span class="o">=</span> <span class="p">[]</span>
     <span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">component_names</span><span class="p">:</span>
         <span class="n">comp</span> <span class="o">=</span> <span class="n">SHARED_COMPONENTS</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">comp</span><span class="p">:</span>
-            <span class="n">imports</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">comp</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;ts&quot;</span><span class="p">,</span> <span class="p">[]))</span>
+            <span class="n">imports</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">comp</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"ts"</span><span class="p">,</span> <span class="p">[]))</span>
     <span class="k">return</span> <span class="n">imports</span></div>
 
 
@@ -319,7 +302,7 @@
   Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
     <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
     provided by <a href="https://readthedocs.org">Read the Docs</a>.
-   
+
 
 </footer>
         </div>
@@ -330,7 +313,7 @@
       jQuery(function () {
           SphinxRtdTheme.Navigation.enable(true);
       });
-  </script> 
+  </script>
 
 </body>
 </html>

@@ -5,32 +5,32 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>scitex_hub &mdash; SciTeX Hub v0.18.1</title>
+  <title>scitex_hub &mdash; SciTeX Hub v0.22.0a7</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=b86133f3" />
       <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=9edc463e" />
       <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=76b2166b" />
 
-  
+
       <script src="../_static/jquery.js?v=5d32c60e"></script>
       <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-      <script src="../_static/documentation_options.js?v=1e56ff10"></script>
+      <script src="../_static/documentation_options.js?v=af24e983"></script>
       <script src="../_static/doctools.js?v=fd6eb6e6"></script>
       <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
       <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
       <script src="../_static/copybutton.js?v=f281be69"></script>
     <script src="../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
-    <link rel="search" title="Search" href="../search.html" /> 
+    <link rel="search" title="Search" href="../search.html" />
 </head>
 
-<body class="wy-body-for-nav"> 
+<body class="wy-body-for-nav">
   <div class="wy-grid-for-nav">
     <nav data-toggle="wy-nav-shift" class="wy-nav-side">
       <div class="wy-side-scroll">
         <div class="wy-side-nav-search" >
 
-          
-          
+
+
           <a href="../index.html" class="icon icon-home">
             SciTeX Hub
           </a>
@@ -71,15 +71,9 @@
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="../cli.html">CLI Reference</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="../cli.html#global-options">Global Options</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../cli.html#project-management">Project Management</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../cli.html#three-way-sync">Three-Way Sync</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../cli.html#git-hosting-gitea">Git Hosting (Gitea)</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../cli.html#app-management">App Management</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../cli.html#cloud-sdk">Cloud SDK</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../cli.html#infrastructure">Infrastructure</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../cli.html#mcp-server">MCP Server</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../cli.html#utilities">Utilities</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../cli.html#discover-commands">Discover commands</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../cli.html#command-groups">Command groups</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../cli.html#source-and-validation">Source and validation</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="../sync.html">Three-Way Sync</a><ul>
@@ -121,17 +115,6 @@
 <li class="toctree-l2"><a class="reference internal" href="../app_platform.html#app-submission-and-review">App Submission and Review</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../app_platform.html#separation-of-concerns">Separation of Concerns</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../app_platform.html#reference">Reference</a></li>
-</ul>
-</li>
-<li class="toctree-l1"><a class="reference internal" href="../visitor_pool_security.html">Visitor Pool Security</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="../visitor_pool_security.html#background-the-fix">Background: the fix</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../visitor_pool_security.html#layer-1-reset-workspace-after">Layer 1 — <code class="docutils literal notranslate"><span class="pre">&#64;reset_workspace_after</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="../visitor_pool_security.html#layer-2-ensure-clean-workspace">Layer 2 — <code class="docutils literal notranslate"><span class="pre">&#64;ensure_clean_workspace</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="../visitor_pool_security.html#layer-3-reset-visitor-pool-on-container-restart">Layer 3 — <code class="docutils literal notranslate"><span class="pre">reset_visitor_pool</span></code> on container restart</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../visitor_pool_security.html#what-gets-cleared">What gets cleared</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../visitor_pool_security.html#pool-lifecycle-diagram">Pool lifecycle diagram</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../visitor_pool_security.html#operations">Operations</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../visitor_pool_security.html#further-reading">Further reading</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="../api/index.html">API Reference</a><ul>
@@ -183,13 +166,13 @@
 </div>
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
-             
+
   <h1>Source code for scitex_hub</h1><div class="highlight"><pre>
 <span></span><span class="ch">#!/usr/bin/env python3</span>
 <span class="c1"># -*- coding: utf-8 -*-</span>
 <span class="c1"># File: src/scitex_hub/__init__.py</span>
 
-<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">"""</span>
 <span class="sd">SciTeX Hub - CLI tools and APIs for SciTeX deployment and management.</span>
 
 <span class="sd">Usage:</span>
@@ -199,39 +182,39 @@
 <span class="sd">Python API:</span>
 <span class="sd">    &gt;&gt;&gt; import scitex_hub</span>
 <span class="sd">    &gt;&gt;&gt; client = scitex_hub.CloudClient()</span>
-<span class="sd">    &gt;&gt;&gt; client.scholar_search(&quot;neural networks&quot;)</span>
-<span class="sd">    &gt;&gt;&gt; client.enrich_bibtex(&quot;@article{...}&quot;)</span>
+<span class="sd">    &gt;&gt;&gt; client.scholar_search("neural networks")</span>
+<span class="sd">    &gt;&gt;&gt; client.enrich_bibtex("@article{...}")</span>
 
 <span class="sd">MCP Server:</span>
 <span class="sd">    scitex-hub serve              # stdio (Claude Desktop)</span>
 <span class="sd">    scitex-hub serve -t sse       # SSE (remote)</span>
-<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">"""</span>
 
 
 <span class="k">def</span><span class="w"> </span><span class="nf">_get_version</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Read installed package version via ``importlib.metadata``.</span>
+<span class="w">    </span><span class="sd">"""Read installed package version via ``importlib.metadata``.</span>
 
 <span class="sd">    PEP 566 / 621 publishes the distribution version in the package</span>
 <span class="sd">    metadata. ``importlib.metadata.version`` reads that without</span>
 <span class="sd">    re-parsing pyproject.toml — which (a) works the same on editable</span>
-<span class="sd">    installs and on built wheels, (b) doesn&#39;t break when pyproject.toml</span>
-<span class="sd">    isn&#39;t shipped (wheel / sdist install), and (c) matches the rule</span>
+<span class="sd">    installs and on built wheels, (b) doesn't break when pyproject.toml</span>
+<span class="sd">    isn't shipped (wheel / sdist install), and (c) matches the rule</span>
 <span class="sd">    PA-202 §2 (version-not-from-metadata) the ecosystem audit enforces.</span>
 
-<span class="sd">    Falls back to ``&quot;unknown&quot;`` when the dist isn&#39;t installed (e.g.</span>
+<span class="sd">    Falls back to ``"unknown"`` when the dist isn't installed (e.g.</span>
 <span class="sd">    running directly from a checkout without ``pip install -e .``),</span>
 <span class="sd">    so import never raises.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
     <span class="kn">from</span><span class="w"> </span><span class="nn">importlib.metadata</span><span class="w"> </span><span class="kn">import</span> <span class="n">PackageNotFoundError</span><span class="p">,</span> <span class="n">version</span>
 
     <span class="k">try</span><span class="p">:</span>
-        <span class="k">return</span> <span class="n">version</span><span class="p">(</span><span class="s2">&quot;scitex-hub&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">version</span><span class="p">(</span><span class="s2">"scitex-hub"</span><span class="p">)</span>
     <span class="k">except</span> <span class="n">PackageNotFoundError</span><span class="p">:</span>
-        <span class="k">return</span> <span class="s2">&quot;unknown&quot;</span>
+        <span class="k">return</span> <span class="s2">"unknown"</span>
 
 
 <span class="n">__version__</span> <span class="o">=</span> <span class="n">_get_version</span><span class="p">()</span>
-<span class="n">__author__</span> <span class="o">=</span> <span class="s2">&quot;SciTeX Team&quot;</span>
+<span class="n">__author__</span> <span class="o">=</span> <span class="s2">"SciTeX Team"</span>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">.</span><span class="w"> </span><span class="kn">import</span> <span class="n">account</span> <span class="k">as</span> <span class="n">account</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">._api</span><span class="w"> </span><span class="kn">import</span> <span class="n">CloudClient</span> <span class="k">as</span> <span class="n">CloudClient</span>
@@ -243,22 +226,22 @@
 <div class="viewcode-block" id="get_version">
 <a class="viewcode-back" href="../api/_autosummary/scitex_hub.html#scitex_hub.get_version">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">get_version</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Get scitex-hub version.&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""Get scitex-hub version."""</span>
     <span class="k">return</span> <span class="n">__version__</span></div>
 
 
 
 <div class="viewcode-block" id="get_context">
 <a class="viewcode-back" href="../api/_autosummary/scitex_hub.html#scitex_hub.get_context">[docs]</a>
-<span class="k">def</span><span class="w"> </span><span class="nf">get_context</span><span class="p">(</span><span class="n">page</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="o">**</span><span class="n">kw</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Get web app context: username, page, skills, available actions.</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">get_context</span><span class="p">(</span><span class="n">page</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">""</span><span class="p">,</span> <span class="o">**</span><span class="n">kw</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""Get web app context: username, page, skills, available actions.</span>
 
 <span class="sd">    Convenience wrapper over :class:`CloudClient.get_context`.</span>
 
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
 <span class="sd">    page : str, optional</span>
-<span class="sd">        Page name or URL fragment to query context for. ``&quot;&quot;`` means the</span>
+<span class="sd">        Page name or URL fragment to query context for. ``""`` means the</span>
 <span class="sd">        current page.</span>
 <span class="sd">    **kw</span>
 <span class="sd">        Forwarded to :class:`CloudClient` (e.g. base URL, auth credentials).</span>
@@ -267,7 +250,7 @@
 <span class="sd">    -------</span>
 <span class="sd">    dict</span>
 <span class="sd">        Context dict (``username``, ``page``, ``actions``, ...).</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
     <span class="k">return</span> <span class="n">CloudClient</span><span class="p">(</span><span class="o">**</span><span class="n">kw</span><span class="p">)</span><span class="o">.</span><span class="n">get_context</span><span class="p">(</span><span class="n">page</span><span class="p">)</span></div>
 
 
@@ -275,7 +258,7 @@
 <div class="viewcode-block" id="eval_js">
 <a class="viewcode-back" href="../api/_autosummary/scitex_hub.html#scitex_hub.eval_js">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">eval_js</span><span class="p">(</span><span class="n">code</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">timeout</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">10</span><span class="p">,</span> <span class="o">**</span><span class="n">kw</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Evaluate JavaScript in the user&#39;s connected browser.</span>
+<span class="w">    </span><span class="sd">"""Evaluate JavaScript in the user's connected browser.</span>
 
 <span class="sd">    Convenience wrapper over :class:`CloudClient.eval_js`.</span>
 
@@ -292,7 +275,7 @@
 <span class="sd">    -------</span>
 <span class="sd">    dict</span>
 <span class="sd">        Result of the JavaScript evaluation.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
     <span class="k">return</span> <span class="n">CloudClient</span><span class="p">(</span><span class="o">**</span><span class="n">kw</span><span class="p">)</span><span class="o">.</span><span class="n">eval_js</span><span class="p">(</span><span class="n">code</span><span class="p">,</span> <span class="n">timeout</span><span class="p">)</span></div>
 
 
@@ -300,7 +283,7 @@
 <div class="viewcode-block" id="ui_action">
 <a class="viewcode-back" href="../api/_autosummary/scitex_hub.html#scitex_hub.ui_action">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">ui_action</span><span class="p">(</span><span class="n">steps</span><span class="p">:</span> <span class="nb">list</span><span class="p">,</span> <span class="n">delay_ms</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">900</span><span class="p">,</span> <span class="o">**</span><span class="n">kw</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Drive browser UI: navigate, highlight, click, fill, scroll.</span>
+<span class="w">    </span><span class="sd">"""Drive browser UI: navigate, highlight, click, fill, scroll.</span>
 
 <span class="sd">    Convenience wrapper over :class:`CloudClient.ui_action`.</span>
 
@@ -317,7 +300,7 @@
 <span class="sd">    -------</span>
 <span class="sd">    dict</span>
 <span class="sd">        Result summary.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
     <span class="k">return</span> <span class="n">CloudClient</span><span class="p">(</span><span class="o">**</span><span class="n">kw</span><span class="p">)</span><span class="o">.</span><span class="n">ui_action</span><span class="p">(</span><span class="n">steps</span><span class="p">,</span> <span class="n">delay_ms</span><span class="p">)</span></div>
 
 
@@ -325,7 +308,7 @@
 <div class="viewcode-block" id="health_check">
 <a class="viewcode-back" href="../api/_autosummary/scitex_hub.html#scitex_hub.health_check">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">health_check</span><span class="p">(</span><span class="n">endpoint</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Check scitex-hub service health.</span>
+<span class="w">    </span><span class="sd">"""Check scitex-hub service health.</span>
 
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
@@ -336,7 +319,7 @@
 <span class="sd">    -------</span>
 <span class="sd">    dict</span>
 <span class="sd">        Health status with version, environment, and service status.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
     <span class="kn">import</span><span class="w"> </span><span class="nn">json</span>
     <span class="kn">import</span><span class="w"> </span><span class="nn">urllib.request</span>
 
@@ -345,28 +328,28 @@
             <span class="k">with</span> <span class="n">urllib</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">urlopen</span><span class="p">(</span><span class="n">endpoint</span><span class="p">,</span> <span class="n">timeout</span><span class="o">=</span><span class="mi">5</span><span class="p">)</span> <span class="k">as</span> <span class="n">response</span><span class="p">:</span>
                 <span class="k">return</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">response</span><span class="o">.</span><span class="n">read</span><span class="p">()</span><span class="o">.</span><span class="n">decode</span><span class="p">())</span>
         <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
-            <span class="k">return</span> <span class="p">{</span><span class="s2">&quot;status&quot;</span><span class="p">:</span> <span class="s2">&quot;error&quot;</span><span class="p">,</span> <span class="s2">&quot;error&quot;</span><span class="p">:</span> <span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">),</span> <span class="s2">&quot;endpoint&quot;</span><span class="p">:</span> <span class="n">endpoint</span><span class="p">}</span>
+            <span class="k">return</span> <span class="p">{</span><span class="s2">"status"</span><span class="p">:</span> <span class="s2">"error"</span><span class="p">,</span> <span class="s2">"error"</span><span class="p">:</span> <span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">),</span> <span class="s2">"endpoint"</span><span class="p">:</span> <span class="n">endpoint</span><span class="p">}</span>
 
     <span class="k">return</span> <span class="p">{</span>
-        <span class="s2">&quot;status&quot;</span><span class="p">:</span> <span class="s2">&quot;ok&quot;</span><span class="p">,</span>
-        <span class="s2">&quot;version&quot;</span><span class="p">:</span> <span class="n">__version__</span><span class="p">,</span>
-        <span class="s2">&quot;package&quot;</span><span class="p">:</span> <span class="s2">&quot;scitex-hub&quot;</span><span class="p">,</span>
+        <span class="s2">"status"</span><span class="p">:</span> <span class="s2">"ok"</span><span class="p">,</span>
+        <span class="s2">"version"</span><span class="p">:</span> <span class="n">__version__</span><span class="p">,</span>
+        <span class="s2">"package"</span><span class="p">:</span> <span class="s2">"scitex-hub"</span><span class="p">,</span>
     <span class="p">}</span></div>
 
 
 
 <span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span>
-    <span class="s2">&quot;__version__&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;account&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;get_version&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;health_check&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;get_context&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;eval_js&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;ui_action&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;CloudClient&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;Environment&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;get_environment&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;DockerManager&quot;</span><span class="p">,</span>
+    <span class="s2">"__version__"</span><span class="p">,</span>
+    <span class="s2">"account"</span><span class="p">,</span>
+    <span class="s2">"get_version"</span><span class="p">,</span>
+    <span class="s2">"health_check"</span><span class="p">,</span>
+    <span class="s2">"get_context"</span><span class="p">,</span>
+    <span class="s2">"eval_js"</span><span class="p">,</span>
+    <span class="s2">"ui_action"</span><span class="p">,</span>
+    <span class="s2">"CloudClient"</span><span class="p">,</span>
+    <span class="s2">"Environment"</span><span class="p">,</span>
+    <span class="s2">"get_environment"</span><span class="p">,</span>
+    <span class="s2">"DockerManager"</span><span class="p">,</span>
 <span class="p">]</span>
 
 <span class="c1"># EOF</span>
@@ -385,7 +368,7 @@
   Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
     <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
     provided by <a href="https://readthedocs.org">Read the Docs</a>.
-   
+
 
 </footer>
         </div>
@@ -396,7 +379,7 @@
       jQuery(function () {
           SphinxRtdTheme.Navigation.enable(true);
       });
-  </script> 
+  </script>
 
 </body>
 </html>
