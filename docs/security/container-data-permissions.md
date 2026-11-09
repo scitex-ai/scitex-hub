@@ -55,3 +55,39 @@ inside an owned, isolated container. Use no host user-data mounts or external
 network. Check mode, owner and content preservation, inaccessible-data refusal
 and the mounted root's permissions after the actual service starts. Preserve
 existing production ACLs; broader permission repairs are separate operations.
+
+
+## SSH gateway identity
+
+`SSHKeyManager` stores its default identity under
+`local_state.runtime_path("hub") / "ssh"`, through the shared
+`scitex_config` runtime resolver. In a production container configured with
+`SCITEX_DIR=/app/.scitex`, that is `/app/.scitex/hub/runtime/ssh`, inside
+the persistent configuration volume. An explicit constructor `key_dir` wins,
+then Django's `SSH_KEY_DIR` setting, then this default. The key is server state,
+not visitor project content or an image-build input.
+
+Before the first deployment using this default, preserve the existing gateway
+identity in the selected persistent directory. Compare the existing key's
+public fingerprint with an actual SSH handshake before copying it: an older
+gateway may already be serving a temporary in-memory key after failing to read
+its on-disk key. The file alone does not establish the prior wire identity.
+Transfer private bytes through an operator-controlled private channel, verify
+the copy, and make it readable only by the application account (`0600`, with
+an application-owned `0700` directory). Never put private keys in source,
+public images, logs or release artifacts. Keep the old copy for rollback.
+This migration is an explicit deployment operation; startup does not silently
+select or rewrite a legacy `/app/ssh_keys` identity.
+
+The key manager refuses unreadable, corrupt, symbolic and group/other-readable
+keys. It propagates storage errors instead of serving a temporary identity or
+replacing an existing key. New keys are written privately and published
+atomically without overwriting another initializer's key. Existing directory
+ownership and permissions are not recursively changed.
+
+Behavioral controls in
+`tests/apps/workspace_app/services/test_ssh_key_manager.py` create real RSA keys,
+reopen one identity across application checkout changes, exercise real file
+permissions and symbolic links, and run concurrent initializers. A deployment
+still needs an actual gateway handshake and persistent-volume verification;
+a source test does not establish live identity preservation.
