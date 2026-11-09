@@ -68,9 +68,9 @@ jobs:
       - name: Build Sphinx HTML (warnings fail PRs only)
         run: |
           if [ "${{ github.event_name }}" = "pull_request" ]; then
-            sphinx-build -W -b html docs/sphinx docs/sphinx/_build/html
+            sphinx-build -W -d docs/sphinx/_build/doctrees -b html docs/sphinx docs/sphinx/_build/html
           else
-            sphinx-build -b html docs/sphinx docs/sphinx/_build/html
+            sphinx-build -d docs/sphinx/_build/doctrees -b html docs/sphinx docs/sphinx/_build/html
           fi
 
       - name: Refresh src/scitex_hub/_sphinx_html/ (develop push only)

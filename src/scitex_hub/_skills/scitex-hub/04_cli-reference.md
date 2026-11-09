@@ -36,7 +36,9 @@ tags: [scitex-hub-cli-reference]
 | `workspace`        | Workspace operations (upload, push/pull, list, sync)   |
 
 The old spellings `sync-to` / `sync-from` / `sync-status` / `ss` are
-deprecated warn-phase aliases (removed in v0.20).
+retained warn-phase compatibility aliases in this source. Prefer the canonical
+commands above; a past removal target in alias metadata is not evidence that
+the route has been removed.
 
 ## Deploy / containers / init
 

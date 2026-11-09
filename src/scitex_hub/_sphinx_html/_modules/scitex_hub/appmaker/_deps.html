@@ -5,32 +5,32 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>scitex_hub.appmaker._deps &mdash; SciTeX Hub v0.18.1</title>
+  <title>scitex_hub.appmaker._deps &mdash; SciTeX Hub v0.22.0a7</title>
       <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=b86133f3" />
       <link rel="stylesheet" type="text/css" href="../../../_static/css/theme.css?v=9edc463e" />
       <link rel="stylesheet" type="text/css" href="../../../_static/copybutton.css?v=76b2166b" />
 
-  
+
       <script src="../../../_static/jquery.js?v=5d32c60e"></script>
       <script src="../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-      <script src="../../../_static/documentation_options.js?v=1e56ff10"></script>
+      <script src="../../../_static/documentation_options.js?v=af24e983"></script>
       <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
       <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
       <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
       <script src="../../../_static/copybutton.js?v=f281be69"></script>
     <script src="../../../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../../../genindex.html" />
-    <link rel="search" title="Search" href="../../../search.html" /> 
+    <link rel="search" title="Search" href="../../../search.html" />
 </head>
 
-<body class="wy-body-for-nav"> 
+<body class="wy-body-for-nav">
   <div class="wy-grid-for-nav">
     <nav data-toggle="wy-nav-shift" class="wy-nav-side">
       <div class="wy-side-scroll">
         <div class="wy-side-nav-search" >
 
-          
-          
+
+
           <a href="../../../index.html" class="icon icon-home">
             SciTeX Hub
           </a>
@@ -71,15 +71,9 @@
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="../../../cli.html">CLI Reference</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="../../../cli.html#global-options">Global Options</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../../cli.html#project-management">Project Management</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../../cli.html#three-way-sync">Three-Way Sync</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../../cli.html#git-hosting-gitea">Git Hosting (Gitea)</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../../cli.html#app-management">App Management</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../../cli.html#cloud-sdk">Cloud SDK</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../../cli.html#infrastructure">Infrastructure</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../../cli.html#mcp-server">MCP Server</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../../cli.html#utilities">Utilities</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../cli.html#discover-commands">Discover commands</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../cli.html#command-groups">Command groups</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../cli.html#source-and-validation">Source and validation</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="../../../sync.html">Three-Way Sync</a><ul>
@@ -121,17 +115,6 @@
 <li class="toctree-l2"><a class="reference internal" href="../../../app_platform.html#app-submission-and-review">App Submission and Review</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../app_platform.html#separation-of-concerns">Separation of Concerns</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../app_platform.html#reference">Reference</a></li>
-</ul>
-</li>
-<li class="toctree-l1"><a class="reference internal" href="../../../visitor_pool_security.html">Visitor Pool Security</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="../../../visitor_pool_security.html#background-the-fix">Background: the fix</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../../visitor_pool_security.html#layer-1-reset-workspace-after">Layer 1 — <code class="docutils literal notranslate"><span class="pre">&#64;reset_workspace_after</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../../visitor_pool_security.html#layer-2-ensure-clean-workspace">Layer 2 — <code class="docutils literal notranslate"><span class="pre">&#64;ensure_clean_workspace</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../../visitor_pool_security.html#layer-3-reset-visitor-pool-on-container-restart">Layer 3 — <code class="docutils literal notranslate"><span class="pre">reset_visitor_pool</span></code> on container restart</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../../visitor_pool_security.html#what-gets-cleared">What gets cleared</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../../visitor_pool_security.html#pool-lifecycle-diagram">Pool lifecycle diagram</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../../visitor_pool_security.html#operations">Operations</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../../visitor_pool_security.html#further-reading">Further reading</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="../../../api/index.html">API Reference</a><ul>
@@ -184,32 +167,33 @@
 </div>
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
-             
+
   <h1>Source code for scitex_hub.appmaker._deps</h1><div class="highlight"><pre>
-<span></span><span class="sd">&quot;&quot;&quot;App dependency checking and installation.</span>
+<span></span><span class="sd">"""App dependency checking and installation.</span>
 
 <span class="sd">Reads ``dependencies`` from manifest.json and checks whether they are satisfied.</span>
 <span class="sd">Supports: python (pip), system (apt/dpkg), node (npm), r (R packages).</span>
 
 <span class="sd">Designed to run both inside Apptainer containers and on the host.</span>
-<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">"""</span>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">__future__</span><span class="w"> </span><span class="kn">import</span> <span class="n">annotations</span>
 
 <span class="kn">import</span><span class="w"> </span><span class="nn">json</span>
-<span class="kn">import</span><span class="w"> </span><span class="nn">logging</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">shutil</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">subprocess</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">Path</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Optional</span>
 
-<span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">scitex_logging</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">slogging</span>
+
+<span class="n">logger</span> <span class="o">=</span> <span class="n">slogging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
 
 
 <div class="viewcode-block" id="check_deps">
 <a class="viewcode-back" href="../../../api/_autosummary/scitex_hub.appmaker.html#scitex_hub.appmaker.check_deps">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">check_deps</span><span class="p">(</span><span class="n">manifest</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]]:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Check which dependencies from a manifest are missing.</span>
+<span class="w">    </span><span class="sd">"""Check which dependencies from a manifest are missing.</span>
 
 <span class="sd">    Args:</span>
 <span class="sd">        manifest: Parsed manifest.json dict (must have ``dependencies`` key).</span>
@@ -217,8 +201,8 @@
 <span class="sd">    Returns:</span>
 <span class="sd">        Dict mapping dep type → list of missing dependency specs.</span>
 <span class="sd">        Empty dict means all dependencies are satisfied.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">deps</span> <span class="o">=</span> <span class="n">manifest</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;dependencies&quot;</span><span class="p">)</span> <span class="ow">or</span> <span class="p">{}</span>
+<span class="sd">    """</span>
+    <span class="n">deps</span> <span class="o">=</span> <span class="n">manifest</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"dependencies"</span><span class="p">)</span> <span class="ow">or</span> <span class="p">{}</span>
     <span class="n">missing</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]]</span> <span class="o">=</span> <span class="p">{}</span>
 
     <span class="k">for</span> <span class="n">dep_type</span><span class="p">,</span> <span class="n">specs</span> <span class="ow">in</span> <span class="n">deps</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
@@ -226,7 +210,7 @@
             <span class="k">continue</span>
         <span class="n">checker</span> <span class="o">=</span> <span class="n">_CHECKERS</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">dep_type</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">checker</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;[deps] no checker for dep type: </span><span class="si">%s</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">dep_type</span><span class="p">)</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">"[deps] no checker for dep type: </span><span class="si">%s</span><span class="s2">"</span><span class="p">,</span> <span class="n">dep_type</span><span class="p">)</span>
             <span class="k">continue</span>
         <span class="n">missing_specs</span> <span class="o">=</span> <span class="n">checker</span><span class="p">(</span><span class="n">specs</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">missing_specs</span><span class="p">:</span>
@@ -239,8 +223,8 @@
 <div class="viewcode-block" id="check_deps_from_manifest">
 <a class="viewcode-back" href="../../../api/_autosummary/scitex_hub.appmaker.html#scitex_hub.appmaker.check_deps_from_manifest">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">check_deps_from_manifest</span><span class="p">(</span><span class="n">manifest_path</span><span class="p">:</span> <span class="n">Path</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]]:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Convenience: load manifest.json then check deps.&quot;&quot;&quot;</span>
-    <span class="n">data</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">manifest_path</span><span class="o">.</span><span class="n">read_text</span><span class="p">(</span><span class="n">encoding</span><span class="o">=</span><span class="s2">&quot;utf-8&quot;</span><span class="p">))</span>
+<span class="w">    </span><span class="sd">"""Convenience: load manifest.json then check deps."""</span>
+    <span class="n">data</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">manifest_path</span><span class="o">.</span><span class="n">read_text</span><span class="p">(</span><span class="n">encoding</span><span class="o">=</span><span class="s2">"utf-8"</span><span class="p">))</span>
     <span class="k">return</span> <span class="n">check_deps</span><span class="p">(</span><span class="n">data</span><span class="p">)</span></div>
 
 
@@ -253,27 +237,27 @@
     <span class="o">*</span><span class="p">,</span>
     <span class="n">timeout</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">300</span><span class="p">,</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Install dependencies of a specific type from a manifest.</span>
+<span class="w">    </span><span class="sd">"""Install dependencies of a specific type from a manifest.</span>
 
 <span class="sd">    Args:</span>
 <span class="sd">        manifest: Parsed manifest.json dict.</span>
-<span class="sd">        dep_type: One of &quot;python&quot;, &quot;system&quot;, &quot;node&quot;, &quot;r&quot;.</span>
+<span class="sd">        dep_type: One of "python", "system", "node", "r".</span>
 <span class="sd">        timeout: Max seconds for the install command.</span>
 
 <span class="sd">    Returns:</span>
 <span class="sd">        Dict with ``success``, ``installed``, ``error`` keys.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">deps</span> <span class="o">=</span> <span class="n">manifest</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;dependencies&quot;</span><span class="p">)</span> <span class="ow">or</span> <span class="p">{}</span>
+<span class="sd">    """</span>
+    <span class="n">deps</span> <span class="o">=</span> <span class="n">manifest</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"dependencies"</span><span class="p">)</span> <span class="ow">or</span> <span class="p">{}</span>
     <span class="n">specs</span> <span class="o">=</span> <span class="n">deps</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">dep_type</span><span class="p">,</span> <span class="p">[])</span>
     <span class="k">if</span> <span class="ow">not</span> <span class="n">specs</span><span class="p">:</span>
-        <span class="k">return</span> <span class="p">{</span><span class="s2">&quot;success&quot;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span> <span class="s2">&quot;installed&quot;</span><span class="p">:</span> <span class="p">[],</span> <span class="s2">&quot;error&quot;</span><span class="p">:</span> <span class="s2">&quot;&quot;</span><span class="p">}</span>
+        <span class="k">return</span> <span class="p">{</span><span class="s2">"success"</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span> <span class="s2">"installed"</span><span class="p">:</span> <span class="p">[],</span> <span class="s2">"error"</span><span class="p">:</span> <span class="s2">""</span><span class="p">}</span>
 
     <span class="n">installer</span> <span class="o">=</span> <span class="n">_INSTALLERS</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">dep_type</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">installer</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
         <span class="k">return</span> <span class="p">{</span>
-            <span class="s2">&quot;success&quot;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
-            <span class="s2">&quot;installed&quot;</span><span class="p">:</span> <span class="p">[],</span>
-            <span class="s2">&quot;error&quot;</span><span class="p">:</span> <span class="sa">f</span><span class="s2">&quot;No installer for: </span><span class="si">{</span><span class="n">dep_type</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span>
+            <span class="s2">"success"</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
+            <span class="s2">"installed"</span><span class="p">:</span> <span class="p">[],</span>
+            <span class="s2">"error"</span><span class="p">:</span> <span class="sa">f</span><span class="s2">"No installer for: </span><span class="si">{</span><span class="n">dep_type</span><span class="si">}</span><span class="s2">"</span><span class="p">,</span>
         <span class="p">}</span>
 
     <span class="k">return</span> <span class="n">installer</span><span class="p">(</span><span class="n">specs</span><span class="p">,</span> <span class="n">timeout</span><span class="o">=</span><span class="n">timeout</span><span class="p">)</span></div>
@@ -283,14 +267,14 @@
 <div class="viewcode-block" id="format_missing_report">
 <a class="viewcode-back" href="../../../api/_autosummary/scitex_hub.appmaker.html#scitex_hub.appmaker.format_missing_report">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">format_missing_report</span><span class="p">(</span><span class="n">missing</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]])</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Format missing dependencies as a human-readable string.&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""Format missing dependencies as a human-readable string."""</span>
     <span class="k">if</span> <span class="ow">not</span> <span class="n">missing</span><span class="p">:</span>
-        <span class="k">return</span> <span class="s2">&quot;All dependencies satisfied.&quot;</span>
+        <span class="k">return</span> <span class="s2">"All dependencies satisfied."</span>
     <span class="n">lines</span> <span class="o">=</span> <span class="p">[]</span>
     <span class="k">for</span> <span class="n">dep_type</span><span class="p">,</span> <span class="n">specs</span> <span class="ow">in</span> <span class="n">missing</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
         <span class="n">label</span> <span class="o">=</span> <span class="n">_TYPE_LABELS</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">dep_type</span><span class="p">,</span> <span class="n">dep_type</span><span class="p">)</span>
-        <span class="n">lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">label</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="s1">&#39;, &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">specs</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-    <span class="k">return</span> <span class="s2">&quot;Missing dependencies:</span><span class="se">\n</span><span class="s2">&quot;</span> <span class="o">+</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  - </span><span class="si">{</span><span class="n">line</span><span class="si">}</span><span class="s2">&quot;</span> <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">lines</span><span class="p">)</span></div>
+        <span class="n">lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">label</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="s1">', '</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">specs</span><span class="p">)</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+    <span class="k">return</span> <span class="s2">"Missing dependencies:</span><span class="se">\n</span><span class="s2">"</span> <span class="o">+</span> <span class="s2">"</span><span class="se">\n</span><span class="s2">"</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="sa">f</span><span class="s2">"  - </span><span class="si">{</span><span class="n">line</span><span class="si">}</span><span class="s2">"</span> <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">lines</span><span class="p">)</span></div>
 
 
 
@@ -298,12 +282,12 @@
 
 
 <span class="k">def</span><span class="w"> </span><span class="nf">_check_python</span><span class="p">(</span><span class="n">specs</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Check which Python packages are missing using importlib.metadata.&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""Check which Python packages are missing using importlib.metadata."""</span>
     <span class="kn">import</span><span class="w"> </span><span class="nn">importlib.metadata</span>
 
     <span class="n">missing</span> <span class="o">=</span> <span class="p">[]</span>
     <span class="k">for</span> <span class="n">spec</span> <span class="ow">in</span> <span class="n">specs</span><span class="p">:</span>
-        <span class="c1"># Extract package name from spec like &quot;numpy&gt;=1.24&quot;</span>
+        <span class="c1"># Extract package name from spec like "numpy&gt;=1.24"</span>
         <span class="n">name</span> <span class="o">=</span> <span class="n">_parse_pkg_name</span><span class="p">(</span><span class="n">spec</span><span class="p">)</span>
         <span class="k">try</span><span class="p">:</span>
             <span class="n">importlib</span><span class="o">.</span><span class="n">metadata</span><span class="o">.</span><span class="n">version</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
@@ -313,20 +297,20 @@
 
 
 <span class="k">def</span><span class="w"> </span><span class="nf">_check_system</span><span class="p">(</span><span class="n">specs</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Check which system packages are missing using dpkg-query.&quot;&quot;&quot;</span>
-    <span class="k">if</span> <span class="ow">not</span> <span class="n">shutil</span><span class="o">.</span><span class="n">which</span><span class="p">(</span><span class="s2">&quot;dpkg-query&quot;</span><span class="p">):</span>
-        <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;[deps] dpkg-query not found — skipping system dep check&quot;</span><span class="p">)</span>
+<span class="w">    </span><span class="sd">"""Check which system packages are missing using dpkg-query."""</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">shutil</span><span class="o">.</span><span class="n">which</span><span class="p">(</span><span class="s2">"dpkg-query"</span><span class="p">):</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">"[deps] dpkg-query not found — skipping system dep check"</span><span class="p">)</span>
         <span class="k">return</span> <span class="p">[]</span>
     <span class="n">missing</span> <span class="o">=</span> <span class="p">[]</span>
     <span class="k">for</span> <span class="n">pkg</span> <span class="ow">in</span> <span class="n">specs</span><span class="p">:</span>
         <span class="k">try</span><span class="p">:</span>
             <span class="n">result</span> <span class="o">=</span> <span class="n">subprocess</span><span class="o">.</span><span class="n">run</span><span class="p">(</span>
-                <span class="p">[</span><span class="s2">&quot;dpkg-query&quot;</span><span class="p">,</span> <span class="s2">&quot;-W&quot;</span><span class="p">,</span> <span class="s2">&quot;-f&quot;</span><span class="p">,</span> <span class="s2">&quot;$</span><span class="si">{Status}</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">pkg</span><span class="p">],</span>
+                <span class="p">[</span><span class="s2">"dpkg-query"</span><span class="p">,</span> <span class="s2">"-W"</span><span class="p">,</span> <span class="s2">"-f"</span><span class="p">,</span> <span class="s2">"$</span><span class="si">{Status}</span><span class="s2">"</span><span class="p">,</span> <span class="n">pkg</span><span class="p">],</span>
                 <span class="n">capture_output</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
                 <span class="n">text</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
                 <span class="n">timeout</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span>
             <span class="p">)</span>
-            <span class="k">if</span> <span class="s2">&quot;install ok installed&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">result</span><span class="o">.</span><span class="n">stdout</span><span class="p">:</span>
+            <span class="k">if</span> <span class="s2">"install ok installed"</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">result</span><span class="o">.</span><span class="n">stdout</span><span class="p">:</span>
                 <span class="n">missing</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">pkg</span><span class="p">)</span>
         <span class="k">except</span> <span class="p">(</span><span class="n">subprocess</span><span class="o">.</span><span class="n">TimeoutExpired</span><span class="p">,</span> <span class="ne">FileNotFoundError</span><span class="p">):</span>
             <span class="n">missing</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">pkg</span><span class="p">)</span>
@@ -334,17 +318,17 @@
 
 
 <span class="k">def</span><span class="w"> </span><span class="nf">_check_node</span><span class="p">(</span><span class="n">specs</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Check which Node.js packages are missing.&quot;&quot;&quot;</span>
-    <span class="n">npm</span> <span class="o">=</span> <span class="n">shutil</span><span class="o">.</span><span class="n">which</span><span class="p">(</span><span class="s2">&quot;npm&quot;</span><span class="p">)</span>
+<span class="w">    </span><span class="sd">"""Check which Node.js packages are missing."""</span>
+    <span class="n">npm</span> <span class="o">=</span> <span class="n">shutil</span><span class="o">.</span><span class="n">which</span><span class="p">(</span><span class="s2">"npm"</span><span class="p">)</span>
     <span class="k">if</span> <span class="ow">not</span> <span class="n">npm</span><span class="p">:</span>
-        <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;[deps] npm not found — skipping node dep check&quot;</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">"[deps] npm not found — skipping node dep check"</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">specs</span> <span class="k">if</span> <span class="n">specs</span> <span class="k">else</span> <span class="p">[]</span>
     <span class="n">missing</span> <span class="o">=</span> <span class="p">[]</span>
     <span class="k">for</span> <span class="n">spec</span> <span class="ow">in</span> <span class="n">specs</span><span class="p">:</span>
         <span class="n">name</span> <span class="o">=</span> <span class="n">_parse_pkg_name</span><span class="p">(</span><span class="n">spec</span><span class="p">)</span>
         <span class="k">try</span><span class="p">:</span>
             <span class="n">result</span> <span class="o">=</span> <span class="n">subprocess</span><span class="o">.</span><span class="n">run</span><span class="p">(</span>
-                <span class="p">[</span><span class="s2">&quot;npm&quot;</span><span class="p">,</span> <span class="s2">&quot;list&quot;</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="s2">&quot;--depth=0&quot;</span><span class="p">],</span>
+                <span class="p">[</span><span class="s2">"npm"</span><span class="p">,</span> <span class="s2">"list"</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="s2">"--depth=0"</span><span class="p">],</span>
                 <span class="n">capture_output</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
                 <span class="n">text</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
                 <span class="n">timeout</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span>
@@ -357,19 +341,19 @@
 
 
 <span class="k">def</span><span class="w"> </span><span class="nf">_check_r</span><span class="p">(</span><span class="n">specs</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Check which R packages are missing.&quot;&quot;&quot;</span>
-    <span class="n">rscript</span> <span class="o">=</span> <span class="n">shutil</span><span class="o">.</span><span class="n">which</span><span class="p">(</span><span class="s2">&quot;Rscript&quot;</span><span class="p">)</span>
+<span class="w">    </span><span class="sd">"""Check which R packages are missing."""</span>
+    <span class="n">rscript</span> <span class="o">=</span> <span class="n">shutil</span><span class="o">.</span><span class="n">which</span><span class="p">(</span><span class="s2">"Rscript"</span><span class="p">)</span>
     <span class="k">if</span> <span class="ow">not</span> <span class="n">rscript</span><span class="p">:</span>
-        <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;[deps] Rscript not found — skipping R dep check&quot;</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">"[deps] Rscript not found — skipping R dep check"</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">specs</span> <span class="k">if</span> <span class="n">specs</span> <span class="k">else</span> <span class="p">[]</span>
     <span class="n">missing</span> <span class="o">=</span> <span class="p">[]</span>
     <span class="k">for</span> <span class="n">pkg</span> <span class="ow">in</span> <span class="n">specs</span><span class="p">:</span>
         <span class="k">try</span><span class="p">:</span>
             <span class="n">result</span> <span class="o">=</span> <span class="n">subprocess</span><span class="o">.</span><span class="n">run</span><span class="p">(</span>
                 <span class="p">[</span>
-                    <span class="s2">&quot;Rscript&quot;</span><span class="p">,</span>
-                    <span class="s2">&quot;-e&quot;</span><span class="p">,</span>
-                    <span class="sa">f</span><span class="s1">&#39;if (!require(&quot;</span><span class="si">{</span><span class="n">pkg</span><span class="si">}</span><span class="s1">&quot;, quietly=TRUE)) quit(status=1)&#39;</span><span class="p">,</span>
+                    <span class="s2">"Rscript"</span><span class="p">,</span>
+                    <span class="s2">"-e"</span><span class="p">,</span>
+                    <span class="sa">f</span><span class="s1">'if (!require("</span><span class="si">{</span><span class="n">pkg</span><span class="si">}</span><span class="s1">", quietly=TRUE)) quit(status=1)'</span><span class="p">,</span>
                 <span class="p">],</span>
                 <span class="n">capture_output</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
                 <span class="n">text</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
@@ -386,101 +370,101 @@
 
 
 <span class="k">def</span><span class="w"> </span><span class="nf">_install_python</span><span class="p">(</span><span class="n">specs</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span> <span class="o">*</span><span class="p">,</span> <span class="n">timeout</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">300</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Install Python packages via pip.&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""Install Python packages via pip."""</span>
     <span class="k">try</span><span class="p">:</span>
         <span class="n">result</span> <span class="o">=</span> <span class="n">subprocess</span><span class="o">.</span><span class="n">run</span><span class="p">(</span>
-            <span class="p">[</span><span class="s2">&quot;pip&quot;</span><span class="p">,</span> <span class="s2">&quot;install&quot;</span><span class="p">,</span> <span class="s2">&quot;--no-input&quot;</span><span class="p">,</span> <span class="o">*</span><span class="n">specs</span><span class="p">],</span>
+            <span class="p">[</span><span class="s2">"pip"</span><span class="p">,</span> <span class="s2">"install"</span><span class="p">,</span> <span class="s2">"--no-input"</span><span class="p">,</span> <span class="o">*</span><span class="n">specs</span><span class="p">],</span>
             <span class="n">capture_output</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
             <span class="n">text</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
             <span class="n">timeout</span><span class="o">=</span><span class="n">timeout</span><span class="p">,</span>
         <span class="p">)</span>
         <span class="k">if</span> <span class="n">result</span><span class="o">.</span><span class="n">returncode</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
-            <span class="k">return</span> <span class="p">{</span><span class="s2">&quot;success&quot;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span> <span class="s2">&quot;installed&quot;</span><span class="p">:</span> <span class="n">specs</span><span class="p">,</span> <span class="s2">&quot;error&quot;</span><span class="p">:</span> <span class="s2">&quot;&quot;</span><span class="p">}</span>
-        <span class="k">return</span> <span class="p">{</span><span class="s2">&quot;success&quot;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span> <span class="s2">&quot;installed&quot;</span><span class="p">:</span> <span class="p">[],</span> <span class="s2">&quot;error&quot;</span><span class="p">:</span> <span class="n">result</span><span class="o">.</span><span class="n">stderr</span><span class="p">[:</span><span class="mi">500</span><span class="p">]}</span>
+            <span class="k">return</span> <span class="p">{</span><span class="s2">"success"</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span> <span class="s2">"installed"</span><span class="p">:</span> <span class="n">specs</span><span class="p">,</span> <span class="s2">"error"</span><span class="p">:</span> <span class="s2">""</span><span class="p">}</span>
+        <span class="k">return</span> <span class="p">{</span><span class="s2">"success"</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span> <span class="s2">"installed"</span><span class="p">:</span> <span class="p">[],</span> <span class="s2">"error"</span><span class="p">:</span> <span class="n">result</span><span class="o">.</span><span class="n">stderr</span><span class="p">[:</span><span class="mi">500</span><span class="p">]}</span>
     <span class="k">except</span> <span class="n">subprocess</span><span class="o">.</span><span class="n">TimeoutExpired</span><span class="p">:</span>
         <span class="k">return</span> <span class="p">{</span>
-            <span class="s2">&quot;success&quot;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
-            <span class="s2">&quot;installed&quot;</span><span class="p">:</span> <span class="p">[],</span>
-            <span class="s2">&quot;error&quot;</span><span class="p">:</span> <span class="sa">f</span><span class="s2">&quot;Timed out after </span><span class="si">{</span><span class="n">timeout</span><span class="si">}</span><span class="s2">s&quot;</span><span class="p">,</span>
+            <span class="s2">"success"</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
+            <span class="s2">"installed"</span><span class="p">:</span> <span class="p">[],</span>
+            <span class="s2">"error"</span><span class="p">:</span> <span class="sa">f</span><span class="s2">"Timed out after </span><span class="si">{</span><span class="n">timeout</span><span class="si">}</span><span class="s2">s"</span><span class="p">,</span>
         <span class="p">}</span>
     <span class="k">except</span> <span class="ne">FileNotFoundError</span><span class="p">:</span>
-        <span class="k">return</span> <span class="p">{</span><span class="s2">&quot;success&quot;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span> <span class="s2">&quot;installed&quot;</span><span class="p">:</span> <span class="p">[],</span> <span class="s2">&quot;error&quot;</span><span class="p">:</span> <span class="s2">&quot;pip not found&quot;</span><span class="p">}</span>
+        <span class="k">return</span> <span class="p">{</span><span class="s2">"success"</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span> <span class="s2">"installed"</span><span class="p">:</span> <span class="p">[],</span> <span class="s2">"error"</span><span class="p">:</span> <span class="s2">"pip not found"</span><span class="p">}</span>
 
 
 <span class="k">def</span><span class="w"> </span><span class="nf">_install_system</span><span class="p">(</span><span class="n">specs</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span> <span class="o">*</span><span class="p">,</span> <span class="n">timeout</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">300</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Install system packages via apt-get.&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""Install system packages via apt-get."""</span>
     <span class="k">try</span><span class="p">:</span>
         <span class="n">result</span> <span class="o">=</span> <span class="n">subprocess</span><span class="o">.</span><span class="n">run</span><span class="p">(</span>
-            <span class="p">[</span><span class="s2">&quot;apt-get&quot;</span><span class="p">,</span> <span class="s2">&quot;install&quot;</span><span class="p">,</span> <span class="s2">&quot;-y&quot;</span><span class="p">,</span> <span class="o">*</span><span class="n">specs</span><span class="p">],</span>
+            <span class="p">[</span><span class="s2">"apt-get"</span><span class="p">,</span> <span class="s2">"install"</span><span class="p">,</span> <span class="s2">"-y"</span><span class="p">,</span> <span class="o">*</span><span class="n">specs</span><span class="p">],</span>
             <span class="n">capture_output</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
             <span class="n">text</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
             <span class="n">timeout</span><span class="o">=</span><span class="n">timeout</span><span class="p">,</span>
         <span class="p">)</span>
         <span class="k">if</span> <span class="n">result</span><span class="o">.</span><span class="n">returncode</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
-            <span class="k">return</span> <span class="p">{</span><span class="s2">&quot;success&quot;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span> <span class="s2">&quot;installed&quot;</span><span class="p">:</span> <span class="n">specs</span><span class="p">,</span> <span class="s2">&quot;error&quot;</span><span class="p">:</span> <span class="s2">&quot;&quot;</span><span class="p">}</span>
-        <span class="k">return</span> <span class="p">{</span><span class="s2">&quot;success&quot;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span> <span class="s2">&quot;installed&quot;</span><span class="p">:</span> <span class="p">[],</span> <span class="s2">&quot;error&quot;</span><span class="p">:</span> <span class="n">result</span><span class="o">.</span><span class="n">stderr</span><span class="p">[:</span><span class="mi">500</span><span class="p">]}</span>
+            <span class="k">return</span> <span class="p">{</span><span class="s2">"success"</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span> <span class="s2">"installed"</span><span class="p">:</span> <span class="n">specs</span><span class="p">,</span> <span class="s2">"error"</span><span class="p">:</span> <span class="s2">""</span><span class="p">}</span>
+        <span class="k">return</span> <span class="p">{</span><span class="s2">"success"</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span> <span class="s2">"installed"</span><span class="p">:</span> <span class="p">[],</span> <span class="s2">"error"</span><span class="p">:</span> <span class="n">result</span><span class="o">.</span><span class="n">stderr</span><span class="p">[:</span><span class="mi">500</span><span class="p">]}</span>
     <span class="k">except</span> <span class="n">subprocess</span><span class="o">.</span><span class="n">TimeoutExpired</span><span class="p">:</span>
         <span class="k">return</span> <span class="p">{</span>
-            <span class="s2">&quot;success&quot;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
-            <span class="s2">&quot;installed&quot;</span><span class="p">:</span> <span class="p">[],</span>
-            <span class="s2">&quot;error&quot;</span><span class="p">:</span> <span class="sa">f</span><span class="s2">&quot;Timed out after </span><span class="si">{</span><span class="n">timeout</span><span class="si">}</span><span class="s2">s&quot;</span><span class="p">,</span>
+            <span class="s2">"success"</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
+            <span class="s2">"installed"</span><span class="p">:</span> <span class="p">[],</span>
+            <span class="s2">"error"</span><span class="p">:</span> <span class="sa">f</span><span class="s2">"Timed out after </span><span class="si">{</span><span class="n">timeout</span><span class="si">}</span><span class="s2">s"</span><span class="p">,</span>
         <span class="p">}</span>
     <span class="k">except</span> <span class="ne">FileNotFoundError</span><span class="p">:</span>
-        <span class="k">return</span> <span class="p">{</span><span class="s2">&quot;success&quot;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span> <span class="s2">&quot;installed&quot;</span><span class="p">:</span> <span class="p">[],</span> <span class="s2">&quot;error&quot;</span><span class="p">:</span> <span class="s2">&quot;apt-get not found&quot;</span><span class="p">}</span>
+        <span class="k">return</span> <span class="p">{</span><span class="s2">"success"</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span> <span class="s2">"installed"</span><span class="p">:</span> <span class="p">[],</span> <span class="s2">"error"</span><span class="p">:</span> <span class="s2">"apt-get not found"</span><span class="p">}</span>
 
 
 <span class="k">def</span><span class="w"> </span><span class="nf">_install_node</span><span class="p">(</span><span class="n">specs</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span> <span class="o">*</span><span class="p">,</span> <span class="n">timeout</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">300</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Install Node.js packages via npm.&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""Install Node.js packages via npm."""</span>
     <span class="k">try</span><span class="p">:</span>
         <span class="n">result</span> <span class="o">=</span> <span class="n">subprocess</span><span class="o">.</span><span class="n">run</span><span class="p">(</span>
-            <span class="p">[</span><span class="s2">&quot;npm&quot;</span><span class="p">,</span> <span class="s2">&quot;install&quot;</span><span class="p">,</span> <span class="o">*</span><span class="n">specs</span><span class="p">],</span>
+            <span class="p">[</span><span class="s2">"npm"</span><span class="p">,</span> <span class="s2">"install"</span><span class="p">,</span> <span class="o">*</span><span class="n">specs</span><span class="p">],</span>
             <span class="n">capture_output</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
             <span class="n">text</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
             <span class="n">timeout</span><span class="o">=</span><span class="n">timeout</span><span class="p">,</span>
         <span class="p">)</span>
         <span class="k">if</span> <span class="n">result</span><span class="o">.</span><span class="n">returncode</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
-            <span class="k">return</span> <span class="p">{</span><span class="s2">&quot;success&quot;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span> <span class="s2">&quot;installed&quot;</span><span class="p">:</span> <span class="n">specs</span><span class="p">,</span> <span class="s2">&quot;error&quot;</span><span class="p">:</span> <span class="s2">&quot;&quot;</span><span class="p">}</span>
-        <span class="k">return</span> <span class="p">{</span><span class="s2">&quot;success&quot;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span> <span class="s2">&quot;installed&quot;</span><span class="p">:</span> <span class="p">[],</span> <span class="s2">&quot;error&quot;</span><span class="p">:</span> <span class="n">result</span><span class="o">.</span><span class="n">stderr</span><span class="p">[:</span><span class="mi">500</span><span class="p">]}</span>
+            <span class="k">return</span> <span class="p">{</span><span class="s2">"success"</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span> <span class="s2">"installed"</span><span class="p">:</span> <span class="n">specs</span><span class="p">,</span> <span class="s2">"error"</span><span class="p">:</span> <span class="s2">""</span><span class="p">}</span>
+        <span class="k">return</span> <span class="p">{</span><span class="s2">"success"</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span> <span class="s2">"installed"</span><span class="p">:</span> <span class="p">[],</span> <span class="s2">"error"</span><span class="p">:</span> <span class="n">result</span><span class="o">.</span><span class="n">stderr</span><span class="p">[:</span><span class="mi">500</span><span class="p">]}</span>
     <span class="k">except</span> <span class="n">subprocess</span><span class="o">.</span><span class="n">TimeoutExpired</span><span class="p">:</span>
         <span class="k">return</span> <span class="p">{</span>
-            <span class="s2">&quot;success&quot;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
-            <span class="s2">&quot;installed&quot;</span><span class="p">:</span> <span class="p">[],</span>
-            <span class="s2">&quot;error&quot;</span><span class="p">:</span> <span class="sa">f</span><span class="s2">&quot;Timed out after </span><span class="si">{</span><span class="n">timeout</span><span class="si">}</span><span class="s2">s&quot;</span><span class="p">,</span>
+            <span class="s2">"success"</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
+            <span class="s2">"installed"</span><span class="p">:</span> <span class="p">[],</span>
+            <span class="s2">"error"</span><span class="p">:</span> <span class="sa">f</span><span class="s2">"Timed out after </span><span class="si">{</span><span class="n">timeout</span><span class="si">}</span><span class="s2">s"</span><span class="p">,</span>
         <span class="p">}</span>
     <span class="k">except</span> <span class="ne">FileNotFoundError</span><span class="p">:</span>
-        <span class="k">return</span> <span class="p">{</span><span class="s2">&quot;success&quot;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span> <span class="s2">&quot;installed&quot;</span><span class="p">:</span> <span class="p">[],</span> <span class="s2">&quot;error&quot;</span><span class="p">:</span> <span class="s2">&quot;npm not found&quot;</span><span class="p">}</span>
+        <span class="k">return</span> <span class="p">{</span><span class="s2">"success"</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span> <span class="s2">"installed"</span><span class="p">:</span> <span class="p">[],</span> <span class="s2">"error"</span><span class="p">:</span> <span class="s2">"npm not found"</span><span class="p">}</span>
 
 
 <span class="k">def</span><span class="w"> </span><span class="nf">_install_r</span><span class="p">(</span><span class="n">specs</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span> <span class="o">*</span><span class="p">,</span> <span class="n">timeout</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">300</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Install R packages via install.packages().&quot;&quot;&quot;</span>
-    <span class="n">pkgs_str</span> <span class="o">=</span> <span class="s2">&quot;, &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;&quot;</span><span class="si">{</span><span class="n">p</span><span class="si">}</span><span class="s1">&quot;&#39;</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">specs</span><span class="p">)</span>
-    <span class="n">r_cmd</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">&#39;install.packages(c(</span><span class="si">{</span><span class="n">pkgs_str</span><span class="si">}</span><span class="s1">), repos=&quot;https://cran.r-project.org&quot;)&#39;</span>
+<span class="w">    </span><span class="sd">"""Install R packages via install.packages()."""</span>
+    <span class="n">pkgs_str</span> <span class="o">=</span> <span class="s2">", "</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="sa">f</span><span class="s1">'"</span><span class="si">{</span><span class="n">p</span><span class="si">}</span><span class="s1">"'</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">specs</span><span class="p">)</span>
+    <span class="n">r_cmd</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">'install.packages(c(</span><span class="si">{</span><span class="n">pkgs_str</span><span class="si">}</span><span class="s1">), repos="https://cran.r-project.org")'</span>
     <span class="k">try</span><span class="p">:</span>
         <span class="n">result</span> <span class="o">=</span> <span class="n">subprocess</span><span class="o">.</span><span class="n">run</span><span class="p">(</span>
-            <span class="p">[</span><span class="s2">&quot;Rscript&quot;</span><span class="p">,</span> <span class="s2">&quot;-e&quot;</span><span class="p">,</span> <span class="n">r_cmd</span><span class="p">],</span>
+            <span class="p">[</span><span class="s2">"Rscript"</span><span class="p">,</span> <span class="s2">"-e"</span><span class="p">,</span> <span class="n">r_cmd</span><span class="p">],</span>
             <span class="n">capture_output</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
             <span class="n">text</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
             <span class="n">timeout</span><span class="o">=</span><span class="n">timeout</span><span class="p">,</span>
         <span class="p">)</span>
         <span class="k">if</span> <span class="n">result</span><span class="o">.</span><span class="n">returncode</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
-            <span class="k">return</span> <span class="p">{</span><span class="s2">&quot;success&quot;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span> <span class="s2">&quot;installed&quot;</span><span class="p">:</span> <span class="n">specs</span><span class="p">,</span> <span class="s2">&quot;error&quot;</span><span class="p">:</span> <span class="s2">&quot;&quot;</span><span class="p">}</span>
-        <span class="k">return</span> <span class="p">{</span><span class="s2">&quot;success&quot;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span> <span class="s2">&quot;installed&quot;</span><span class="p">:</span> <span class="p">[],</span> <span class="s2">&quot;error&quot;</span><span class="p">:</span> <span class="n">result</span><span class="o">.</span><span class="n">stderr</span><span class="p">[:</span><span class="mi">500</span><span class="p">]}</span>
+            <span class="k">return</span> <span class="p">{</span><span class="s2">"success"</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span> <span class="s2">"installed"</span><span class="p">:</span> <span class="n">specs</span><span class="p">,</span> <span class="s2">"error"</span><span class="p">:</span> <span class="s2">""</span><span class="p">}</span>
+        <span class="k">return</span> <span class="p">{</span><span class="s2">"success"</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span> <span class="s2">"installed"</span><span class="p">:</span> <span class="p">[],</span> <span class="s2">"error"</span><span class="p">:</span> <span class="n">result</span><span class="o">.</span><span class="n">stderr</span><span class="p">[:</span><span class="mi">500</span><span class="p">]}</span>
     <span class="k">except</span> <span class="n">subprocess</span><span class="o">.</span><span class="n">TimeoutExpired</span><span class="p">:</span>
         <span class="k">return</span> <span class="p">{</span>
-            <span class="s2">&quot;success&quot;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
-            <span class="s2">&quot;installed&quot;</span><span class="p">:</span> <span class="p">[],</span>
-            <span class="s2">&quot;error&quot;</span><span class="p">:</span> <span class="sa">f</span><span class="s2">&quot;Timed out after </span><span class="si">{</span><span class="n">timeout</span><span class="si">}</span><span class="s2">s&quot;</span><span class="p">,</span>
+            <span class="s2">"success"</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
+            <span class="s2">"installed"</span><span class="p">:</span> <span class="p">[],</span>
+            <span class="s2">"error"</span><span class="p">:</span> <span class="sa">f</span><span class="s2">"Timed out after </span><span class="si">{</span><span class="n">timeout</span><span class="si">}</span><span class="s2">s"</span><span class="p">,</span>
         <span class="p">}</span>
     <span class="k">except</span> <span class="ne">FileNotFoundError</span><span class="p">:</span>
-        <span class="k">return</span> <span class="p">{</span><span class="s2">&quot;success&quot;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span> <span class="s2">&quot;installed&quot;</span><span class="p">:</span> <span class="p">[],</span> <span class="s2">&quot;error&quot;</span><span class="p">:</span> <span class="s2">&quot;Rscript not found&quot;</span><span class="p">}</span>
+        <span class="k">return</span> <span class="p">{</span><span class="s2">"success"</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span> <span class="s2">"installed"</span><span class="p">:</span> <span class="p">[],</span> <span class="s2">"error"</span><span class="p">:</span> <span class="s2">"Rscript not found"</span><span class="p">}</span>
 
 
 <span class="c1"># --- Helpers ---</span>
 
 
 <span class="k">def</span><span class="w"> </span><span class="nf">_parse_pkg_name</span><span class="p">(</span><span class="n">spec</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Extract package name from a version spec like &#39;numpy&gt;=1.24&#39; or &#39;react&gt;=18&#39;.&quot;&quot;&quot;</span>
-    <span class="k">for</span> <span class="n">sep</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">&quot;&gt;=&quot;</span><span class="p">,</span> <span class="s2">&quot;&lt;=&quot;</span><span class="p">,</span> <span class="s2">&quot;==&quot;</span><span class="p">,</span> <span class="s2">&quot;!=&quot;</span><span class="p">,</span> <span class="s2">&quot;&gt;&quot;</span><span class="p">,</span> <span class="s2">&quot;&lt;&quot;</span><span class="p">,</span> <span class="s2">&quot;~=&quot;</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""Extract package name from a version spec like 'numpy&gt;=1.24' or 'react&gt;=18'."""</span>
+    <span class="k">for</span> <span class="n">sep</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">"&gt;="</span><span class="p">,</span> <span class="s2">"&lt;="</span><span class="p">,</span> <span class="s2">"=="</span><span class="p">,</span> <span class="s2">"!="</span><span class="p">,</span> <span class="s2">"&gt;"</span><span class="p">,</span> <span class="s2">"&lt;"</span><span class="p">,</span> <span class="s2">"~="</span><span class="p">):</span>
         <span class="k">if</span> <span class="n">sep</span> <span class="ow">in</span> <span class="n">spec</span><span class="p">:</span>
             <span class="k">return</span> <span class="n">spec</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">sep</span><span class="p">,</span> <span class="mi">1</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
     <span class="k">return</span> <span class="n">spec</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
@@ -497,9 +481,9 @@
     <span class="n">output_dir</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Path</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="n">timeout</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">600</span><span class="p">,</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Build an Apptainer container from a .def file in an app directory.</span>
+<span class="w">    </span><span class="sd">"""Build an Apptainer container from a .def file in an app directory.</span>
 
-<span class="sd">    Looks for ``container`` field in manifest.json. If it&#39;s a .def file,</span>
+<span class="sd">    Looks for ``container`` field in manifest.json. If it's a .def file,</span>
 <span class="sd">    builds it into a .sif file.</span>
 
 <span class="sd">    Args:</span>
@@ -509,106 +493,133 @@
 
 <span class="sd">    Returns:</span>
 <span class="sd">        Dict with ``success``, ``sif_path``, ``error`` keys.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">manifest_path</span> <span class="o">=</span> <span class="n">app_dir</span> <span class="o">/</span> <span class="s2">&quot;manifest.json&quot;</span>
+<span class="sd">    """</span>
+    <span class="n">manifest_path</span> <span class="o">=</span> <span class="n">app_dir</span> <span class="o">/</span> <span class="s2">"manifest.json"</span>
     <span class="k">if</span> <span class="ow">not</span> <span class="n">manifest_path</span><span class="o">.</span><span class="n">is_file</span><span class="p">():</span>
-        <span class="k">return</span> <span class="p">{</span><span class="s2">&quot;success&quot;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span> <span class="s2">&quot;sif_path&quot;</span><span class="p">:</span> <span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="s2">&quot;error&quot;</span><span class="p">:</span> <span class="s2">&quot;No manifest.json found&quot;</span><span class="p">}</span>
+        <span class="k">return</span> <span class="p">{</span><span class="s2">"success"</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span> <span class="s2">"sif_path"</span><span class="p">:</span> <span class="s2">""</span><span class="p">,</span> <span class="s2">"error"</span><span class="p">:</span> <span class="s2">"No manifest.json found"</span><span class="p">}</span>
 
-    <span class="n">data</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">manifest_path</span><span class="o">.</span><span class="n">read_text</span><span class="p">(</span><span class="n">encoding</span><span class="o">=</span><span class="s2">&quot;utf-8&quot;</span><span class="p">))</span>
-    <span class="n">container</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;container&quot;</span><span class="p">)</span>
+    <span class="n">data</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">manifest_path</span><span class="o">.</span><span class="n">read_text</span><span class="p">(</span><span class="n">encoding</span><span class="o">=</span><span class="s2">"utf-8"</span><span class="p">))</span>
+    <span class="n">container</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"container"</span><span class="p">)</span>
     <span class="k">if</span> <span class="ow">not</span> <span class="n">container</span><span class="p">:</span>
         <span class="k">return</span> <span class="p">{</span>
-            <span class="s2">&quot;success&quot;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
-            <span class="s2">&quot;sif_path&quot;</span><span class="p">:</span> <span class="s2">&quot;&quot;</span><span class="p">,</span>
-            <span class="s2">&quot;error&quot;</span><span class="p">:</span> <span class="s2">&quot;No container field in manifest&quot;</span><span class="p">,</span>
+            <span class="s2">"success"</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
+            <span class="s2">"sif_path"</span><span class="p">:</span> <span class="s2">""</span><span class="p">,</span>
+            <span class="s2">"error"</span><span class="p">:</span> <span class="s2">"No container field in manifest"</span><span class="p">,</span>
         <span class="p">}</span>
 
     <span class="n">container_str</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">container</span><span class="p">)</span>
 
     <span class="c1"># If already a .sif, nothing to build</span>
-    <span class="k">if</span> <span class="n">container_str</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s2">&quot;.sif&quot;</span><span class="p">):</span>
+    <span class="k">if</span> <span class="n">container_str</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s2">".sif"</span><span class="p">):</span>
         <span class="n">sif_path</span> <span class="o">=</span> <span class="n">app_dir</span> <span class="o">/</span> <span class="n">container_str</span>
         <span class="k">if</span> <span class="n">sif_path</span><span class="o">.</span><span class="n">is_file</span><span class="p">():</span>
-            <span class="k">return</span> <span class="p">{</span><span class="s2">&quot;success&quot;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span> <span class="s2">&quot;sif_path&quot;</span><span class="p">:</span> <span class="nb">str</span><span class="p">(</span><span class="n">sif_path</span><span class="p">),</span> <span class="s2">&quot;error&quot;</span><span class="p">:</span> <span class="s2">&quot;&quot;</span><span class="p">}</span>
+            <span class="k">return</span> <span class="p">{</span><span class="s2">"success"</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span> <span class="s2">"sif_path"</span><span class="p">:</span> <span class="nb">str</span><span class="p">(</span><span class="n">sif_path</span><span class="p">),</span> <span class="s2">"error"</span><span class="p">:</span> <span class="s2">""</span><span class="p">}</span>
         <span class="k">return</span> <span class="p">{</span>
-            <span class="s2">&quot;success&quot;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
-            <span class="s2">&quot;sif_path&quot;</span><span class="p">:</span> <span class="s2">&quot;&quot;</span><span class="p">,</span>
-            <span class="s2">&quot;error&quot;</span><span class="p">:</span> <span class="sa">f</span><span class="s2">&quot;SIF file not found: </span><span class="si">{</span><span class="n">sif_path</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span>
+            <span class="s2">"success"</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
+            <span class="s2">"sif_path"</span><span class="p">:</span> <span class="s2">""</span><span class="p">,</span>
+            <span class="s2">"error"</span><span class="p">:</span> <span class="sa">f</span><span class="s2">"SIF file not found: </span><span class="si">{</span><span class="n">sif_path</span><span class="si">}</span><span class="s2">"</span><span class="p">,</span>
         <span class="p">}</span>
 
     <span class="c1"># Build from .def</span>
-    <span class="k">if</span> <span class="ow">not</span> <span class="n">container_str</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s2">&quot;.def&quot;</span><span class="p">):</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">container_str</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s2">".def"</span><span class="p">):</span>
         <span class="k">return</span> <span class="p">{</span>
-            <span class="s2">&quot;success&quot;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
-            <span class="s2">&quot;sif_path&quot;</span><span class="p">:</span> <span class="s2">&quot;&quot;</span><span class="p">,</span>
-            <span class="s2">&quot;error&quot;</span><span class="p">:</span> <span class="sa">f</span><span class="s2">&quot;Container must be a .def or .sif file, got: </span><span class="si">{</span><span class="n">container_str</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span>
+            <span class="s2">"success"</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
+            <span class="s2">"sif_path"</span><span class="p">:</span> <span class="s2">""</span><span class="p">,</span>
+            <span class="s2">"error"</span><span class="p">:</span> <span class="sa">f</span><span class="s2">"Container must be a .def or .sif file, got: </span><span class="si">{</span><span class="n">container_str</span><span class="si">}</span><span class="s2">"</span><span class="p">,</span>
         <span class="p">}</span>
 
     <span class="n">def_path</span> <span class="o">=</span> <span class="n">app_dir</span> <span class="o">/</span> <span class="n">container_str</span>
     <span class="k">if</span> <span class="ow">not</span> <span class="n">def_path</span><span class="o">.</span><span class="n">is_file</span><span class="p">():</span>
         <span class="k">return</span> <span class="p">{</span>
-            <span class="s2">&quot;success&quot;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
-            <span class="s2">&quot;sif_path&quot;</span><span class="p">:</span> <span class="s2">&quot;&quot;</span><span class="p">,</span>
-            <span class="s2">&quot;error&quot;</span><span class="p">:</span> <span class="sa">f</span><span class="s2">&quot;Def file not found: </span><span class="si">{</span><span class="n">def_path</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span>
+            <span class="s2">"success"</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
+            <span class="s2">"sif_path"</span><span class="p">:</span> <span class="s2">""</span><span class="p">,</span>
+            <span class="s2">"error"</span><span class="p">:</span> <span class="sa">f</span><span class="s2">"Def file not found: </span><span class="si">{</span><span class="n">def_path</span><span class="si">}</span><span class="s2">"</span><span class="p">,</span>
         <span class="p">}</span>
 
-    <span class="k">if</span> <span class="ow">not</span> <span class="n">shutil</span><span class="o">.</span><span class="n">which</span><span class="p">(</span><span class="s2">&quot;apptainer&quot;</span><span class="p">):</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">shutil</span><span class="o">.</span><span class="n">which</span><span class="p">(</span><span class="s2">"apptainer"</span><span class="p">):</span>
         <span class="k">return</span> <span class="p">{</span>
-            <span class="s2">&quot;success&quot;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
-            <span class="s2">&quot;sif_path&quot;</span><span class="p">:</span> <span class="s2">&quot;&quot;</span><span class="p">,</span>
-            <span class="s2">&quot;error&quot;</span><span class="p">:</span> <span class="s2">&quot;apptainer not found on PATH&quot;</span><span class="p">,</span>
+            <span class="s2">"success"</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
+            <span class="s2">"sif_path"</span><span class="p">:</span> <span class="s2">""</span><span class="p">,</span>
+            <span class="s2">"error"</span><span class="p">:</span> <span class="s2">"apptainer not found on PATH"</span><span class="p">,</span>
+        <span class="p">}</span>
+
+    <span class="c1"># apptainer shells out to mksquashfs to write the SIF, so a present</span>
+    <span class="c1"># apptainer is not sufficient. Without this the build starts and fails</span>
+    <span class="c1"># DEEP, and the reader is then debugging apptainer instead of reading a</span>
+    <span class="c1"># refusal from us:</span>
+    <span class="c1">#     FATAL: while searching for mksquashfs: exec: "mksquashfs":</span>
+    <span class="c1">#     executable file not found in $PATH</span>
+    <span class="c1"># Measured 2026-08-26 in BOTH the prod and staging images (byte-identical</span>
+    <span class="c1"># error, prod still privileged at the time — so it is the image, not the</span>
+    <span class="c1"># container's privileges).</span>
+    <span class="c1">#</span>
+    <span class="c1"># The message names the REMEDY and the SCOPE, not just the absence. The</span>
+    <span class="c1"># scope half matters: this binary is needed by `apptainer build` and NOT by</span>
+    <span class="c1"># `apptainer exec`, so a reader whose workspace launches fine does not need</span>
+    <span class="c1"># to wonder whether this is their problem. Hub's own workspace path</span>
+    <span class="c1"># (console_app/services/apptainer_runner.py) only ever execs a PREBUILT</span>
+    <span class="c1"># container, which is why the images have shipped without mksquashfs for</span>
+    <span class="c1"># months without anyone noticing.</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">shutil</span><span class="o">.</span><span class="n">which</span><span class="p">(</span><span class="s2">"mksquashfs"</span><span class="p">):</span>
+        <span class="k">return</span> <span class="p">{</span>
+            <span class="s2">"success"</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
+            <span class="s2">"sif_path"</span><span class="p">:</span> <span class="s2">""</span><span class="p">,</span>
+            <span class="s2">"error"</span><span class="p">:</span> <span class="p">(</span>
+                <span class="s2">"mksquashfs not found on PATH (install squashfs-tools; "</span>
+                <span class="s2">"required for `apptainer build`, not for `apptainer exec`)"</span>
+            <span class="p">),</span>
         <span class="p">}</span>
 
     <span class="n">out</span> <span class="o">=</span> <span class="n">output_dir</span> <span class="ow">or</span> <span class="n">app_dir</span>
     <span class="n">out</span><span class="o">.</span><span class="n">mkdir</span><span class="p">(</span><span class="n">parents</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-    <span class="n">sif_name</span> <span class="o">=</span> <span class="n">def_path</span><span class="o">.</span><span class="n">stem</span> <span class="o">+</span> <span class="s2">&quot;.sif&quot;</span>
+    <span class="n">sif_name</span> <span class="o">=</span> <span class="n">def_path</span><span class="o">.</span><span class="n">stem</span> <span class="o">+</span> <span class="s2">".sif"</span>
     <span class="n">sif_path</span> <span class="o">=</span> <span class="n">out</span> <span class="o">/</span> <span class="n">sif_name</span>
 
-    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;[deps] Building container: </span><span class="si">%s</span><span class="s2"> → </span><span class="si">%s</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">def_path</span><span class="p">,</span> <span class="n">sif_path</span><span class="p">)</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">"[deps] Building container: </span><span class="si">%s</span><span class="s2"> → </span><span class="si">%s</span><span class="s2">"</span><span class="p">,</span> <span class="n">def_path</span><span class="p">,</span> <span class="n">sif_path</span><span class="p">)</span>
 
     <span class="k">try</span><span class="p">:</span>
         <span class="n">result</span> <span class="o">=</span> <span class="n">subprocess</span><span class="o">.</span><span class="n">run</span><span class="p">(</span>
-            <span class="p">[</span><span class="s2">&quot;apptainer&quot;</span><span class="p">,</span> <span class="s2">&quot;build&quot;</span><span class="p">,</span> <span class="s2">&quot;--fakeroot&quot;</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">sif_path</span><span class="p">),</span> <span class="nb">str</span><span class="p">(</span><span class="n">def_path</span><span class="p">)],</span>
+            <span class="p">[</span><span class="s2">"apptainer"</span><span class="p">,</span> <span class="s2">"build"</span><span class="p">,</span> <span class="s2">"--fakeroot"</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">sif_path</span><span class="p">),</span> <span class="nb">str</span><span class="p">(</span><span class="n">def_path</span><span class="p">)],</span>
             <span class="n">capture_output</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
             <span class="n">text</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
             <span class="n">timeout</span><span class="o">=</span><span class="n">timeout</span><span class="p">,</span>
         <span class="p">)</span>
         <span class="k">if</span> <span class="n">result</span><span class="o">.</span><span class="n">returncode</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
-            <span class="k">return</span> <span class="p">{</span><span class="s2">&quot;success&quot;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span> <span class="s2">&quot;sif_path&quot;</span><span class="p">:</span> <span class="nb">str</span><span class="p">(</span><span class="n">sif_path</span><span class="p">),</span> <span class="s2">&quot;error&quot;</span><span class="p">:</span> <span class="s2">&quot;&quot;</span><span class="p">}</span>
-        <span class="k">return</span> <span class="p">{</span><span class="s2">&quot;success&quot;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span> <span class="s2">&quot;sif_path&quot;</span><span class="p">:</span> <span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="s2">&quot;error&quot;</span><span class="p">:</span> <span class="n">result</span><span class="o">.</span><span class="n">stderr</span><span class="p">[:</span><span class="mi">500</span><span class="p">]}</span>
+            <span class="k">return</span> <span class="p">{</span><span class="s2">"success"</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span> <span class="s2">"sif_path"</span><span class="p">:</span> <span class="nb">str</span><span class="p">(</span><span class="n">sif_path</span><span class="p">),</span> <span class="s2">"error"</span><span class="p">:</span> <span class="s2">""</span><span class="p">}</span>
+        <span class="k">return</span> <span class="p">{</span><span class="s2">"success"</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span> <span class="s2">"sif_path"</span><span class="p">:</span> <span class="s2">""</span><span class="p">,</span> <span class="s2">"error"</span><span class="p">:</span> <span class="n">result</span><span class="o">.</span><span class="n">stderr</span><span class="p">[:</span><span class="mi">500</span><span class="p">]}</span>
     <span class="k">except</span> <span class="n">subprocess</span><span class="o">.</span><span class="n">TimeoutExpired</span><span class="p">:</span>
         <span class="k">return</span> <span class="p">{</span>
-            <span class="s2">&quot;success&quot;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
-            <span class="s2">&quot;sif_path&quot;</span><span class="p">:</span> <span class="s2">&quot;&quot;</span><span class="p">,</span>
-            <span class="s2">&quot;error&quot;</span><span class="p">:</span> <span class="sa">f</span><span class="s2">&quot;Build timed out after </span><span class="si">{</span><span class="n">timeout</span><span class="si">}</span><span class="s2">s&quot;</span><span class="p">,</span>
+            <span class="s2">"success"</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
+            <span class="s2">"sif_path"</span><span class="p">:</span> <span class="s2">""</span><span class="p">,</span>
+            <span class="s2">"error"</span><span class="p">:</span> <span class="sa">f</span><span class="s2">"Build timed out after </span><span class="si">{</span><span class="n">timeout</span><span class="si">}</span><span class="s2">s"</span><span class="p">,</span>
         <span class="p">}</span>
     <span class="k">except</span> <span class="ne">FileNotFoundError</span><span class="p">:</span>
-        <span class="k">return</span> <span class="p">{</span><span class="s2">&quot;success&quot;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span> <span class="s2">&quot;sif_path&quot;</span><span class="p">:</span> <span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="s2">&quot;error&quot;</span><span class="p">:</span> <span class="s2">&quot;apptainer not found&quot;</span><span class="p">}</span></div>
+        <span class="k">return</span> <span class="p">{</span><span class="s2">"success"</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span> <span class="s2">"sif_path"</span><span class="p">:</span> <span class="s2">""</span><span class="p">,</span> <span class="s2">"error"</span><span class="p">:</span> <span class="s2">"apptainer not found"</span><span class="p">}</span></div>
 
 
 
 <span class="c1"># --- Registry ---</span>
 
 <span class="n">_CHECKERS</span> <span class="o">=</span> <span class="p">{</span>
-    <span class="s2">&quot;python&quot;</span><span class="p">:</span> <span class="n">_check_python</span><span class="p">,</span>
-    <span class="s2">&quot;system&quot;</span><span class="p">:</span> <span class="n">_check_system</span><span class="p">,</span>
-    <span class="s2">&quot;node&quot;</span><span class="p">:</span> <span class="n">_check_node</span><span class="p">,</span>
-    <span class="s2">&quot;r&quot;</span><span class="p">:</span> <span class="n">_check_r</span><span class="p">,</span>
+    <span class="s2">"python"</span><span class="p">:</span> <span class="n">_check_python</span><span class="p">,</span>
+    <span class="s2">"system"</span><span class="p">:</span> <span class="n">_check_system</span><span class="p">,</span>
+    <span class="s2">"node"</span><span class="p">:</span> <span class="n">_check_node</span><span class="p">,</span>
+    <span class="s2">"r"</span><span class="p">:</span> <span class="n">_check_r</span><span class="p">,</span>
 <span class="p">}</span>
 
 <span class="n">_INSTALLERS</span> <span class="o">=</span> <span class="p">{</span>
-    <span class="s2">&quot;python&quot;</span><span class="p">:</span> <span class="n">_install_python</span><span class="p">,</span>
-    <span class="s2">&quot;system&quot;</span><span class="p">:</span> <span class="n">_install_system</span><span class="p">,</span>
-    <span class="s2">&quot;node&quot;</span><span class="p">:</span> <span class="n">_install_node</span><span class="p">,</span>
-    <span class="s2">&quot;r&quot;</span><span class="p">:</span> <span class="n">_install_r</span><span class="p">,</span>
+    <span class="s2">"python"</span><span class="p">:</span> <span class="n">_install_python</span><span class="p">,</span>
+    <span class="s2">"system"</span><span class="p">:</span> <span class="n">_install_system</span><span class="p">,</span>
+    <span class="s2">"node"</span><span class="p">:</span> <span class="n">_install_node</span><span class="p">,</span>
+    <span class="s2">"r"</span><span class="p">:</span> <span class="n">_install_r</span><span class="p">,</span>
 <span class="p">}</span>
 
 <span class="n">_TYPE_LABELS</span> <span class="o">=</span> <span class="p">{</span>
-    <span class="s2">&quot;python&quot;</span><span class="p">:</span> <span class="s2">&quot;Python (pip)&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;system&quot;</span><span class="p">:</span> <span class="s2">&quot;System (apt)&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;node&quot;</span><span class="p">:</span> <span class="s2">&quot;Node.js (npm)&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;r&quot;</span><span class="p">:</span> <span class="s2">&quot;R (CRAN)&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;other&quot;</span><span class="p">:</span> <span class="s2">&quot;Other&quot;</span><span class="p">,</span>
+    <span class="s2">"python"</span><span class="p">:</span> <span class="s2">"Python (pip)"</span><span class="p">,</span>
+    <span class="s2">"system"</span><span class="p">:</span> <span class="s2">"System (apt)"</span><span class="p">,</span>
+    <span class="s2">"node"</span><span class="p">:</span> <span class="s2">"Node.js (npm)"</span><span class="p">,</span>
+    <span class="s2">"r"</span><span class="p">:</span> <span class="s2">"R (CRAN)"</span><span class="p">,</span>
+    <span class="s2">"other"</span><span class="p">:</span> <span class="s2">"Other"</span><span class="p">,</span>
 <span class="p">}</span>
 
 
@@ -628,7 +639,7 @@
   Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
     <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
     provided by <a href="https://readthedocs.org">Read the Docs</a>.
-   
+
 
 </footer>
         </div>
@@ -639,7 +650,7 @@
       jQuery(function () {
           SphinxRtdTheme.Navigation.enable(true);
       });
-  </script> 
+  </script>
 
 </body>
 </html>

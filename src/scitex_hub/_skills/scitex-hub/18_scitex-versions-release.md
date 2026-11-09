@@ -16,6 +16,21 @@ The package version is declared in `pyproject.toml`; `scitex_hub.__version__`
 reads installed distribution metadata, so there is no duplicate Python constant
 to edit. Add matching release notes in `CHANGELOG.md`.
 
+Regenerate the shipped `src/scitex_hub/_sphinx_html/` from the selected source
+before accepting a version change. In the full documented dependency profile:
+
+```bash
+sphinx-build -W -d docs/sphinx/_build/doctrees -b html docs/sphinx docs/sphinx/_build/html
+```
+
+Replace the shipped HTML with that output and retain `.nojekyll`. Keep the
+doctree cache outside the HTML bundle. The version/help controls in
+`tests/config/test_shipped_documentation.py` reject a stale bundled version;
+they do not validate every prose claim. A green docs job builds separate HTML
+and does not establish that the committed wheel inputs were refreshed. The
+develop-only bot commit can be refused by branch protection, so inspect the
+actual bundle rather than relying on that best-effort delivery step.
+
 Alpha versions use canonical PEP 440 spelling, for example package `0.22.0a0`
 and tag `v0.22.0a0`. The human label “0.22.0-alpha” describes that same first
 alpha; it is not an additional tag. Increment the alpha number for another

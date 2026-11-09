@@ -1,167 +1,83 @@
 CLI Reference
 =============
 
-SciTeX Hub provides a command-line interface for managing projects,
-syncing code, interacting with the Git hosting service, deploying apps,
-and controlling the MCP server.
+The ``scitex-hub`` entry point is installed by ``pip install scitex-hub``.
+When the SciTeX umbrella is also installed, ``scitex hub`` delegates to this
+package. Inspect the help of the installed version before using an operation.
 
-Install with:
+Discover commands
+-----------------
 
 .. code-block:: bash
 
-   pip install scitex-hub
+   scitex-hub --version
+   scitex-hub --help
+   scitex-hub project --help
+   scitex-hub workspace --help
+   scitex-hub dev --help
+   scitex-hub app --help
+   scitex-hub mcp --help
+   scitex-hub skills --help
 
-Global Options
+These help commands do not create projects, deploy services or start an MCP
+server. ``--help-recursive`` prints the registered command tree, including
+compatibility routes; use each command's help for arguments and options.
+The root ``--json`` option is honored by commands that explicitly support it;
+it does not make every command a JSON interface.
+
+Command groups
 --------------
 
-.. code-block:: bash
+.. list-table::
+   :header-rows: 1
+   :widths: 30 70
 
-   scitex-hub --help                    # Show help
-   scitex-hub --help-recursive          # Show all subcommands recursively
-   scitex-hub --version                 # Show version
+   * - Command
+     - Scope
+   * - ``project``
+     - Project management
+   * - ``push-project`` / ``pull-project``
+     - Git synchronization with project repositories
+   * - ``workspace``
+     - Working-file upload, synchronization and status
+   * - ``account`` / ``auth``
+     - Account and authentication operations
+   * - ``app`` / ``sdk``
+     - Hosted app plugins and platform data/file/job operations
+   * - ``context``
+     - Web app context for agents
+   * - ``gitea``
+     - Git-hosting operations
+   * - ``init`` / ``deploy`` / ``docker``
+     - Environment setup and deployment operations
+   * - ``status`` / ``logs``
+     - Deployment diagnostics
+   * - ``mcp`` / ``skills`` / ``docs``
+     - Agent interfaces and documentation discovery
+   * - ``dev`` / ``dev-preview``
+     - Development and preview operations
+   * - ``completion``
+     - Shell completion
 
-Project Management
-------------------
+Canonical synchronization routes are ``push-project``, ``pull-project``,
+``workspace push``, ``workspace pull`` and ``workspace status``. Older
+spellings such as ``sync-to`` are compatibility routes, not the preferred
+examples. Inspect the installed help rather than inferring that a scheduled
+removal has happened.
 
-Create and manage SciTeX Hub projects. ``project create`` triggers the
-full flow: Gitea repository + Django project + server-side workspace.
+Deployment commands can alter services and persistent data. Follow the
+source-owned deployment runbook and its dependency, image, backup and rollback
+checks; command registration or help output does not qualify a deployment.
+Authentication and host configuration remain necessary for remote operations.
 
-.. code-block:: bash
+Source and validation
+---------------------
 
-   scitex-hub project create my-research -d "Paper on X"
-   scitex-hub project list [--json]
-   scitex-hub project delete my-research --yes
-   scitex-hub project rename my-research new-name
+Command registration is owned by ``scitex_hub._cli.main`` and its imported
+command groups. ``tests/config/test_shipped_documentation.py`` checks the
+selected help routes against the actual Click parser without invoking their
+operation callbacks. It also checks the shipped documentation's version
+binding. These checks do not execute synchronization, account, deployment or
+remote app operations.
 
-Three-Way Sync
---------------
-
-SciTeX manages three repositories per project:
-
-- **Local** — your dev machine
-- **Gitea** — source of truth (hosted Git)
-- **Workspace** — server-side working directory (web UI edits here)
-
-.. code-block:: text
-
-              Gitea
-             (source of truth)
-            /              \
-      push/pull          (server-side git)
-      (git)
-          /                  \
-       Local ------------ Workspace
-    (dev machine)  sync-to/from  (server-side)
-                    (files)
-
-**Git operations** (committed changes):
-
-.. code-block:: bash
-
-   scitex-hub push              # git push → Gitea
-   scitex-hub push origin main  # push specific branch
-   scitex-hub pull              # git pull ← Gitea
-   scitex-hub pull origin main  # pull specific branch
-
-**File sync** (working tree, Dropbox-style):
-
-.. code-block:: bash
-
-   scitex-hub sync-to                    # local → workspace
-   scitex-hub sync-to ywatanabe/my-proj  # explicit repo
-   scitex-hub sync-to --dry-run          # preview changes
-   scitex-hub sync-from                  # workspace → local
-   scitex-hub sync-from --dry-run        # preview changes
-
-Conflict handling: when both sides changed the same file since the last
-sync, both versions are kept — the synced version overwrites, and the
-other side's version is saved as ``file.conflict-<timestamp>.ext``.
-
-**Status**:
-
-.. code-block:: bash
-
-   scitex-hub sync-status  # show divergence (alias: ss)
-
-Git Hosting (Gitea)
--------------------
-
-Lower-level Gitea operations. For most workflows, use ``push``/``pull``
-and ``project create`` instead.
-
-.. code-block:: bash
-
-   scitex-hub gitea list                # List repositories
-   scitex-hub gitea clone user/repo     # Clone a repository
-   scitex-hub gitea create my-repo      # Create Gitea repo only
-   scitex-hub gitea push                # Push changes
-   scitex-hub gitea pull                # Pull changes
-   scitex-hub gitea search "query"      # Search repos
-   scitex-hub gitea fork user/repo      # Fork a repo
-   scitex-hub gitea pr create           # Create a pull request
-   scitex-hub gitea pr list             # List pull requests
-   scitex-hub gitea issue create        # Create an issue
-   scitex-hub gitea issue list          # List issues
-   scitex-hub gitea login               # Authenticate
-   scitex-hub gitea logout              # Remove credentials
-   scitex-hub gitea status              # Repo status
-
-App Management
---------------
-
-.. code-block:: bash
-
-   scitex-hub app list                  # List installed apps
-   scitex-hub app info <name>           # App details
-   scitex-hub app current               # Active app
-   scitex-hub app init . --name my_app  # Scaffold new app
-   scitex-hub app check-deps <name>     # Check dependencies
-   scitex-hub app submit <path>         # Submit for review
-   scitex-hub app prefs get/set         # User preferences
-
-Cloud SDK
----------
-
-.. code-block:: bash
-
-   # DataStore (JSON CRUD)
-   scitex-hub sdk data list|create|get|update|delete|search
-
-   # FileVault (file storage)
-   scitex-hub sdk files list|upload|download|delete
-
-   # JobQueue (background compute)
-   scitex-hub sdk jobs submit|status|list|cancel
-
-Infrastructure
---------------
-
-.. code-block:: bash
-
-   scitex-hub status                    # Deployment health
-   scitex-hub deploy                    # Deploy to production
-   scitex-hub setup [--env dev|prod]    # Setup environment
-   scitex-hub docker up|down|restart    # Container management
-   scitex-hub logs [service]            # View logs
-   scitex-hub ssh                       # SSH into cloud instance
-
-MCP Server
-----------
-
-.. code-block:: bash
-
-   scitex-hub mcp start                 # Start the MCP server
-   scitex-hub mcp list-tools            # List available MCP tools
-   scitex-hub mcp doctor                # Diagnose MCP setup
-
-For full MCP documentation, see :doc:`mcp`.
-
-Utilities
----------
-
-.. code-block:: bash
-
-   scitex-hub completion                # Set up shell completion
-   scitex-hub list-python-apis          # List all available Python APIs
-   scitex-hub skills list               # List available skills
-   scitex-hub skills get <name>         # Show a skill
+See :doc:`mcp` and :doc:`api/index` for the other package interfaces.
