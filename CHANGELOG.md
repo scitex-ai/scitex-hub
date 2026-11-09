@@ -38,6 +38,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- Ship the existing Hub CLI vocabulary in its package namespace, so installed
+  consumers can discover the same domain nouns and verbs used by source
+  audits. Keep one canonical resource through the relative project link.
+
 - Reconcile the stable/development histories without restoring retired app
   wrappers or visitor runtime. Retain host-label collision and startup-role
   regression coverage through the current metadata and tenancy contracts.

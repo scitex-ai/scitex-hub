@@ -74,3 +74,12 @@ scitex-hub mcp start
 See workflow leaves (`08_project-management.md`, `19_gitea-cli.md`,
 `11_deployment-staging.md`, `12_deployment-production.md`) for option-level
 detail.
+
+## Installed CLI vocabulary
+
+The 0.22.0a7 source packages Hub's reviewed domain nouns and verbs in
+`scitex_hub/_cli_audit_dict.yaml`. The project dictionary is a relative link to
+that canonical resource. Keep its normal wheel/sdist mapping intact so Dev can
+verify installed ownership and RECORD hashes before applying the vocabulary to
+Hub's mounted CLI. This supplies the existing grammar to installed consumers;
+it does not change commands or waive unrelated findings.

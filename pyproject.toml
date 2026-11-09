@@ -687,6 +687,7 @@ where = ["src"]
 
 [tool.setuptools.package-data]
 scitex_hub = [
+    "_cli_audit_dict.yaml",
     "skills/*.md",
     "skills/references/*.md",
     "_skills/**/*.md",
