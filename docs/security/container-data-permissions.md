@@ -79,6 +79,13 @@ public images, logs or release artifacts. Keep the old copy for rollback.
 This migration is an explicit deployment operation; startup does not silently
 select or rewrite a legacy `/app/ssh_keys` identity.
 
+The Docker build context excludes Hub runtime directories, host-key files and
+temporary key publications. Python source archives and wheels also exclude
+host-key filenames, including files under packaged documentation assets.
+These filters preserve public CLI defaults; they do not make a source checkout
+an appropriate location for private keys. Custom key filenames require private
+storage outside the build context and package tree.
+
 The key manager refuses unreadable, corrupt, symbolic and group/other-readable
 keys. It propagates storage errors instead of serving a temporary identity or
 replacing an existing key. New keys are written privately and published
@@ -87,7 +94,7 @@ ownership and permissions are not recursively changed.
 
 Behavioral controls in
 `tests/apps/workspace_app/services/test_ssh_key_manager.py` create real RSA keys,
-reopen one identity across application checkout changes, exercise real file
+reuse configured user state across working directories, exercise real file
 permissions and symbolic links, and run concurrent initializers. A deployment
 still needs an actual gateway handshake and persistent-volume verification;
 a source test does not establish live identity preservation.

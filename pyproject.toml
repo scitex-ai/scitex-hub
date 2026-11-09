@@ -695,6 +695,14 @@ scitex_hub = [
     "_sphinx_html/**",
 ]
 
+[tool.setuptools.exclude-package-data]
+"*" = [
+    "ssh_host_rsa_key",
+    "**/ssh_host_rsa_key",
+    ".ssh-host-key-*",
+    "**/.ssh-host-key-*",
+]
+
 [tool.setuptools.package-dir]
 "" = "src"
 

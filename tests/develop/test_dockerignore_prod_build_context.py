@@ -107,6 +107,9 @@ BAKED_ENV_FILES = (
 # Paths that must keep reaching the image, so "excluded" cannot be free.
 CONTROL_INCLUDED_PATHS = (
     "manage.py",
+    ".scitex/dev/config.yaml",
+    ".scitex/dev/cli-audit-dict.yaml",
+    "src/scitex_hub/_cli_audit_dict.yaml",
     "apps/infra/public_app/views/pages_data.py",
     "deployment/docker/common/scripts/entrypoint-prod.sh",
 )
@@ -392,6 +395,27 @@ def test_root_node_modules_stays_excluded_so_the_image_keeps_its_linux_build(
         "a host-built (macOS/WSL) tree would overwrite the image's "
         "linux-built one and break the startup Vite build."
     )
+
+
+@pytest.mark.parametrize(
+    "path",
+    [
+        ".scitex/hub/runtime/ssh/ssh_host_rsa_key",
+        ".scitex/hub/runtime/ssh/.ssh-host-key-fixture",
+        "nested/.scitex/hub/runtime/ssh/ssh_host_rsa_key",
+        "custom/ssh_host_rsa_key",
+        "custom/.ssh-host-key-fixture",
+        "ssh_host_rsa_key",
+        ".ssh-host-key-fixture",
+        "src/scitex_hub/_sphinx_html/_static/ssh_host_rsa_key",
+    ],
+)
+def test_private_host_identities_are_excluded_from_image_context(matcher, path):
+    # Arrange
+    # Act
+    excluded = matcher.is_excluded(path)
+    # Assert
+    assert excluded, f"Server identity must not enter a Docker build context: {path}"
 
 
 # EOF

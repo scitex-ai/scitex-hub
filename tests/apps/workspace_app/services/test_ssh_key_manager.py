@@ -36,7 +36,7 @@ def _failure(manager):
     return None
 
 
-def test_default_key_survives_a_change_of_application_checkout(owned_state):
+def test_default_key_reuses_configured_state_across_working_directories(owned_state):
     # Arrange
     with override_settings(SSH_KEY_DIR=None):
         first = SSHKeyManager()
