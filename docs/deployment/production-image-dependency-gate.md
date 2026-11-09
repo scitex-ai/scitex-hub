@@ -136,6 +136,10 @@ Docker host; otherwise the check refuses without guessing a remote checkout.
 This gate checks the Python floor/import contract. It does not replace the
 immutable image verifier, migration planning, data backups, frontend/static
 qualification or the guarded production swap and rollback procedure.
+The import probe configures Django with no apps or database. Non-import
+exceptions are reported as `INCONCLUSIVE`, not successful imports, and do not
+by themselves fail this dependency gate. Verify those modules under the real
+host configuration and relevant application tests before claiming readiness.
 
 ## Candidate image selection
 
