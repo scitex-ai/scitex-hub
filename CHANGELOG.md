@@ -13,6 +13,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [0.22.0a7] - 2026-11-09
 
+### Changed
+
+- Require the qualified public `scitex-dev` 0.62.20 and `scitex-scholar`
+  1.29.2 releases. Preserve normal dependency resolution and the image's
+  complete runtime-capability checks.
+
 ### Security
 
 - Restrict the mobile settings selector to its original local destinations.
