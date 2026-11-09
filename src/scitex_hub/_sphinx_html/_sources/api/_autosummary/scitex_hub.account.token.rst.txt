@@ -1,0 +1,21 @@
+scitex\_hub.account.token
+=========================
+
+.. automodule:: scitex_hub.account.token
+
+   
+   .. rubric:: Module Attributes
+
+   .. autosummary::
+   
+      DEFAULT_SCOPES
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+   
+      create
+      list
+      list_
+      revoke
+   

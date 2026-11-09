@@ -81,11 +81,40 @@ candidate-image staging selects `image-only`/`baked`. The legacy editable
 mode derives the actual apps mount from resolved Compose volume names and
 requires all three Python roles to agree. It does not guess a volume from an
 environment-name suffix. A different explicit volume is not the same deployment.
-Development uses `docker_dev/install_ecosystem.sh` and direct sibling binds;
-that layout is **not** the apps-volume model. Automatic `--env dev` therefore
-refuses that unmodelled overlay instead of probing an invented volume. Changing
-its environment value to `image-only` cannot make the direct development
-installer implement that mode.
+Development uses `docker_dev/install_ecosystem.sh` and direct sibling binds,
+which have a separate `direct-bind` preflight. On the Docker host, automatic
+`--env dev` recognizes the canonical development project and entrypoint, then
+requires all three Python roles to agree on the image and package-source binds.
+It reads the installer's package and extras declarations, including the full
+Hub and umbrella `[all]` requests. It does not invent an apps volume or accept a
+bare image/current-container diagnostic as a replacement for that profile.
+
+The implementation in `scripts/deploy/_direct_bind/` snapshots the declared Git
+sources into an owned private workspace. Source edits must be committed first;
+the supported exception is a bounded, regular `package-lock.json` beside a
+tracked `package.json`. Those generated locks are fingerprinted and copied,
+not discarded. The original checkouts remain untouched. The preflight runs the
+canonical simultaneous editable install and `uv pip check` in a separate
+container with two CPUs and 8 GiB memory/swap, using the resolved image ID.
+It then disconnects that owned container's network, probes its actual installed
+graph and imports, and checks source identity again before cleanup. No serving
+user/database mounts enter this preparation container. The install needs
+dependency-index access; the import probe runs without a network.
+
+Run this check on the development Docker host:
+
+```bash
+scripts/deploy/preflight_sibling_floors.sh dev --json
+```
+
+An unmodelled overlay, mixed source declarations, changed/unreadable source,
+failed installation, failed dependency check or failed import still refuses
+the recreate. `--via-ssh` does not model remote direct binds: SSH to the Docker
+host and run its canonical wrapper there. Changing the development mode to
+`image-only` does not make its installer implement that mode. Source-level
+controls for this path are in `tests/deployment/test_preflight_direct_bind.py`
+and `test_preflight_lock_snapshots.py`; passing them alone does not qualify a
+particular host's prospective package graph or frontend.
 
 For a recreate, `compose.sh <env> up ...` keeps the sanctioned mapping.
 Configuration-changing global options before `up` (for example a different
@@ -107,6 +136,10 @@ Docker host; otherwise the check refuses without guessing a remote checkout.
 This gate checks the Python floor/import contract. It does not replace the
 immutable image verifier, migration planning, data backups, frontend/static
 qualification or the guarded production swap and rollback procedure.
+The import probe configures Django with no apps or database. Non-import
+exceptions are reported as `INCONCLUSIVE`, not successful imports, and do not
+by themselves fail this dependency gate. Verify those modules under the real
+host configuration and relevant application tests before claiming readiness.
 
 ## Candidate image selection
 

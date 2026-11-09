@@ -3,3 +3,4 @@ include LICENSE
 include pyproject.toml
 recursive-include src/scitex_hub/_skills *.md
 recursive-include src/scitex_hub/skills *.md
+include src/scitex_hub/_cli_audit_dict.yaml

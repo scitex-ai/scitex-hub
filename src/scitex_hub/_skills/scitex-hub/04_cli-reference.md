@@ -36,7 +36,9 @@ tags: [scitex-hub-cli-reference]
 | `workspace`        | Workspace operations (upload, push/pull, list, sync)   |
 
 The old spellings `sync-to` / `sync-from` / `sync-status` / `ss` are
-deprecated warn-phase aliases (removed in v0.20).
+retained warn-phase compatibility aliases in this source. Prefer the canonical
+commands above; a past removal target in alias metadata is not evidence that
+the route has been removed.
 
 ## Deploy / containers / init
 
@@ -74,3 +76,12 @@ scitex-hub mcp start
 See workflow leaves (`08_project-management.md`, `19_gitea-cli.md`,
 `11_deployment-staging.md`, `12_deployment-production.md`) for option-level
 detail.
+
+## Installed CLI vocabulary
+
+The 0.22.0a7 source packages Hub's reviewed domain nouns and verbs in
+`scitex_hub/_cli_audit_dict.yaml`. The project dictionary is a relative link to
+that canonical resource. Keep its normal wheel/sdist mapping intact so Dev can
+verify installed ownership and RECORD hashes before applying the vocabulary to
+Hub's mounted CLI. This supplies the existing grammar to installed consumers;
+it does not change commands or waive unrelated findings.

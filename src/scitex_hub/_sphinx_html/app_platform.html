@@ -6,15 +6,15 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>App Platform &mdash; SciTeX Hub v0.18.1</title>
+  <title>App Platform &mdash; SciTeX Hub v0.22.0a7</title>
       <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
       <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=9edc463e" />
       <link rel="stylesheet" type="text/css" href="_static/copybutton.css?v=76b2166b" />
 
-  
+
       <script src="_static/jquery.js?v=5d32c60e"></script>
       <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-      <script src="_static/documentation_options.js?v=1e56ff10"></script>
+      <script src="_static/documentation_options.js?v=af24e983"></script>
       <script src="_static/doctools.js?v=fd6eb6e6"></script>
       <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
       <script src="_static/clipboard.min.js?v=a7894cd8"></script>
@@ -22,18 +22,18 @@
     <script src="_static/js/theme.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="Visitor Pool Security" href="visitor_pool_security.html" />
-    <link rel="prev" title="MCP Server" href="mcp.html" /> 
+    <link rel="next" title="API Reference" href="api/index.html" />
+    <link rel="prev" title="MCP Server" href="mcp.html" />
 </head>
 
-<body class="wy-body-for-nav"> 
+<body class="wy-body-for-nav">
   <div class="wy-grid-for-nav">
     <nav data-toggle="wy-nav-shift" class="wy-nav-side">
       <div class="wy-side-scroll">
         <div class="wy-side-nav-search" >
 
-          
-          
+
+
           <a href="index.html" class="icon icon-home">
             SciTeX Hub
           </a>
@@ -74,15 +74,9 @@
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="cli.html">CLI Reference</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="cli.html#global-options">Global Options</a></li>
-<li class="toctree-l2"><a class="reference internal" href="cli.html#project-management">Project Management</a></li>
-<li class="toctree-l2"><a class="reference internal" href="cli.html#three-way-sync">Three-Way Sync</a></li>
-<li class="toctree-l2"><a class="reference internal" href="cli.html#git-hosting-gitea">Git Hosting (Gitea)</a></li>
-<li class="toctree-l2"><a class="reference internal" href="cli.html#app-management">App Management</a></li>
-<li class="toctree-l2"><a class="reference internal" href="cli.html#cloud-sdk">Cloud SDK</a></li>
-<li class="toctree-l2"><a class="reference internal" href="cli.html#infrastructure">Infrastructure</a></li>
-<li class="toctree-l2"><a class="reference internal" href="cli.html#mcp-server">MCP Server</a></li>
-<li class="toctree-l2"><a class="reference internal" href="cli.html#utilities">Utilities</a></li>
+<li class="toctree-l2"><a class="reference internal" href="cli.html#discover-commands">Discover commands</a></li>
+<li class="toctree-l2"><a class="reference internal" href="cli.html#command-groups">Command groups</a></li>
+<li class="toctree-l2"><a class="reference internal" href="cli.html#source-and-validation">Source and validation</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="sync.html">Three-Way Sync</a><ul>
@@ -124,17 +118,6 @@
 <li class="toctree-l2"><a class="reference internal" href="#app-submission-and-review">App Submission and Review</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#separation-of-concerns">Separation of Concerns</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#reference">Reference</a></li>
-</ul>
-</li>
-<li class="toctree-l1"><a class="reference internal" href="visitor_pool_security.html">Visitor Pool Security</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="visitor_pool_security.html#background-the-fix">Background: the fix</a></li>
-<li class="toctree-l2"><a class="reference internal" href="visitor_pool_security.html#layer-1-reset-workspace-after">Layer 1 — <code class="docutils literal notranslate"><span class="pre">&#64;reset_workspace_after</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="visitor_pool_security.html#layer-2-ensure-clean-workspace">Layer 2 — <code class="docutils literal notranslate"><span class="pre">&#64;ensure_clean_workspace</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="visitor_pool_security.html#layer-3-reset-visitor-pool-on-container-restart">Layer 3 — <code class="docutils literal notranslate"><span class="pre">reset_visitor_pool</span></code> on container restart</a></li>
-<li class="toctree-l2"><a class="reference internal" href="visitor_pool_security.html#what-gets-cleared">What gets cleared</a></li>
-<li class="toctree-l2"><a class="reference internal" href="visitor_pool_security.html#pool-lifecycle-diagram">Pool lifecycle diagram</a></li>
-<li class="toctree-l2"><a class="reference internal" href="visitor_pool_security.html#operations">Operations</a></li>
-<li class="toctree-l2"><a class="reference internal" href="visitor_pool_security.html#further-reading">Further reading</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="api/index.html">API Reference</a><ul>
@@ -179,14 +162,14 @@
       <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
       <li class="breadcrumb-item active">App Platform</li>
       <li class="wy-breadcrumbs-aside">
-              <a href="https://github.com/ywatanabe1989/scitex-hub/blob/main/docs/sphinx/app_platform.rst" class="fa fa-github"> Edit on GitHub</a>
+              <a href="https://github.com/scitex-ai/scitex-hub/blob/main/docs/sphinx/app_platform.rst" class="fa fa-github"> Edit on GitHub</a>
       </li>
   </ul>
   <hr/>
 </div>
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
-             
+
   <section id="app-platform">
 <h1>App Platform<a class="headerlink" href="#app-platform" title="Link to this heading"></a></h1>
 <p>SciTeX Hub ships a first-class <strong>app platform</strong> that lets third-party apps
@@ -198,7 +181,7 @@ tooling so apps can focus on domain logic.</p>
 <p>This page describes what the <strong>platform</strong> provides.
 For the developer-facing workflow — scaffolding, manifest schema,
 frontend integration — see the
-<a class="reference external" href="https://github.com/ywatanabe1989/scitex-hub/blob/main/docs/APP_DEVELOPER_GUIDE.md">App Developer Guide</a>
+<a class="reference external" href="https://github.com/scitex-ai/scitex-hub/blob/main/docs/APP_DEVELOPER_GUIDE.md">App Developer Guide</a>
 and the <code class="docutils literal notranslate"><span class="pre">scitex-app</span></code> package documentation.</p>
 </div>
 <p>—</p>
@@ -314,7 +297,7 @@ the browser without writing custom Django views.</p>
 </div>
 <p>Example — load a CSV file:</p>
 <div class="highlight-text notranslate"><div class="highlight"><pre><span></span>POST /platform/api/scitex/io/load/
-{&quot;path&quot;: &quot;experiment/results.csv&quot;}
+{"path": "experiment/results.csv"}
 </pre></div>
 </div>
 <p>Available modules mirror the <code class="docutils literal notranslate"><span class="pre">scitex</span></code> package namespaces: <code class="docutils literal notranslate"><span class="pre">io</span></code>,
@@ -362,8 +345,8 @@ and are loaded unconditionally at startup.</p>
 <h3>External (pip-installed) Apps<a class="headerlink" href="#external-pip-installed-apps" title="Link to this heading"></a></h3>
 <p>Third-party apps declare themselves through a Python entry point:</p>
 <div class="highlight-toml notranslate"><div class="highlight"><pre><span></span><span class="c1"># pyproject.toml</span>
-<span class="k">[project.entry-points.</span><span class="s2">&quot;scitex_modules&quot;</span><span class="k">]</span>
-<span class="n">my_app</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;my_app:get_module_config&quot;</span>
+<span class="k">[project.entry-points.</span><span class="s2">"scitex_modules"</span><span class="k">]</span>
+<span class="n">my_app</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"my_app:get_module_config"</span>
 </pre></div>
 </div>
 <p>The platform calls <code class="docutils literal notranslate"><span class="pre">discover_external_modules()</span></code> at startup and
@@ -388,11 +371,11 @@ live workspace <strong>without</strong> going through the store review process. 
 the installing user sees the tab.</p>
 <div class="highlight-text notranslate"><div class="highlight"><pre><span></span>POST /apps/store/api/dev/install/
 Content-Type: application/json
-{&quot;owner&quot;: &quot;alice&quot;, &quot;repo&quot;: &quot;my-app&quot;}
+{"owner": "alice", "repo": "my-app"}
 </pre></div>
 </div>
 <p>Response:</p>
-<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>{&quot;success&quot;: true, &quot;module_name&quot;: &quot;dev__alice__my-app&quot;, &quot;label&quot;: &quot;My App&quot;}
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>{"success": true, "module_name": "dev__alice__my-app", "label": "My App"}
 </pre></div>
 </div>
 <p>What the platform does:</p>
@@ -493,8 +476,8 @@ apps via ScitexBridge, not re-implemented per-app.</p>
 <section id="reference">
 <h2>Reference<a class="headerlink" href="#reference" title="Link to this heading"></a></h2>
 <ul class="simple">
-<li><p><a class="reference external" href="https://github.com/ywatanabe1989/scitex-hub/blob/main/docs/APP_DEVELOPER_GUIDE.md">App Developer Guide</a> — full manifest schema, scaffold CLI, and frontend integration</p></li>
-<li><p><a class="reference external" href="https://github.com/ywatanabe1989/figrecipe">figrecipe</a> — reference implementation</p></li>
+<li><p><a class="reference external" href="https://github.com/scitex-ai/scitex-hub/blob/main/docs/APP_DEVELOPER_GUIDE.md">App Developer Guide</a> — full manifest schema, scaffold CLI, and frontend integration</p></li>
+<li><p><a class="reference external" href="https://github.com/scitex-ai/figrecipe">figrecipe</a> — reference implementation</p></li>
 <li><p><a class="reference external" href="https://pypi.org/project/scitex-app/">scitex-app</a> — developer CLI package</p></li>
 <li><p><a class="reference external" href="https://www.npmjs.com/package/&#64;scitex/ui">scitex-ui</a> — shared UI components</p></li>
 </ul>
@@ -506,7 +489,7 @@ apps via ScitexBridge, not re-implemented per-app.</p>
           </div>
           <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
         <a href="mcp.html" class="btn btn-neutral float-left" title="MCP Server" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
-        <a href="visitor_pool_security.html" class="btn btn-neutral float-right" title="Visitor Pool Security" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="api/index.html" class="btn btn-neutral float-right" title="API Reference" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 
   <hr/>
@@ -518,7 +501,7 @@ apps via ScitexBridge, not re-implemented per-app.</p>
   Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
     <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
     provided by <a href="https://readthedocs.org">Read the Docs</a>.
-   
+
 
 </footer>
         </div>
@@ -529,7 +512,7 @@ apps via ScitexBridge, not re-implemented per-app.</p>
       jQuery(function () {
           SphinxRtdTheme.Navigation.enable(true);
       });
-  </script> 
+  </script>
 
 </body>
 </html>

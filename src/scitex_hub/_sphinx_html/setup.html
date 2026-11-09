@@ -6,15 +6,15 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Setup Guide &mdash; SciTeX Hub v0.18.1</title>
+  <title>Setup Guide &mdash; SciTeX Hub v0.22.0a7</title>
       <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
       <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=9edc463e" />
       <link rel="stylesheet" type="text/css" href="_static/copybutton.css?v=76b2166b" />
 
-  
+
       <script src="_static/jquery.js?v=5d32c60e"></script>
       <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-      <script src="_static/documentation_options.js?v=1e56ff10"></script>
+      <script src="_static/documentation_options.js?v=af24e983"></script>
       <script src="_static/doctools.js?v=fd6eb6e6"></script>
       <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
       <script src="_static/clipboard.min.js?v=a7894cd8"></script>
@@ -23,17 +23,17 @@
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
     <link rel="next" title="Quick Start" href="quickstart.html" />
-    <link rel="prev" title="Installation" href="installation.html" /> 
+    <link rel="prev" title="Installation" href="installation.html" />
 </head>
 
-<body class="wy-body-for-nav"> 
+<body class="wy-body-for-nav">
   <div class="wy-grid-for-nav">
     <nav data-toggle="wy-nav-shift" class="wy-nav-side">
       <div class="wy-side-scroll">
         <div class="wy-side-nav-search" >
 
-          
-          
+
+
           <a href="index.html" class="icon icon-home">
             SciTeX Hub
           </a>
@@ -74,15 +74,9 @@
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="cli.html">CLI Reference</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="cli.html#global-options">Global Options</a></li>
-<li class="toctree-l2"><a class="reference internal" href="cli.html#project-management">Project Management</a></li>
-<li class="toctree-l2"><a class="reference internal" href="cli.html#three-way-sync">Three-Way Sync</a></li>
-<li class="toctree-l2"><a class="reference internal" href="cli.html#git-hosting-gitea">Git Hosting (Gitea)</a></li>
-<li class="toctree-l2"><a class="reference internal" href="cli.html#app-management">App Management</a></li>
-<li class="toctree-l2"><a class="reference internal" href="cli.html#cloud-sdk">Cloud SDK</a></li>
-<li class="toctree-l2"><a class="reference internal" href="cli.html#infrastructure">Infrastructure</a></li>
-<li class="toctree-l2"><a class="reference internal" href="cli.html#mcp-server">MCP Server</a></li>
-<li class="toctree-l2"><a class="reference internal" href="cli.html#utilities">Utilities</a></li>
+<li class="toctree-l2"><a class="reference internal" href="cli.html#discover-commands">Discover commands</a></li>
+<li class="toctree-l2"><a class="reference internal" href="cli.html#command-groups">Command groups</a></li>
+<li class="toctree-l2"><a class="reference internal" href="cli.html#source-and-validation">Source and validation</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="sync.html">Three-Way Sync</a><ul>
@@ -124,17 +118,6 @@
 <li class="toctree-l2"><a class="reference internal" href="app_platform.html#app-submission-and-review">App Submission and Review</a></li>
 <li class="toctree-l2"><a class="reference internal" href="app_platform.html#separation-of-concerns">Separation of Concerns</a></li>
 <li class="toctree-l2"><a class="reference internal" href="app_platform.html#reference">Reference</a></li>
-</ul>
-</li>
-<li class="toctree-l1"><a class="reference internal" href="visitor_pool_security.html">Visitor Pool Security</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="visitor_pool_security.html#background-the-fix">Background: the fix</a></li>
-<li class="toctree-l2"><a class="reference internal" href="visitor_pool_security.html#layer-1-reset-workspace-after">Layer 1 — <code class="docutils literal notranslate"><span class="pre">&#64;reset_workspace_after</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="visitor_pool_security.html#layer-2-ensure-clean-workspace">Layer 2 — <code class="docutils literal notranslate"><span class="pre">&#64;ensure_clean_workspace</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="visitor_pool_security.html#layer-3-reset-visitor-pool-on-container-restart">Layer 3 — <code class="docutils literal notranslate"><span class="pre">reset_visitor_pool</span></code> on container restart</a></li>
-<li class="toctree-l2"><a class="reference internal" href="visitor_pool_security.html#what-gets-cleared">What gets cleared</a></li>
-<li class="toctree-l2"><a class="reference internal" href="visitor_pool_security.html#pool-lifecycle-diagram">Pool lifecycle diagram</a></li>
-<li class="toctree-l2"><a class="reference internal" href="visitor_pool_security.html#operations">Operations</a></li>
-<li class="toctree-l2"><a class="reference internal" href="visitor_pool_security.html#further-reading">Further reading</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="api/index.html">API Reference</a><ul>
@@ -179,14 +162,14 @@
       <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
       <li class="breadcrumb-item active">Setup Guide</li>
       <li class="wy-breadcrumbs-aside">
-              <a href="https://github.com/ywatanabe1989/scitex-hub/blob/main/docs/sphinx/setup.rst" class="fa fa-github"> Edit on GitHub</a>
+              <a href="https://github.com/scitex-ai/scitex-hub/blob/main/docs/sphinx/setup.rst" class="fa fa-github"> Edit on GitHub</a>
       </li>
   </ul>
   <hr/>
 </div>
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
-             
+
   <section id="setup-guide">
 <h1>Setup Guide<a class="headerlink" href="#setup-guide" title="Link to this heading"></a></h1>
 <p>Deploy SciTeX Hub anywhere: local development, home server, or cloud.</p>
@@ -222,7 +205,7 @@
 <section id="quick-start-development">
 <h2>Quick Start (Development)<a class="headerlink" href="#quick-start-development" title="Link to this heading"></a></h2>
 <p>Three commands to get running:</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>git<span class="w"> </span>clone<span class="w"> </span>https://github.com/ywatanabe1989/scitex-hub.git
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>git<span class="w"> </span>clone<span class="w"> </span>https://github.com/scitex-ai/scitex-hub.git
 <span class="nb">cd</span><span class="w"> </span>scitex-hub
 make<span class="w"> </span>start
 </pre></div>
@@ -232,7 +215,8 @@ make<span class="w"> </span>start
 <ul class="simple">
 <li><p><strong>Django</strong>: <a class="reference external" href="http://localhost:8000">http://localhost:8000</a></p></li>
 <li><p><strong>Gitea</strong>: <a class="reference external" href="http://localhost:3000">http://localhost:3000</a></p></li>
-<li><p><strong>Test user</strong>: <code class="docutils literal notranslate"><span class="pre">test-user</span></code>. The password is printed by <code class="docutils literal notranslate"><span class="pre">init_test_user</span></code> on first run; set <code class="docutils literal notranslate"><span class="pre">SCITEX_HUB_TEST_USER_PASSWORD</span></code> to choose it yourself.</p></li>
+<li><p><strong>Test user</strong>: <code class="docutils literal notranslate"><span class="pre">test-user</span></code>. The password is printed by <code class="docutils literal notranslate"><span class="pre">init_test_user</span></code> on first
+run; set <code class="docutils literal notranslate"><span class="pre">SCITEX_HUB_TEST_USER_PASSWORD</span></code> to choose it yourself.</p></li>
 </ul>
 </section>
 <section id="step-by-step-development-setup">
@@ -240,7 +224,7 @@ make<span class="w"> </span>start
 <ol class="arabic simple">
 <li><p><strong>Clone the repository</strong></p></li>
 </ol>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>git<span class="w"> </span>clone<span class="w"> </span>https://github.com/ywatanabe1989/scitex-hub.git
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>git<span class="w"> </span>clone<span class="w"> </span>https://github.com/scitex-ai/scitex-hub.git
 <span class="nb">cd</span><span class="w"> </span>scitex-hub
 </pre></div>
 </div>
@@ -255,7 +239,7 @@ make<span class="w"> </span>start
 </ol>
 <p>Edit <code class="docutils literal notranslate"><span class="pre">.env.dev</span></code> and set at minimum:</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># Generate a secret key</span>
-<span class="nv">SCITEX_HUB_DJANGO_SECRET_KEY</span><span class="o">=</span><span class="k">$(</span>python3<span class="w"> </span>-c<span class="w"> </span><span class="s1">&#39;import secrets; print(secrets.token_urlsafe(32))&#39;</span><span class="k">)</span>
+<span class="nv">SCITEX_HUB_DJANGO_SECRET_KEY</span><span class="o">=</span><span class="k">$(</span>python3<span class="w"> </span>-c<span class="w"> </span><span class="s1">'import secrets; print(secrets.token_urlsafe(32))'</span><span class="k">)</span>
 
 <span class="c1"># Database password (any strong password)</span>
 <span class="nv">SCITEX_HUB_POSTGRES_PASSWORD</span><span class="o">=</span>your-dev-password
@@ -447,7 +431,7 @@ make<span class="w"> </span><span class="nb">help</span><span class="w">        
 <section id="troubleshooting">
 <h2>Troubleshooting<a class="headerlink" href="#troubleshooting" title="Link to this heading"></a></h2>
 <p><strong>Port already in use</strong></p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># Check what&#39;s using port 8000</span>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># Check what's using port 8000</span>
 lsof<span class="w"> </span>-i<span class="w"> </span>:8000
 <span class="c1"># Or change the port in .env</span>
 <span class="nv">SCITEX_HUB_HTTP_PORT_DEV</span><span class="o">=</span><span class="m">8080</span>
@@ -494,7 +478,7 @@ make<span class="w"> </span>rebuild<span class="w">                  </span><spa
   Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
     <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
     provided by <a href="https://readthedocs.org">Read the Docs</a>.
-   
+
 
 </footer>
         </div>
@@ -505,7 +489,7 @@ make<span class="w"> </span>rebuild<span class="w">                  </span><spa
       jQuery(function () {
           SphinxRtdTheme.Navigation.enable(true);
       });
-  </script> 
+  </script>
 
 </body>
 </html>

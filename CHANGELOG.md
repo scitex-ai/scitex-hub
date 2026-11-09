@@ -11,9 +11,45 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-## [0.22.0a7] - 2026-11-07
+## [0.22.0a7] - 2026-11-09
+
+### Changed
+
+- Require the qualified public `scitex-dev` 0.62.20 and `scitex-scholar`
+  1.29.2 releases. Preserve normal dependency resolution and the image's
+  complete runtime-capability checks.
+
+### Security
+
+- Restrict the mobile settings selector to its original local destinations.
+  Reject external URLs and changed or injected options, mount handlers once,
+  and keep the ordinary settings links visible until the enhancement is ready.
+
+- Use the shared API-key scope policy in Scholar authentication, accepting
+  explicit wildcard keys while still requiring every requested permission.
+
+- Confine Scholar bibliography saves to the selected project using directory
+  descriptors and no-follow file opens. Sanitize citation-derived filenames and
+  reject directory symlinks before bibliography/Writer-link initialization can
+  write to their targets. Bound UTF-8 filename bytes so long Unicode metadata
+  remains within filesystem limits.
+- Reject Scholar API keys owned by disabled accounts and evaluate expiring keys
+  with Django's timezone-aware clock instead of an invalid model-field call.
 
 ### Fixed
+
+- Refresh the shipped documentation from the selected source instead of
+  retaining the 0.18.1 HTML. Validate its version and documented help routes,
+  correct canonical CLI examples, and keep Sphinx build caches outside the
+  distributed HTML tree. Track the public source-link and theme assets so
+  a fresh Git build has the same inputs as the maintainer's working tree.
+
+- Stop documentation qualification when its complete dependency installation
+  fails. Keep the standalone audit corpus pinned to the declared Dev floor.
+
+- Ship the existing Hub CLI vocabulary in its package namespace, so installed
+  consumers can discover the same domain nouns and verbs used by source
+  audits. Keep one canonical resource through the relative project link.
 
 - Reconcile the stable/development histories without restoring retired app
   wrappers or visitor runtime. Retain host-label collision and startup-role

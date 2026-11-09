@@ -6,15 +6,15 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>CLI Reference &mdash; SciTeX Hub v0.18.1</title>
+  <title>CLI Reference &mdash; SciTeX Hub v0.22.0a7</title>
       <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
       <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=9edc463e" />
       <link rel="stylesheet" type="text/css" href="_static/copybutton.css?v=76b2166b" />
 
-  
+
       <script src="_static/jquery.js?v=5d32c60e"></script>
       <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-      <script src="_static/documentation_options.js?v=1e56ff10"></script>
+      <script src="_static/documentation_options.js?v=af24e983"></script>
       <script src="_static/doctools.js?v=fd6eb6e6"></script>
       <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
       <script src="_static/clipboard.min.js?v=a7894cd8"></script>
@@ -23,17 +23,17 @@
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
     <link rel="next" title="Three-Way Sync" href="sync.html" />
-    <link rel="prev" title="Quick Start" href="quickstart.html" /> 
+    <link rel="prev" title="Quick Start" href="quickstart.html" />
 </head>
 
-<body class="wy-body-for-nav"> 
+<body class="wy-body-for-nav">
   <div class="wy-grid-for-nav">
     <nav data-toggle="wy-nav-shift" class="wy-nav-side">
       <div class="wy-side-scroll">
         <div class="wy-side-nav-search" >
 
-          
-          
+
+
           <a href="index.html" class="icon icon-home">
             SciTeX Hub
           </a>
@@ -74,15 +74,9 @@
 </ul>
 </li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">CLI Reference</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="#global-options">Global Options</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#project-management">Project Management</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#three-way-sync">Three-Way Sync</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#git-hosting-gitea">Git Hosting (Gitea)</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#app-management">App Management</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#cloud-sdk">Cloud SDK</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#infrastructure">Infrastructure</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#mcp-server">MCP Server</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#utilities">Utilities</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#discover-commands">Discover commands</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#command-groups">Command groups</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#source-and-validation">Source and validation</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="sync.html">Three-Way Sync</a><ul>
@@ -124,17 +118,6 @@
 <li class="toctree-l2"><a class="reference internal" href="app_platform.html#app-submission-and-review">App Submission and Review</a></li>
 <li class="toctree-l2"><a class="reference internal" href="app_platform.html#separation-of-concerns">Separation of Concerns</a></li>
 <li class="toctree-l2"><a class="reference internal" href="app_platform.html#reference">Reference</a></li>
-</ul>
-</li>
-<li class="toctree-l1"><a class="reference internal" href="visitor_pool_security.html">Visitor Pool Security</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="visitor_pool_security.html#background-the-fix">Background: the fix</a></li>
-<li class="toctree-l2"><a class="reference internal" href="visitor_pool_security.html#layer-1-reset-workspace-after">Layer 1 — <code class="docutils literal notranslate"><span class="pre">&#64;reset_workspace_after</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="visitor_pool_security.html#layer-2-ensure-clean-workspace">Layer 2 — <code class="docutils literal notranslate"><span class="pre">&#64;ensure_clean_workspace</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="visitor_pool_security.html#layer-3-reset-visitor-pool-on-container-restart">Layer 3 — <code class="docutils literal notranslate"><span class="pre">reset_visitor_pool</span></code> on container restart</a></li>
-<li class="toctree-l2"><a class="reference internal" href="visitor_pool_security.html#what-gets-cleared">What gets cleared</a></li>
-<li class="toctree-l2"><a class="reference internal" href="visitor_pool_security.html#pool-lifecycle-diagram">Pool lifecycle diagram</a></li>
-<li class="toctree-l2"><a class="reference internal" href="visitor_pool_security.html#operations">Operations</a></li>
-<li class="toctree-l2"><a class="reference internal" href="visitor_pool_security.html#further-reading">Further reading</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="api/index.html">API Reference</a><ul>
@@ -179,158 +162,107 @@
       <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
       <li class="breadcrumb-item active">CLI Reference</li>
       <li class="wy-breadcrumbs-aside">
-              <a href="https://github.com/ywatanabe1989/scitex-hub/blob/main/docs/sphinx/cli.rst" class="fa fa-github"> Edit on GitHub</a>
+              <a href="https://github.com/scitex-ai/scitex-hub/blob/main/docs/sphinx/cli.rst" class="fa fa-github"> Edit on GitHub</a>
       </li>
   </ul>
   <hr/>
 </div>
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
-             
+
   <section id="cli-reference">
 <h1>CLI Reference<a class="headerlink" href="#cli-reference" title="Link to this heading"></a></h1>
-<p>SciTeX Hub provides a command-line interface for managing projects,
-syncing code, interacting with the Git hosting service, deploying apps,
-and controlling the MCP server.</p>
-<p>Install with:</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>pip<span class="w"> </span>install<span class="w"> </span>scitex-hub
+<p>The <code class="docutils literal notranslate"><span class="pre">scitex-hub</span></code> entry point is installed by <code class="docutils literal notranslate"><span class="pre">pip</span> <span class="pre">install</span> <span class="pre">scitex-hub</span></code>.
+When the SciTeX umbrella is also installed, <code class="docutils literal notranslate"><span class="pre">scitex</span> <span class="pre">hub</span></code> delegates to this
+package. Inspect the help of the installed version before using an operation.</p>
+<section id="discover-commands">
+<h2>Discover commands<a class="headerlink" href="#discover-commands" title="Link to this heading"></a></h2>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>scitex-hub<span class="w"> </span>--version
+scitex-hub<span class="w"> </span>--help
+scitex-hub<span class="w"> </span>project<span class="w"> </span>--help
+scitex-hub<span class="w"> </span>workspace<span class="w"> </span>--help
+scitex-hub<span class="w"> </span>dev<span class="w"> </span>--help
+scitex-hub<span class="w"> </span>app<span class="w"> </span>--help
+scitex-hub<span class="w"> </span>mcp<span class="w"> </span>--help
+scitex-hub<span class="w"> </span>skills<span class="w"> </span>--help
 </pre></div>
 </div>
-<section id="global-options">
-<h2>Global Options<a class="headerlink" href="#global-options" title="Link to this heading"></a></h2>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>scitex-hub<span class="w"> </span>--help<span class="w">                    </span><span class="c1"># Show help</span>
-scitex-hub<span class="w"> </span>--help-recursive<span class="w">          </span><span class="c1"># Show all subcommands recursively</span>
-scitex-hub<span class="w"> </span>--version<span class="w">                 </span><span class="c1"># Show version</span>
-</pre></div>
-</div>
+<p>These help commands do not create projects, deploy services or start an MCP
+server. <code class="docutils literal notranslate"><span class="pre">--help-recursive</span></code> prints the registered command tree, including
+compatibility routes; use each command’s help for arguments and options.
+The root <code class="docutils literal notranslate"><span class="pre">--json</span></code> option is honored by commands that explicitly support it;
+it does not make every command a JSON interface.</p>
 </section>
-<section id="project-management">
-<h2>Project Management<a class="headerlink" href="#project-management" title="Link to this heading"></a></h2>
-<p>Create and manage SciTeX Hub projects. <code class="docutils literal notranslate"><span class="pre">project</span> <span class="pre">create</span></code> triggers the
-full flow: Gitea repository + Django project + server-side workspace.</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>scitex-hub<span class="w"> </span>project<span class="w"> </span>create<span class="w"> </span>my-research<span class="w"> </span>-d<span class="w"> </span><span class="s2">&quot;Paper on X&quot;</span>
-scitex-hub<span class="w"> </span>project<span class="w"> </span>list<span class="w"> </span><span class="o">[</span>--json<span class="o">]</span>
-scitex-hub<span class="w"> </span>project<span class="w"> </span>delete<span class="w"> </span>my-research<span class="w"> </span>--yes
-scitex-hub<span class="w"> </span>project<span class="w"> </span>rename<span class="w"> </span>my-research<span class="w"> </span>new-name
-</pre></div>
-</div>
+<section id="command-groups">
+<h2>Command groups<a class="headerlink" href="#command-groups" title="Link to this heading"></a></h2>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 30.0%" />
+<col style="width: 70.0%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Command</p></th>
+<th class="head"><p>Scope</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">project</span></code></p></td>
+<td><p>Project management</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">push-project</span></code> / <code class="docutils literal notranslate"><span class="pre">pull-project</span></code></p></td>
+<td><p>Git synchronization with project repositories</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">workspace</span></code></p></td>
+<td><p>Working-file upload, synchronization and status</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">account</span></code> / <code class="docutils literal notranslate"><span class="pre">auth</span></code></p></td>
+<td><p>Account and authentication operations</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">app</span></code> / <code class="docutils literal notranslate"><span class="pre">sdk</span></code></p></td>
+<td><p>Hosted app plugins and platform data/file/job operations</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">context</span></code></p></td>
+<td><p>Web app context for agents</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">gitea</span></code></p></td>
+<td><p>Git-hosting operations</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">init</span></code> / <code class="docutils literal notranslate"><span class="pre">deploy</span></code> / <code class="docutils literal notranslate"><span class="pre">docker</span></code></p></td>
+<td><p>Environment setup and deployment operations</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">status</span></code> / <code class="docutils literal notranslate"><span class="pre">logs</span></code></p></td>
+<td><p>Deployment diagnostics</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">mcp</span></code> / <code class="docutils literal notranslate"><span class="pre">skills</span></code> / <code class="docutils literal notranslate"><span class="pre">docs</span></code></p></td>
+<td><p>Agent interfaces and documentation discovery</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">dev</span></code> / <code class="docutils literal notranslate"><span class="pre">dev-preview</span></code></p></td>
+<td><p>Development and preview operations</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">completion</span></code></p></td>
+<td><p>Shell completion</p></td>
+</tr>
+</tbody>
+</table>
+<p>Canonical synchronization routes are <code class="docutils literal notranslate"><span class="pre">push-project</span></code>, <code class="docutils literal notranslate"><span class="pre">pull-project</span></code>,
+<code class="docutils literal notranslate"><span class="pre">workspace</span> <span class="pre">push</span></code>, <code class="docutils literal notranslate"><span class="pre">workspace</span> <span class="pre">pull</span></code> and <code class="docutils literal notranslate"><span class="pre">workspace</span> <span class="pre">status</span></code>. Older
+spellings such as <code class="docutils literal notranslate"><span class="pre">sync-to</span></code> are compatibility routes, not the preferred
+examples. Inspect the installed help rather than inferring that a scheduled
+removal has happened.</p>
+<p>Deployment commands can alter services and persistent data. Follow the
+source-owned deployment runbook and its dependency, image, backup and rollback
+checks; command registration or help output does not qualify a deployment.
+Authentication and host configuration remain necessary for remote operations.</p>
 </section>
-<section id="three-way-sync">
-<h2>Three-Way Sync<a class="headerlink" href="#three-way-sync" title="Link to this heading"></a></h2>
-<p>SciTeX manages three repositories per project:</p>
-<ul class="simple">
-<li><p><strong>Local</strong> — your dev machine</p></li>
-<li><p><strong>Gitea</strong> — source of truth (hosted Git)</p></li>
-<li><p><strong>Workspace</strong> — server-side working directory (web UI edits here)</p></li>
-</ul>
-<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>          Gitea
-         (source of truth)
-        /              \
-  push/pull          (server-side git)
-  (git)
-      /                  \
-   Local ------------ Workspace
-(dev machine)  sync-to/from  (server-side)
-                (files)
-</pre></div>
-</div>
-<p><strong>Git operations</strong> (committed changes):</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>scitex-hub<span class="w"> </span>push<span class="w">              </span><span class="c1"># git push → Gitea</span>
-scitex-hub<span class="w"> </span>push<span class="w"> </span>origin<span class="w"> </span>main<span class="w">  </span><span class="c1"># push specific branch</span>
-scitex-hub<span class="w"> </span>pull<span class="w">              </span><span class="c1"># git pull ← Gitea</span>
-scitex-hub<span class="w"> </span>pull<span class="w"> </span>origin<span class="w"> </span>main<span class="w">  </span><span class="c1"># pull specific branch</span>
-</pre></div>
-</div>
-<p><strong>File sync</strong> (working tree, Dropbox-style):</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>scitex-hub<span class="w"> </span>sync-to<span class="w">                    </span><span class="c1"># local → workspace</span>
-scitex-hub<span class="w"> </span>sync-to<span class="w"> </span>ywatanabe/my-proj<span class="w">  </span><span class="c1"># explicit repo</span>
-scitex-hub<span class="w"> </span>sync-to<span class="w"> </span>--dry-run<span class="w">          </span><span class="c1"># preview changes</span>
-scitex-hub<span class="w"> </span>sync-from<span class="w">                  </span><span class="c1"># workspace → local</span>
-scitex-hub<span class="w"> </span>sync-from<span class="w"> </span>--dry-run<span class="w">        </span><span class="c1"># preview changes</span>
-</pre></div>
-</div>
-<p>Conflict handling: when both sides changed the same file since the last
-sync, both versions are kept — the synced version overwrites, and the
-other side’s version is saved as <code class="docutils literal notranslate"><span class="pre">file.conflict-&lt;timestamp&gt;.ext</span></code>.</p>
-<p><strong>Status</strong>:</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>scitex-hub<span class="w"> </span>sync-status<span class="w">  </span><span class="c1"># show divergence (alias: ss)</span>
-</pre></div>
-</div>
-</section>
-<section id="git-hosting-gitea">
-<h2>Git Hosting (Gitea)<a class="headerlink" href="#git-hosting-gitea" title="Link to this heading"></a></h2>
-<p>Lower-level Gitea operations. For most workflows, use <code class="docutils literal notranslate"><span class="pre">push</span></code>/<code class="docutils literal notranslate"><span class="pre">pull</span></code>
-and <code class="docutils literal notranslate"><span class="pre">project</span> <span class="pre">create</span></code> instead.</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>scitex-hub<span class="w"> </span>gitea<span class="w"> </span>list<span class="w">                </span><span class="c1"># List repositories</span>
-scitex-hub<span class="w"> </span>gitea<span class="w"> </span>clone<span class="w"> </span>user/repo<span class="w">     </span><span class="c1"># Clone a repository</span>
-scitex-hub<span class="w"> </span>gitea<span class="w"> </span>create<span class="w"> </span>my-repo<span class="w">      </span><span class="c1"># Create Gitea repo only</span>
-scitex-hub<span class="w"> </span>gitea<span class="w"> </span>push<span class="w">                </span><span class="c1"># Push changes</span>
-scitex-hub<span class="w"> </span>gitea<span class="w"> </span>pull<span class="w">                </span><span class="c1"># Pull changes</span>
-scitex-hub<span class="w"> </span>gitea<span class="w"> </span>search<span class="w"> </span><span class="s2">&quot;query&quot;</span><span class="w">      </span><span class="c1"># Search repos</span>
-scitex-hub<span class="w"> </span>gitea<span class="w"> </span>fork<span class="w"> </span>user/repo<span class="w">      </span><span class="c1"># Fork a repo</span>
-scitex-hub<span class="w"> </span>gitea<span class="w"> </span>pr<span class="w"> </span>create<span class="w">           </span><span class="c1"># Create a pull request</span>
-scitex-hub<span class="w"> </span>gitea<span class="w"> </span>pr<span class="w"> </span>list<span class="w">             </span><span class="c1"># List pull requests</span>
-scitex-hub<span class="w"> </span>gitea<span class="w"> </span>issue<span class="w"> </span>create<span class="w">        </span><span class="c1"># Create an issue</span>
-scitex-hub<span class="w"> </span>gitea<span class="w"> </span>issue<span class="w"> </span>list<span class="w">          </span><span class="c1"># List issues</span>
-scitex-hub<span class="w"> </span>gitea<span class="w"> </span>login<span class="w">               </span><span class="c1"># Authenticate</span>
-scitex-hub<span class="w"> </span>gitea<span class="w"> </span><span class="nb">logout</span><span class="w">              </span><span class="c1"># Remove credentials</span>
-scitex-hub<span class="w"> </span>gitea<span class="w"> </span>status<span class="w">              </span><span class="c1"># Repo status</span>
-</pre></div>
-</div>
-</section>
-<section id="app-management">
-<h2>App Management<a class="headerlink" href="#app-management" title="Link to this heading"></a></h2>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>scitex-hub<span class="w"> </span>app<span class="w"> </span>list<span class="w">                  </span><span class="c1"># List installed apps</span>
-scitex-hub<span class="w"> </span>app<span class="w"> </span>info<span class="w"> </span>&lt;name&gt;<span class="w">           </span><span class="c1"># App details</span>
-scitex-hub<span class="w"> </span>app<span class="w"> </span>current<span class="w">               </span><span class="c1"># Active app</span>
-scitex-hub<span class="w"> </span>app<span class="w"> </span>init<span class="w"> </span>.<span class="w"> </span>--name<span class="w"> </span>my_app<span class="w">  </span><span class="c1"># Scaffold new app</span>
-scitex-hub<span class="w"> </span>app<span class="w"> </span>check-deps<span class="w"> </span>&lt;name&gt;<span class="w">     </span><span class="c1"># Check dependencies</span>
-scitex-hub<span class="w"> </span>app<span class="w"> </span>submit<span class="w"> </span>&lt;path&gt;<span class="w">         </span><span class="c1"># Submit for review</span>
-scitex-hub<span class="w"> </span>app<span class="w"> </span>prefs<span class="w"> </span>get/set<span class="w">         </span><span class="c1"># User preferences</span>
-</pre></div>
-</div>
-</section>
-<section id="cloud-sdk">
-<h2>Cloud SDK<a class="headerlink" href="#cloud-sdk" title="Link to this heading"></a></h2>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># DataStore (JSON CRUD)</span>
-scitex-hub<span class="w"> </span>sdk<span class="w"> </span>data<span class="w"> </span>list<span class="p">|</span>create<span class="p">|</span>get<span class="p">|</span>update<span class="p">|</span>delete<span class="p">|</span>search
-
-<span class="c1"># FileVault (file storage)</span>
-scitex-hub<span class="w"> </span>sdk<span class="w"> </span>files<span class="w"> </span>list<span class="p">|</span>upload<span class="p">|</span>download<span class="p">|</span>delete
-
-<span class="c1"># JobQueue (background compute)</span>
-scitex-hub<span class="w"> </span>sdk<span class="w"> </span><span class="nb">jobs</span><span class="w"> </span>submit<span class="p">|</span>status<span class="p">|</span>list<span class="p">|</span>cancel
-</pre></div>
-</div>
-</section>
-<section id="infrastructure">
-<h2>Infrastructure<a class="headerlink" href="#infrastructure" title="Link to this heading"></a></h2>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>scitex-hub<span class="w"> </span>status<span class="w">                    </span><span class="c1"># Deployment health</span>
-scitex-hub<span class="w"> </span>deploy<span class="w">                    </span><span class="c1"># Deploy to production</span>
-scitex-hub<span class="w"> </span>setup<span class="w"> </span><span class="o">[</span>--env<span class="w"> </span>dev<span class="p">|</span>prod<span class="o">]</span><span class="w">    </span><span class="c1"># Setup environment</span>
-scitex-hub<span class="w"> </span>docker<span class="w"> </span>up<span class="p">|</span>down<span class="p">|</span>restart<span class="w">    </span><span class="c1"># Container management</span>
-scitex-hub<span class="w"> </span>logs<span class="w"> </span><span class="o">[</span>service<span class="o">]</span><span class="w">            </span><span class="c1"># View logs</span>
-scitex-hub<span class="w"> </span>ssh<span class="w">                       </span><span class="c1"># SSH into cloud instance</span>
-</pre></div>
-</div>
-</section>
-<section id="mcp-server">
-<h2>MCP Server<a class="headerlink" href="#mcp-server" title="Link to this heading"></a></h2>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>scitex-hub<span class="w"> </span>mcp<span class="w"> </span>start<span class="w">                 </span><span class="c1"># Start the MCP server</span>
-scitex-hub<span class="w"> </span>mcp<span class="w"> </span>list-tools<span class="w">            </span><span class="c1"># List available MCP tools</span>
-scitex-hub<span class="w"> </span>mcp<span class="w"> </span>doctor<span class="w">                </span><span class="c1"># Diagnose MCP setup</span>
-</pre></div>
-</div>
-<p>For full MCP documentation, see <a class="reference internal" href="mcp.html"><span class="doc">MCP Server</span></a>.</p>
-</section>
-<section id="utilities">
-<h2>Utilities<a class="headerlink" href="#utilities" title="Link to this heading"></a></h2>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>scitex-hub<span class="w"> </span>completion<span class="w">                </span><span class="c1"># Set up shell completion</span>
-scitex-hub<span class="w"> </span>list-python-apis<span class="w">          </span><span class="c1"># List all available Python APIs</span>
-scitex-hub<span class="w"> </span>skills<span class="w"> </span>list<span class="w">               </span><span class="c1"># List available skills</span>
-scitex-hub<span class="w"> </span>skills<span class="w"> </span>get<span class="w"> </span>&lt;name&gt;<span class="w">         </span><span class="c1"># Show a skill</span>
-</pre></div>
-</div>
+<section id="source-and-validation">
+<h2>Source and validation<a class="headerlink" href="#source-and-validation" title="Link to this heading"></a></h2>
+<p>Command registration is owned by <code class="docutils literal notranslate"><span class="pre">scitex_hub._cli.main</span></code> and its imported
+command groups. <code class="docutils literal notranslate"><span class="pre">tests/config/test_shipped_documentation.py</span></code> checks the
+selected help routes against the actual Click parser without invoking their
+operation callbacks. It also checks the shipped documentation’s version
+binding. These checks do not execute synchronization, account, deployment or
+remote app operations.</p>
+<p>See <a class="reference internal" href="mcp.html"><span class="doc">MCP Server</span></a> and <a class="reference internal" href="api/index.html"><span class="doc">API Reference</span></a> for the other package interfaces.</p>
 </section>
 </section>
 
@@ -351,7 +283,7 @@ scitex-hub<span class="w"> </span>skills<span class="w"> </span>get<span class="
   Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
     <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
     provided by <a href="https://readthedocs.org">Read the Docs</a>.
-   
+
 
 </footer>
         </div>
@@ -362,7 +294,7 @@ scitex-hub<span class="w"> </span>skills<span class="w"> </span>get<span class="
       jQuery(function () {
           SphinxRtdTheme.Navigation.enable(true);
       });
-  </script> 
+  </script>
 
 </body>
 </html>

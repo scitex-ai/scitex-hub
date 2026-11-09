@@ -1,0 +1,12 @@
+scitex\_hub.account.whoami
+==========================
+
+.. automodule:: scitex_hub.account.whoami
+
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+   
+      whoami
+   

@@ -60,18 +60,17 @@ jobs:
         run: |
           set -euo pipefail
           uv venv --python 3.11 .venv
-          uv pip install --python .venv/bin/python -e ".[all]" \
-            || uv pip install --python .venv/bin/python -e ".[dev]" \
-            || uv pip install --python .venv/bin/python -e .
+          # A failed full install must fail documentation qualification too.
+          uv pip install --python .venv/bin/python -e ".[all]"
           # Later steps invoke sphinx-build bare, across several steps.
           echo "$PWD/.venv/bin" >> "$GITHUB_PATH"
 
       - name: Build Sphinx HTML (warnings fail PRs only)
         run: |
           if [ "${{ github.event_name }}" = "pull_request" ]; then
-            sphinx-build -W -b html docs/sphinx docs/sphinx/_build/html
+            sphinx-build -W -d docs/sphinx/_build/doctrees -b html docs/sphinx docs/sphinx/_build/html
           else
-            sphinx-build -b html docs/sphinx docs/sphinx/_build/html
+            sphinx-build -d docs/sphinx/_build/doctrees -b html docs/sphinx docs/sphinx/_build/html
           fi
 
       - name: Refresh src/scitex_hub/_sphinx_html/ (develop push only)

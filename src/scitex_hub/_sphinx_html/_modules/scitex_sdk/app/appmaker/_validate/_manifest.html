@@ -1,0 +1,434 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../../../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>scitex_sdk.app.appmaker._validate._manifest &mdash; SciTeX Hub v0.22.0a7</title>
+      <link rel="stylesheet" type="text/css" href="../../../../../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../../../../../_static/css/theme.css?v=9edc463e" />
+      <link rel="stylesheet" type="text/css" href="../../../../../_static/copybutton.css?v=76b2166b" />
+
+
+      <script src="../../../../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../../../../_static/documentation_options.js?v=af24e983"></script>
+      <script src="../../../../../_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="../../../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
+      <script src="../../../../../_static/clipboard.min.js?v=a7894cd8"></script>
+      <script src="../../../../../_static/copybutton.js?v=f281be69"></script>
+    <script src="../../../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../../search.html" />
+</head>
+
+<body class="wy-body-for-nav">
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+
+
+          <a href="../../../../../index.html" class="icon icon-home">
+            SciTeX Hub
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../../installation.html">Installation</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../../../../installation.html#requirements">Requirements</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../../installation.html#install-from-pypi">Install from PyPI</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../../installation.html#install-from-source">Install from Source</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../../installation.html#verify-installation">Verify Installation</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../../setup.html">Setup Guide</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../../../../setup.html#what-you-get">What You Get</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../../setup.html#prerequisites">Prerequisites</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../../setup.html#quick-start-development">Quick Start (Development)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../../setup.html#step-by-step-development-setup">Step-by-Step Development Setup</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../../setup.html#production-setup">Production Setup</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../../setup.html#cli-only-install">CLI-Only Install</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../../setup.html#configuration-reference">Configuration Reference</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../../setup.html#common-commands">Common Commands</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../../setup.html#architecture">Architecture</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../../setup.html#troubleshooting">Troubleshooting</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../../quickstart.html">Quick Start</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../../../../quickstart.html#deployment">Deployment</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../../quickstart.html#cli-only-install">CLI-Only Install</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../../quickstart.html#common-operations">Common Operations</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../../cli.html">CLI Reference</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../../../../cli.html#discover-commands">Discover commands</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../../cli.html#command-groups">Command groups</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../../cli.html#source-and-validation">Source and validation</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../../sync.html">Three-Way Sync</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../../../../sync.html#architecture">Architecture</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../../sync.html#commands">Commands</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../../sync.html#conflict-handling">Conflict Handling</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../../sync.html#state-tracking">State Tracking</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../../sync.html#typical-workflows">Typical Workflows</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../../sync.html#implementation">Implementation</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../../mcp.html">MCP Server</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../../../../mcp.html#available-tools">Available Tools</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../../mcp.html#setup-for-claude-desktop">Setup for Claude Desktop</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../../mcp.html#setup-for-claude-code">Setup for Claude Code</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../../mcp.html#environment-source-file-env-src">Environment Source File (<code class="docutils literal notranslate"><span class="pre">ENV_SRC</span></code>)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../../mcp.html#cli-commands">CLI Commands</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../../app_platform.html">App Platform</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../../../../app_platform.html#workspace-layout">Workspace Layout</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../../app_platform.html#platform-services">Platform Services</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../../../../app_platform.html#datastore">DataStore</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../../app_platform.html#filevault">FileVault</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../../app_platform.html#jobqueue">JobQueue</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../../app_platform.html#scitexbridge">ScitexBridge</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../../app_platform.html#externalapi">ExternalAPI</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../../app_platform.html#realtimehub">RealtimeHub</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../../app_platform.html#frontendkit">FrontendKit</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../../app_platform.html#app-registration">App Registration</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../../../../app_platform.html#built-in-apps">Built-in Apps</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../../app_platform.html#external-pip-installed-apps">External (pip-installed) Apps</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../../app_platform.html#context-bootstrap">Context Bootstrap</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../../app_platform.html#dev-install-workflow">Dev Install Workflow</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../../app_platform.html#app-submission-and-review">App Submission and Review</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../../app_platform.html#separation-of-concerns">Separation of Concerns</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../../app_platform.html#reference">Reference</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../../api/index.html">API Reference</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../../../../api/scitex_hub.html">scitex_hub Package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../../api/index.html#package-overview">Package Overview</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../../../../api/_autosummary/scitex_hub.html">scitex_hub</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../../../../api/_autosummary/scitex_hub.html#scitex_hub.get_version"><code class="docutils literal notranslate"><span class="pre">get_version()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../../../api/_autosummary/scitex_hub.html#scitex_hub.health_check"><code class="docutils literal notranslate"><span class="pre">health_check()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../../../api/_autosummary/scitex_hub.html#scitex_hub.get_context"><code class="docutils literal notranslate"><span class="pre">get_context()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../../../api/_autosummary/scitex_hub.html#scitex_hub.eval_js"><code class="docutils literal notranslate"><span class="pre">eval_js()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../../../api/_autosummary/scitex_hub.html#scitex_hub.ui_action"><code class="docutils literal notranslate"><span class="pre">ui_action()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../../../api/_autosummary/scitex_hub.html#scitex_hub.CloudClient"><code class="docutils literal notranslate"><span class="pre">CloudClient</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../../../api/_autosummary/scitex_hub.html#scitex_hub.Environment"><code class="docutils literal notranslate"><span class="pre">Environment</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../../../api/_autosummary/scitex_hub.html#scitex_hub.get_environment"><code class="docutils literal notranslate"><span class="pre">get_environment()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../../../api/_autosummary/scitex_hub.html#scitex_hub.DockerManager"><code class="docutils literal notranslate"><span class="pre">DockerManager</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../../../api/_autosummary/scitex_hub.account.html">scitex_hub.account</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../../../api/_autosummary/scitex_hub.appmaker.html">scitex_hub.appmaker</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../../../api/_autosummary/scitex_hub.module.html">scitex_hub.module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../../../api/_autosummary/scitex_hub.project.html">scitex_hub.project</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../../../api/_autosummary/scitex_hub.sdk.html">scitex_hub.sdk</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../../../index.html">SciTeX Hub</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../../../index.html">Module code</a></li>
+          <li class="breadcrumb-item"><a href="../_validate.html">scitex_sdk.app.appmaker._validate</a></li>
+      <li class="breadcrumb-item active">scitex_sdk.app.appmaker._validate._manifest</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+
+  <h1>Source code for scitex_sdk.app.appmaker._validate._manifest</h1><div class="highlight"><pre>
+<span></span><span class="sd">"""manifest.json — schema and content."""</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">__future__</span><span class="w"> </span><span class="kn">import</span> <span class="n">annotations</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">json</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">re</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">Path</span>
+
+<span class="c1"># THE ONE REQUIRED-KEY LIST. scitex_sdk.app.validator imports this rather than</span>
+<span class="c1"># declaring a second one — it declared its own for months, five keys against</span>
+<span class="c1"># these six, so `license` was required by the CLI and not by AppValidator and</span>
+<span class="c1"># nothing said so. Syncing two lists is a promise; importing one is a guarantee,</span>
+<span class="c1"># and that promise had already been broken once here and once in the JS pattern</span>
+<span class="c1"># list (0.16.2), both silently, both in the direction that disagrees about a</span>
+<span class="c1"># peer's app.</span>
+<span class="c1">#</span>
+<span class="c1"># A TUPLE, not a list: this object is imported, so a list would be mutable</span>
+<span class="c1"># shared state that any importer could `.append()` to, changing validation for</span>
+<span class="c1"># every caller in the interpreter. (scitex-writer, 2026-09-06.)</span>
+<span class="n">MANIFEST_REQUIRED_KEYS</span> <span class="o">=</span> <span class="p">(</span><span class="s2">"name"</span><span class="p">,</span> <span class="s2">"slug"</span><span class="p">,</span> <span class="s2">"label"</span><span class="p">,</span> <span class="s2">"pip_package"</span><span class="p">,</span> <span class="s2">"icon"</span><span class="p">,</span> <span class="s2">"license"</span><span class="p">)</span>
+
+<span class="c1">#: Launcher-page sections a leaf may declare via the manifest ``group`` field.</span>
+<span class="c1">#: CLOSED enum: anything else is a hard manifest ERROR (fail loud, per the</span>
+<span class="c1">#: consuming-agent rules) rather than a silently mis-grouped tile. Lowercase</span>
+<span class="c1">#: canonical, matched case-insensitively — the same convention as scope</span>
+<span class="c1">#: (``_app_scope.VALID_SCOPES``). Omitted ``group`` is NOT an error: the host</span>
+<span class="c1">#: keeps its existing grouping as the fallback, so adoption is per-leaf.</span>
+<span class="n">GROUP_FOUNDATION</span> <span class="o">=</span> <span class="s2">"foundation"</span>
+<span class="n">GROUP_WORK</span> <span class="o">=</span> <span class="s2">"work"</span>
+<span class="n">GROUP_PUBLICATION</span> <span class="o">=</span> <span class="s2">"publication"</span>
+<span class="n">VALID_GROUPS</span> <span class="o">=</span> <span class="p">(</span><span class="n">GROUP_FOUNDATION</span><span class="p">,</span> <span class="n">GROUP_WORK</span><span class="p">,</span> <span class="n">GROUP_PUBLICATION</span><span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">normalize_group</span><span class="p">(</span><span class="n">value</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""Return the canonical launcher group for a raw manifest value.</span>
+
+<span class="sd">    ``None`` / empty -&gt; ``None`` (undeclared: the host keeps its existing</span>
+<span class="sd">    grouping). A value already in :data:`VALID_GROUPS` (case-insensitive) is</span>
+<span class="sd">    returned lower-cased. Any other value RAISES ``ValueError`` — a typo'd</span>
+<span class="sd">    group must fail loud at validation/render, never degrade to a guessed</span>
+<span class="sd">    launcher section.</span>
+<span class="sd">    """</span>
+    <span class="k">if</span> <span class="n">value</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="p">(</span><span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="nb">str</span><span class="p">)</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">value</span><span class="o">.</span><span class="n">strip</span><span class="p">()):</span>
+        <span class="k">return</span> <span class="kc">None</span>
+    <span class="n">norm</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">value</span><span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
+    <span class="k">if</span> <span class="n">norm</span> <span class="ow">in</span> <span class="n">VALID_GROUPS</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">norm</span>
+    <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+        <span class="sa">f</span><span class="s2">"manifest 'group' must be one of </span><span class="si">{</span><span class="n">VALID_GROUPS</span><span class="si">}</span><span class="s2"> (got </span><span class="si">{</span><span class="n">value</span><span class="si">!r}</span><span class="s2">). "</span>
+        <span class="sa">f</span><span class="s2">"'group' declares the launcher-page section "</span>
+        <span class="sa">f</span><span class="s2">"(foundation / work / publication); omit it and the host keeps "</span>
+        <span class="sa">f</span><span class="s2">"its existing grouping."</span>
+    <span class="p">)</span>
+
+
+<div class="viewcode-block" id="validate_manifest">
+<a class="viewcode-back" href="../../../../../api/_autosummary/scitex_hub.appmaker.html#scitex_hub.appmaker.validate_manifest">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">validate_manifest</span><span class="p">(</span><span class="n">app_dir</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="n">Path</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">"""Check manifest.json schema and content."""</span>
+    <span class="n">errors</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">root</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">app_dir</span><span class="p">)</span>
+    <span class="n">manifest_path</span> <span class="o">=</span> <span class="n">root</span> <span class="o">/</span> <span class="s2">"manifest.json"</span>
+
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">manifest_path</span><span class="o">.</span><span class="n">exists</span><span class="p">():</span>
+        <span class="k">return</span> <span class="p">[</span><span class="s2">"manifest.json not found"</span><span class="p">]</span>
+
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">manifest_path</span><span class="o">.</span><span class="n">read_text</span><span class="p">(</span><span class="n">encoding</span><span class="o">=</span><span class="s2">"utf-8"</span><span class="p">))</span>
+    <span class="k">except</span> <span class="p">(</span><span class="n">json</span><span class="o">.</span><span class="n">JSONDecodeError</span><span class="p">,</span> <span class="ne">OSError</span><span class="p">)</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+        <span class="k">return</span> <span class="p">[</span><span class="sa">f</span><span class="s2">"manifest.json is not valid JSON: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">"</span><span class="p">]</span>
+
+    <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="nb">dict</span><span class="p">):</span>
+        <span class="k">return</span> <span class="p">[</span><span class="s2">"manifest.json must be a JSON object"</span><span class="p">]</span>
+
+    <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">MANIFEST_REQUIRED_KEYS</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">key</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">data</span><span class="p">:</span>
+            <span class="n">errors</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">"manifest.json missing required key: '</span><span class="si">{</span><span class="n">key</span><span class="si">}</span><span class="s2">'"</span><span class="p">)</span>
+
+    <span class="c1"># 'slug' IS the mount leaf (/apps/&lt;slug&gt;/): a malformed slug is a broken</span>
+    <span class="c1"># URL, so the format is an ERROR, not advice. All five shipped leaves</span>
+    <span class="c1"># (storage, scholar, writer, stats, create-app) already match.</span>
+    <span class="n">slug</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"slug"</span><span class="p">,</span> <span class="s2">""</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">slug</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">re</span><span class="o">.</span><span class="n">fullmatch</span><span class="p">(</span><span class="sa">r</span><span class="s2">"[a-z0-9]+(-[a-z0-9]+)*"</span><span class="p">,</span> <span class="n">slug</span><span class="p">):</span>
+        <span class="n">errors</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">"manifest.json 'slug' must be lowercase alphanumeric with single "</span>
+            <span class="sa">f</span><span class="s2">"hyphens (got: '</span><span class="si">{</span><span class="n">slug</span><span class="si">}</span><span class="s2">') — it becomes /apps/&lt;slug&gt;/."</span>
+        <span class="p">)</span>
+
+    <span class="c1"># The app version is the SINGLE SOURCE OF TRUTH: the installed package's own</span>
+    <span class="c1"># version, read at runtime via importlib.metadata from `pip_package`. A</span>
+    <span class="c1"># hand-written `version` in the manifest is FORBIDDEN — it inevitably drifts</span>
+    <span class="c1"># from the package (2026-07 incident: manifests stuck at "0.14.0" while the</span>
+    <span class="c1"># packages shipped 2.25.0 / 0.29.9 / 1.4.2, so every app tile showed a wrong</span>
+    <span class="c1"># version). Declare `pip_package` (the dist name) and let the version derive.</span>
+    <span class="k">if</span> <span class="s2">"version"</span> <span class="ow">in</span> <span class="n">data</span><span class="p">:</span>
+        <span class="n">errors</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+            <span class="s2">"manifest.json must NOT declare 'version' — it drifts from the "</span>
+            <span class="s2">"package. The version is derived at runtime from the installed "</span>
+            <span class="s2">"'pip_package' (importlib.metadata). Remove the 'version' key."</span>
+        <span class="p">)</span>
+
+    <span class="c1"># 'scope' is OPTIONAL (absent -&gt; "user", the safe no-selector default) but</span>
+    <span class="c1"># when present it is a CLOSED enum: a typo'd scope must fail loud here,</span>
+    <span class="c1"># not degrade to a guessed scope at render time. See _app_scope.py.</span>
+    <span class="k">if</span> <span class="s2">"scope"</span> <span class="ow">in</span> <span class="n">data</span><span class="p">:</span>
+        <span class="kn">from</span><span class="w"> </span><span class="nn">..._app_scope</span><span class="w"> </span><span class="kn">import</span> <span class="n">VALID_SCOPES</span>
+
+        <span class="n">scope</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s2">"scope"</span><span class="p">]</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="p">(</span><span class="nb">isinstance</span><span class="p">(</span><span class="n">scope</span><span class="p">,</span> <span class="nb">str</span><span class="p">)</span> <span class="ow">and</span> <span class="n">scope</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="ow">in</span> <span class="n">VALID_SCOPES</span><span class="p">):</span>
+            <span class="n">errors</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">"manifest.json 'scope' must be one of </span><span class="si">{</span><span class="n">VALID_SCOPES</span><span class="si">}</span><span class="s2"> "</span>
+                <span class="sa">f</span><span class="s2">"(got </span><span class="si">{</span><span class="n">scope</span><span class="si">!r}</span><span class="s2">). 'project' opts the app into a per-app "</span>
+                <span class="sa">f</span><span class="s2">"project selector; 'user' (or omit) renders with none."</span>
+            <span class="p">)</span>
+
+    <span class="c1"># 'group' is OPTIONAL (absent -&gt; undeclared, the host keeps its existing</span>
+    <span class="c1"># grouping as the fallback) but when present it is a CLOSED enum: a typo'd</span>
+    <span class="c1"># group must fail loud HERE, not degrade to a mis-grouped tile at render</span>
+    <span class="c1"># time. Same convention as 'scope' above.</span>
+    <span class="k">if</span> <span class="s2">"group"</span> <span class="ow">in</span> <span class="n">data</span><span class="p">:</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">normalize_group</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="s2">"group"</span><span class="p">])</span>
+        <span class="k">except</span> <span class="ne">ValueError</span> <span class="k">as</span> <span class="n">exc</span><span class="p">:</span>
+            <span class="n">errors</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">"manifest.json </span><span class="si">{</span><span class="n">exc</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="s2">"scope_capabilities"</span> <span class="ow">in</span> <span class="n">data</span><span class="p">:</span>
+        <span class="kn">from</span><span class="w"> </span><span class="nn">..._app_scope</span><span class="w"> </span><span class="kn">import</span> <span class="n">normalize_scope_capabilities</span>
+
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">normalize_scope_capabilities</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="s2">"scope_capabilities"</span><span class="p">])</span>
+        <span class="k">except</span> <span class="ne">ValueError</span> <span class="k">as</span> <span class="n">exc</span><span class="p">:</span>
+            <span class="n">errors</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">exc</span><span class="p">))</span>
+
+    <span class="c1"># 'mobile_layout' is OPTIONAL and TRISTATE (ADR: mobile-layout card).</span>
+    <span class="c1"># Semantics (hub-decided 2026-09-14): absent (None) = no claim — the hub</span>
+    <span class="c1"># keeps its existing desktop-only metadata as the fallback; False =</span>
+    <span class="c1"># explicitly desktop-only (the launcher badge is shown); True = a working</span>
+    <span class="c1"># phone layout is declared (the badge disappears). It is a CLOSED bool</span>
+    <span class="c1"># enum: any other value is a typo that must fail loud here, not degrade</span>
+    <span class="c1"># to a guessed mobile state at render time. Making absent mean False is</span>
+    <span class="c1"># forbidden — it would badge every existing (already mobile-working) app.</span>
+    <span class="k">if</span> <span class="s2">"mobile_layout"</span> <span class="ow">in</span> <span class="n">data</span> <span class="ow">and</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="s2">"mobile_layout"</span><span class="p">],</span> <span class="nb">bool</span><span class="p">):</span>
+        <span class="n">errors</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">"manifest.json 'mobile_layout' must be true or false "</span>
+            <span class="sa">f</span><span class="s2">"(got </span><span class="si">{</span><span class="n">data</span><span class="p">[</span><span class="s1">'mobile_layout'</span><span class="p">]</span><span class="si">!r}</span><span class="s2">). Omit the key for 'no claim' "</span>
+            <span class="sa">f</span><span class="s2">"(the hub falls back to its existing metadata); false = "</span>
+            <span class="sa">f</span><span class="s2">"explicitly desktop-only; true = a working phone layout."</span>
+        <span class="p">)</span>
+
+    <span class="c1"># 'mount_policy' is OPTIONAL (absent -&gt; open mount, the back-compatible</span>
+    <span class="c1"># default) but when present it is CLOSED: a file-touching plugin</span>
+    <span class="c1"># without a jail block, a jail without the login boundary, or a typo'd</span>
+    <span class="c1"># scope must fail loud HERE at scaffold/validate time — not as an open</span>
+    <span class="c1"># mount in production. Delegates to the jail contract (scitex_sdk.app.jail)</span>
+    <span class="c1"># so the validator and the mount-time bar judge by one implementation.</span>
+    <span class="k">if</span> <span class="s2">"mount_policy"</span> <span class="ow">in</span> <span class="n">data</span><span class="p">:</span>
+        <span class="kn">from</span><span class="w"> </span><span class="nn">...jail</span><span class="w"> </span><span class="kn">import</span> <span class="n">LeafContractError</span> <span class="k">as</span> <span class="n">_JailContractError</span>
+        <span class="kn">from</span><span class="w"> </span><span class="nn">...jail</span><span class="w"> </span><span class="kn">import</span> <span class="n">validate_mount_policy</span> <span class="k">as</span> <span class="n">_validate_mount_policy</span>
+
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">_validate_mount_policy</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">plugin</span><span class="o">=</span><span class="n">data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"name"</span><span class="p">,</span> <span class="s2">"app"</span><span class="p">))</span>
+        <span class="k">except</span> <span class="n">_JailContractError</span> <span class="k">as</span> <span class="n">exc</span><span class="p">:</span>
+            <span class="n">errors</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">"manifest.json </span><span class="si">{</span><span class="n">exc</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+
+    <span class="c1"># The 'name' suffix convention is ADVISORY and lives in</span>
+    <span class="c1"># validate_manifest_advisory(), not here. See that function for why.</span>
+
+    <span class="k">return</span> <span class="n">errors</span></div>
+
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">validate_manifest_advisory</span><span class="p">(</span><span class="n">app_dir</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="n">Path</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">"""Manifest findings that are ADVICE, not failures.</span>
+
+<span class="sd">    A separate function rather than a severity argument on the one above, so the</span>
+<span class="sd">    tier is STRUCTURAL: a finding is advisory because of where it is raised, not</span>
+<span class="sd">    because of how its message happens to be worded. The name convention was</span>
+<span class="sd">    worded "should" and enforced as a failure, which is how it became</span>
+<span class="sd">    unclearable — scitex-scholar's manifest is `scholar_editor` because</span>
+<span class="sd">    `scholar_app` would COLLIDE with hub's existing registry entry, so the only</span>
+<span class="sd">    escape the rule offered was to create the bug the name avoids.</span>
+<span class="sd">    """</span>
+    <span class="n">warnings</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">root</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">app_dir</span><span class="p">)</span>
+    <span class="n">manifest_path</span> <span class="o">=</span> <span class="n">root</span> <span class="o">/</span> <span class="s2">"manifest.json"</span>
+
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">manifest_path</span><span class="o">.</span><span class="n">exists</span><span class="p">():</span>
+        <span class="k">return</span> <span class="p">[]</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">manifest_path</span><span class="o">.</span><span class="n">read_text</span><span class="p">(</span><span class="n">encoding</span><span class="o">=</span><span class="s2">"utf-8"</span><span class="p">))</span>
+    <span class="k">except</span> <span class="p">(</span><span class="n">json</span><span class="o">.</span><span class="n">JSONDecodeError</span><span class="p">,</span> <span class="ne">OSError</span><span class="p">):</span>
+        <span class="k">return</span> <span class="p">[]</span>  <span class="c1"># validate_manifest() already reports this, as an error</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="nb">dict</span><span class="p">):</span>
+        <span class="k">return</span> <span class="p">[]</span>
+
+    <span class="n">name</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"name"</span><span class="p">,</span> <span class="s2">""</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">name</span> <span class="ow">and</span> <span class="ow">not</span> <span class="p">(</span><span class="n">name</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s2">"_app"</span><span class="p">)</span> <span class="ow">or</span> <span class="n">name</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s2">"-app"</span><span class="p">)):</span>
+        <span class="n">warnings</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">"manifest.json 'name' should end with '_app' or '-app' (got: '</span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2">')"</span>
+        <span class="p">)</span>
+
+    <span class="c1"># 'label' short tile form (operator 2026-10-23): the launcher page carries</span>
+    <span class="c1"># the family brand, so tiles read Cards / Agent Container / Storage /</span>
+    <span class="c1"># Scholar / Stats / FigRecipe / Writer — no 'SciTeX ' prefix. A prefixed</span>
+    <span class="c1"># label is taste drift, so it is ADVICE: warn, never fail. Renaming a tile</span>
+    <span class="c1"># is the App lane's call (leaf manifest + hub launcher entry).</span>
+    <span class="n">label</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"label"</span><span class="p">,</span> <span class="s2">""</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">label</span> <span class="ow">and</span> <span class="n">label</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">"SciTeX "</span><span class="p">):</span>
+        <span class="n">warnings</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">"manifest.json 'label' should use the short tile form without "</span>
+            <span class="sa">f</span><span class="s2">"the 'SciTeX ' prefix (got: '</span><span class="si">{</span><span class="n">label</span><span class="si">}</span><span class="s2">')"</span>
+        <span class="p">)</span>
+
+    <span class="c1"># Favicon SSOT (operator 2026-10-20): the canonical mark is</span>
+    <span class="c1"># scitex_sdk/ui/img/scitex-favicon.svg served via the shared</span>
+    <span class="c1"># _branding_head.html partial. Leaf-local favicon files or hand-rolled</span>
+    <span class="c1"># data-URI views are drift — advice to migrate, never a failure.</span>
+    <span class="n">_SKIP_DIRS</span> <span class="o">=</span> <span class="p">{</span><span class="s2">"__pycache__"</span><span class="p">,</span> <span class="s2">"node_modules"</span><span class="p">,</span> <span class="s2">".venv"</span><span class="p">,</span> <span class="s2">".git"</span><span class="p">,</span> <span class="s2">".old"</span><span class="p">}</span>
+    <span class="k">for</span> <span class="n">path</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">root</span><span class="o">.</span><span class="n">rglob</span><span class="p">(</span><span class="s2">"*favicon*"</span><span class="p">)):</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">path</span><span class="o">.</span><span class="n">is_file</span><span class="p">():</span>
+            <span class="k">continue</span>
+        <span class="k">if</span> <span class="nb">any</span><span class="p">(</span><span class="n">part</span> <span class="ow">in</span> <span class="n">_SKIP_DIRS</span> <span class="k">for</span> <span class="n">part</span> <span class="ow">in</span> <span class="n">path</span><span class="o">.</span><span class="n">parts</span><span class="p">):</span>
+            <span class="k">continue</span>
+        <span class="n">warnings</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">"favicon drift: </span><span class="si">{</span><span class="n">path</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2"> should come from the SDK "</span>
+            <span class="sa">f</span><span class="s2">"(_branding_head.html + scitex-favicon.svg), not the leaf"</span>
+        <span class="p">)</span>
+        <span class="k">break</span>  <span class="c1"># one finding names the class; the list would just be long</span>
+
+    <span class="k">return</span> <span class="n">warnings</span>
+
+
+<span class="c1"># EOF</span>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025-2026, SciTeX Team.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+</body>
+</html>

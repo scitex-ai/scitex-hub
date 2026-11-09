@@ -6,15 +6,15 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>scitex_hub.account.token &mdash; SciTeX Hub v0.18.1</title>
+  <title>scitex_hub.account.token &mdash; SciTeX Hub v0.22.0a7</title>
       <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=b86133f3" />
       <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css?v=9edc463e" />
       <link rel="stylesheet" type="text/css" href="../../_static/copybutton.css?v=76b2166b" />
 
-  
+
       <script src="../../_static/jquery.js?v=5d32c60e"></script>
       <script src="../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-      <script src="../../_static/documentation_options.js?v=1e56ff10"></script>
+      <script src="../../_static/documentation_options.js?v=af24e983"></script>
       <script src="../../_static/doctools.js?v=fd6eb6e6"></script>
       <script src="../../_static/sphinx_highlight.js?v=6ffebe34"></script>
       <script src="../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -23,17 +23,17 @@
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
     <link rel="next" title="scitex_hub.account.whoami" href="scitex_hub.account.whoami.html" />
-    <link rel="prev" title="scitex_hub.account" href="scitex_hub.account.html" /> 
+    <link rel="prev" title="scitex_hub.account" href="scitex_hub.account.html" />
 </head>
 
-<body class="wy-body-for-nav"> 
+<body class="wy-body-for-nav">
   <div class="wy-grid-for-nav">
     <nav data-toggle="wy-nav-shift" class="wy-nav-side">
       <div class="wy-side-scroll">
         <div class="wy-side-nav-search" >
 
-          
-          
+
+
           <a href="../../index.html" class="icon icon-home">
             SciTeX Hub
           </a>
@@ -74,15 +74,9 @@
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="../../cli.html">CLI Reference</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="../../cli.html#global-options">Global Options</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../cli.html#project-management">Project Management</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../cli.html#three-way-sync">Three-Way Sync</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../cli.html#git-hosting-gitea">Git Hosting (Gitea)</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../cli.html#app-management">App Management</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../cli.html#cloud-sdk">Cloud SDK</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../cli.html#infrastructure">Infrastructure</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../cli.html#mcp-server">MCP Server</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../cli.html#utilities">Utilities</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../cli.html#discover-commands">Discover commands</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../cli.html#command-groups">Command groups</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../cli.html#source-and-validation">Source and validation</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="../../sync.html">Three-Way Sync</a><ul>
@@ -124,17 +118,6 @@
 <li class="toctree-l2"><a class="reference internal" href="../../app_platform.html#app-submission-and-review">App Submission and Review</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../app_platform.html#separation-of-concerns">Separation of Concerns</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../app_platform.html#reference">Reference</a></li>
-</ul>
-</li>
-<li class="toctree-l1"><a class="reference internal" href="../../visitor_pool_security.html">Visitor Pool Security</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="../../visitor_pool_security.html#background-the-fix">Background: the fix</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../visitor_pool_security.html#layer-1-reset-workspace-after">Layer 1 — <code class="docutils literal notranslate"><span class="pre">&#64;reset_workspace_after</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../visitor_pool_security.html#layer-2-ensure-clean-workspace">Layer 2 — <code class="docutils literal notranslate"><span class="pre">&#64;ensure_clean_workspace</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../visitor_pool_security.html#layer-3-reset-visitor-pool-on-container-restart">Layer 3 — <code class="docutils literal notranslate"><span class="pre">reset_visitor_pool</span></code> on container restart</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../visitor_pool_security.html#what-gets-cleared">What gets cleared</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../visitor_pool_security.html#pool-lifecycle-diagram">Pool lifecycle diagram</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../visitor_pool_security.html#operations">Operations</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../visitor_pool_security.html#further-reading">Further reading</a></li>
 </ul>
 </li>
 <li class="toctree-l1 current"><a class="reference internal" href="../index.html">API Reference</a><ul class="current">
@@ -182,14 +165,14 @@
           <li class="breadcrumb-item"><a href="scitex_hub.account.html">scitex_hub.account</a></li>
       <li class="breadcrumb-item active">scitex_hub.account.token</li>
       <li class="wy-breadcrumbs-aside">
-              <a href="https://github.com/ywatanabe1989/scitex-hub/blob/main/docs/sphinx/api/_autosummary/scitex_hub.account.token.rst" class="fa fa-github"> Edit on GitHub</a>
+              <a href="https://github.com/scitex-ai/scitex-hub/blob/main/docs/sphinx/api/_autosummary/scitex_hub.account.token.rst" class="fa fa-github"> Edit on GitHub</a>
       </li>
   </ul>
   <hr/>
 </div>
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
-             
+
   <section id="module-scitex_hub.account.token">
 <span id="scitex-hub-account-token"></span><h1>scitex_hub.account.token<a class="headerlink" href="#module-scitex_hub.account.token" title="Link to this heading"></a></h1>
 <p>Python parity for <code class="docutils literal notranslate"><span class="pre">scitex-hub</span> <span class="pre">account</span> <span class="pre">token</span> <span class="pre">{create,list,revoke}</span></code>.</p>
@@ -228,7 +211,7 @@ than silently anonymising the call.</p>
 </table>
 <dl class="py data">
 <dt class="sig sig-object py" id="scitex_hub.account.token.DEFAULT_SCOPES">
-<span class="sig-prename descclassname"><span class="pre">scitex_hub.account.token.</span></span><span class="sig-name descname"><span class="pre">DEFAULT_SCOPES</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.14)"><span class="pre">tuple</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="p"><span class="pre">...</span></span><span class="p"><span class="pre">]</span></span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">('publish',)</span></span><a class="headerlink" href="#scitex_hub.account.token.DEFAULT_SCOPES" title="Link to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">scitex_hub.account.token.</span></span><span class="sig-name descname"><span class="pre">DEFAULT_SCOPES</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#tuple" title="(in Python v3.15)"><span class="pre">tuple</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="p"><span class="pre">...</span></span><span class="p"><span class="pre">]</span></span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">('publish',)</span></span><a class="headerlink" href="#scitex_hub.account.token.DEFAULT_SCOPES" title="Link to this definition"></a></dt>
 <dd><p>Default scopes for a CLI/API-issued token. Mirrors the server-side
 <code class="docutils literal notranslate"><span class="pre">ALLOWED_CLI_SCOPES</span></code> allowlist on
 <code class="docutils literal notranslate"><span class="pre">apps.infra.accounts_app.views.me_token_views</span></code>.</p>
@@ -236,7 +219,7 @@ than silently anonymising the call.</p>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="scitex_hub.account.token.create">
-<span class="sig-prename descclassname"><span class="pre">scitex_hub.account.token.</span></span><span class="sig-name descname"><span class="pre">create</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'scitex-hub-api'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">scopes</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Sequence" title="(in Python v3.14)"><span class="pre">Sequence</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">user</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">password</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">server</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">request_fn</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.14)"><span class="pre">dict</span></a></span></span><a class="reference internal" href="../../_modules/scitex_hub/account/token.html#create"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#scitex_hub.account.token.create" title="Link to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">scitex_hub.account.token.</span></span><span class="sig-name descname"><span class="pre">create</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><span class="pre">str</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'scitex-hub-api'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">scopes</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Sequence" title="(in Python v3.15)"><span class="pre">Sequence</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><span class="pre">str</span></a><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/constants.html#None" title="(in Python v3.15)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">user</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><span class="pre">str</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/constants.html#None" title="(in Python v3.15)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">password</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><span class="pre">str</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/constants.html#None" title="(in Python v3.15)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">server</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><span class="pre">str</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/constants.html#None" title="(in Python v3.15)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">request_fn</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#dict" title="(in Python v3.15)"><span class="pre">dict</span></a></span></span><a class="reference internal" href="../../_modules/scitex_hub/account/token.html#create"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#scitex_hub.account.token.create" title="Link to this definition"></a></dt>
 <dd><p>Mint a new <code class="docutils literal notranslate"><span class="pre">scitex_xxxx</span></code> API token.</p>
 <p>POSTs to <code class="docutils literal notranslate"><span class="pre">/api/me/token/</span></code>. Server-side validates the scope
 allowlist (currently <code class="docutils literal notranslate"><span class="pre">{&quot;publish&quot;}</span></code>), rate-limits per-IP +
@@ -268,8 +251,8 @@ a hand-rolled fake (see <code class="docutils literal notranslate"><span class="
 </dd>
 <dt class="field-odd">Raises<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><a class="reference external" href="https://docs.python.org/3/library/exceptions.html#ValueError" title="(in Python v3.14)"><strong>ValueError</strong></a> – <code class="docutils literal notranslate"><span class="pre">user</span></code>/<code class="docutils literal notranslate"><span class="pre">password</span></code> missing (no other auth path).</p></li>
-<li><p><a class="reference external" href="https://docs.python.org/3/library/exceptions.html#RuntimeError" title="(in Python v3.14)"><strong>RuntimeError</strong></a> – Server rejected the request (bad creds, scope
+<li><p><a class="reference external" href="https://docs.python.org/3/builtins/exceptions.html#ValueError" title="(in Python v3.15)"><strong>ValueError</strong></a> – <code class="docutils literal notranslate"><span class="pre">user</span></code>/<code class="docutils literal notranslate"><span class="pre">password</span></code> missing (no other auth path).</p></li>
+<li><p><a class="reference external" href="https://docs.python.org/3/builtins/exceptions.html#RuntimeError" title="(in Python v3.15)"><strong>RuntimeError</strong></a> – Server rejected the request (bad creds, scope
     not allowlisted, rate limit, etc.).</p></li>
 </ul>
 </dd>
@@ -277,10 +260,10 @@ a hand-rolled fake (see <code class="docutils literal notranslate"><span class="
 <div class="admonition-example admonition">
 <p class="admonition-title">Example</p>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">scitex_hub.account</span><span class="w"> </span><span class="kn">import</span> <span class="n">token</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">token</span><span class="o">.</span><span class="n">create</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;ci&quot;</span><span class="p">,</span> <span class="n">scopes</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;publish&quot;</span><span class="p">],</span>
-<span class="gp">... </span>             <span class="n">user</span><span class="o">=</span><span class="s2">&quot;ywatanabe&quot;</span><span class="p">,</span> <span class="n">password</span><span class="o">=</span><span class="s2">&quot;...&quot;</span><span class="p">)</span>
-<span class="go">{&#39;token&#39;: &#39;scitex_...&#39;, &#39;prefix&#39;: &#39;...&#39;,</span>
-<span class="go"> &#39;scopes&#39;: [&#39;publish&#39;], &#39;name&#39;: &#39;ci&#39;}</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">token</span><span class="o">.</span><span class="n">create</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">"ci"</span><span class="p">,</span> <span class="n">scopes</span><span class="o">=</span><span class="p">[</span><span class="s2">"publish"</span><span class="p">],</span>
+<span class="gp">... </span>             <span class="n">user</span><span class="o">=</span><span class="s2">"ywatanabe"</span><span class="p">,</span> <span class="n">password</span><span class="o">=</span><span class="s2">"..."</span><span class="p">)</span>
+<span class="go">{'token': 'scitex_...', 'prefix': '...',</span>
+<span class="go"> 'scopes': ['publish'], 'name': 'ci'}</span>
 </pre></div>
 </div>
 </div>
@@ -288,7 +271,7 @@ a hand-rolled fake (see <code class="docutils literal notranslate"><span class="
 
 <dl class="py function">
 <dt class="sig sig-object py" id="scitex_hub.account.token.list_">
-<span class="sig-prename descclassname"><span class="pre">scitex_hub.account.token.</span></span><span class="sig-name descname"><span class="pre">list_</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.14)"><span class="pre">list</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.14)"><span class="pre">dict</span></a><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="../../_modules/scitex_hub/account/token.html#list_"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#scitex_hub.account.token.list_" title="Link to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">scitex_hub.account.token.</span></span><span class="sig-name descname"><span class="pre">list_</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#list" title="(in Python v3.15)"><span class="pre">list</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#dict" title="(in Python v3.15)"><span class="pre">dict</span></a><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="../../_modules/scitex_hub/account/token.html#list_"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#scitex_hub.account.token.list_" title="Link to this definition"></a></dt>
 <dd><p>List existing API tokens (never re-shows the secret value).</p>
 <p>GETs <code class="docutils literal notranslate"><span class="pre">/api/me/tokens/</span></code> with the cached bearer token. Useful for
 answering “is my CI token still active?” without re-minting.</p>
@@ -300,7 +283,7 @@ answering “is my CI token still active?” without re-minting.</p>
 token itself (only <code class="docutils literal notranslate"><span class="pre">create</span></code> ever returns the secret).</p>
 </dd>
 <dt class="field-even">Raises<span class="colon">:</span></dt>
-<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/exceptions.html#RuntimeError" title="(in Python v3.14)"><strong>RuntimeError</strong></a> – No bearer token resolved
+<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/builtins/exceptions.html#RuntimeError" title="(in Python v3.15)"><strong>RuntimeError</strong></a> – No bearer token resolved
     (<code class="xref py py-func docutils literal notranslate"><span class="pre">_auth.resolve_bearer()</span></code>) or server returned non-200.</p>
 </dd>
 </dl>
@@ -308,8 +291,8 @@ token itself (only <code class="docutils literal notranslate"><span class="pre">
 <p class="admonition-title">Example</p>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">scitex_hub.account</span><span class="w"> </span><span class="kn">import</span> <span class="n">token</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">token</span><span class="o">.</span><span class="n">list_</span><span class="p">()</span>
-<span class="go">[{&#39;id&#39;: 1, &#39;name&#39;: &#39;cli&#39;, &#39;prefix&#39;: &#39;scitex_abcd&#39;,</span>
-<span class="go">  &#39;scopes&#39;: [&#39;publish&#39;], &#39;is_active&#39;: True, ...}]</span>
+<span class="go">[{'id': 1, 'name': 'cli', 'prefix': 'scitex_abcd',</span>
+<span class="go">  'scopes': ['publish'], 'is_active': True, ...}]</span>
 </pre></div>
 </div>
 </div>
@@ -317,7 +300,7 @@ token itself (only <code class="docutils literal notranslate"><span class="pre">
 
 <dl class="py function">
 <dt class="sig sig-object py" id="scitex_hub.account.token.list">
-<span class="sig-prename descclassname"><span class="pre">scitex_hub.account.token.</span></span><span class="sig-name descname"><span class="pre">list</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.14)"><span class="pre">list</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.14)"><span class="pre">dict</span></a><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#scitex_hub.account.token.list" title="Link to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">scitex_hub.account.token.</span></span><span class="sig-name descname"><span class="pre">list</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#list" title="(in Python v3.15)"><span class="pre">list</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#dict" title="(in Python v3.15)"><span class="pre">dict</span></a><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#scitex_hub.account.token.list" title="Link to this definition"></a></dt>
 <dd><p>List existing API tokens (never re-shows the secret value).</p>
 <p>GETs <code class="docutils literal notranslate"><span class="pre">/api/me/tokens/</span></code> with the cached bearer token. Useful for
 answering “is my CI token still active?” without re-minting.</p>
@@ -329,7 +312,7 @@ answering “is my CI token still active?” without re-minting.</p>
 token itself (only <code class="docutils literal notranslate"><span class="pre">create</span></code> ever returns the secret).</p>
 </dd>
 <dt class="field-even">Raises<span class="colon">:</span></dt>
-<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/exceptions.html#RuntimeError" title="(in Python v3.14)"><strong>RuntimeError</strong></a> – No bearer token resolved
+<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/builtins/exceptions.html#RuntimeError" title="(in Python v3.15)"><strong>RuntimeError</strong></a> – No bearer token resolved
     (<code class="xref py py-func docutils literal notranslate"><span class="pre">_auth.resolve_bearer()</span></code>) or server returned non-200.</p>
 </dd>
 </dl>
@@ -337,8 +320,8 @@ token itself (only <code class="docutils literal notranslate"><span class="pre">
 <p class="admonition-title">Example</p>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">scitex_hub.account</span><span class="w"> </span><span class="kn">import</span> <span class="n">token</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">token</span><span class="o">.</span><span class="n">list_</span><span class="p">()</span>
-<span class="go">[{&#39;id&#39;: 1, &#39;name&#39;: &#39;cli&#39;, &#39;prefix&#39;: &#39;scitex_abcd&#39;,</span>
-<span class="go">  &#39;scopes&#39;: [&#39;publish&#39;], &#39;is_active&#39;: True, ...}]</span>
+<span class="go">[{'id': 1, 'name': 'cli', 'prefix': 'scitex_abcd',</span>
+<span class="go">  'scopes': ['publish'], 'is_active': True, ...}]</span>
 </pre></div>
 </div>
 </div>
@@ -346,7 +329,7 @@ token itself (only <code class="docutils literal notranslate"><span class="pre">
 
 <dl class="py function">
 <dt class="sig sig-object py" id="scitex_hub.account.token.revoke">
-<span class="sig-prename descclassname"><span class="pre">scitex_hub.account.token.</span></span><span class="sig-name descname"><span class="pre">revoke</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">token_id</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.14)"><span class="pre">dict</span></a></span></span><a class="reference internal" href="../../_modules/scitex_hub/account/token.html#revoke"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#scitex_hub.account.token.revoke" title="Link to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">scitex_hub.account.token.</span></span><span class="sig-name descname"><span class="pre">revoke</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">token_id</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.15)"><span class="pre">int</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#dict" title="(in Python v3.15)"><span class="pre">dict</span></a></span></span><a class="reference internal" href="../../_modules/scitex_hub/account/token.html#revoke"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#scitex_hub.account.token.revoke" title="Link to this definition"></a></dt>
 <dd><p>Revoke a single API token by id.</p>
 <p>DELETEs <code class="docutils literal notranslate"><span class="pre">/api/me/token/{token_id}/</span></code>. Server responds 204 on
 success or 404 if the token doesn’t belong to this user.</p>
@@ -359,7 +342,7 @@ success or 404 if the token doesn’t belong to this user.</p>
 <dd class="field-even"><p>Dict <code class="docutils literal notranslate"><span class="pre">{&quot;success&quot;:</span> <span class="pre">True,</span> <span class="pre">&quot;token_id&quot;:</span> <span class="pre">&lt;id&gt;}</span></code> on success.</p>
 </dd>
 <dt class="field-odd">Raises<span class="colon">:</span></dt>
-<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/exceptions.html#RuntimeError" title="(in Python v3.14)"><strong>RuntimeError</strong></a> – No bearer token resolved, token not found
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/builtins/exceptions.html#RuntimeError" title="(in Python v3.15)"><strong>RuntimeError</strong></a> – No bearer token resolved, token not found
     (404), or any other non-204 response.</p>
 </dd>
 </dl>
@@ -367,7 +350,7 @@ success or 404 if the token doesn’t belong to this user.</p>
 <p class="admonition-title">Example</p>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">scitex_hub.account</span><span class="w"> </span><span class="kn">import</span> <span class="n">token</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">token</span><span class="o">.</span><span class="n">revoke</span><span class="p">(</span><span class="mi">7</span><span class="p">)</span>
-<span class="go">{&#39;success&#39;: True, &#39;token_id&#39;: 7}</span>
+<span class="go">{'success': True, 'token_id': 7}</span>
 </pre></div>
 </div>
 </div>
@@ -375,13 +358,13 @@ success or 404 if the token doesn’t belong to this user.</p>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="scitex_hub.account.token._handle_create_response">
-<span class="sig-prename descclassname"><span class="pre">scitex_hub.account.token.</span></span><span class="sig-name descname"><span class="pre">_handle_create_response</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">resp</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.14)"><span class="pre">dict</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.14)"><span class="pre">dict</span></a></span></span><a class="reference internal" href="../../_modules/scitex_hub/account/token.html#_handle_create_response"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#scitex_hub.account.token._handle_create_response" title="Link to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">scitex_hub.account.token.</span></span><span class="sig-name descname"><span class="pre">_handle_create_response</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">resp</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#dict" title="(in Python v3.15)"><span class="pre">dict</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#dict" title="(in Python v3.15)"><span class="pre">dict</span></a></span></span><a class="reference internal" href="../../_modules/scitex_hub/account/token.html#_handle_create_response"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#scitex_hub.account.token._handle_create_response" title="Link to this definition"></a></dt>
 <dd><p>Normalise the <code class="docutils literal notranslate"><span class="pre">/api/me/token/</span></code> response into a plain dict.</p>
 </dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="scitex_hub.account.token._default_post">
-<span class="sig-prename descclassname"><span class="pre">scitex_hub.account.token.</span></span><span class="sig-name descname"><span class="pre">_default_post</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">url</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">body</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.14)"><span class="pre">dict</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.14)"><span class="pre">dict</span></a></span></span><a class="reference internal" href="../../_modules/scitex_hub/account/token.html#_default_post"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#scitex_hub.account.token._default_post" title="Link to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">scitex_hub.account.token.</span></span><span class="sig-name descname"><span class="pre">_default_post</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">url</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><span class="pre">str</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">body</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#dict" title="(in Python v3.15)"><span class="pre">dict</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#dict" title="(in Python v3.15)"><span class="pre">dict</span></a></span></span><a class="reference internal" href="../../_modules/scitex_hub/account/token.html#_default_post"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#scitex_hub.account.token._default_post" title="Link to this definition"></a></dt>
 <dd><p>Default POST transport (used when no <code class="docutils literal notranslate"><span class="pre">request_fn</span></code> is injected).</p>
 <p>Wraps the response in a plain dict so the same shape works for
 real HTTP and for the hand-rolled test fakes — no <code class="docutils literal notranslate"><span class="pre">requests</span></code>
@@ -390,7 +373,7 @@ object leaks across the boundary.</p>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="scitex_hub.account.token._wrap">
-<span class="sig-prename descclassname"><span class="pre">scitex_hub.account.token.</span></span><span class="sig-name descname"><span class="pre">_wrap</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">r</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.14)"><span class="pre">dict</span></a></span></span><a class="reference internal" href="../../_modules/scitex_hub/account/token.html#_wrap"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#scitex_hub.account.token._wrap" title="Link to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">scitex_hub.account.token.</span></span><span class="sig-name descname"><span class="pre">_wrap</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">r</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#dict" title="(in Python v3.15)"><span class="pre">dict</span></a></span></span><a class="reference internal" href="../../_modules/scitex_hub/account/token.html#_wrap"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#scitex_hub.account.token._wrap" title="Link to this definition"></a></dt>
 <dd><p>Turn a <code class="docutils literal notranslate"><span class="pre">requests.Response</span></code> into a dict the handlers expect.</p>
 </dd></dl>
 
@@ -413,7 +396,7 @@ object leaks across the boundary.</p>
   Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
     <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
     provided by <a href="https://readthedocs.org">Read the Docs</a>.
-   
+
 
 </footer>
         </div>
@@ -424,7 +407,7 @@ object leaks across the boundary.</p>
       jQuery(function () {
           SphinxRtdTheme.Navigation.enable(true);
       });
-  </script> 
+  </script>
 
 </body>
 </html>
