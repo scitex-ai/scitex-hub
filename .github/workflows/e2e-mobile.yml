@@ -118,6 +118,8 @@ jobs:
           # `_manifest_miss` RAISES under DEBUG, so a missing entry becomes a
           # loud 500 rather than a shell rendered over nothing.
           SCITEX_HUB_VITE_USE_BUILD: "1"
+          # Inspect the sealed artifact without injecting development workers.
+          SCITEX_HUB_FRONTEND_MODE: "baked"
           DEBUG: "1"
         run: |
           python manage.py migrate --run-syncdb
