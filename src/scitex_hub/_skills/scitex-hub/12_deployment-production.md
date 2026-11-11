@@ -31,6 +31,11 @@ existing data requires a separately reviewed operator repair; do not recursively
 change its ownership or widen its permissions to make startup succeed. Only
 absent directories or empty root-owned mount roots may be initialized for the
 application user with private permissions.
+Before recreating a gateway-serving app, complete the
+[SSH identity handoff](../../../../docs/security/container-data-permissions.md#ssh-gateway-identity).
+Verify the running gateway's wire fingerprint and preserve its private key in
+the selected persistent directory. An empty new directory does not authorize
+a new server identity. Keep the legacy key and private rollback state.
 The Docker constructor separately prepares all ten image-owned state directories
 and existing image configuration after the final install/import gates. It must
 precreate `/app/data` before nested users mounts can be attached. Build-time
