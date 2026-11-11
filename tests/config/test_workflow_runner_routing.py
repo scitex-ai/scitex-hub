@@ -131,3 +131,40 @@ def test_required_check_job_names_are_unchanged(filename, key):
 
 
 # EOF
+
+
+def test_cli_smoke_uses_the_shared_runner_admission_output():
+    # Arrange
+    jobs = _load(WORKFLOWS / "cli-import-smoke-on-ubuntu-latest.yml")["jobs"]
+    job = jobs["cli-import-smoke"]
+    # Act
+    selected = (job.get("needs"), job["runs-on"])
+    # Assert
+    assert selected == (
+        "runner-admission",
+        "${{ fromJSON(needs.runner-admission.outputs.runs_on) }}",
+    )
+
+
+def test_cli_smoke_requests_the_organization_cpu_quarantine_boundary():
+    # Arrange
+    jobs = _load(WORKFLOWS / "cli-import-smoke-on-ubuntu-latest.yml")["jobs"]
+    # Act
+    admission = jobs.get("runner-admission")
+    # Assert
+    assert admission == {
+        "uses": "scitex-ai/.github/.github/workflows/runner-admission.yml@main",
+        "permissions": {},
+        "with": {"runs_on": '["self-hosted","Linux","X64","scitex-org-cpu"]'},
+    }
+
+
+def test_cli_smoke_keeps_its_fork_refusal_before_checkout():
+    # Arrange
+    jobs = _load(WORKFLOWS / "cli-import-smoke-on-ubuntu-latest.yml")["jobs"]
+    # Act
+    first = jobs["cli-import-smoke"]["steps"][0]
+    # Assert
+    assert (FORK_PREDICATE in first.get("if", "")) and (
+        "runner.environment == 'self-hosted'" in first["if"]
+    )
