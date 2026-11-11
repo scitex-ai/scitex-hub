@@ -39,18 +39,25 @@ concurrency:
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
+  runner-admission:
+    uses: scitex-ai/.github/.github/workflows/runner-admission.yml@main
+    permissions: {}
+    with:
+      runs_on: '["self-hosted","Linux","X64","scitex-org-cpu"]'
+
   typescript-check:
     name: TypeScript Compilation & Linting
     # Needs BOTH node and Python, which is why it waited: a failure here
     # could not have told us which half was at fault. Both are now proven
     # on this pool independently — vitest (node) and the pytest matrix
     # (python) are green — so it can move.
-    # scitex-local-cpu (scitex-compute-01..04) for trusted runs; fork PRs stay
-    # on ephemeral hosted VMs. Same predicate as scitex-ai/.github import-smoke.
+    # Shared admission keeps fork and unknown-author work hosted; trusted work
+    # targets the registered organization CPU pool.
+    needs: runner-admission
     runs-on: >-
-      ${{ (github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name != github.repository)
-          && fromJSON('["ubuntu-latest"]')
-          || fromJSON('["self-hosted","Linux","X64","scitex-local-cpu"]') }}
+      ${{ needs.runner-admission.outputs.native_authorized == 'true'
+          && fromJSON('{"group":"Organization","labels":["self-hosted","Linux","X64","scitex-org-cpu"]}')
+          || fromJSON('["ubuntu-latest"]') }}
 
     steps:
       # Backstop for the runs-on predicate: never check out fork code on our hardware.
@@ -140,12 +147,13 @@ jobs:
     # Node on ubuntu-latest needs no toolcache probing — actions/setup-node
     # uses the hosted image's preinstalled versions, which is the case the
     # canary existed to establish for the self-hosted pool.
-    # scitex-local-cpu (scitex-compute-01..04) for trusted runs; fork PRs stay
-    # on ephemeral hosted VMs. Same predicate as scitex-ai/.github import-smoke.
+    # Shared admission keeps fork and unknown-author work hosted; trusted work
+    # targets the registered organization CPU pool.
+    needs: runner-admission
     runs-on: >-
-      ${{ (github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name != github.repository)
-          && fromJSON('["ubuntu-latest"]')
-          || fromJSON('["self-hosted","Linux","X64","scitex-local-cpu"]') }}
+      ${{ needs.runner-admission.outputs.native_authorized == 'true'
+          && fromJSON('{"group":"Organization","labels":["self-hosted","Linux","X64","scitex-org-cpu"]}')
+          || fromJSON('["ubuntu-latest"]') }}
 
     steps:
       # Backstop for the runs-on predicate: never check out fork code on our hardware.
@@ -430,10 +438,13 @@ jobs:
     # bash qualify.
     #
     # 2026-09-15: hosted is now the SLOW pool (Free plan: 20 concurrent hosted
-    # jobs org-wide, 50+ runs queued), so this runs on scitex-local-cpu. It
+    # jobs org-wide, 50+ runs queued), so this uses organization CPU admission. It
     # checks out nothing, so a fork PR runs no foreign code here.
-    runs-on: [self-hosted, Linux, X64, scitex-local-cpu]
-    needs: [typescript-check, vitest, terminal-tests, security-regression]
+    runs-on: >-
+      ${{ needs.runner-admission.outputs.native_authorized == 'true'
+          && fromJSON('{"group":"Organization","labels":["self-hosted","Linux","X64","scitex-org-cpu"]}')
+          || fromJSON('["ubuntu-latest"]') }}
+    needs: [typescript-check, vitest, terminal-tests, security-regression, runner-admission]
     if: always()
 
     steps:
