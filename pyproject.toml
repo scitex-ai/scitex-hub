@@ -602,6 +602,7 @@ dev = [
     "channels>=4.3",
     "celery[redis]>=5.4,<5.6",
     "fastmcp>=2.14.5",
+    "paramiko>=3.4",
     "scitex>=2.29.3",
     # django-celery-beat is in INSTALLED_APPS (settings_shared.py), so
     # Django cannot even start without it — every Django test fails at
@@ -692,6 +693,14 @@ scitex_hub = [
     "skills/references/*.md",
     "_skills/**/*.md",
     "_sphinx_html/**",
+]
+
+[tool.setuptools.exclude-package-data]
+"*" = [
+    "ssh_host_rsa_key",
+    "**/ssh_host_rsa_key",
+    ".ssh-host-key-*",
+    "**/.ssh-host-key-*",
 ]
 
 [tool.setuptools.package-dir]

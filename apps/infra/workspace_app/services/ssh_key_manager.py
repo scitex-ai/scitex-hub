@@ -9,9 +9,10 @@ SSH key management for workspace SSH gateway.
 
 from __future__ import annotations
 
-import logging
 import os
 from pathlib import Path
+import stat
+import tempfile
 
 import paramiko
 from django.conf import settings
@@ -19,25 +20,29 @@ from django.conf import settings
 __FILE__ = "./apps/workspace_app/services/ssh_key_manager.py"
 __DIR__ = os.path.dirname(__FILE__)
 
-logger = logging.getLogger(__name__)
-
 
 class SSHKeyManager:
     """
     Manage SSH host keys for the workspace gateway.
     """
 
-    def __init__(self, key_dir: str | None = None):
+    def __init__(self, key_dir: str | Path | None = None):
         """
         Initialize SSH key manager.
 
         Args:
-            key_dir: Directory to store SSH keys (defaults to settings.SSH_KEY_DIR)
+            key_dir: Explicit key directory, otherwise the host SSH_KEY_DIR
+                setting or the deployment's persistent hub runtime state.
         """
-        self.key_dir = Path(
-            key_dir or getattr(settings, "SSH_KEY_DIR", "/app/ssh_keys")
+        selected = (
+            key_dir if key_dir is not None else getattr(settings, "SSH_KEY_DIR", None)
         )
-        self.key_dir.mkdir(parents=True, exist_ok=True)
+        if selected is None or selected == "":
+            from scitex_config._ecosystem import local_state
+
+            selected = local_state.runtime_path("hub") / "ssh"
+        self.key_dir = Path(selected)
+        self.key_dir.mkdir(mode=0o700, parents=True, exist_ok=True)
 
     def get_host_key_path(self) -> Path:
         """
@@ -55,33 +60,51 @@ class SSHKeyManager:
         Returns:
             paramiko.RSAKey: SSH host key
         """
-        key_path = self.get_host_key_path()
-
-        if key_path.exists():
-            try:
-                logger.info(f"Loading SSH host key from: {key_path}")
-                return paramiko.RSAKey.from_private_key_file(str(key_path))
-            except Exception as e:
-                logger.warning(f"Failed to load host key from {key_path}: {e}")
-                logger.info("Generating new host key...")
-
-        # Generate new key
-        logger.info("Generating new SSH host key...")
-        host_key = paramiko.RSAKey.generate(2048)
-
-        # Save key
         try:
-            host_key.write_private_key_file(str(key_path))
-            # Set restrictive permissions
-            os.chmod(key_path, 0o600)
-            logger.info(f"SSH host key saved to: {key_path}")
-        except Exception as e:
-            logger.error(f"Failed to save host key to {key_path}: {e}")
-            logger.warning(
-                "Using ephemeral host key (will not persist across restarts)"
-            )
+            return self._read_host_key()
+        except FileNotFoundError:
+            # Only absence admits creation. Existing unreadable, corrupt or
+            # symbolic keys must never turn into another server identity.
+            return self._publish_host_key()
 
-        return host_key
+    def _read_host_key(self) -> paramiko.RSAKey:
+        flags = os.O_RDONLY | os.O_NOFOLLOW | os.O_NONBLOCK
+        with os.fdopen(os.open(self.get_host_key_path(), flags), "r") as stream:
+            metadata = os.fstat(stream.fileno())
+            if not stat.S_ISREG(metadata.st_mode):
+                raise OSError("SSH host key must be a regular private file")
+            mode = stat.S_IMODE(metadata.st_mode)
+            if mode & 0o077 or not mode & 0o400:
+                raise PermissionError(
+                    "SSH host key must be owner-readable with no group/other access"
+                )
+            return paramiko.RSAKey.from_private_key(stream)
+
+    def _publish_host_key(self) -> paramiko.RSAKey:
+        """Publish one complete private key without replacing a racing peer."""
+        host_key = paramiko.RSAKey.generate(2048)
+        descriptor, temporary = tempfile.mkstemp(
+            prefix=".ssh-host-key-", dir=self.key_dir
+        )
+        try:
+            with os.fdopen(descriptor, "w") as stream:
+                host_key.write_private_key(stream)
+                stream.flush()
+                os.fsync(stream.fileno())
+            try:
+                # Exclusive atomic publication: readers see the complete key,
+                # and concurrent initializers all reopen the winner.
+                os.link(temporary, self.get_host_key_path())
+            except FileExistsError:
+                return self._read_host_key()
+            directory_fd = os.open(self.key_dir, os.O_RDONLY | os.O_DIRECTORY)
+            try:
+                os.fsync(directory_fd)
+            finally:
+                os.close(directory_fd)
+            return host_key
+        finally:
+            os.unlink(temporary)
 
     def get_host_key_fingerprint(self, host_key: paramiko.RSAKey) -> str:
         """
