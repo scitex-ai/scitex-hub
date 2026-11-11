@@ -50,6 +50,37 @@ Do not stop unrelated services or delete Redis, jobs or mounted data to deploy.
 Development app startup must not cancel jobs or reset scheduler node states.
 Keep scheduler recovery separate from web and worker starts.
 
+## Prepare the production build context
+
+`deployment/docker/docker_prod/Dockerfile.prod` copies a host-provided AMD64
+`yq` binary from `deployment/docker/docker_prod/bin/yq_linux_amd64`. That ignored
+asset is absent from a fresh Git worktree. Prepare it before the candidate
+build; the Dockerfile does not download it. Use the official v4.47.1 asset and
+verify its SHA256 before admitting it to the build context:
+
+```bash
+(
+  set -eu
+  asset=deployment/docker/docker_prod/bin/yq_linux_amd64
+  mkdir -p "$(dirname "$asset")"
+  prepared="$(mktemp "${asset}.download.XXXXXX")"
+  trap 'rm -f "$prepared"' EXIT
+  curl --fail --location \
+    https://github.com/mikefarah/yq/releases/download/v4.47.1/yq_linux_amd64 \
+    --output "$prepared"
+  printf '%s  %s\n' \
+    0fb28c6680193c41b364193d0c0fc4a03177aecde51cfc04d506b1517158c2fb \
+    "$prepared" | sha256sum --check -
+  chmod 755 "$prepared"
+  mv "$prepared" "$asset"
+)
+```
+
+Run this from the selected worktree root. This prepares a public build tool;
+it does not prepare a candidate image or authorize a service recreation.
+The SHA256 matches the upstream release asset digest. Preserve any failed
+build's logs and record changed context inputs before starting another build.
+
 ## Build a candidate without changing production's latest tag
 
 Prepare a task-private `DOCKER_CONFIG` and an owned named `docker-container`
