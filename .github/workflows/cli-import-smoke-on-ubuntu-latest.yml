@@ -55,7 +55,10 @@ jobs:
     # Shared admission keeps untrusted/fork work hosted and binds native work
     # to the organization CPU pool, including its temporary host quarantine.
     needs: runner-admission
-    runs-on: ${{ fromJSON(needs.runner-admission.outputs.runs_on) }}
+    runs-on: >-
+      ${{ needs.runner-admission.outputs.native_authorized == 'true'
+          && fromJSON('{"group":"Organization","labels":["self-hosted","Linux","X64","scitex-org-cpu"]}')
+          || fromJSON('["ubuntu-latest"]') }}
     # 30, not the reflexive 15: hub's CORE dependencies alone pull the scitex
     # umbrella (numpy/matplotlib/fonttools et al), so even a no-extras install
     # is not small. Measured 2026-08-11 in a container: a cold bare

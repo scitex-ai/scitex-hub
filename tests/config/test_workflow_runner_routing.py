@@ -11,20 +11,23 @@ to ubuntu-latest AND refuse, as its first step, if it still lands self-hosted.
 
 from __future__ import annotations
 
+import json
 from pathlib import Path
 
 import pytest
 import yaml
 
 WORKFLOWS = Path(__file__).resolve().parents[2] / ".github" / "workflows"
-FORK_PREDICATE = (
-    "github.event.pull_request.head.repo.full_name != github.repository"
-)
+FORK_PREDICATE = "github.event.pull_request.head.repo.full_name != github.repository"
 REQUIRED_CONTEXTS_KEPT = {
-    ("pytest-matrix-on-ubuntu-py3-11-3-12-3-13.yml", "test"):
-        "pytest-matrix-on-ubuntu-py${{ matrix.python-version }}",
-    ("cli-import-smoke-on-ubuntu-latest.yml", "cli-import-smoke"):
-        "cli-import-smoke-on-ubuntu-latest",
+    (
+        "pytest-matrix-on-ubuntu-py3-11-3-12-3-13.yml",
+        "test",
+    ): "pytest-matrix-on-ubuntu-py${{ matrix.python-version }}",
+    (
+        "cli-import-smoke-on-ubuntu-latest.yml",
+        "cli-import-smoke",
+    ): "cli-import-smoke-on-ubuntu-latest",
     # No `name:`, so the required context is the job key, "audit".
     ("scitex-hub-quality-audit-on-ubuntu-latest.yml", "audit"): None,
 }
@@ -38,6 +41,36 @@ def _triggers(workflow: dict) -> dict:
     # PyYAML reads the bare key `on` as boolean True.
     on = workflow.get("on", workflow.get(True)) or {}
     return on if isinstance(on, dict) else dict.fromkeys(on)
+
+
+def _shared_admission_routes_forks(filename: str, job: dict) -> bool:
+    """Admit only the shared authorization gate with explicit destinations."""
+    workflow = _load(WORKFLOWS / filename)
+    admission = workflow["jobs"].get("runner-admission") or {}
+    requested = (admission.get("with") or {}).get("runs_on")
+    if (
+        admission
+        != {
+            "uses": "scitex-ai/.github/.github/workflows/runner-admission.yml@main",
+            "permissions": {},
+            "with": {"runs_on": requested},
+        }
+        or job.get("needs") != "runner-admission"
+    ):
+        return False
+    try:
+        native = json.dumps(
+            {"group": "Organization", "labels": json.loads(requested)},
+            separators=(",", ":"),
+        )
+    except (TypeError, ValueError):
+        return False
+    expected = (
+        "${{ needs.runner-admission.outputs.native_authorized == 'true' "
+        f"&& fromJSON('{native}') || fromJSON('[\"ubuntu-latest\"]') "
+        "}}"
+    )
+    return " ".join(str(job["runs-on"]).split()) == expected
 
 
 def _self_hosted_pr_jobs():
@@ -72,7 +105,9 @@ def test_fork_prs_are_routed_to_hosted(filename, key, job):
     # Arrange
     runs_on = str(job["runs-on"])
     # Act
-    routes_forks = FORK_PREDICATE in runs_on and "ubuntu-latest" in runs_on
+    routes_forks = (
+        FORK_PREDICATE in runs_on and "ubuntu-latest" in runs_on
+    ) or _shared_admission_routes_forks(filename, job)
     # Assert
     assert routes_forks, (
         f"{filename}::{key} checks out PR code on a self-hosted runner without "
@@ -87,12 +122,14 @@ def test_fork_guard_is_the_first_step(filename, key, job):
     # Act
     guard_if = str(first.get("if", ""))
     # Assert
-    assert FORK_PREDICATE in guard_if and "runner.environment == 'self-hosted'" in guard_if, (
-        f"{filename}::{key} must refuse fork code on self-hosted before checkout."
-    )
+    assert (
+        FORK_PREDICATE in guard_if and "runner.environment == 'self-hosted'" in guard_if
+    ), f"{filename}::{key} must refuse fork code on self-hosted before checkout."
 
 
-DOCKER_JOBS = [p for p in SELF_HOSTED_PR_JOBS if "scitex-docker" in str(p.values[2]["runs-on"])]
+DOCKER_JOBS = [
+    p for p in SELF_HOSTED_PR_JOBS if "scitex-docker" in str(p.values[2]["runs-on"])
+]
 
 
 def test_the_docker_scan_found_the_suites():
@@ -133,17 +170,19 @@ def test_required_check_job_names_are_unchanged(filename, key):
 # EOF
 
 
-def test_cli_smoke_uses_the_shared_runner_admission_output():
+def test_cli_smoke_uses_shared_authorization_and_explicit_destinations():
     # Arrange
     jobs = _load(WORKFLOWS / "cli-import-smoke-on-ubuntu-latest.yml")["jobs"]
     job = jobs["cli-import-smoke"]
+    expected = """${{
+        needs.runner-admission.outputs.native_authorized == 'true'
+        && fromJSON('{"group":"Organization","labels":["self-hosted","Linux","X64","scitex-org-cpu"]}')
+        || fromJSON('["ubuntu-latest"]')
+    }}"""
     # Act
-    selected = (job.get("needs"), job["runs-on"])
+    selected = (job.get("needs"), " ".join(job["runs-on"].split()))
     # Assert
-    assert selected == (
-        "runner-admission",
-        "${{ fromJSON(needs.runner-admission.outputs.runs_on) }}",
-    )
+    assert selected == ("runner-admission", " ".join(expected.split()))
 
 
 def test_cli_smoke_requests_the_organization_cpu_quarantine_boundary():
@@ -168,3 +207,27 @@ def test_cli_smoke_keeps_its_fork_refusal_before_checkout():
     assert (FORK_PREDICATE in first.get("if", "")) and (
         "runner.environment == 'self-hosted'" in first["if"]
     )
+
+
+@pytest.mark.parametrize(
+    "change",
+    ["wrong-provider", "missing-dependency", "broad-authorization", "unguarded"],
+)
+def test_shared_admission_contract_rejects_bypasses(tmp_path, change):
+    # Arrange
+    workflow = _load(WORKFLOWS / "cli-import-smoke-on-ubuntu-latest.yml")
+    job = workflow["jobs"]["cli-import-smoke"]
+    if change == "wrong-provider":
+        workflow["jobs"]["runner-admission"]["uses"] = "outsider/repo/workflow@main"
+    elif change == "missing-dependency":
+        job.pop("needs")
+    elif change == "broad-authorization":
+        job["runs-on"] = job["runs-on"].replace("== 'true'", "!= 'false'")
+    else:
+        job["runs-on"] = ["self-hosted", "Linux", "X64", "scitex-org-cpu"]
+    path = tmp_path / "workflow.yml"
+    path.write_text(yaml.safe_dump(workflow))
+    # Act
+    routed = _shared_admission_routes_forks(str(path), job)
+    # Assert
+    assert not routed
