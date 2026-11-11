@@ -23,7 +23,7 @@ class ConsoleInterceptor {
   private maxHistory: number = 2000;
   private batchInterval: number = 1000; // 1 second
   private maxBatchSize: number = 50;
-  private apiEndpoint: string = "/dev/api/console/";
+  private apiEndpoint: string | null = null;
   private enabled: boolean = false;
 
   // Store original console methods
@@ -36,8 +36,13 @@ class ConsoleInterceptor {
   };
 
   constructor() {
-    // Only enable in development
+    // Only the server can advertise an available development log sink.
+    // Localhost may be a tunnel to a production-mode server, not a dev server.
+    this.apiEndpoint = document.querySelector<HTMLMetaElement>(
+      'meta[name="scitex-console-log-endpoint"]',
+    )?.content || null;
     this.enabled =
+      Boolean(this.apiEndpoint) ||
       document.documentElement.hasAttribute("data-debug") ||
       window.location.hostname === "localhost" ||
       window.location.hostname === "127.0.0.1";
@@ -52,7 +57,9 @@ class ConsoleInterceptor {
     this.interceptErrors();
     this.startBatchSender();
     console.info(
-      "[Console Interceptor] Active - logs will be saved to ./logs/console.log",
+      this.apiEndpoint
+        ? "[Console Interceptor] Active - server log uploads enabled"
+        : "[Console Interceptor] Local capture only - server log uploads disabled",
     );
   }
 
@@ -75,7 +82,7 @@ class ConsoleInterceptor {
             url: window.location.href,
           };
           this.history.push(entry);
-          this.buffer.push(entry);
+          if (this.apiEndpoint) this.buffer.push(entry);
         }
       } else {
         // This is a JavaScript error
@@ -87,7 +94,7 @@ class ConsoleInterceptor {
           url: window.location.href,
         };
         this.history.push(entry);
-        this.buffer.push(entry);
+        if (this.apiEndpoint) this.buffer.push(entry);
       }
     }, true);
 
@@ -101,7 +108,7 @@ class ConsoleInterceptor {
         url: window.location.href,
       };
       this.history.push(entry);
-      this.buffer.push(entry);
+      if (this.apiEndpoint) this.buffer.push(entry);
     });
   }
 
@@ -151,7 +158,7 @@ class ConsoleInterceptor {
       url: window.location.href,
     };
 
-    this.buffer.push(entry);
+    if (this.apiEndpoint) this.buffer.push(entry);
 
     // Also keep in history for debug snapshots
     this.history.push(entry);
@@ -260,6 +267,7 @@ class ConsoleInterceptor {
   }
 
   private startBatchSender(): void {
+    if (!this.apiEndpoint) return;
     setInterval(() => {
       if (this.buffer.length > 0) {
         this.sendBatch();
@@ -268,7 +276,7 @@ class ConsoleInterceptor {
   }
 
   private async sendBatch(): Promise<void> {
-    if (this.buffer.length === 0) return;
+    if (!this.apiEndpoint || this.buffer.length === 0) return;
 
     const logs = this.buffer.splice(0, this.maxBatchSize);
 
