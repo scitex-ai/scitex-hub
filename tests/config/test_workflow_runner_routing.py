@@ -3,10 +3,10 @@
 # File: tests/config/test_workflow_runner_routing.py
 """Fork-authored pull requests never execute on our self-hosted runners.
 
-Check jobs run on scitex-local-cpu (our compute nodes) because GitHub-hosted
-concurrency is capped org-wide. Those runners are persistent and share a real
-$HOME, so any job that checks out pull-request code there must route fork PRs
-to ubuntu-latest AND refuse, as its first step, if it still lands self-hosted.
+Organization CPU jobs use shared authorization with explicit registered
+runner destinations. Other native jobs retain explicit fork routing. Any job
+that checks out pull-request code on persistent hardware must send forks to
+hosted CI and refuse before checkout if a fork still lands self-hosted.
 """
 
 from __future__ import annotations
@@ -48,14 +48,14 @@ def _shared_admission_routes_forks(filename: str, job: dict) -> bool:
     workflow = _load(WORKFLOWS / filename)
     admission = workflow["jobs"].get("runner-admission") or {}
     requested = (admission.get("with") or {}).get("runs_on")
-    if (
-        admission
-        != {
-            "uses": "scitex-ai/.github/.github/workflows/runner-admission.yml@main",
-            "permissions": {},
-            "with": {"runs_on": requested},
-        }
-        or job.get("needs") != "runner-admission"
+    if admission != {
+        "uses": "scitex-ai/.github/.github/workflows/runner-admission.yml@main",
+        "permissions": {},
+        "with": {"runs_on": requested},
+    } or "runner-admission" not in (
+        [job.get("needs")]
+        if isinstance(job.get("needs"), str)
+        else (job.get("needs") or [])
     ):
         return False
     try:
@@ -231,3 +231,35 @@ def test_shared_admission_contract_rejects_bypasses(tmp_path, change):
     routed = _shared_admission_routes_forks(str(path), job)
     # Assert
     assert not routed
+
+
+def test_workflows_do_not_request_the_legacy_cpu_pool():
+    # Arrange
+    legacy = []
+    for path in sorted(WORKFLOWS.glob("*.y*ml")):
+        workflow = _load(path)
+        for key, job in (workflow.get("jobs") or {}).items():
+            if "scitex-local-cpu" in str(job.get("runs-on", "")):
+                legacy.append(f"{path.name}::{key}")
+    # Act
+    remaining = len(legacy)
+    # Assert
+    assert remaining == 0, legacy
+
+
+def _organization_cpu_jobs():
+    for path in sorted(WORKFLOWS.glob("*.y*ml")):
+        workflow = _load(path)
+        for key, job in (workflow.get("jobs") or {}).items():
+            if "scitex-org-cpu" in str(job.get("runs-on", "")):
+                yield pytest.param(path.name, key, job, id=f"{path.name}::{key}")
+
+
+@pytest.mark.parametrize("filename,key,job", list(_organization_cpu_jobs()))
+def test_organization_cpu_jobs_depend_on_exact_shared_authorization(filename, key, job):
+    # Arrange
+    candidate = job
+    # Act
+    admitted = _shared_admission_routes_forks(filename, candidate)
+    # Assert
+    assert admitted, f"{filename}::{key} bypasses shared authorization"
