@@ -37,7 +37,7 @@ def _load(path: Path) -> dict:
 def _triggers(workflow: dict) -> dict:
     # PyYAML reads the bare key `on` as boolean True.
     on = workflow.get("on", workflow.get(True)) or {}
-    return on if isinstance(on, dict) else {name: None for name in on}
+    return on if isinstance(on, dict) else dict.fromkeys(on)
 
 
 def _self_hosted_pr_jobs():
