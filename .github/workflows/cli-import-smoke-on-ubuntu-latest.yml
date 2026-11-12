@@ -44,14 +44,21 @@ concurrency:
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
+  runner-admission:
+    uses: scitex-ai/.github/.github/workflows/runner-admission.yml@main
+    permissions: {}
+    with:
+      runs_on: '["self-hosted","Linux","X64","scitex-org-cpu"]'
+
   cli-import-smoke:
     name: cli-import-smoke-on-ubuntu-latest
-    # scitex-local-cpu (scitex-compute-01..04) for trusted runs; fork PRs stay
-    # on ephemeral hosted VMs. Same predicate as scitex-ai/.github import-smoke.
+    # Shared admission keeps untrusted/fork work hosted and binds native work
+    # to the organization CPU pool, including its temporary host quarantine.
+    needs: runner-admission
     runs-on: >-
-      ${{ (github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name != github.repository)
-          && fromJSON('["ubuntu-latest"]')
-          || fromJSON('["self-hosted","Linux","X64","scitex-local-cpu"]') }}
+      ${{ needs.runner-admission.outputs.native_authorized == 'true'
+          && fromJSON('{"group":"Organization","labels":["self-hosted","Linux","X64","scitex-org-cpu"]}')
+          || fromJSON('["ubuntu-latest"]') }}
     # 30, not the reflexive 15: hub's CORE dependencies alone pull the scitex
     # umbrella (numpy/matplotlib/fonttools et al), so even a no-extras install
     # is not small. Measured 2026-08-11 in a container: a cold bare

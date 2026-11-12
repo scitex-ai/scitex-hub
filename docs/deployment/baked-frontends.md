@@ -63,3 +63,9 @@ assets on an isolated staging database/users root. Unit protocol fixtures alone
 do not establish a successful production frontend build. Keep old image and
 static backups; image rollback does not undo database migrations. New publication
 retains previous hashed chunks but does not restore overwritten nonhashed files.
+When a development-settings server inspects the sealed artifact, set
+`SCITEX_HUB_FRONTEND_MODE=baked` together with `SCITEX_HUB_VITE_USE_BUILD=1`.
+The host then omits the development browser-reload script while retaining
+DEBUG's strict missing-manifest checks. Build mode still supports template
+reload when compiled Vite assets are selected. The mobile E2E workflow uses
+this artifact mode and continues to reject same-origin network failures.

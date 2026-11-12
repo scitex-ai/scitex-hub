@@ -105,6 +105,12 @@ logs/**
 backups/**
 ssh_keys/**
 
+# Gateway identities and in-progress private publications are runtime state.
+# Keep the public .scitex/dev defaults and packaged CLI vocabulary available.
+**/.scitex/hub/runtime/
+**/ssh_host_rsa_key
+**/.ssh-host-key-*
+
 # ============================================================================
 # Build-context bloat measured inside the RUNNING prod image (2026-07-30)
 # ============================================================================

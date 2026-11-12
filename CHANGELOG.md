@@ -11,6 +11,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.22.0a8] - 2026-11-12
+
+### Changed
+
+- Adopt the qualified public Config 0.3.8, Dev 0.62.26, SDK 0.3.24,
+  Cards 0.56.23 and FigRecipe 0.44.7 releases across the runtime and
+  development profiles. FigRecipe includes the source-bound frontend and
+  rendered-token CSRF handling needed with HttpOnly cookies.
+
+### Fixed
+
+- Keep the gateway SSH host identity in persistent private state across
+  container starts. Refuse unsafe paths and preserve existing key ownership
+  and permissions instead of replacing identity during startup.
+- Upload browser console diagnostics only when Django advertises the
+  DEBUG-only upload endpoint. Retain local console history without issuing
+  requests to an unavailable production endpoint.
+
+
 ## [0.22.0a7] - 2026-11-09
 
 ### Changed

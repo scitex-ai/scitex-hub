@@ -2,5 +2,3 @@ scitex\_hub.sdk
 ===============
 
 .. automodule:: scitex_hub.sdk
-
-   
