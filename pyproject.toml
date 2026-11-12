@@ -1,6 +1,6 @@
 [project]
 name = "scitex-hub"
-version = "0.22.0a7"
+version = "0.22.0a8"
 description = "A browser workspace connecting research projects, apps, and collaborators"
 readme = "README.md"
 license = "AGPL-3.0-only"
@@ -51,7 +51,7 @@ dependencies = [
     # _publish/_validate (incl. all six validate_*); `scitex_sdk.app`
     # also carries i18n, hosts_to_allow (_standalone) and _app_scope
     # (_inject_scope_meta). No floor bump needed for the switch.
-    "scitex-config>=0.3.6",
+    "scitex-config>=0.3.8",
     # `scitex-session` is consumed via the umbrella as `scitex.session.INJECTED`
     # (settings_shared.py / settings_auth.py / config/routing.py).
     # scitex >= 2.29 lazy-loads `scitex_session` and raises ImportError if
@@ -269,7 +269,7 @@ dependencies = [
     # configures nothing is exactly the caller that DOES reach it.
     # 0.56.8 is the version measured good here, not proven to be the minimum.
     # 0.62.11 preserves explicit skill ownership through metadata reads.
-    "scitex-dev>=0.62.20",
+    "scitex-dev>=0.62.26",
     # `scitex-audio` owns the whisper.cpp transcription pipeline that
     # llm_app/views/stt.py delegates to (`scitex_audio.transcribe`).
     # Declared DIRECTLY rather than relied on transitively: llm_app/views/chat.py
@@ -301,7 +301,7 @@ dependencies = [
     # 0.3.19 binds generated CSS to genuine Vite source inputs; older SDK
     # project audits misclassify canonical bundled component CSS as local forks.
     # 0.3.20 supplies API-docs header lifecycle and inert wheel declarations.
-    "scitex-sdk>=0.3.23",
+    "scitex-sdk>=0.3.24",
     "gitpython>=3.1.51",
 ]
 
@@ -354,14 +354,14 @@ all = [
     # Explicit plugin closure: these apps are not installed by the umbrella.
     # SAC uses the platform-owned SDK GUI dependency; its standalone [gui]
     # extra pins an older SDK and is not this host's GUI dependency contract.
-    "scitex-sdk[gui]>=0.3.23",
+    "scitex-sdk[gui]>=0.3.24",
     "scitex-agent-container>=0.38.4",
-    "scitex-cards[web]>=0.56.22",
+    "scitex-cards[web]>=0.56.23",
     "scitex-storage[gui]>=0.6.11",
     "scitex-agentic-journal>=0.1.0a4",
     # 0.44.1 first publishes the scope capability declarations required by
     # the SDK's fail-closed project-jail admission.
-    "figrecipe[app,editor]>=0.44.4",
+    "figrecipe[app,editor]>=0.44.7",
     # --- Django stack (web framework + DRF + auth + ORM + ASGI) ---
     "Django>=5.2.11",
     "djangorestframework>=3.16",
@@ -623,7 +623,7 @@ dev = [
     # decides the three required checks; the audit workflow's own pin cannot
     # substitute for it. Keep the two identical — if they drift, the matrix
     # and the audit test different versions and one of them is lying.
-    "scitex-dev>=0.62.20",
+    "scitex-dev>=0.62.26",
     # The board-tenancy suite is guarded by `_TODO_INSTALLED`
     # (middleware.py:115, find_spec("scitex_cards")). Without this package
     # installed, every one of those tests SKIPS and the job exits 0 — a
@@ -636,14 +636,14 @@ dev = [
     # Explicit plugin closure: these apps are not installed by the umbrella.
     # SAC uses the platform-owned SDK GUI dependency; its standalone [gui]
     # extra pins an older SDK and is not this host's GUI dependency contract.
-    "scitex-sdk[gui]>=0.3.23",
+    "scitex-sdk[gui]>=0.3.24",
     "scitex-agent-container>=0.38.4",
-    "scitex-cards[web]>=0.56.22",
+    "scitex-cards[web]>=0.56.23",
     "scitex-storage[gui]>=0.6.11",
     "scitex-agentic-journal>=0.1.0a4",
     # 0.44.1 first publishes the scope capability declarations required by
     # the SDK's fail-closed project-jail admission.
-    "figrecipe[app,editor]>=0.44.4",
+    "figrecipe[app,editor]>=0.44.7",
     # Same floor as [all], and it must STAY the same — the two are swept
     # together by tests/config/test_shell_pane_contract_floor.py, which reads
     # every dependency group rather than one, precisely so the copies cannot
