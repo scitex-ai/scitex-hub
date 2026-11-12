@@ -3,12 +3,29 @@ scitex\_hub.account
 
 .. automodule:: scitex_hub.account
 
-   
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 .. rubric:: Modules
 
 .. autosummary::
    :toctree:
    :recursive:
 
-   token
-   whoami
+   scitex_hub.account.token
+   scitex_hub.account.whoami
