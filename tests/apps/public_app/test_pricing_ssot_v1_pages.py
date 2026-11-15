@@ -2,9 +2,10 @@
 # -*- coding: utf-8 -*-
 """The public price pages match "SciTeX Services SSOT — Provisional v1.0" (USD).
 
-Operator decisions of 2026-09-14 pinned here, against the RENDERED pages:
+Operator decisions of 2026-09-14, with self-hosted licensing updated
+2026-11-16, pinned here against the RENDERED pages:
 - prices are USD (Cloud Academic $19/mo, Cloud Standard $39/mo, Self-Hosted
-  Enterprise License from $2,400/yr, Setup from $2,000, Maintenance from
+  Enterprise License by consultation, Setup from $2,000, Maintenance from
   $650/mo, Custom Development from $1,300/project, Consulting from $65/hr) and
   32 GB Cool storage is included;
 - no JPY price band, and no retired early-adopter strikethrough;
@@ -27,7 +28,7 @@ PROJECT_ROOT = Path(__file__).resolve().parents[3]
 SSOT_USD_PRICES = (
     "$19/mo",
     "$39/mo",
-    "from $2,400/yr",
+    "On request",
     "from $2,000",
     "from $650/mo",
     "from $1,300/project",
@@ -97,7 +98,7 @@ def test_services_page_shows_no_jpy_price_band(client, language):
 
 @pytest.mark.django_db
 @pytest.mark.parametrize("language", ["en", "ja"])
-def test_pricing_page_shows_no_jpy_price_band_and_prices_the_commercial_license(
+def test_pricing_page_shows_no_jpy_price_band_or_retired_enterprise_floor(
     client, language
 ):
     # Arrange
@@ -105,7 +106,7 @@ def test_pricing_page_shows_no_jpy_price_band_and_prices_the_commercial_license(
     # Act
     visible = _visible(_get(client, "pricing", language))
     # Assert
-    assert (JPY_BAND.findall(visible), commercial_price in visible) == ([], True)
+    assert (JPY_BAND.findall(visible), commercial_price in visible) == ([], False)
 
 
 @pytest.mark.django_db
@@ -116,7 +117,7 @@ def test_tokushoho_drops_the_retired_early_adopter_strikethrough(client, page_na
     # Act
     html = _get(client, page_name)
     # Assert
-    assert ([r for r in retired if r in html], "$2,400/yr" in html) == ([], True)
+    assert ([r for r in retired if r in html], "$2,400/yr" in html) == ([], False)
 
 
 @pytest.mark.django_db

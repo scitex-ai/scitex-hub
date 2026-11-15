@@ -10001,3 +10001,30 @@ msgstr "~/.scitex/dev/skills/ から必要なスキルを選び、エージェ�
 #: apps/infra/public_app/templates/public_app/landing_partials/landing_opensource.html
 msgid "Source repositories"
 msgstr "ソースリポジトリ"
+
+msgid "Self-hosted licensing"
+msgstr "セルフホストのライセンス"
+
+msgid "AGPL-3.0 is available to anyone under its terms."
+msgstr "AGPL-3.0 は、その条件に従ってどなたでも利用できます。"
+
+msgid "Enterprise and custom licensing terms and prices are agreed by consultation."
+msgstr "Enterprise およびカスタムライセンスの条件・価格は個別相談で合意します。"
+
+msgid "Cloud Academic is a hosted pricing plan, not a separate self-hosted license."
+msgstr "Cloud Academic はホスティングの料金プランであり、別個のセルフホストライセンスではありません。"
+
+msgid "Keep data in-house. Choose AGPL-3.0 or discuss an Enterprise license with SciTeX."
+msgstr "データを自社・自組織内に保管できます。AGPL-3.0 を選択するか、Enterprise ライセンスについて SciTeX にご相談ください。"
+
+msgid "Yes. SciTeX Self-Hosted is available under AGPL-3.0. Enterprise and custom licenses are available by consultation."
+msgstr "はい。SciTeX Self-Hosted は AGPL-3.0 で利用できます。Enterprise およびカスタムライセンスは個別相談で提供します。"
+
+msgid "SciTeX Hub is free software under AGPL-3.0. Anyone may use it under its terms. Enterprise and custom licenses are available by consultation."
+msgstr "SciTeX Hub は AGPL-3.0 の自由ソフトウェアです。その条件に従ってどなたでも利用できます。Enterprise およびカスタムライセンスは個別相談で提供します。"
+
+msgid "Pay-per-use (Self-Hosted setup support, custom development, consulting): after a quote and contract, payment is due by the date stated on the invoice (card or bank transfer). Self-Hosted maintenance support (monthly): payment is due by the date stated on each invoice. Enterprise licensing prices and payment terms are agreed by consultation."
+msgstr "都度払い(セルフホスト導入サポート・カスタム開発・コンサルティング): お見積り・ご契約後、請求書に記載の期日までにお支払いいただきます(クレジットカード決済または銀行振込)。セルフホスト保守サポート(月額): 請求書に記載の期日までにお支払いいただきます。Enterprise ライセンスの価格・支払条件は個別相談で合意します。"
+
+msgid "Subscription: available immediately after signup (card registration) is complete. Setup support, maintenance support, custom development, consulting and Enterprise License: provided on the schedule agreed at the time of contract."
+msgstr "サブスクリプション: お申し込み(カード登録)完了後、直ちにご利用いただけます。導入サポート・保守サポート・カスタム開発・コンサルティング・Enterprise ライセンス: ご契約時に取り決めた日程で提供します。"

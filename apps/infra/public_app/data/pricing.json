@@ -128,23 +128,13 @@
       }
     },
     {
-      "id": "selfhosted-academic",
-      "label": "SciTeX Self-Hosted — Academic License",
-      "amount": 0,
-      "unit": "once",
-      "available_from": "2026-09",
-      "category": "license",
-      "description": "For universities and public research institutions. Internal non-commercial research and education; private modifications allowed. Support is not included."
-    },
-    {
       "id": "selfhosted-commercial",
       "label": "SciTeX Self-Hosted — Enterprise License",
-      "amount": 2400,
+      "amount": null,
       "unit": "year",
-      "from_price": true,
       "available_from": "2026-09",
       "category": "license",
-      "description": "For companies and proprietary use. Internal proprietary use; OEM or resale requires a separate agreement. Includes support and SLA.",
+      "description": "Enterprise and custom licensing terms and prices are agreed by consultation.",
       "attributes": {
         "self_hosted": true,
         "license_terms": {
@@ -152,7 +142,8 @@
           "support": "included",
           "sla": "included"
         }
-      }
+      },
+      "price_status": "on-request"
     },
     {
       "id": "onprem-setup",
@@ -226,10 +217,9 @@
       "audience": "Run SciTeX in your own environment",
       "rows": [
         "selfhosted-agpl",
-        "selfhosted-academic",
         "selfhosted-commercial"
       ],
-      "description": "Keep data in-house. OEM, resale or a SciTeX-based third-party commercial service requires a Commercial License or separate written permission. Support is not included in the license."
+      "description": "Keep data in-house. Choose AGPL-3.0 or discuss an Enterprise license with SciTeX."
     },
     {
       "id": "services",
@@ -338,15 +328,7 @@
       "_per_service_api": "Model API usage follows the metered compute rates; no per-service fee schedule is published."
     }
   },
-  "_policies": "SSOT sections 1 (Academic License boundary), 2 (notes), 6 (additional rules), 7 (SLA) and 8 (price maintenance), as customer copy.",
-  "academic_license_boundary": [
-    "Eligible institution: university, public research institute, or equivalent nonprofit academic institution.",
-    "Internal research and education: allowed.",
-    "Institution-specific private modifications: allowed.",
-    "Industry-sponsored research remains eligible when SciTeX is used internally by the academic institution.",
-    "Direct access or use by a commercial partner, resale, OEM, or providing a SciTeX-based third-party commercial service requires a Commercial License or separate written permission.",
-    "Support is not included in the license."
-  ],
+  "_policies": "SSOT sections 1 (self-hosted licensing), 2 (notes), 6 (additional rules), 7 (SLA) and 8 (price maintenance), as customer copy.",
   "beta_policies": [
     "No contractual uptime SLA for SciTeX Cloud during beta. Internal operational target: 99.0% monthly availability.",
     "No contractual durability SLA during beta. Hot storage is temporary; move data to persistent storage if you need to keep it.",
@@ -388,5 +370,10 @@
   "links": {
     "self_hosted_source": "https://github.com/scitex-ai/scitex-hub",
     "_note": "Outbound URLs the pricing table may link to. Code reads them; never type them in Python or templates."
-  }
+  },
+  "self_hosted_license_policy": [
+    "AGPL-3.0 is available to anyone under its terms.",
+    "Enterprise and custom licensing terms and prices are agreed by consultation.",
+    "Cloud Academic is a hosted pricing plan, not a separate self-hosted license."
+  ]
 }

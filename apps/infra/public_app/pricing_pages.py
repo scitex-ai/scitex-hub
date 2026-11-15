@@ -4,8 +4,8 @@
 
 ``pricing.py`` owns the catalogue rows and how one price is formatted; this
 module assembles what the /pricing/, /services/ and /tokushoho/ pages render
-beyond the rows — the metered rate card (SSOT §3-5), the Academic License
-boundary (§1) and the beta service-quality policies (§2, §6-8) — plus the one
+beyond the rows — the metered rate card (SSOT §3-5), self-hosted licensing
+(§1) and the beta service-quality policies (§2, §6-8) — plus the one
 context builder /pricing/ and /services/ share so they cannot drift apart.
 """
 
@@ -19,6 +19,7 @@ from .pricing import format_usd, load_pricing, published_price_groups, tier_rows
 
 __all__ = [
     "academic_license_boundary",
+    "self_hosted_license_policy",
     "beta_policies",
     "pricing_page_context",
     "rate_card",
@@ -130,7 +131,7 @@ def pricing_page_context() -> dict[str, Any]:
         "published_price_groups": published_price_groups(),
         "cloud_included": shared_included(cloud["rows"]) if cloud else [],
         "rate_card": rate_card(),
-        "academic_license_boundary": academic_license_boundary(),
+        "self_hosted_license_policy": self_hosted_license_policy(),
         "beta_policies": beta_policies(),
         "tax_note": data.get("tax_note", ""),
         "pricing_notes": data["notes"],
@@ -138,8 +139,13 @@ def pricing_page_context() -> dict[str, Any]:
 
 
 def academic_license_boundary() -> list[str]:
-    """SSOT §1 Academic License boundary, translated."""
-    return [_(line) for line in load_pricing()["academic_license_boundary"]]
+    """Compatibility name for the current self-hosted licensing policy."""
+    return self_hosted_license_policy()
+
+
+def self_hosted_license_policy() -> list[str]:
+    """SSOT §1 AGPL / Enterprise licensing policy, translated."""
+    return [_(line) for line in load_pricing()["self_hosted_license_policy"]]
 
 
 def beta_policies() -> list[str]:

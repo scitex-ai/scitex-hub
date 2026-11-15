@@ -6,8 +6,8 @@ Version 1.0 — Effective 2026-03-12
 
 SciTeX is licensed under AGPL-3.0 and follows a dual-licensing model:
 
-- **Researchers and individuals**: Free forever under AGPL-3.0.
-- **Enterprises and institutions**: Commercial license available upon request.
+- **AGPL-3.0**: Available to anyone under its terms.
+- **Enterprise**: Alternative licensing terms and prices available by consultation.
 
 To maintain the ability to offer dual licensing and ensure the long-term
 sustainability of the project, we ask contributors to sign this CLA before
