@@ -164,12 +164,15 @@ def test_every_catalogue_unit_is_one_the_formatter_renders() -> None:
     never ships without its 月額 / 1件 / 1時間 prefix. The date gate skips
     future rows before formatting, so this walks the catalogue directly."""
     for row in _catalogue():
-        rendered = format_amount(row["amount"], row.get("unit", "once"))
+        # A quote has no numeric amount. Probe its unit with a nonzero sample;
+        # the quote schema and displayed value have separate regression tests.
+        amount = 1 if row.get("price_status") == "on-request" else row["amount"]
+        rendered = format_amount(amount, row.get("unit", "once"))
         # A bare number must never ship: the rendered string carries more than
         # the raw figure (a unit prefix in EN, or the currency suffix in JA).
-        assert rendered.strip() != f"{row['amount']:,}", (row["id"], rendered)
-        # A free row (the AGPL / Academic self-hosted licenses) renders "Free".
-        assert row["amount"] == 0 or any(ch.isdigit() for ch in rendered), (row["id"], rendered)
+        assert rendered.strip() != f"{amount:,}", (row["id"], rendered)
+        # A free row (the AGPL self-hosted license) renders "Free".
+        assert amount == 0 or any(ch.isdigit() for ch in rendered), (row["id"], rendered)
 
 
 def test_a_withheld_row_is_not_published_whatever_its_date_says() -> None:
