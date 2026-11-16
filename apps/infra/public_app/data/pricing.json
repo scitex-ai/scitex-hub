@@ -323,8 +323,8 @@
         "self_hosted": "not-applicable",
         "_note": "Rate-limit queue priority: Pro requests jump ahead of Free when the system is busy. No fake per-minute numbers — priority only."
       },
-      "agents_fee_percent": 10,
-      "_agents": "Agent runs meter their compute like everything else, plus the model API cost passed through at 100 + agents_fee_percent percent.",
+      "agents_fee_percent": 20,
+      "_agents": "Agent runs meter their compute like everything else, plus the model API cost passed through at 100 + agents_fee_percent percent. SSOT v1.0 §3: provider cost + 20% (operator 2026-11-16, raised from 10% considering risks; alpha, no charges yet).",
       "_per_service_api": "Model API usage follows the metered compute rates; no per-service fee schedule is published."
     }
   },
