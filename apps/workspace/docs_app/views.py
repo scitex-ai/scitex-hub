@@ -334,7 +334,7 @@ def register_module_docs():
             "icon": icon,
             "template": template_path,
             "badges": ["app"],
-            "section": "apps",
+            "section": "howto",
         }
         DOCS_PAGES.append(page)
         _PAGES_BY_SLUG[mod.docs_slug] = page

@@ -141,3 +141,18 @@ def test_stale_and_unroutable_app_metadata_creates_no_doc_link(
     # Assert
     assert pages == []
     assert lookup == {}
+
+
+def test_plugin_uses_the_registered_display_label_with_a_host_guide(tmp_path, monkeypatch):
+    # Arrange
+    installed_distribution(tmp_path, "owned-leaf")
+    monkeypatch.syspath_prepend(str(tmp_path))
+    guide = {"slug": "authored", "section": "howto"}
+    pages, lookup = [guide], {"authored": guide}
+    mounted = [module("owned", "scitex-hub", docs_slug="authored")]
+    plugins = [SimpleNamespace(name="owned", distribution="owned-leaf")]
+    # Act
+    register_installed_app_docs(pages, lookup, modules=mounted, plugins=plugins)
+    # Assert
+    assert lookup["app-owned"]["label"] == "Owned"
+    assert lookup["authored"] is guide

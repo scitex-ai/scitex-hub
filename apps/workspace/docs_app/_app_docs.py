@@ -30,6 +30,7 @@ def register_installed_app_docs(pages, by_slug, *, modules=None, plugins=None):
 
         plugins = discover_plugin_apps()
     modules, plugins = list(modules), list(plugins)
+    module_labels = {mod.name: mod.label for mod in modules}
     candidates = []
     mounted_owners = set()
     for mod in modules:
@@ -47,7 +48,7 @@ def register_installed_app_docs(pages, by_slug, *, modules=None, plugins=None):
             continue
         owner = canonicalize_name(owner, validate=True)
         if owner not in mounted_owners:
-            candidates.append((plugin.name, plugin.name, owner))
+            candidates.append((plugin.name, module_labels.get(plugin.name, plugin.name), owner))
     for name, label, owner in candidates:
         if not re.fullmatch(r"[A-Za-z0-9_-]+", name):
             continue
