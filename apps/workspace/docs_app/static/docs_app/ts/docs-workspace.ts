@@ -5,11 +5,11 @@
  * Reads initial state from data-active-doc attribute on .docs-workspace.
  */
 
-import createDOMPurify from "dompurify";
+import { openPrintWindow } from "./docs-print";
 import { initDocsColumns, syncDocsColumns } from "./docs-navigation";
-
-// Printing has its own sanitizer instance, independent of other app hooks.
-const printSanitizer = createDOMPurify(window);
+import { initDocsFilter } from "./docs-filter";
+import { initDocsCopy } from "./docs-copy";
+import { initMobileCascade, syncMobileCascade } from "./docs-mobile-nav";
 
 // ── Types & Constants ────────────────────────────────────────
 
@@ -21,13 +21,6 @@ interface SectionInfo {
 }
 
 const SCROLLSPY_ROOT_MARGIN = "-10% 0px -70% 0px";
-const PRINT_CSS =
-  "body{font-family:sans-serif;max-width:800px;margin:2rem auto;padding:0 1rem;color:#222}" +
-  "pre{background:#f5f5f5;padding:1rem;overflow-x:auto;border-radius:4px}" +
-  "code{font-family:monospace}h1,h2,h3{margin-top:1.5rem}" +
-  "table{border-collapse:collapse;width:100%}" +
-  "th,td{border:1px solid #ddd;padding:8px;text-align:left}";
-
 // ── Module State ─────────────────────────────────────────────
 
 let currentSlug = "";
@@ -133,129 +126,7 @@ function teardownScrollspy(): void {
   }
 }
 
-// ── Mobile Cascade Nav (section → page dropdowns) ─────────
-// Two labeled <select>s rendered server-side from docs_sections (same
-// DOCS_PAGES source as the sidebar). Level 1 picks the section, level 2
-// lists pages within it. Desktop keeps the sidebar; CSS shows this nav
-// ≤767px only.
-
-interface CascadePage {
-  value: string;
-  label: string;
-}
-
-const cascadePagesBySection = new Map<string, CascadePage[]>();
-const cascadeSectionBySlug = new Map<string, string>();
-
-function snapshotCascadeOptions(pageSelect: HTMLSelectElement): void {
-  cascadePagesBySection.clear();
-  cascadeSectionBySlug.clear();
-  pageSelect.querySelectorAll("optgroup").forEach((group) => {
-    const key = group.getAttribute("data-section") ?? "";
-    if (!key) return;
-    const pages: CascadePage[] = [];
-    group.querySelectorAll("option").forEach((opt) => {
-      pages.push({
-        value: opt.value,
-        label: opt.textContent?.trim() ?? opt.value,
-      });
-      cascadeSectionBySlug.set(opt.value, key);
-    });
-    cascadePagesBySection.set(key, pages);
-  });
-}
-
-function populateCascadePages(
-  sectionSelect: HTMLSelectElement,
-  pageSelect: HTMLSelectElement,
-  sectionKey: string,
-): void {
-  const pages = cascadePagesBySection.get(sectionKey) ?? [];
-  pageSelect.textContent = "";
-  pages.forEach((page) => {
-    const opt = document.createElement("option");
-    opt.value = page.value;
-    opt.textContent = page.label;
-    pageSelect.appendChild(opt);
-  });
-  pageSelect.disabled = pages.length === 0;
-}
-
-/** Keep both dropdowns in sync with the currently displayed doc page. */
-function syncMobileCascade(slug: string): void {
-  const sectionSelect = document.getElementById(
-    "docs-mobile-section",
-  ) as HTMLSelectElement | null;
-  const pageSelect = document.getElementById(
-    "docs-mobile-page",
-  ) as HTMLSelectElement | null;
-  if (!sectionSelect || !pageSelect || !cascadePagesBySection.size) return;
-  const sectionKey = cascadeSectionBySlug.get(slug);
-  if (!sectionKey) return;
-  if (sectionSelect.value !== sectionKey) {
-    sectionSelect.value = sectionKey;
-    populateCascadePages(sectionSelect, pageSelect, sectionKey);
-  }
-  if (pageSelect.value !== slug) pageSelect.value = slug;
-}
-
-function initMobileCascade(
-  contentArea: HTMLElement,
-  sidebar: Element,
-  navItems: NodeListOf<HTMLAnchorElement>,
-): void {
-  const sectionSelect = document.getElementById(
-    "docs-mobile-section",
-  ) as HTMLSelectElement | null;
-  const pageSelect = document.getElementById(
-    "docs-mobile-page",
-  ) as HTMLSelectElement | null;
-  if (!sectionSelect || !pageSelect) return;
-
-  snapshotCascadeOptions(pageSelect);
-  // Flatten to the active section's pages on init (optgroups are only the
-  // no-JS fallback carrying the full section → page map).
-  const initialSection =
-    sectionSelect.value || sectionSelect.options[0]?.value || "";
-  if (initialSection) {
-    populateCascadePages(sectionSelect, pageSelect, initialSection);
-    if (currentSlug) pageSelect.value = currentSlug;
-  }
-
-  sectionSelect.addEventListener("change", () => {
-    const key = sectionSelect.value;
-    populateCascadePages(sectionSelect, pageSelect, key);
-    // Cascade: selecting a section navigates to its first page.
-    const first = cascadePagesBySection.get(key)?.[0];
-    if (first) {
-      loadDocPage(first.value, undefined, contentArea, sidebar, navItems);
-    }
-  });
-
-  pageSelect.addEventListener("change", () => {
-    if (pageSelect.value) {
-      loadDocPage(pageSelect.value, undefined, contentArea, sidebar, navItems);
-    }
-  });
-}
-
 // ── Export Helpers ────────────────────────────────────────────
-
-function openPrintWindow(html: string): void {
-  const win = window.open("", "_blank");
-  if (!win) return;
-  const doc = win.document;
-  doc.open();
-  doc.write(
-    "<!DOCTYPE html><html><head><title>SciTeX Docs</title></head><body></body></html>",
-  );
-  doc.close();
-  const s = doc.createElement("style");
-  s.textContent = PRINT_CSS;
-  doc.head.appendChild(s);
-  doc.body.innerHTML = printSanitizer.sanitize(html, { USE_PROFILES: { html: true } });
-  win.print();
-}
 
 // ── AJAX Page Loading ────────────────────────────────────────
 
@@ -335,6 +206,7 @@ function loadDocPage(
 
       // Build section nav + scrollspy (replaces foldSections)
       buildSectionNav(contentArea, sidebar);
+      document.dispatchEvent(new Event("docs:content-loaded"));
 
       // Scroll to anchor if specified
       if (anchorId) {
@@ -521,8 +393,10 @@ function initDocsWorkspace(): void {
     sidebar.querySelectorAll<HTMLAnchorElement>(".docs-nav-item");
   currentSlug = workspace.dataset.activeDoc ?? "";
 
-  // Dropdown toggles
+  // Dropdown toggles and local document tools.
   initDropdowns();
+  initDocsFilter(workspace);
+  initDocsCopy(workspace);
 
   initDocsColumns(workspace, (slug) => {
     if (selectedSlugs.size > 0) clearSelection(navItems, sidebar);
@@ -533,7 +407,7 @@ function initDocsWorkspace(): void {
   });
 
   // Mobile cascade nav (section → page selects)
-  initMobileCascade(contentArea, sidebar, navItems);
+  initMobileCascade((slug) => loadDocPage(slug, undefined, contentArea, sidebar, navItems));
 
   // Global "All PDF" button
   const allPdfBtn = document.getElementById("docs-export-all-pdf");

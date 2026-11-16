@@ -23,3 +23,25 @@ and direct page selection; `tests/apps/docs_app/test_mobile_nav.py` checks the
 rendered taxonomy, navigation and export placement. Browser review must also
 check stable row positions, actual content loading, theme colors and narrow
 screen layout. A successful TypeScript build alone does not validate these.
+
+
+Workspace Apps is projected from installed SDK GUI plugin declarations and the
+host registry's `pip_package` ownership by `_app_docs.py`. Per-app pages select
+the owning package in Dev's documentation/skills and SDK API metadata catalog.
+Apps without a documentation provider stay visible with an explicit missing
+registration; ambiguous declarations stay ambiguous. The host does not copy
+leaf documentation or load application entry points to build this list.
+
+
+The header uses a split download control: the main link downloads the current
+page as Markdown; its arrow selects the page/all-page Markdown or browser PDF
+print action. Tooltips identify scope. Copy Markdown uses the same page export
+and reports clipboard failure without copying an HTML error/login response.
+
+The local document filter uses the SDK fuzzy matcher over document titles,
+identifiers and category labels, rather than searching private project data or
+claiming full document-body search. Ctrl/Cmd+K focuses it while Docs is visible.
+Matches are highlighted, counts appear on categories, and nonmatches are hidden
+unless Show filtered out is enabled, which makes them dim and still clickable.
+The open page remains visible even if excluded by the filter. Clear/Escape
+restore the list. Scope selection and future global search are separate.

@@ -2,6 +2,7 @@
 
 <!-- Docs workspace CSS -->
 <link rel="stylesheet" href="{% app_static 'docs_app/css/docs-workspace.css' %}" />
+<link rel="stylesheet" href="{% app_static 'docs_app/css/docs-tools.css' %}" />
 <link rel="stylesheet" href="{% static 'docs_app/css/docs-content.css' %}" />
 <link rel="stylesheet" href="{% static 'shared/css/components/minimal-hero.css' %}" />
 <link rel="stylesheet" href="{% static 'public_app/css/api-docs.css' %}" />
@@ -67,16 +68,38 @@
     <div class="docs-content-column">
         <header class="docs-toolbar">
             <span id="docs-page-title">Documentation</span>
-            <div class="docs-dropdown">
-                <button type="button" class="docs-export-btn docs-dropdown-toggle" aria-expanded="false" aria-haspopup="true" title="Choose the download scope and format">
-                    <i class="fas fa-download" aria-hidden="true"></i> Download
-                    <i class="fas fa-chevron-down" aria-hidden="true"></i>
+            <div class="docs-filter">
+                <div class="docs-filter-field">
+                    <label class="visually-hidden" for="docs-filter-input">Filter documentation</label>
+                    <input id="docs-filter-input" type="search" placeholder="Filter documents…" autocomplete="off"
+                           aria-describedby="docs-filter-summary" aria-keyshortcuts="Control+K Meta+K" />
+                    <kbd aria-hidden="true">Ctrl+K</kbd>
+                    <button id="docs-filter-clear" type="button" aria-label="Clear documentation filter" title="Clear filter" hidden>×</button>
+                </div>
+                <div id="docs-filter-options" class="docs-filter-options" hidden>
+                    <span id="docs-filter-summary" role="status" aria-live="polite"></span>
+                    <label><input id="docs-filter-show-hidden" type="checkbox" /> Show filtered out</label>
+                </div>
+            </div>
+            <div class="docs-toolbar-actions">
+                <button id="docs-copy-page" class="docs-copy-btn" type="button" title="Copy this page as Markdown">
+                    <i class="fas fa-copy" aria-hidden="true"></i> <span aria-live="polite">Copy Markdown</span>
                 </button>
-                <div class="docs-dropdown-menu">
-                    <a id="docs-export-page-md" title="Download the current page as Markdown" href="/apps/docs/export/{{ active_doc }}/" class="docs-dropdown-item">This page as .md</a>
-                    <button type="button" id="docs-export-page-pdf" title="Print the current page or save it as PDF" class="docs-dropdown-item">This page as .pdf</button>
-                    <a href="/apps/docs/export/all/" title="Download all documentation pages as Markdown" class="docs-dropdown-item">All as .md</a>
-                    <button type="button" id="docs-export-all-pdf" title="Print all documentation pages or save them as PDF" class="docs-dropdown-item">All as .pdf</button>
+                <div class="docs-dropdown">
+                    <div class="docs-download-split">
+                        <a id="docs-download-page" class="docs-export-btn docs-download-primary" href="/apps/docs/export/{{ active_doc }}/" title="Download this page as Markdown">
+                            <i class="fas fa-download" aria-hidden="true"></i> Download
+                        </a>
+                        <button type="button" class="docs-export-btn docs-dropdown-toggle docs-download-expand" aria-label="Choose download scope and format" aria-expanded="false" aria-haspopup="true" title="More download scopes and formats">
+                            <i class="fas fa-chevron-down" aria-hidden="true"></i>
+                        </button>
+                    </div>
+                    <div class="docs-dropdown-menu">
+                        <a id="docs-export-page-md" title="Download the current page as Markdown" href="/apps/docs/export/{{ active_doc }}/" class="docs-dropdown-item">This page as .md</a>
+                        <button type="button" id="docs-export-page-pdf" title="Print the current page or save it as PDF" class="docs-dropdown-item">This page as .pdf</button>
+                        <a href="/apps/docs/export/all/" title="Download all documentation pages as Markdown" class="docs-dropdown-item">All as .md</a>
+                        <button type="button" id="docs-export-all-pdf" title="Print all documentation pages or save them as PDF" class="docs-dropdown-item">All as .pdf</button>
+                    </div>
                 </div>
             </div>
         </header>

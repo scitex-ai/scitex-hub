@@ -130,7 +130,8 @@ def test_download_lives_once_in_content_header():
     # Act
     soup = BeautifulSoup(render_to_string("docs_app/docs_partial.html", context), "html.parser")
     # Assert
-    assert len(soup.select(".docs-export-btn")) == 1
+    assert len(soup.select(".docs-download-split")) == 1
+    assert len(soup.select(".docs-download-split .docs-export-btn")) == 2
     assert soup.select_one(".docs-export-btn").find_parent("header") is not None
     assert not soup.select(".docs-nav-footer, .docs-sidebar .docs-export-btn")
     assert soup.select_one("#docs-export-page-md")["href"] == "/apps/docs/export/overview/"

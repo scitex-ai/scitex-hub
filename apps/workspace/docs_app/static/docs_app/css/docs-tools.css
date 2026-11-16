@@ -1,0 +1,35 @@
+/* Scoped document tools share the header; typing never changes the open page. */
+.docs-toolbar-actions, .docs-download-split { display: inline-flex; align-items: center; }
+.docs-toolbar-actions { gap: 8px; margin-left: auto; }
+.docs-download-split .docs-export-btn { height: 28px; }
+.docs-download-primary { border-top-right-radius: 0; border-bottom-right-radius: 0; }
+.docs-download-expand { border-left: 0; border-top-left-radius: 0; border-bottom-left-radius: 0; }
+.docs-copy-btn {
+  display: inline-flex; align-items: center; gap: 4px; height: 28px;
+  padding: 4px 8px; font-size: 11px; border-radius: 4px; cursor: pointer;
+  color: var(--text-primary, #e6edf3); background: transparent;
+  border: 1px solid var(--workspace-border-default, #30363d);
+}
+.docs-copy-btn:disabled { opacity: .6; cursor: wait; }
+.docs-filter { flex: 1 1 220px; max-width: 420px; min-width: 0; }
+.docs-filter-field { display: flex; align-items: center; position: relative; }
+#docs-filter-input {
+  width: 100%; min-width: 0; padding: 6px 82px 6px 10px; font-size: 12px;
+  color: var(--text-primary, #e6edf3); background: var(--workspace-bg-primary, #0d1117);
+  border: 1px solid var(--workspace-border-default, #30363d); border-radius: 4px;
+}
+.docs-filter-field kbd { position: absolute; right: 28px; font-size: 10px; pointer-events: none; }
+#docs-filter-clear { position: absolute; right: 4px; border: 0; background: transparent; color: inherit; cursor: pointer; }
+.docs-filter-options { display: flex; flex-wrap: wrap; gap: 4px 10px; font-size: 10px; margin-top: 4px; }
+.docs-filter-options label { display: inline-flex; gap: 4px; align-items: center; }
+.docs-filter-options[hidden], #docs-filter-clear[hidden], .docs-match-count[hidden], .docs-nav-item[hidden] { display: none; }
+.docs-category { position: relative; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.docs-has-filter .docs-category { padding-right: 46px; }
+.docs-match-count { position: absolute; right: 8px; font-size: 10px; }
+.docs-category:disabled, .docs-filtered-out { opacity: .4; }
+.docs-filtered-out:hover { opacity: .85; }
+.docs-nav-item mark { color: inherit; background: color-mix(in srgb, var(--stx-brand, #d4a87a) 30%, transparent); padding: 0; }
+@media (max-width: 767px) {
+  .docs-filter { flex-basis: 100%; max-width: none; }
+  #docs-filter-input { font-size: 16px; }
+}

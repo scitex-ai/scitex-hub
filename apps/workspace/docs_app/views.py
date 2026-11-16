@@ -367,6 +367,9 @@ def get_docs_sections(pages=None) -> list:
 
 def build_docs_context(request, current_project=None):
     """Build context for the docs workspace partial."""
+    from ._app_docs import register_installed_app_docs
+
+    register_installed_app_docs(DOCS_PAGES, _PAGES_BY_SLUG)
     active_page = _PAGES_BY_SLUG.get(DEFAULT_DOC_SLUG, {})
     return {
         "current_project": current_project,

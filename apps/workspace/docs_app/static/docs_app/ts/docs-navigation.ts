@@ -22,8 +22,10 @@ export function syncDocsColumns(slug: string): void {
   const title = page.querySelector("span")?.textContent?.trim() ?? slug;
   const heading = root.querySelector("#docs-page-title");
   if (heading) heading.textContent = title;
-  const download = root.querySelector<HTMLAnchorElement>("#docs-export-page-md");
-  if (download) download.href = "/apps/docs/export/" + encodeURIComponent(slug) + "/";
+  root.querySelectorAll<HTMLAnchorElement>("#docs-export-page-md, #docs-download-page").forEach((download) => {
+    download.href = "/apps/docs/export/" + encodeURIComponent(slug) + "/";
+  });
+  document.dispatchEvent(new Event("docs:navigation"));
 }
 
 export function initDocsColumns(workspace: HTMLElement, navigate: (slug: string) => void): void {
@@ -36,7 +38,9 @@ export function initDocsColumns(workspace: HTMLElement, navigate: (slug: string)
       if (button.classList.contains("active")) return;
       const group = Array.from(workspace.querySelectorAll<HTMLElement>(".docs-page-group"))
         .find((item) => item.dataset.docGroup === category);
-      const slug = lastPage.get(category) ?? group?.querySelector<HTMLElement>(".docs-nav-item")?.dataset.docSlug;
+      const pages = Array.from(group?.querySelectorAll<HTMLElement>(".docs-nav-item") ?? []).filter((page) => !page.hidden);
+      const remembered = pages.find((page) => page.dataset.docSlug === lastPage.get(category));
+      const slug = (remembered ?? pages[0])?.dataset.docSlug;
       if (slug) navigate(slug);
     });
   });
