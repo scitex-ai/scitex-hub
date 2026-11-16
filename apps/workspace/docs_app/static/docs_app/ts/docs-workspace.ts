@@ -6,6 +6,7 @@
  */
 
 import createDOMPurify from "dompurify";
+import { initDocsColumns, syncDocsColumns } from "./docs-navigation";
 
 // Printing has its own sanitizer instance, independent of other app hooks.
 const printSanitizer = createDOMPurify(window);
@@ -30,6 +31,7 @@ const PRINT_CSS =
 // ── Module State ─────────────────────────────────────────────
 
 let currentSlug = "";
+let loadRequest = 0;
 let currentSections: SectionInfo[] = [];
 let scrollspyObserver: IntersectionObserver | null = null;
 const selectedSlugs = new Set<string>();
@@ -38,6 +40,8 @@ const selectedSlugs = new Set<string>();
 
 function clearSectionNav(sidebar: Element): void {
   sidebar.querySelectorAll(".docs-section-item").forEach((el) => el.remove());
+  const sectionNav = sidebar.querySelector<HTMLElement>(".docs-section-nav");
+  if (sectionNav) sectionNav.hidden = true;
   teardownScrollspy();
   currentSections = [];
 }
@@ -49,7 +53,8 @@ function buildSectionNav(contentArea: HTMLElement, sidebar: Element): void {
   const activePageItem = sidebar.querySelector(".docs-nav-item.active");
   if (!activePageItem || !sections.length) return;
 
-  let insertionPoint: Element = activePageItem;
+  const sectionNav = sidebar.querySelector<HTMLElement>(".docs-section-nav");
+  if (!sectionNav) return;
 
   sections.forEach((section) => {
     const h2 = section.querySelector("h2");
@@ -85,9 +90,8 @@ function buildSectionNav(contentArea: HTMLElement, sidebar: Element): void {
       history.replaceState(null, "", "#" + currentSlug + "--" + anchorId);
     });
 
-    // Insert after the previous insertion point (maintains document order)
-    insertionPoint.after(navItem);
-    insertionPoint = navItem;
+    sectionNav.appendChild(navItem);
+    sectionNav.hidden = false;
 
     currentSections.push({ id: anchorId, title, element: section, navItem });
   });
@@ -253,32 +257,6 @@ function openPrintWindow(html: string): void {
   win.print();
 }
 
-function injectSectionExportButtons(
-  slug: string,
-  contentArea: HTMLElement,
-): void {
-  if (contentArea.querySelector(".docs-section-export")) return;
-  const bar = document.createElement("div");
-  bar.className = "docs-section-export";
-  bar.innerHTML =
-    '<div class="docs-dropdown">' +
-    '<button class="docs-export-btn docs-dropdown-toggle">' +
-    '<i class="fas fa-download"></i> Download</button>' +
-    '<div class="docs-dropdown-menu">' +
-    '<a class="docs-dropdown-item">' +
-    '<i class="fas fa-file-alt"></i> .md</a>' +
-    '<button class="docs-dropdown-item docs-section-pdf-btn">' +
-    '<i class="fas fa-file-pdf"></i> .pdf</button>' +
-    "</div></div>";
-  bar.querySelector<HTMLAnchorElement>("a.docs-dropdown-item")!.href =
-    "/apps/docs/export/" + encodeURIComponent(slug) + "/";
-  const pdfBtn = bar.querySelector<HTMLButtonElement>(".docs-section-pdf-btn");
-  if (pdfBtn) {
-    pdfBtn.onclick = () => openPrintWindow(contentArea.innerHTML);
-  }
-  contentArea.insertBefore(bar, contentArea.firstChild);
-}
-
 // ── AJAX Page Loading ────────────────────────────────────────
 
 function loadDocPage(
@@ -291,6 +269,8 @@ function loadDocPage(
 ): void {
   if (!slug) return;
   currentSlug = slug;
+  const request = ++loadRequest;
+  syncDocsColumns(slug);
 
   // Update URL hash
   const hashValue = anchorId ? slug + "--" + anchorId : slug;
@@ -299,7 +279,10 @@ function loadDocPage(
   // Update active state in sidebar (clear section items first)
   clearSectionNav(sidebar);
   navItems.forEach((item) => {
-    item.classList.toggle("active", item.dataset.docSlug === slug);
+    const active = item.dataset.docSlug === slug;
+    item.classList.toggle("active", active);
+    if (active) item.setAttribute("aria-current", "page");
+    else item.removeAttribute("aria-current");
   });
 
   // Keep the mobile cascade dropdowns (section → page) in sync
@@ -319,6 +302,7 @@ function loadDocPage(
       return response.text();
     })
     .then((html) => {
+      if (request !== loadRequest) return;
       contentArea.innerHTML = html;
       contentArea.style.opacity = "1";
       contentArea.scrollTop = 0;
@@ -352,9 +336,6 @@ function loadDocPage(
       // Build section nav + scrollspy (replaces foldSections)
       buildSectionNav(contentArea, sidebar);
 
-      // Inject export buttons
-      injectSectionExportButtons(slug, contentArea);
-
       // Scroll to anchor if specified
       if (anchorId) {
         const target = document.getElementById(anchorId);
@@ -375,6 +356,7 @@ function loadDocPage(
       }
     })
     .catch((err: Error) => {
+      if (request !== loadRequest) return;
       const error = document.createElement("div");
       error.className = "docs-error";
       const icon = document.createElement("i");
@@ -387,6 +369,11 @@ function loadDocPage(
 
 // ── Dropdown Toggle ──────────────────────────────────────────
 
+function closeDropdown(dropdown: Element): void {
+  dropdown.classList.remove("open");
+  dropdown.querySelector(".docs-dropdown-toggle")?.setAttribute("aria-expanded", "false");
+}
+
 function initDropdowns(): void {
   document.addEventListener("click", (e) => {
     const toggle = (e.target as Element).closest(".docs-dropdown-toggle");
@@ -398,14 +385,17 @@ function initDropdowns(): void {
       // Close other dropdowns
       document
         .querySelectorAll(".docs-dropdown.open")
-        .forEach((d) => d !== dropdown && d.classList.remove("open"));
-      dropdown.classList.toggle("open");
+        .forEach((d) => {
+          if (d !== dropdown) closeDropdown(d);
+        });
+      const open = dropdown.classList.toggle("open");
+      toggle.setAttribute("aria-expanded", String(open));
       return;
     }
     // Close all dropdowns on outside click
     document
       .querySelectorAll(".docs-dropdown.open")
-      .forEach((d) => d.classList.remove("open"));
+      .forEach(closeDropdown);
   });
 }
 
@@ -441,7 +431,8 @@ function updateSelectionBar(
   sidebar: Element,
   navItems: NodeListOf<HTMLAnchorElement>,
 ): void {
-  let bar = sidebar.querySelector<HTMLElement>(".docs-selection-bar");
+  const toolbar = document.querySelector(".docs-toolbar");
+  let bar = toolbar?.querySelector<HTMLElement>(".docs-selection-bar");
   if (selectedSlugs.size === 0) {
     bar?.remove();
     return;
@@ -472,9 +463,7 @@ function updateSelectionBar(
       .addEventListener("click", () => {
         clearSelection(navItems, sidebar);
       });
-    const footer = sidebar.querySelector(".docs-nav-footer");
-    if (footer) footer.before(bar);
-    else sidebar.querySelector(".docs-nav")?.appendChild(bar);
+    toolbar?.appendChild(bar);
   }
   bar.querySelector(".docs-selection-count")!.textContent =
     selectedSlugs.size + " selected";
@@ -535,6 +524,14 @@ function initDocsWorkspace(): void {
   // Dropdown toggles
   initDropdowns();
 
+  initDocsColumns(workspace, (slug) => {
+    if (selectedSlugs.size > 0) clearSelection(navItems, sidebar);
+    loadDocPage(slug, undefined, contentArea, sidebar, navItems);
+  });
+  document.getElementById("docs-export-page-pdf")?.addEventListener("click", () => {
+    openPrintWindow(contentArea.innerHTML);
+  });
+
   // Mobile cascade nav (section → page selects)
   initMobileCascade(contentArea, sidebar, navItems);
 
@@ -576,19 +573,7 @@ function initDocsWorkspace(): void {
       } else {
         if (selectedSlugs.size > 0) clearSelection(navItems, sidebar);
         const slug = item.dataset.docSlug ?? "";
-        // Toggle sections if clicking the already-active page
-        if (slug === currentSlug) {
-          item.classList.toggle("sections-collapsed");
-          sidebar
-            .querySelectorAll<HTMLElement>(".docs-section-item")
-            .forEach((el) => {
-              el.style.display = item.classList.contains("sections-collapsed")
-                ? "none"
-                : "";
-            });
-        } else {
-          // Remove collapsed state from previous active item
-          navItems.forEach((i) => i.classList.remove("sections-collapsed"));
+        if (slug !== currentSlug) {
           loadDocPage(slug, undefined, contentArea, sidebar, navItems);
         }
       }
