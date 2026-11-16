@@ -405,7 +405,9 @@ def test_metered_rates_and_api_rows_come_from_the_ssot() -> None:
     assert hosted_spans[0] == (4, 4)
     assert all(r.get("skip2") and r.get("skip3") for r in storage_rows[1:])
     agents = by_label["Agents"]
-    assert "model API × 110%" in agents[0]
+    # The factor is data (SSOT v1.0 -> pricing.json), never a literal here.
+    factor = 100 + load_pricing()["rate_card"]["api"]["agents_fee_percent"]
+    assert f"model API × {factor}%" in agents[0]
     assert agents[2] == "—"
     model_api = by_label["Model API"]
     assert "metered compute rates" in model_api[0]
