@@ -47,7 +47,7 @@ The open page remains visible even if excluded by the filter. Clear/Escape
 restore the list. Scope selection and future global search are separate.
 
 Filter chrome comes from the SDK FilterField empty mount and its exported CSS;
-Docs owns only fuzzy matching, counts and result visibility. The SDK switches
+Docs owns only fuzzy matching, counts and result visibility. The SDK owns the single clear button and switches
 its keyboard hint from Ctrl+K to Esc on focus, and Escape clears and blurs the
 input. Docs also resets Show filtered out when the query becomes empty. The
 build requires the SDK FilterField export; it has no handwritten fallback.

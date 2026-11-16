@@ -13,10 +13,9 @@
 .docs-copy-btn:disabled { opacity: .6; cursor: wait; }
 .docs-filter { flex: 1 1 220px; max-width: 420px; min-width: 0; }
 .docs-filter-controls { display: flex; align-items: center; gap: 4px; }
-#docs-filter-clear { flex: 0 0 auto; border: 0; background: transparent; color: inherit; cursor: pointer; }
 .docs-filter-options { display: flex; flex-wrap: wrap; gap: 4px 10px; font-size: 10px; margin-top: 4px; }
 .docs-filter-options label { display: inline-flex; gap: 4px; align-items: center; }
-.docs-filter-options[hidden], #docs-filter-clear[hidden], .docs-match-count[hidden], .docs-nav-item[hidden] { display: none; }
+.docs-filter-options[hidden], .docs-match-count[hidden], .docs-nav-item[hidden] { display: none; }
 .docs-category { position: relative; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .docs-has-filter .docs-category { padding-right: 46px; }
 .docs-match-count { position: absolute; right: 8px; font-size: 10px; }

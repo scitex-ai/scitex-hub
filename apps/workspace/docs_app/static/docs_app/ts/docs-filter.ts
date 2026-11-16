@@ -27,11 +27,10 @@ function highlight(label: HTMLElement, text: string, query: string): void {
 export function initDocsFilter(workspace: HTMLElement): void {
   mountFilterFields(workspace);
   const input = workspace.querySelector<HTMLInputElement>("#docs-filter-input");
-  const clear = workspace.querySelector<HTMLButtonElement>("#docs-filter-clear");
   const show = workspace.querySelector<HTMLInputElement>("#docs-filter-show-hidden");
   const summary = workspace.querySelector<HTMLElement>("#docs-filter-summary");
   const options = workspace.querySelector<HTMLElement>("#docs-filter-options");
-  if (!input || !clear || !show || !summary || !options) return;
+  if (!input || !show || !summary || !options) return;
   input.setAttribute("aria-describedby", "docs-filter-summary");
   const pages = Array.from(workspace.querySelectorAll<HTMLAnchorElement>(".docs-nav-item"));
   const labels = new Map(pages.map((page) => [page, page.querySelector("span")?.textContent?.trim() ?? ""]));
@@ -82,14 +81,12 @@ export function initDocsFilter(workspace: HTMLElement): void {
     workspace.querySelector<HTMLSelectElement>("#docs-mobile-section")?.querySelectorAll("option").forEach((option) => {
       option.disabled = !!query && (counts.get(option.value)?.matched ?? 0) === 0 && !show!.checked;
     });
-    clear!.hidden = !query;
     options!.hidden = !query;
     const active = pages.find((page) => page.classList.contains("active"));
     summary!.textContent = `${matched} of ${pages.length} documents match` + (active?.classList.contains("docs-filtered-out") ? ". Open page is outside the filter." : "");
   }
   input.addEventListener("input", apply);
   show.addEventListener("change", apply);
-  clear.addEventListener("click", () => { input.value = ""; show.checked = false; apply(); input.focus(); });
   document.addEventListener("docs:navigation", apply);
   document.addEventListener("docs:content-loaded", apply);
   apply();

@@ -4,7 +4,7 @@ import { mountFilterFields } from "@scitex/sdk/ui/ts/app/filter-field";
 import { initDocsCopy } from "../../apps/workspace/docs_app/static/docs_app/ts/docs-copy";
 
 beforeEach(() => {
- document.body.innerHTML = `<div class="docs-workspace"><div data-stx-filter-field data-filter-subject="documents" data-filter-id="docs-filter-input"></div><button id="docs-filter-clear" hidden>Clear</button><input type="checkbox" id="docs-filter-show-hidden"><div id="docs-filter-options" hidden><span id="docs-filter-summary"></span></div>
+ document.body.innerHTML = `<div class="docs-workspace"><div data-stx-filter-field data-filter-subject="documents" data-filter-id="docs-filter-input"></div><input type="checkbox" id="docs-filter-show-hidden"><div id="docs-filter-options" hidden><span id="docs-filter-summary"></span></div>
  <button class="docs-category active" data-doc-category="apps">Workspace Apps</button>
  <div class="docs-page-group" data-doc-group="apps"><a class="docs-nav-item active" data-doc-slug="app-scholar"><span>Scholar</span></a><a class="docs-nav-item" data-doc-slug="app-storage"><span>Storage</span></a></div>
  <div id="docs-content-area">The open page</div><a id="docs-download-page" href="/apps/docs/export/app-storage/"></a><button id="docs-copy-page"><span>Copy Markdown</span></button></div>`;
@@ -41,7 +41,7 @@ test("show filtered out reveals dimmed clickable rows and clear restores them", 
  expect(scholar.hidden).toBe(false);
  expect(scholar.classList.contains("docs-filtered-out")).toBe(true);
  expect(scholar.hasAttribute("disabled")).toBe(false);
- document.querySelector<HTMLButtonElement>("#docs-filter-clear")!.click();
+ document.querySelector<HTMLButtonElement>(".stx-filter-field__clear")!.click();
  expect(input.value).toBe("");
  expect(document.querySelectorAll("mark, .docs-filtered-out")).toHaveLength(0);
  expect(document.querySelector<HTMLElement>("#docs-filter-options")!.hidden).toBe(true);
