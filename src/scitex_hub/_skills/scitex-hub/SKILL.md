@@ -67,6 +67,7 @@ rule and empirical verification table.
 ### Workflows (10–19)
 - [10_sync-architecture.md](10_sync-architecture.md) — Three-way sync — push/pull (git), sync-to/from (files)
 - [11_deployment-staging.md](11_deployment-staging.md) — Deploy to staging — sync, build, verify
+- [12_deployment-preparation.md](12_deployment-preparation.md) — Preserve rollback state, identities and build inputs
 - [12_deployment-production.md](12_deployment-production.md) — Deploy to production — NAS safety, cgroup limits
 - [13_scitex-deploy-staging.md](13_scitex-deploy-staging.md) — Legacy staging deploy recipe
 - [14_scitex-deploy-prod.md](14_scitex-deploy-prod.md) — Legacy production deploy recipe
