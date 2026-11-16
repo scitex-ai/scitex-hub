@@ -68,14 +68,15 @@
         <header class="docs-toolbar">
             <span id="docs-page-title">Documentation</span>
             <div class="docs-dropdown">
-                <button type="button" class="docs-export-btn docs-dropdown-toggle" aria-expanded="false" aria-haspopup="true">
+                <button type="button" class="docs-export-btn docs-dropdown-toggle" aria-expanded="false" aria-haspopup="true" title="Choose the download scope and format">
                     <i class="fas fa-download" aria-hidden="true"></i> Download
+                    <i class="fas fa-chevron-down" aria-hidden="true"></i>
                 </button>
                 <div class="docs-dropdown-menu">
-                    <a id="docs-export-page-md" href="/apps/docs/export/{{ active_doc }}/" class="docs-dropdown-item">This page as .md</a>
-                    <button type="button" id="docs-export-page-pdf" class="docs-dropdown-item">This page as .pdf</button>
-                    <a href="/apps/docs/export/all/" class="docs-dropdown-item">All as .md</a>
-                    <button type="button" id="docs-export-all-pdf" class="docs-dropdown-item">All as .pdf</button>
+                    <a id="docs-export-page-md" title="Download the current page as Markdown" href="/apps/docs/export/{{ active_doc }}/" class="docs-dropdown-item">This page as .md</a>
+                    <button type="button" id="docs-export-page-pdf" title="Print the current page or save it as PDF" class="docs-dropdown-item">This page as .pdf</button>
+                    <a href="/apps/docs/export/all/" title="Download all documentation pages as Markdown" class="docs-dropdown-item">All as .md</a>
+                    <button type="button" id="docs-export-all-pdf" title="Print all documentation pages or save them as PDF" class="docs-dropdown-item">All as .pdf</button>
                 </div>
             </div>
         </header>
