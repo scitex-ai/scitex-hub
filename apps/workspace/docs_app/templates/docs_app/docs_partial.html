@@ -2,6 +2,7 @@
 
 <!-- Docs workspace CSS -->
 <link rel="stylesheet" href="{% app_static 'docs_app/css/docs-workspace.css' %}" />
+<link rel="stylesheet" href="{% app_static 'docs_app/css/docs-tools.css' %}" />
 <link rel="stylesheet" href="{% static 'docs_app/css/docs-content.css' %}" />
 <link rel="stylesheet" href="{% static 'shared/css/components/minimal-hero.css' %}" />
 <link rel="stylesheet" href="{% static 'public_app/css/api-docs.css' %}" />
@@ -32,42 +33,78 @@
             </select>
         </div>
     </nav>
-    <!-- Sidebar: doc page navigation -->
-    <aside class="docs-sidebar">
-        <nav class="docs-nav">
-            {% for page in docs_pages %}
-                <a href="#"
-                   class="docs-nav-item{% if page.slug == active_doc %} active{% endif %}"
-                   data-doc-slug="{{ page.slug }}">
-                    <i class="{{ page.icon }}"></i>
-                    <span>{{ page.label }}</span>
-                    <span class="docs-badges">
-                        {% for badge in page.badges %}<span class="docs-badge docs-badge--{{ badge }}">{{ badge }}</span>{% endfor %}
-                    </span>
-                </a>
-            {% endfor %}
-            <div class="docs-nav-footer">
-                <div class="docs-dropdown">
-                    <button class="docs-export-btn docs-dropdown-toggle">
-                        <i class="fas fa-download"></i> Download
-                    </button>
-                    <div class="docs-dropdown-menu">
-                        <a href="/docs/export/all/" class="docs-dropdown-item">
-                            <i class="fas fa-file-alt"></i> All as .md
+    <nav class="docs-categories" aria-label="Documentation categories">
+        <div class="docs-nav-heading">Categories</div>
+        {% for section in docs_sections %}
+            <button type="button" class="docs-category{% if section.key == active_section %} active{% endif %}"
+                    data-doc-category="{{ section.key }}"{% if section.key == active_section %} aria-current="true"{% endif %}>
+                {{ section.label }}
+            </button>
+        {% endfor %}
+    </nav>
+    <aside class="docs-sidebar" aria-label="Documentation sections">
+        <div class="docs-nav-heading" id="docs-section-title">Sections</div>
+        <nav class="docs-nav" aria-labelledby="docs-section-title">
+            {% for section in docs_sections %}
+                <div class="docs-page-group" data-doc-group="{{ section.key }}"{% if section.key != active_section %} hidden{% endif %}>
+                    {% for page in section.pages %}
+                        <a href="#{{ page.slug }}"
+                           class="docs-nav-item{% if page.slug == active_doc %} active{% endif %}"
+                           data-doc-slug="{{ page.slug }}"{% if page.slug == active_doc %} aria-current="page"{% endif %}>
+                            <i class="{{ page.icon }}" aria-hidden="true"></i>
+                            <span>{{ page.label }}</span>
+                            <span class="docs-badges">
+                                {% for badge in page.badges %}<span class="docs-badge docs-badge--{{ badge }}">{{ badge }}</span>{% endfor %}
+                            </span>
                         </a>
-                        <button class="docs-dropdown-item" id="docs-export-all-pdf">
-                            <i class="fas fa-file-pdf"></i> All as .pdf
+                    {% endfor %}
+                </div>
+            {% endfor %}
+        </nav>
+        <nav class="docs-section-nav" aria-label="On this page" hidden>
+            <div class="docs-nav-heading">On this page</div>
+        </nav>
+    </aside>
+    <div class="docs-content-column">
+        <header class="docs-toolbar">
+            <span id="docs-page-title">Documentation</span>
+            <div class="docs-filter">
+                <div class="docs-filter-controls">
+                    <div data-stx-filter-field data-filter-subject="documents" data-filter-id="docs-filter-input"></div>
+                </div>
+                <div id="docs-filter-options" class="docs-filter-options" hidden>
+                    <span id="docs-filter-summary" role="status" aria-live="polite"></span>
+                    <label><input id="docs-filter-show-hidden" type="checkbox" /> Show filtered out</label>
+                </div>
+            </div>
+            <div class="docs-toolbar-actions">
+                <button id="docs-copy-page" class="docs-copy-btn" type="button" title="Copy this page as Markdown">
+                    <i class="fas fa-copy" aria-hidden="true"></i> <span aria-live="polite">Copy Markdown</span>
+                </button>
+                <div class="docs-dropdown">
+                    <div class="docs-download-split">
+                        <a id="docs-download-page" class="docs-export-btn docs-download-primary" href="/apps/docs/export/{{ active_doc }}/" title="Download this page as Markdown">
+                            <i class="fas fa-download" aria-hidden="true"></i> Download
+                        </a>
+                        <button type="button" class="docs-export-btn docs-dropdown-toggle docs-download-expand" aria-label="Choose download scope and format" aria-expanded="false" aria-haspopup="true" title="More download scopes and formats">
+                            <i class="fas fa-chevron-down" aria-hidden="true"></i>
                         </button>
+                    </div>
+                    <div class="docs-dropdown-menu">
+                        <a id="docs-export-page-md" title="Download the current page as Markdown" href="/apps/docs/export/{{ active_doc }}/" class="docs-dropdown-item">This page as .md</a>
+                        <button type="button" id="docs-export-page-pdf" title="Print the current page or save it as PDF" class="docs-dropdown-item">This page as .pdf</button>
+                        <a href="/apps/docs/export/all/" title="Download all documentation pages as Markdown" class="docs-dropdown-item">All as .md</a>
+                        <button type="button" id="docs-export-all-pdf" title="Print all documentation pages or save them as PDF" class="docs-dropdown-item">All as .pdf</button>
                     </div>
                 </div>
             </div>
-        </nav>
-    </aside>
+        </header>
     <!-- Content area: loaded via AJAX -->
     <div class="docs-content" id="docs-content-area">
         <div class="docs-loading">
             <i class="fas fa-spinner fa-spin"></i> Loading documentation...
         </div>
+    </div>
     </div>
 </div>
 {% vite_script 'docs_app/docs-workspace' %}
