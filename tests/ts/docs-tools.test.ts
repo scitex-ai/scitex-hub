@@ -1,14 +1,15 @@
 import { beforeEach, afterEach, expect, test, vi } from "vitest";
 import { initDocsFilter } from "../../apps/workspace/docs_app/static/docs_app/ts/docs-filter";
+import { mountFilterFields } from "@scitex/sdk/ui/ts/app/filter-field";
 import { initDocsCopy } from "../../apps/workspace/docs_app/static/docs_app/ts/docs-copy";
 
 beforeEach(() => {
- document.body.innerHTML = `<div class="docs-workspace"><input id="docs-filter-input"><button id="docs-filter-clear" hidden>Clear</button><input type="checkbox" id="docs-filter-show-hidden"><div id="docs-filter-options" hidden><span id="docs-filter-summary"></span></div>
+ document.body.innerHTML = `<div class="docs-workspace"><div data-stx-filter-field data-filter-subject="documents" data-filter-id="docs-filter-input"></div><button id="docs-filter-clear" hidden>Clear</button><input type="checkbox" id="docs-filter-show-hidden"><div id="docs-filter-options" hidden><span id="docs-filter-summary"></span></div>
  <button class="docs-category active" data-doc-category="apps">Workspace Apps</button>
  <div class="docs-page-group" data-doc-group="apps"><a class="docs-nav-item active" data-doc-slug="app-scholar"><span>Scholar</span></a><a class="docs-nav-item" data-doc-slug="app-storage"><span>Storage</span></a></div>
  <div id="docs-content-area">The open page</div><a id="docs-download-page" href="/apps/docs/export/app-storage/"></a><button id="docs-copy-page"><span>Copy Markdown</span></button></div>`;
 });
-afterEach(() => { vi.unstubAllGlobals(); vi.useRealTimers(); });
+afterEach(() => { mountFilterFields().forEach(field => field.destroy()); vi.unstubAllGlobals(); vi.useRealTimers(); });
 
 test("fuzzy matches highlight letters, show counts and preserve the open document", () => {
  // Arrange
@@ -89,4 +90,26 @@ test("a fuzzy match cannot bridge unrelated title and category fields", () => {
  // Assert
  expect(stats.hidden).toBe(true);
  expect(document.querySelector<HTMLElement>('[data-doc-slug="app-storage"]')!.hidden).toBe(false);
+});
+
+
+test("SDK owns placeholder, icon and focus/Escape hints while Docs owns results", () => {
+ // Arrange
+ initDocsFilter(document.querySelector<HTMLElement>(".docs-workspace")!);
+ const input = document.querySelector<HTMLInputElement>("#docs-filter-input")!;
+ const hint = document.querySelector(".stx-filter-field__hint")!;
+ // Act
+ input.focus();
+ input.value = "stg"; input.dispatchEvent(new Event("input"));
+ document.querySelector<HTMLInputElement>("#docs-filter-show-hidden")!.checked = true;
+ input.dispatchEvent(new KeyboardEvent("keydown", {key:"Escape", bubbles:true}));
+ // Assert
+ expect(input.placeholder).toBe("Filter documents with keywords");
+ expect(document.querySelector(".stx-filter-field__icon")).not.toBeNull();
+ expect(input.value).toBe("");
+ expect(hint.textContent).toBe("Ctrl+K");
+ expect(document.activeElement).not.toBe(input);
+ expect(document.querySelector<HTMLInputElement>("#docs-filter-show-hidden")!.checked).toBe(false);
+ expect(document.querySelectorAll(".docs-filtered-out")).toHaveLength(0);
+ expect(document.querySelector("#docs-content-area")!.textContent).toBe("The open page");
 });

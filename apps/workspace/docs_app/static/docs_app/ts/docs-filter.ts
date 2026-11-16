@@ -1,4 +1,6 @@
 /** Fuzzy document navigation, using the SDK matcher and the existing hierarchy. */
+import { mountFilterFields } from "@scitex/sdk/ui/ts/app/filter-field";
+import "@scitex/sdk/ui/css/app/filter-field.css";
 import { fuzzyScore } from "@scitex/sdk/ui/ts/app/project-selector/fuzzy";
 
 function highlight(label: HTMLElement, text: string, query: string): void {
@@ -23,12 +25,14 @@ function highlight(label: HTMLElement, text: string, query: string): void {
 }
 
 export function initDocsFilter(workspace: HTMLElement): void {
+  mountFilterFields(workspace);
   const input = workspace.querySelector<HTMLInputElement>("#docs-filter-input");
   const clear = workspace.querySelector<HTMLButtonElement>("#docs-filter-clear");
   const show = workspace.querySelector<HTMLInputElement>("#docs-filter-show-hidden");
   const summary = workspace.querySelector<HTMLElement>("#docs-filter-summary");
   const options = workspace.querySelector<HTMLElement>("#docs-filter-options");
   if (!input || !clear || !show || !summary || !options) return;
+  input.setAttribute("aria-describedby", "docs-filter-summary");
   const pages = Array.from(workspace.querySelectorAll<HTMLAnchorElement>(".docs-nav-item"));
   const labels = new Map(pages.map((page) => [page, page.querySelector("span")?.textContent?.trim() ?? ""]));
   const categories = Array.from(workspace.querySelectorAll<HTMLButtonElement>(".docs-category"));
@@ -36,6 +40,7 @@ export function initDocsFilter(workspace: HTMLElement): void {
 
   function apply(): void {
     const query = input!.value.trim();
+    if (!query) show!.checked = false;
     const counts = new Map<string, { total: number; matched: number }>();
     let matched = 0;
     workspace.classList.toggle("docs-has-filter", !!query);
@@ -87,14 +92,5 @@ export function initDocsFilter(workspace: HTMLElement): void {
   clear.addEventListener("click", () => { input.value = ""; show.checked = false; apply(); input.focus(); });
   document.addEventListener("docs:navigation", apply);
   document.addEventListener("docs:content-loaded", apply);
-  window.addEventListener("keydown", (event) => {
-    if (!workspace.isConnected || workspace.getClientRects().length === 0) return;
-    if ((event.ctrlKey || event.metaKey) && !event.altKey && !event.shiftKey && event.key.toLowerCase() === "k") {
-      event.preventDefault(); event.stopImmediatePropagation(); input.focus(); input.select();
-    }
-  }, true);
-  input.addEventListener("keydown", (event) => {
-    if (event.key === "Escape") { event.stopPropagation(); input.value = ""; show.checked = false; apply(); }
-  });
   apply();
 }

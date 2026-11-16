@@ -69,11 +69,8 @@
         <header class="docs-toolbar">
             <span id="docs-page-title">Documentation</span>
             <div class="docs-filter">
-                <div class="docs-filter-field">
-                    <label class="visually-hidden" for="docs-filter-input">Filter documentation</label>
-                    <input id="docs-filter-input" type="search" placeholder="Filter documents…" autocomplete="off"
-                           aria-describedby="docs-filter-summary" aria-keyshortcuts="Control+K Meta+K" />
-                    <kbd aria-hidden="true">Ctrl+K</kbd>
+                <div class="docs-filter-controls">
+                    <div data-stx-filter-field data-filter-subject="documents" data-filter-id="docs-filter-input"></div>
                     <button id="docs-filter-clear" type="button" aria-label="Clear documentation filter" title="Clear filter" hidden>×</button>
                 </div>
                 <div id="docs-filter-options" class="docs-filter-options" hidden>
