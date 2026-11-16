@@ -153,14 +153,17 @@
                     </table>
                     <p class="tokushoho-fx-note">
                         {% if fx_rate_display %}
-                            {% blocktrans with rate=fx_rate_display date=fx_as_of_display %}
+                            {% blocktrans with rate=fx_rate_display date=fx_as_of_display source=fx_source_display %}
                             Prices are denominated in USD. The "Yen (reference)" column is an
-                            approximation computed as 1 US dollar = {{ rate }} yen (as of
-                            {{ date }}) × the USD amount, rounded to the nearest 10 yen.
-                            Actual billing is performed in USD.
+                            estimate: the exchange rate published by {{ source }},
+                            1 US dollar = {{ rate }} yen (as of {{ date }}; this site fetches it
+                            hourly), × the USD amount, rounded to the nearest 10 yen. It is a guide
+                            only, not a quoted yen price. Actual billing is performed in USD. If you
+                            pay in yen, the amount charged is set by your card issuer's exchange
+                            rate and fees at settlement, and will differ from this estimate.
                             {% endblocktrans %}
                         {% else %}
-                            {% trans "Prices are denominated in USD. The 'Yen (reference)' column is an approximation; actual billing is performed in USD." %}
+                            {% trans "Prices are denominated in USD. The exchange rate could not be retrieved, so no yen estimate is shown. Actual billing is performed in USD. If you pay in yen, the amount charged is set by your card issuer's exchange rate and fees at settlement." %}
                         {% endif %}
                     </p>
                     <p>

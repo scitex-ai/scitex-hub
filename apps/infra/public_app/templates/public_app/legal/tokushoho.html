@@ -171,14 +171,16 @@
                     </table>
                     <p class="tokushoho-fx-note">
                         {% if fx_rate_display %}
-                            {% blocktrans with rate=fx_rate_display date=fx_as_of_display %}
-                            料金はUSD建てで表示しています。「円換算（参考）」列は、為替レート
-                            1ドル = {{ rate }}円（{{ date }}時点）× USD金額 を求めた概算です
-                            （概算値に四捨五入を適用）。
-                            実際の請求はUSDで行われます。
+                            {% blocktrans with rate=fx_rate_display date=fx_as_of_display source=fx_source_display %}
+                            料金はUSD建てで表示しています。「円換算（参考）」列は、{{ source }} が公開する
+                            為替レート 1ドル = {{ rate }}円（{{ date }}時点。当サイトは1時間ごとに取得）×
+                            USD金額 で求め、10円単位に四捨五入した概算です。あくまで目安であり、
+                            円での請求額を保証するものではありません。
+                            実際の請求はUSDで行われます。円でお支払いの場合の請求額は、カード会社等が
+                            決済時に適用する為替レートや手数料によって、この概算とは異なります。
                             {% endblocktrans %}
                         {% else %}
-                            {% trans "料金はUSD建てで表示しています。「円換算（参考）」列は概算であり、実際の請求はUSDで行われます。" %}
+                            {% trans "料金はUSD建てで表示しています。為替レートを取得できなかったため、円換算は表示していません。実際の請求はUSDで行われます。円でお支払いの場合の請求額は、カード会社等が決済時に適用する為替レートや手数料によって決まります。" %}
                         {% endif %}
                     </p>
                     <p>
