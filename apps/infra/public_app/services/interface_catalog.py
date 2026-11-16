@@ -167,7 +167,14 @@ def build_interface_catalog(
     rows = [
         packages[name] for name in sorted(packages) if not selected or name == selected
     ]
+    from .package_navigation import build_package_navigation
+
+    navigation = build_package_navigation(row["distribution"] for row in rows)
+    positions = {item["distribution"]: item for item in navigation["packages"]}
+    for row in rows:
+        row["navigation"] = positions.get(row["distribution"])
     return {
+        "package_navigation": navigation,
         "selected_skills": selected_skills,
         "schema_version": 1,
         "selected_package": selected,
