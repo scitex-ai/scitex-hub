@@ -3,7 +3,7 @@
 .docs-toolbar-actions { gap: 8px; margin-left: auto; }
 .docs-download-split .docs-export-btn { height: 28px; }
 .docs-download-primary { border-top-right-radius: 0; border-bottom-right-radius: 0; }
-.docs-download-expand { border-left: 0; border-top-left-radius: 0; border-bottom-left-radius: 0; }
+.docs-download-expand { border-left: 1px solid color-mix(in srgb, currentColor 35%, transparent); border-top-left-radius: 0; border-bottom-left-radius: 0; }
 .docs-copy-btn {
   display: inline-flex; align-items: center; gap: 4px; height: 28px;
   padding: 4px 8px; font-size: 11px; border-radius: 4px; cursor: pointer;

@@ -44,8 +44,8 @@ export function initDocsFilter(workspace: HTMLElement): void {
       const key = group?.dataset.docGroup ?? "";
       const category = categories.find((item) => item.dataset.docCategory === key);
       const text = labels.get(page) ?? "";
-      const hay = [text, page.dataset.docSlug, category ? categoryLabels.get(category) : ""].join(" ");
-      const match = fuzzyScore(query, hay) !== null;
+      const fields = [text, page.dataset.docSlug ?? "", category ? categoryLabels.get(category) ?? "" : ""];
+      const match = fields.some((field) => fuzzyScore(query, field) !== null);
       const count = counts.get(key) ?? { total: 0, matched: 0 };
       count.total++;
       if (match) { count.matched++; matched++; }

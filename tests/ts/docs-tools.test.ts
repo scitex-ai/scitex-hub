@@ -75,3 +75,18 @@ test("copy failure never puts an HTML error page on the clipboard", async () => 
  expect(document.querySelector<HTMLButtonElement>("#docs-copy-page")!.disabled).toBe(false);
  await vi.runAllTimersAsync();
 });
+
+
+test("a fuzzy match cannot bridge unrelated title and category fields", () => {
+ // Arrange
+ const stats = document.querySelector<HTMLElement>('[data-doc-slug="app-scholar"]')!;
+ stats.dataset.docSlug = "pkg-scitex-stats"; stats.querySelector("span")!.textContent = "Stats";
+ document.querySelector(".docs-category")!.textContent = "Python Packages";
+ initDocsFilter(document.querySelector<HTMLElement>(".docs-workspace")!);
+ const input = document.querySelector<HTMLInputElement>("#docs-filter-input")!;
+ // Act
+ input.value = "stg"; input.dispatchEvent(new Event("input"));
+ // Assert
+ expect(stats.hidden).toBe(true);
+ expect(document.querySelector<HTMLElement>('[data-doc-slug="app-storage"]')!.hidden).toBe(false);
+});
