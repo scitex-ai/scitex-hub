@@ -37,6 +37,8 @@ dependencies = [
     "requests>=2.31",
     # Strict distribution-name validation uses canonicalize_name(validate=True).
     "packaging>=23.2",
+    # Docs Markdown exports import this converter at request time.
+    "html2text>=2024.2.26",
     # PS-220 requires shippable source to route human-facing output through
     # scitex-logging (src/scitex_hub/_logging.py is hub's one factory for it),
     # and an unguarded runtime import must resolve from

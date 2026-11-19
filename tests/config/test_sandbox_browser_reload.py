@@ -1,5 +1,7 @@
 """The actual reload middleware respects artifact mode and sandbox CSP."""
 
+import pytest
+
 from asgiref.sync import async_to_sync
 from django.http import HttpResponse
 from django.test import RequestFactory, override_settings
@@ -98,3 +100,27 @@ def test_build_mode_keeps_template_reload_with_compiled_assets():
     result = middleware(RequestFactory().get("/"))
     # Assert
     assert b"reload-listener" in result.content
+
+
+@pytest.mark.parametrize("async_mode", [False, True])
+@override_settings(
+    DEBUG=True, ROOT_URLCONF=__name__, SCITEX_HUB_BROWSER_RELOAD_ENABLED=False
+)
+def test_nonwatching_server_keeps_html_and_csp_without_reload_worker(async_mode):
+    """An explicit non-watching profile never injects its unused worker."""
+    policy = "default-src 'self'; sandbox allow-scripts allow-same-origin"
+
+    def sync_view(request):
+        return response(policy)
+
+    async def async_view(request):
+        return response(policy)
+
+    middleware = SandboxAwareBrowserReloadMiddleware(
+        async_view if async_mode else sync_view
+    )
+    request = RequestFactory().get("/chart/")
+    result = async_to_sync(middleware)(request) if async_mode else middleware(request)
+    assert result.status_code == 200
+    assert result.content == b"<html><body>Chart</body></html>"
+    assert result["Content-Security-Policy"] == policy

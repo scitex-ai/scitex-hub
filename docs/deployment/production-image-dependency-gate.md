@@ -101,6 +101,13 @@ graph and imports, and checks source identity again before cleanup. No serving
 user/database mounts enter this preparation container. The install needs
 dependency-index access; the import probe runs without a network.
 
+Development can select owned SDK and FigRecipe checkouts with
+`SCITEX_SDK_SOURCE_DIR` and `SCITEX_FIGRECIPE_SOURCE_DIR`, respectively;
+otherwise all three Python roles keep the conventional sibling sources. Use
+a committed compatible revision and run the complete prospective-profile gate
+below. Selecting a path does not waive declared peer pins or qualify the source.
+Keep this selection consistent between preflight and recreation.
+
 Run this check on the development Docker host:
 
 ```bash

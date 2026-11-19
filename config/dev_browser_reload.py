@@ -10,6 +10,8 @@ class SandboxAwareBrowserReloadMiddleware(BrowserReloadMiddleware):
     def maybe_inject(self, request, response):
         if getattr(settings, "SCITEX_HUB_FRONTEND_MODE", "build") == "baked":
             return
+        if not getattr(settings, "SCITEX_HUB_BROWSER_RELOAD_ENABLED", True):
+            return
         policy = response.headers.get("Content-Security-Policy", "")
         for directive in policy.split(";"):
             tokens = directive.lower().split()
