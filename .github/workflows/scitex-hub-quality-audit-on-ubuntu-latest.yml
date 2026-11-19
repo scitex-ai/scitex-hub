@@ -133,13 +133,10 @@ jobs:
         run: |
           set -euo pipefail
           uv venv --python 3.12 .venv
-          uv pip install --python .venv/bin/python -e ".[dev]"
-          # Pin the reviewed rule corpus and keep it consistent with the
-          # supported Dev floor in pyproject.toml. The former 0.43.1 pin
-          # downgraded the project install and lacked the current measured
-          # runner registry, so valid scitex-local-cpu jobs failed PS-224.
-          # Bumps must remain reviewable; do not suppress new findings.
-          uv pip install --python .venv/bin/python "scitex-dev==0.62.26"
+          # Resolve the package and reviewed audit corpus together. A separate
+          # Dev downgrade can violate the declared dependencies of mounted peers.
+          # Keep corpus changes reviewable; do not suppress new findings.
+          uv pip install --python .venv/bin/python -e ".[dev]" "scitex-dev==0.65.0"
           uv pip check --python .venv/bin/python
 
       # Use the pytest wrapper so the documented `skip_rules` deferrals in
