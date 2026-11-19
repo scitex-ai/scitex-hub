@@ -3,6 +3,7 @@
 <!-- Docs workspace CSS -->
 <link rel="stylesheet" href="{% app_static 'docs_app/css/docs-workspace.css' %}" />
 <link rel="stylesheet" href="{% app_static 'docs_app/css/docs-tools.css' %}" />
+<link rel="stylesheet" href="{% app_static 'scitex_sdk/ui/css/app/filter-field.css' %}" />
 <link rel="stylesheet" href="{% static 'docs_app/css/docs-content.css' %}" />
 <link rel="stylesheet" href="{% static 'shared/css/components/minimal-hero.css' %}" />
 <link rel="stylesheet" href="{% static 'public_app/css/api-docs.css' %}" />
@@ -69,12 +70,10 @@
         <header class="docs-toolbar">
             <span id="docs-page-title">Documentation</span>
             <div class="docs-filter">
-                <div class="docs-filter-field">
-                    <label class="visually-hidden" for="docs-filter-input">Filter documentation</label>
-                    <input id="docs-filter-input" type="search" placeholder="Filter documents…" autocomplete="off"
-                           aria-describedby="docs-filter-summary" aria-keyshortcuts="Control+K Meta+K" />
-                    <kbd aria-hidden="true">Ctrl+K</kbd>
-                    <button id="docs-filter-clear" type="button" aria-label="Clear documentation filter" title="Clear filter" hidden>×</button>
+                <div class="docs-filter-row">
+                    <div class="docs-filter-field" data-stx-filter-field
+                         data-filter-subject="documents" data-filter-id="docs-filter-input"></div>
+                    <button id="docs-filter-clear" class="docs-copy-btn" type="button" aria-label="Clear documentation filter" title="Clear filter" hidden>×</button>
                 </div>
                 <div id="docs-filter-options" class="docs-filter-options" hidden>
                     <span id="docs-filter-summary" role="status" aria-live="polite"></span>

@@ -3,7 +3,7 @@ import { initDocsFilter } from "../../apps/workspace/docs_app/static/docs_app/ts
 import { initDocsCopy } from "../../apps/workspace/docs_app/static/docs_app/ts/docs-copy";
 
 beforeEach(() => {
- document.body.innerHTML = `<div class="docs-workspace"><input id="docs-filter-input"><button id="docs-filter-clear" hidden>Clear</button><input type="checkbox" id="docs-filter-show-hidden"><div id="docs-filter-options" hidden><span id="docs-filter-summary"></span></div>
+ document.body.innerHTML = `<div class="docs-workspace"><div data-stx-filter-field data-filter-subject="documents" data-filter-id="docs-filter-input"></div><button id="docs-filter-clear" hidden>Clear</button><input type="checkbox" id="docs-filter-show-hidden"><div id="docs-filter-options" hidden><span id="docs-filter-summary"></span></div>
  <button class="docs-category active" data-doc-category="apps">Workspace Apps</button>
  <div class="docs-page-group" data-doc-group="apps"><a class="docs-nav-item active" data-doc-slug="app-scholar"><span>Scholar</span></a><a class="docs-nav-item" data-doc-slug="app-storage"><span>Storage</span></a></div>
  <div id="docs-content-area">The open page</div><a id="docs-download-page" href="/apps/docs/export/app-storage/"></a><button id="docs-copy-page"><span>Copy Markdown</span></button></div>`;
@@ -89,4 +89,25 @@ test("a fuzzy match cannot bridge unrelated title and category fields", () => {
  // Assert
  expect(stats.hidden).toBe(true);
  expect(document.querySelector<HTMLElement>('[data-doc-slug="app-storage"]')!.hidden).toBe(false);
+});
+
+
+test("the SDK owns the filter hint and Escape restores excluded documents", () => {
+ // Arrange
+ const root = document.querySelector<HTMLElement>(".docs-workspace")!;
+ initDocsFilter(root);
+ const input = root.querySelector<HTMLInputElement>("#docs-filter-input")!;
+ const show = root.querySelector<HTMLInputElement>("#docs-filter-show-hidden")!;
+ input.value = "stg"; input.dispatchEvent(new Event("input"));
+ show.checked = true; show.dispatchEvent(new Event("change"));
+ // Act
+ input.focus();
+ expect(root.querySelector(".stx-filter-field__hint")!.textContent).toBe("Esc");
+ input.dispatchEvent(new KeyboardEvent("keydown", {key:"Escape", bubbles:true}));
+ // Assert
+ expect(root.querySelector(".stx-filter-field__hint")!.textContent).toBe("Ctrl+K");
+ expect(input.value).toBe("");
+ expect(show.checked).toBe(false);
+ expect(root.querySelectorAll(".docs-filtered-out, mark")).toHaveLength(0);
+ expect(document.activeElement).not.toBe(input);
 });
