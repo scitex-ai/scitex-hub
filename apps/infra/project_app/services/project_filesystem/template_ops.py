@@ -78,7 +78,9 @@ class TemplateOperationsManager:
     ) -> bool:
         """Copy template structure from local or remote source."""
         try:
-            if project_path.exists():
+            if project_path.exists() and not getattr(
+                project, "_research_template_pending", False
+            ):
                 logger.info(
                     f"Project path already exists: {project_path}, skipping template"
                 )
@@ -87,18 +89,27 @@ class TemplateOperationsManager:
             if not project_path.parent.exists():
                 project_path.parent.mkdir(parents=True, exist_ok=True)
 
-            from scitex.template import clone_template
+            from scitex_template import clone_template
 
-            template_id = (
-                "minimal" if template_type in ("minimal", "research") else template_type
-            )
             git_strategy = "child" if template_type in ("minimal", "research") else None
 
-            success = clone_template(
-                template_id=template_id,
-                project_dir=str(project_path),
-                git_strategy=git_strategy,
-            )
+            if project_path.exists():
+                from .new_repository_template import populate_new_repository
+
+                success = populate_new_repository(
+                    project_path,
+                    lambda target: clone_template(
+                        template_id=template_type,
+                        project_dir=str(target),
+                        git_strategy=None,
+                    ),
+                )
+            else:
+                success = clone_template(
+                    template_id=template_type,
+                    project_dir=str(project_path),
+                    git_strategy=git_strategy,
+                )
 
             if success:
                 self._customize_after_clone(project_path, project, template_type)
@@ -119,7 +130,7 @@ class TemplateOperationsManager:
         self, project_path: Path, project: Project, template_type: str
     ):
         """Customize template after cloning — delegates to scitex.template."""
-        from scitex.template import customize_minimal_template, customize_template
+        from scitex_template import customize_minimal_template, customize_template
 
         meta = _project_metadata(project)
         if template_type == "minimal":
