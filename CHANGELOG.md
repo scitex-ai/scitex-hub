@@ -13,6 +13,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- Apply the selected research scaffold to new Full projects after the Gitea
+  clone, retain its Git identity, and publish the populated project. Refuse
+  existing research contents and report template failures instead of silently
+  creating an empty project.
+
 - Record issue events with the model's `user` field. Creating, editing,
   closing, reopening, assigning, labelling and milestoning an issue passed
   `actor=` to `IssueEvent` and answered HTTP 500 after the change was saved.
