@@ -40,7 +40,7 @@ services:
       - ../../../../scitex-dataset:/scitex-dataset:cached
       - ../../../../scitex-linter:/scitex-linter:cached
       - ../../../../scitex-scholar:/scitex-scholar:cached
-      - ../../../../figrecipe:/figrecipe:cached
+      - ${SCITEX_FIGRECIPE_SOURCE_DIR:-../../../../figrecipe}:/figrecipe:cached
       - ../../../../scitex-writer:/scitex-writer:cached
       - ../../../../scitex-storage:/scitex-storage:cached
       - ${SCITEX_CARDS_SOURCE_DIR:-../../../../scitex-cards}:/scitex-cards:cached
@@ -338,7 +338,7 @@ services:
       - ../../../../scitex-dataset:/scitex-dataset:cached
       - ../../../../scitex-linter:/scitex-linter:cached
       - ../../../../scitex-scholar:/scitex-scholar:cached
-      - ../../../../figrecipe:/figrecipe:cached
+      - ${SCITEX_FIGRECIPE_SOURCE_DIR:-../../../../figrecipe}:/figrecipe:cached
       - ../../../../scitex-writer:/scitex-writer:cached
       - ../../../../scitex-storage:/scitex-storage:cached
       - ${SCITEX_CARDS_SOURCE_DIR:-../../../../scitex-cards}:/scitex-cards:cached
@@ -470,7 +470,7 @@ services:
       - ../../../../scitex-dataset:/scitex-dataset:cached
       - ../../../../scitex-linter:/scitex-linter:cached
       - ../../../../scitex-scholar:/scitex-scholar:cached
-      - ../../../../figrecipe:/figrecipe:cached
+      - ${SCITEX_FIGRECIPE_SOURCE_DIR:-../../../../figrecipe}:/figrecipe:cached
       - ../../../../scitex-writer:/scitex-writer:cached
       - ../../../../scitex-storage:/scitex-storage:cached
       - ${SCITEX_CARDS_SOURCE_DIR:-../../../../scitex-cards}:/scitex-cards:cached
