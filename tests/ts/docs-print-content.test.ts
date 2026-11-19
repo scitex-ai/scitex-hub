@@ -1,6 +1,10 @@
 import { describe, it, expect } from "vitest";
 import { preparePrintContent } from "../../apps/workspace/docs_app/static/docs_app/ts/docs-print";
-const parse = (html: string) => new DOMParser().parseFromString(html, "text/html");
+const parse = (fragment: DocumentFragment) => {
+  const doc = document.implementation.createHTMLDocument("Print content");
+  doc.body.appendChild(doc.importNode(fragment, true));
+  return doc;
+};
 
 describe("static print content", () => {
   it("removes enhanced copy controls while retaining a real SVG figure and code", () => {

@@ -6,15 +6,15 @@ import { removeExportControls } from "./docs-export-controls";
 const printSanitizer = createDOMPurify(window);
 
 /** Prepare static document content, keeping SVG figures and excluding controls. */
-export function preparePrintContent(html: string): string {
-  const fragment = document.createElement("template");
-  fragment.innerHTML = html;
-  removeExportControls(fragment.content);
-  return printSanitizer.sanitize(fragment.innerHTML, {
+export function preparePrintContent(html: string): DocumentFragment {
+  const fragment = printSanitizer.sanitize(html, {
     USE_PROFILES: { html: true, svg: true },
     ALLOW_DATA_ATTR: false,
     FORBID_TAGS: ["script", "style", "iframe", "object", "embed", "canvas", "form"],
+    RETURN_DOM_FRAGMENT: true,
   });
+  removeExportControls(fragment);
+  return fragment;
 }
 
 export function openPrintWindow(html: string): void {
@@ -29,7 +29,7 @@ export function openPrintWindow(html: string): void {
   const s = doc.createElement("style");
   s.textContent = PRINT_CSS;
   doc.head.appendChild(s);
-  doc.body.innerHTML = preparePrintContent(html);
+  doc.body.replaceChildren(doc.importNode(preparePrintContent(html), true));
   win.print();
 }
 
