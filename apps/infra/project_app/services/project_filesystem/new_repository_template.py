@@ -1,5 +1,6 @@
 """Apply a scaffold to a new Gitea clone while retaining its Git identity."""
 
+import os
 import shutil
 import subprocess
 import tempfile
@@ -27,6 +28,11 @@ def populate_new_repository(project_path: Path, populate) -> bool:
         capture_output=True,
         text=True,
         timeout=10,
+        env={
+            key: os.environ[key]
+            for key in ("PATH", "HOME", "LANG", "LC_ALL", "TMPDIR")
+            if key in os.environ
+        },
     )
     if status.returncode or status.stdout.strip():
         return False
