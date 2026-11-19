@@ -11,6 +11,7 @@ from pathlib import Path
 from preflight_targets import Target, TargetUnreachable
 
 from . import snapshot
+from .installation import run_install
 
 
 class DirectBindTarget(Target):
@@ -125,24 +126,7 @@ class DirectBindTarget(Target):
             "/preflight-profile.py",
         ]
         spec = {"sources": self.sources, "uid": os.getuid(), "gid": os.getgid()}
-        completed = subprocess.run(
-            install,
-            input=json.dumps(spec).encode(),
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE,
-            timeout=self.timeout,
-        )
-        if completed.returncode:
-            descriptor, log_path = tempfile.mkstemp(
-                prefix="scitex-hub-preflight-", suffix=".private.log"
-            )
-            with os.fdopen(descriptor, "wb") as stream:
-                stream.write(completed.stdout)
-                stream.write(completed.stderr)
-            raise TargetUnreachable(
-                "normal prospective editable installation or dependency check failed; "
-                "private diagnostics: {0}; no deployment was changed".format(log_path)
-            )
+        run_install(install, spec, self.timeout)
         snapshot.verify(self.sources)
         # Probe the exact installed image-plus-editables graph, without a
         # second resolver or a fabricated metadata overlay. Disconnect ONLY
