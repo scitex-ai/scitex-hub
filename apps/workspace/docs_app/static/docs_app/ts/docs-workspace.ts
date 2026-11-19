@@ -6,6 +6,8 @@
  */
 
 import createDOMPurify from "dompurify";
+import { PRINT_CSS } from "./docs-export-style";
+import { initDocsHtmlExport } from "./docs-html-export";
 
 // Printing has its own sanitizer instance, independent of other app hooks.
 const printSanitizer = createDOMPurify(window);
@@ -20,12 +22,6 @@ interface SectionInfo {
 }
 
 const SCROLLSPY_ROOT_MARGIN = "-10% 0px -70% 0px";
-const PRINT_CSS =
-  "body{font-family:sans-serif;max-width:800px;margin:2rem auto;padding:0 1rem;color:#222}" +
-  "pre{background:#f5f5f5;padding:1rem;overflow-x:auto;border-radius:4px}" +
-  "code{font-family:monospace}h1,h2,h3{margin-top:1.5rem}" +
-  "table{border-collapse:collapse;width:100%}" +
-  "th,td{border:1px solid #ddd;padding:8px;text-align:left}";
 
 // ── Module State ─────────────────────────────────────────────
 
@@ -269,6 +265,7 @@ function injectSectionExportButtons(
     '<i class="fas fa-file-alt"></i> .md</a>' +
     '<button class="docs-dropdown-item docs-section-pdf-btn">' +
     '<i class="fas fa-file-pdf"></i> .pdf</button>' +
+    '<button type="button" class="docs-dropdown-item" data-docs-html-export title="Download the loaded page as HTML">This page as .html</button>' +
     "</div></div>";
   bar.querySelector<HTMLAnchorElement>("a.docs-dropdown-item")!.href =
     "/apps/docs/export/" + encodeURIComponent(slug) + "/";
@@ -523,6 +520,7 @@ function downloadSelectedPdf(navItems: NodeListOf<HTMLAnchorElement>): void {
 // ── Initialization ───────────────────────────────────────────
 
 function initDocsWorkspace(): void {
+  initDocsHtmlExport(PRINT_CSS);
   const workspace = document.querySelector<HTMLElement>(".docs-workspace");
   const sidebar = document.querySelector(".docs-sidebar");
   const contentArea = document.getElementById("docs-content-area");
