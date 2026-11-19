@@ -135,3 +135,15 @@ it("shows a plain unavailable result for an unsupported document context", () =>
   // Assert
   expect(text).toBe('HTML download unavailable.');
 });
+
+
+describe("rendered code-block controls", () => {
+  it("removes copy-control descendants while retaining the code and document SVG", () => {
+    // Arrange: actual code-block enhancement wraps a copy SVG in a button.
+    const html = '<pre><button class="code-copy-button"><svg class="copy-icon" viewBox="0 0 16 16"><path d="M0 0h16v16H0z"/></svg><span>Copy</span></button><code>x &lt; 2</code></pre><svg id="document-figure" viewBox="0 0 80 40"><path d="M0 0L80 40"/></svg>';
+    // Act
+    const doc = parse(buildHtmlExport(html, "Code", PRINT_CSS, source));
+    // Assert
+    expect([doc.querySelector('button,.copy-icon'), doc.querySelector('pre')?.textContent, doc.querySelectorAll('svg').length, doc.querySelector('#document-figure path')?.getAttribute('d')]).toEqual([null, 'x < 2', 1, 'M0 0L80 40']);
+  });
+});
