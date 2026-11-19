@@ -1,0 +1,12 @@
+{% extends base_template|default:"global_base.html" %}
+{% block content %}
+<div class="container py-2" data-installed-app-docs="{{ app_doc_distribution }}">
+    <h1>{{ app_doc_label }}</h1>
+    <p>Documentation and skills declared by the installed <code>{{ app_doc_distribution }}</code> package.</p>
+    <p>These links use the shared documentation dispatcher. A declaration does not establish that a generated document is built or a Web API is enabled.</p>
+    {% if interface_catalog.selected_not_registered %}
+        <p role="status">This installed application has not registered documentation or Web API providers. Its owning package must declare them; the host does not infer an implementation.</p>
+    {% endif %}
+    {% include "docs_app/partials/interface_provider_catalog.html" %}
+</div>
+{% endblock %}

@@ -118,8 +118,10 @@ jobs:
           # `_manifest_miss` RAISES under DEBUG, so a missing entry becomes a
           # loud 500 rather than a shell rendered over nothing.
           SCITEX_HUB_VITE_USE_BUILD: "1"
-          # Inspect the sealed artifact without injecting development workers.
+          # This server uses --noreload and baked assets. Keep DEBUG asset
+          # validation while omitting the unused development reload worker.
           SCITEX_HUB_FRONTEND_MODE: "baked"
+          SCITEX_HUB_BROWSER_RELOAD_ENABLED: "0"
           DEBUG: "1"
         run: |
           python manage.py migrate --run-syncdb
@@ -246,6 +248,9 @@ jobs:
           SCITEX_BASE_URL: http://127.0.0.1:8000
           SCITEX_E2E_TEST_USER: test-user
           SCITEX_E2E_TEST_PASS: "Password123!"
+          # This server uses --noreload and baked assets. Keep DEBUG asset
+          # validation while omitting the unused development reload worker.
+          SCITEX_HUB_BROWSER_RELOAD_ENABLED: "0"
           DEBUG: "1"
         run: |
           # `--browser chromium` IS THE WHOLE REASON THIS JOB RAN ZERO TESTS.

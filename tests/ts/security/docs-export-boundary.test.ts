@@ -12,8 +12,13 @@ afterEach(() => {
 
 async function workspace(slug = "overview", content = "<p>Documentation</p>") {
   document.body.innerHTML = `<main class="docs-workspace">
-    <aside class="docs-sidebar"><a class="docs-nav-item"><span>Overview</span></a></aside>
-    <button id="docs-export-all-pdf">Print all</button>
+    <button class="docs-category active" data-doc-category="start">Getting Started</button>
+    <aside class="docs-sidebar"><div class="docs-page-group" data-doc-group="start"><a class="docs-nav-item"><span>Overview</span></a></div></aside>
+    <header class="docs-toolbar"><div class="docs-dropdown-menu">
+      <a id="docs-export-page-md" class="docs-dropdown-item"></a>
+      <button id="docs-export-page-pdf">Print page</button>
+      <button id="docs-export-all-pdf">Print all</button>
+    </div></header>
     <div id="docs-content-area"></div></main>`;
   document.querySelector<HTMLElement>(".docs-workspace")!.dataset.activeDoc = slug;
   document.querySelector<HTMLElement>(".docs-nav-item")!.dataset.docSlug = slug;
@@ -24,7 +29,7 @@ async function workspace(slug = "overview", content = "<p>Documentation</p>") {
   vi.spyOn(window, "open").mockReturnValue({ document: printDocument, print } as unknown as Window);
   await import("../../../apps/workspace/docs_app/static/docs_app/ts/docs-workspace");
   document.dispatchEvent(new Event("DOMContentLoaded"));
-  await vi.waitFor(() => expect(document.querySelector(".docs-section-pdf-btn")).not.toBeNull());
+  await vi.waitFor(() => expect(document.getElementById("docs-content-area")!.style.opacity).toBe("1"));
   return { fetch, print, printDocument };
 }
 
@@ -35,7 +40,7 @@ it("removes active content from the real single-page print action while preservi
     '<img src="owned.png" onerror="window.compromised=1"><iframe srcdoc="bad"></iframe>' +
     '<a href="javascript:alert(1)">unsafe link</a><table><tr><td>Result</td></tr></table><pre><code>scitex --help</code></pre>');
   // Act
-  document.querySelector<HTMLButtonElement>(".docs-section-pdf-btn")!.click();
+  document.querySelector<HTMLButtonElement>("#docs-export-page-pdf")!.click();
   // Assert
   expect(print).toHaveBeenCalledOnce();
   expect(printDocument.querySelector("[onerror], iframe, a[href^='javascript:']")).toBeNull();
@@ -66,7 +71,7 @@ it("keeps printing independent of hooks on the shared app sanitizer", async () =
   const { printDocument } = await workspace();
   document.getElementById("docs-content-area")!.insertAdjacentHTML("beforeend", '<img src=x onerror="originalAttack()">');
   // Act
-  document.querySelector<HTMLButtonElement>(".docs-section-pdf-btn")!.click();
+  document.querySelector<HTMLButtonElement>("#docs-export-page-pdf")!.click();
   // Assert
   expect(printDocument.querySelector("img")).not.toBeNull();
   expect(printDocument.querySelector("[onerror]")).toBeNull();

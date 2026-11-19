@@ -215,6 +215,10 @@ else:
 # django-browser-reload configuration
 # Verified artifact inspection keeps DEBUG checks without a live reload worker.
 SCITEX_HUB_FRONTEND_MODE = os.environ.get("SCITEX_HUB_FRONTEND_MODE", "build")
+# Non-watching servers retain DEBUG checks without the unused reload worker.
+SCITEX_HUB_BROWSER_RELOAD_ENABLED = os.getenv(
+    "SCITEX_HUB_BROWSER_RELOAD_ENABLED", "True"
+).lower() in ("true", "1", "yes")
 # Note: Templates, CSS, and JS files are watched to trigger browser reload
 # Visitor pool initialization is now optimized with fast-path check
 def _get_extra_watch_files():

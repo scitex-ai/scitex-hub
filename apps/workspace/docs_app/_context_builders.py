@@ -12,7 +12,14 @@ def build_page_context(slug: str, sphinx_page: str = None) -> dict:
         "slug": slug,
         "base_template": "docs_app/docs_fragment_base.html",
     }
-    if slug == "overview" or slug.startswith("api-"):
+    if slug.startswith("app-"):
+        from ._app_docs import installed_app_context
+        from .views import _PAGES_BY_SLUG
+
+        page = _PAGES_BY_SLUG.get(slug, {})
+        if page.get("distribution"):
+            context.update(installed_app_context(page))
+    elif slug == "overview" or slug.startswith("api-"):
         from apps.infra.public_app.services.interface_catalog import (
             build_interface_catalog,
         )
