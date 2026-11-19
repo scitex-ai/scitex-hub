@@ -1,5 +1,6 @@
 /** A static HTML copy of the loaded document; no navigation chrome or embeds. */
 import createDOMPurify from "dompurify";
+import { removeExportControls } from "./docs-export-controls";
 
 const htmlSanitizer = createDOMPurify(window);
 const mounted = new WeakMap<Document, () => void>();
@@ -12,7 +13,7 @@ export function buildHtmlExport(html: string, title: string, styles: string, sou
   const fragment = document.createElement("template");
   fragment.innerHTML = html;
   if (fragment.content.querySelector("iframe,object,embed,canvas")) throw new HtmlExportUnavailable("HTML download is unavailable for embedded documentation.");
-  fragment.content.querySelectorAll("button,input,textarea,select,.docs-section-export,.docs-toolbar,.docs-context-menu,[data-docs-html-status]").forEach(node => node.remove());
+  removeExportControls(fragment.content);
   const doc = document.implementation.createHTMLDocument(title);
   doc.documentElement.lang = document.documentElement.lang || "en";
   const charset = doc.createElement("meta");

@@ -23,3 +23,5 @@ The implementation lives in `docs-html-export.ts`; print and HTML share
 `apps/workspace/docs_app/static/docs_app/ts/`. Semantic controls are in
 `tests/ts/docs-html-export.test.ts`. Downloading the file happens locally in the
 browser; this adds no server write route or document-body search behavior.
+
+Static HTML and print share control removal in `docs-export-controls.ts`. Print content sanitization retains static SVG document figures and excludes active content and embedded objects; printing does not capture interactive embedded views. The browser print dialog and PDF pagination remain browser-specific.

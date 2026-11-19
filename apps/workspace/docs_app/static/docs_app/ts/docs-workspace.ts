@@ -5,12 +5,9 @@
  * Reads initial state from data-active-doc attribute on .docs-workspace.
  */
 
-import createDOMPurify from "dompurify";
+import { openPrintWindow } from "./docs-print";
 import { PRINT_CSS } from "./docs-export-style";
 import { initDocsHtmlExport } from "./docs-html-export";
-
-// Printing has its own sanitizer instance, independent of other app hooks.
-const printSanitizer = createDOMPurify(window);
 
 // ── Types & Constants ────────────────────────────────────────
 
@@ -232,22 +229,6 @@ function initMobileCascade(
 }
 
 // ── Export Helpers ────────────────────────────────────────────
-
-function openPrintWindow(html: string): void {
-  const win = window.open("", "_blank");
-  if (!win) return;
-  const doc = win.document;
-  doc.open();
-  doc.write(
-    "<!DOCTYPE html><html><head><title>SciTeX Docs</title></head><body></body></html>",
-  );
-  doc.close();
-  const s = doc.createElement("style");
-  s.textContent = PRINT_CSS;
-  doc.head.appendChild(s);
-  doc.body.innerHTML = printSanitizer.sanitize(html, { USE_PROFILES: { html: true } });
-  win.print();
-}
 
 function injectSectionExportButtons(
   slug: string,
