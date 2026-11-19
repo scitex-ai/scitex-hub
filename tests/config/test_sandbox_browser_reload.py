@@ -1,5 +1,7 @@
 """The actual reload middleware respects a standard opaque-origin CSP."""
 
+import pytest
+
 from django.http import HttpResponse
 from django.test import RequestFactory, override_settings
 from django.urls import include, path
@@ -17,24 +19,34 @@ def response(policy=""):
     return result
 
 
-@override_settings(DEBUG=True, ROOT_URLCONF=__name__)
+@override_settings(
+    DEBUG=True, ROOT_URLCONF=__name__, SCITEX_HUB_BROWSER_RELOAD_ENABLED=True
+)
 def test_opaque_sandbox_does_not_receive_worker():
     for policy in ("sandbox allow-scripts", "default-src 'self'; sandbox"):
-        middleware = SandboxAwareBrowserReloadMiddleware(lambda request: response(policy))
+        middleware = SandboxAwareBrowserReloadMiddleware(
+            lambda request: response(policy)
+        )
         result = middleware(RequestFactory().get("/chart/"))
         assert b"reload-listener" not in result.content
         assert result["Content-Security-Policy"] == policy
 
 
-@override_settings(DEBUG=True, ROOT_URLCONF=__name__)
+@override_settings(
+    DEBUG=True, ROOT_URLCONF=__name__, SCITEX_HUB_BROWSER_RELOAD_ENABLED=True
+)
 def test_regular_and_same_origin_pages_keep_reload():
     for policy in ("", "sandbox allow-scripts allow-same-origin"):
-        middleware = SandboxAwareBrowserReloadMiddleware(lambda request: response(policy))
+        middleware = SandboxAwareBrowserReloadMiddleware(
+            lambda request: response(policy)
+        )
         result = middleware(RequestFactory().get("/"))
         assert b"reload-listener" in result.content
 
 
-@override_settings(DEBUG=True, ROOT_URLCONF=__name__)
+@override_settings(
+    DEBUG=True, ROOT_URLCONF=__name__, SCITEX_HUB_BROWSER_RELOAD_ENABLED=True
+)
 def test_async_sandbox_response_keeps_same_protection():
     async def view(request):
         return response("sandbox allow-scripts")
@@ -42,3 +54,27 @@ def test_async_sandbox_response_keeps_same_protection():
     middleware = SandboxAwareBrowserReloadMiddleware(view)
     result = async_to_sync(middleware)(RequestFactory().get("/chart/"))
     assert b"reload-listener" not in result.content
+
+
+@pytest.mark.parametrize("async_mode", [False, True])
+@override_settings(
+    DEBUG=True, ROOT_URLCONF=__name__, SCITEX_HUB_BROWSER_RELOAD_ENABLED=False
+)
+def test_nonwatching_server_keeps_html_and_csp_without_reload_worker(async_mode):
+    """An explicit non-watching profile never injects its unused worker."""
+    policy = "default-src 'self'; sandbox allow-scripts allow-same-origin"
+
+    def sync_view(request):
+        return response(policy)
+
+    async def async_view(request):
+        return response(policy)
+
+    middleware = SandboxAwareBrowserReloadMiddleware(
+        async_view if async_mode else sync_view
+    )
+    request = RequestFactory().get("/chart/")
+    result = async_to_sync(middleware)(request) if async_mode else middleware(request)
+    assert result.status_code == 200
+    assert result.content == b"<html><body>Chart</body></html>"
+    assert result["Content-Security-Policy"] == policy

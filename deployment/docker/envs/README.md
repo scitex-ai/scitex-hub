@@ -25,15 +25,21 @@ docker_dev/.env            -> ../envs/.env.dev
 make env=dev start
 ```
 
-### Staging Deployment
-```bash
-./scripts/deploy/rebuild.sh staging
-```
+### Staging and Production
 
-### Production Deployment
-```bash
-./scripts/deploy/rebuild.sh prod
-```
+Follow the [canonical deployment runbook](../../../src/scitex_hub/_skills/scitex-hub/12_deployment-production.md)
+for qualified images, reviewed environment selection, targeted recreation and
+rollback. The environment files supply configuration to that owning workflow.
+
+### Browser Reload in Development
+
+`SCITEX_HUB_DJANGO_DEBUG` controls the development settings' DEBUG flag.
+`SCITEX_HUB_BROWSER_RELOAD_ENABLED` independently controls injection of the
+browser reload worker and defaults to `True`. Set it to `False` for a server
+started without a file watcher, such as the baked E2E `--noreload` profile.
+DEBUG and strict manifest validation remain enabled in that profile. Normal
+interactive development keeps reload enabled; production settings do not add
+the development reload middleware.
 
 ## Creating New Environment
 

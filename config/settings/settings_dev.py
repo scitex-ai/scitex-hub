@@ -85,7 +85,9 @@ DEBUG = os.getenv("SCITEX_HUB_DJANGO_DEBUG", "True").lower() in [
 # in settings_shared stays `scitex` for production, and an explicit
 # SCITEX_HUB_APP_UNIX_OWNER still wins here. verify_app_can_write() keeps
 # comparing real st_uid values, so the final gate can still fail in dev.
-APP_UNIX_OWNER = os.getenv("SCITEX_HUB_APP_UNIX_OWNER") or f"{os.getuid()}:{os.getgid()}"
+APP_UNIX_OWNER = (
+    os.getenv("SCITEX_HUB_APP_UNIX_OWNER") or f"{os.getuid()}:{os.getgid()}"
+)
 
 # ---------------------------------------
 # SciTeX Settings
@@ -213,6 +215,14 @@ else:
 
 
 # django-browser-reload configuration
+# Non-watching servers can retain DEBUG and strict asset checks without
+# injecting a development-only reload worker. Interactive development opts in
+# by default; the baked E2E server explicitly opts out.
+SCITEX_HUB_BROWSER_RELOAD_ENABLED = os.getenv(
+    "SCITEX_HUB_BROWSER_RELOAD_ENABLED", "True"
+).lower() in ("true", "1", "yes")
+
+
 # Note: Templates, CSS, and JS files are watched to trigger browser reload
 # Visitor pool initialization is now optimized with fast-path check
 def _get_extra_watch_files():
