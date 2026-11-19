@@ -53,7 +53,7 @@ def api_issue_assign(request, username, slug, issue_number):
             IssueEvent.objects.create(
                 issue=issue,
                 event_type="assigned",
-                actor=request.user,
+                user=request.user,
                 metadata={"assignee": user.username},
             )
             message = f"{user.username} assigned successfully"
@@ -69,7 +69,7 @@ def api_issue_assign(request, username, slug, issue_number):
             IssueEvent.objects.create(
                 issue=issue,
                 event_type="unassigned",
-                actor=request.user,
+                user=request.user,
                 metadata={"assignee": user.username},
             )
             message = f"{user.username} unassigned successfully"
