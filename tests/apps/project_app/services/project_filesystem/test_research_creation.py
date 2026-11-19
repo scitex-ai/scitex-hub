@@ -49,6 +49,7 @@ def populate(target):
     defect="Gitea cloned before Full template creation, which skipped existing paths"
 )
 def test_new_project_gets_research_scaffold(repository, monkeypatch):
+    # Arrange
     import scitex_template
 
     from apps.infra.project_app.services.project_filesystem.template_ops import (
@@ -67,19 +68,31 @@ def test_new_project_gets_research_scaffold(repository, monkeypatch):
     project = SimpleNamespace(_research_template_pending=True)
     initial_commit = git(repository, "rev-parse", "HEAD")
 
-    assert manager.copy_from_example_template(repository, project, "research")
-    assert observed[0]["template_id"] == "research"
-    assert (repository / "scripts/mnist/01_fetch_mnist.py").is_file()
-    assert (repository / ".scitex/template/MANIFEST.yaml").is_file()
-    assert (repository / "pipeline.py").is_symlink()
-    assert git(repository, "rev-parse", "HEAD") == initial_commit
-    assert git(repository, "remote", "get-url", "origin") == (
-        "https://example.invalid/research.git"
+    # Act
+    success = manager.copy_from_example_template(repository, project, "research")
+    # Assert
+    assert (
+        success,
+        observed[0]["template_id"] if observed else None,
+        (repository / "scripts/mnist/01_fetch_mnist.py").is_file(),
+        (repository / ".scitex/template/MANIFEST.yaml").is_file(),
+        (repository / "pipeline.py").is_symlink(),
+        git(repository, "rev-parse", "HEAD"),
+        git(repository, "remote", "get-url", "origin"),
+    ) == (
+        True,
+        "research",
+        True,
+        True,
+        True,
+        initial_commit,
+        "https://example.invalid/research.git",
     )
 
 
 @pytest.mark.parametrize("existing", ["authored.py", "scripts/analysis.py"])
 def test_refuses_existing_research_contents(repository, existing):
+    # Arrange
     from apps.infra.project_app.services.project_filesystem.new_repository_template import (
         populate_new_repository,
     )
@@ -91,12 +104,18 @@ def test_refuses_existing_research_contents(repository, existing):
     git(repository, "commit", "-m", "Research")
     callback = Mock(side_effect=populate)
 
-    assert not populate_new_repository(repository, callback)
-    callback.assert_not_called()
-    assert authored.read_text() == "authored research\n"
+    # Act
+    success = populate_new_repository(repository, callback)
+    # Assert
+    assert (success, callback.call_count, authored.read_text()) == (
+        False,
+        0,
+        "authored research\n",
+    )
 
 
 def test_refuses_modified_initial_readme(repository):
+    # Arrange
     from apps.infra.project_app.services.project_filesystem.new_repository_template import (
         populate_new_repository,
     )
@@ -104,12 +123,18 @@ def test_refuses_modified_initial_readme(repository):
     (repository / "README.md").write_text("Authored text\n")
     callback = Mock(side_effect=populate)
 
-    assert not populate_new_repository(repository, callback)
-    callback.assert_not_called()
-    assert (repository / "README.md").read_text() == "Authored text\n"
+    # Act
+    success = populate_new_repository(repository, callback)
+    # Assert
+    assert (success, callback.call_count, (repository / "README.md").read_text()) == (
+        False,
+        0,
+        "Authored text\n",
+    )
 
 
 def test_failed_fetch_preserves_initial_repository(repository):
+    # Arrange
     from apps.infra.project_app.services.project_filesystem.new_repository_template import (
         populate_new_repository,
     )
@@ -120,22 +145,33 @@ def test_failed_fetch_preserves_initial_repository(repository):
         populate(target)
         return False
 
-    assert not populate_new_repository(repository, fail)
-    assert (repository / "README.md").read_bytes() == before
-    assert git(repository, "status", "--porcelain") == ""
+    # Act
+    success = populate_new_repository(repository, fail)
+    # Assert
+    assert (
+        success,
+        (repository / "README.md").read_bytes(),
+        git(repository, "status", "--porcelain"),
+    ) == (False, before, "")
 
 
 def test_existing_project_cannot_request_overlay(repository):
+    # Arrange
     from apps.infra.project_app.services.project_filesystem.template_ops import (
         TemplateOperationsManager,
     )
 
-    assert not TemplateOperationsManager(None).copy_from_example_template(
+    manager = TemplateOperationsManager(None)
+    # Act
+    success = manager.copy_from_example_template(
         repository, SimpleNamespace(), "research"
     )
+    # Assert
+    assert not success
 
 
 def test_failed_template_does_not_report_empty_project_as_success(tmp_path):
+    # Arrange
     from apps.infra.project_app.services.project_filesystem.manager import (
         ProjectOpsManager,
     )
@@ -147,6 +183,11 @@ def test_failed_template_does_not_report_empty_project_as_success(tmp_path):
     manager.template_ops.copy_from_example_template.return_value = False
     project = SimpleNamespace(slug="acceptance-research", save=Mock())
 
-    assert manager.create_project_directory(project, use_template=True) == (False, None)
-    manager.template_ops.create_minimal_readme.assert_not_called()
-    project.save.assert_not_called()
+    # Act
+    result = manager.create_project_directory(project, use_template=True)
+    # Assert
+    assert (
+        result,
+        manager.template_ops.create_minimal_readme.call_count,
+        project.save.call_count,
+    ) == ((False, None), 0, 0)
