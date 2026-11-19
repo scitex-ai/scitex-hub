@@ -11,6 +11,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- Record issue events with the model's `user` field. Creating, editing,
+  closing, reopening, assigning, labelling and milestoning an issue passed
+  `actor=` to `IssueEvent` and answered HTTP 500 after the change was saved.
+  Reopen now passes the acting user to `Issue.reopen`, and close/reopen no
+  longer record a second event on top of the one the model method records.
+
 ## [0.22.0a8] - 2026-11-12
 
 ### Changed
