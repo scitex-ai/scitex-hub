@@ -11,7 +11,7 @@ from pathlib import Path
 from preflight_targets import Target, TargetUnreachable
 
 from . import snapshot
-from .installation import run_install
+from .installation import private_exception_log, run_install
 
 
 class DirectBindTarget(Target):
@@ -34,8 +34,15 @@ class DirectBindTarget(Target):
         )
         try:
             self._prepare(context)
-        except Exception:
-            self.close()
+        except Exception as preparation_error:
+            try:
+                self.close()
+            except Exception as cleanup_error:
+                path = private_exception_log(preparation_error, cleanup_error)
+                raise TargetUnreachable(
+                    "prospective preparation and owned cleanup failed; "
+                    "private diagnostics: {0}; no deployment changed".format(path)
+                ) from preparation_error
             raise
 
     def _prepare(self, context):
@@ -266,8 +273,10 @@ def prepare(context, timeout):
     except TargetUnreachable:
         raise
     except Exception as exc:
+        path = private_exception_log(exc)
         raise TargetUnreachable(
-            "prospective direct-bind profile could not be prepared ({0}); no deployment changed".format(
-                type(exc).__name__
+            "prospective direct-bind profile could not be prepared ({0}); "
+            "private diagnostics: {1}; no deployment changed".format(
+                type(exc).__name__, path
             )
         ) from exc
