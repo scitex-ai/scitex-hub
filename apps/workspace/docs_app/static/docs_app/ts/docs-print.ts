@@ -17,8 +17,10 @@ export function preparePrintContent(html: string): DocumentFragment {
   return fragment;
 }
 
-export function openPrintWindow(html: string): void {
-  const win = window.open("", "_blank");
+export function openPrintWindow(
+  html: string,
+  win: Window | null = window.open("", "_blank"),
+): void {
   if (!win) return;
   const doc = win.document;
   doc.open();

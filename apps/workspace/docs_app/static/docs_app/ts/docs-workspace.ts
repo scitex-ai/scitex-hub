@@ -6,6 +6,7 @@
  */
 
 import { openPrintWindow } from "./docs-print";
+import { printAllDocs } from "./docs-batch-print";
 import { PRINT_CSS } from "./docs-export-style";
 import { initDocsHtmlExport } from "./docs-html-export";
 import { initDocsColumns, syncDocsColumns } from "./docs-navigation";
@@ -418,17 +419,7 @@ function initDocsWorkspace(): void {
   if (allPdfBtn) {
     allPdfBtn.onclick = () => {
       const slugs = Array.from(navItems).map((i) => i.dataset.docSlug ?? "");
-      const fetches = slugs.map((s) =>
-        fetch("/apps/docs/content/" + encodeURIComponent(s) + "/", {
-          headers: { "X-Requested-With": "XMLHttpRequest" },
-        }).then((r) => r.text()),
-      );
-      Promise.all(fetches).then((pages) => {
-        const combined = pages
-          .map((html, i) => "<h1>" + slugs[i] + "</h1>" + html)
-          .join('<hr class="docs-print-page-break" />');
-        openPrintWindow(combined);
-      });
+      void printAllDocs(slugs);
     };
   }
 
