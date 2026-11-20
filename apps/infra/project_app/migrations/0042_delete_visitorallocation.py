@@ -7,5 +7,8 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
-        migrations.DeleteModel(name="VisitorAllocation"),
+        # Stop using allocations without deleting retained historical records.
+        migrations.SeparateDatabaseAndState(
+            state_operations=[migrations.DeleteModel(name="VisitorAllocation")],
+        ),
     ]
