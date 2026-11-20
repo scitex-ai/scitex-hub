@@ -36,7 +36,7 @@ class DirectBindTarget(Target):
             self._prepare(context)
         except Exception as preparation_error:
             try:
-                self.close()
+                self._close()
             except Exception as cleanup_error:
                 path = private_exception_log(preparation_error, cleanup_error)
                 raise TargetUnreachable(
@@ -179,8 +179,10 @@ class DirectBindTarget(Target):
         except TargetUnreachable:
             raise
         except Exception as exc:
+            path = private_exception_log(exc)
             raise TargetUnreachable(
-                "owned development preflight cleanup failed; no deployment was changed"
+                "owned development preflight cleanup failed; private diagnostics: "
+                "{0}; no deployment was changed".format(path)
             ) from exc
 
     def _close(self):
