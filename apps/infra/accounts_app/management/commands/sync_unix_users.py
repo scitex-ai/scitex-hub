@@ -30,10 +30,16 @@ class Command(BaseCommand):
             action="store_true",
             help="Report what would be done without making any changes",
         )
+        parser.add_argument(
+            "--accounts-only",
+            action="store_true",
+            help="Restore container accounts without changing user files or profile records",
+        )
 
     def handle(self, *args, **options):
         User = get_user_model()
         dry_run = options["dry_run"]
+        accounts_only = options["accounts_only"]
 
         users = User.objects.select_related("auth_profile").order_by("pk")
         total = users.count()
@@ -51,17 +57,20 @@ class Command(BaseCommand):
             uid = get_unix_uid(user)
 
             if dry_run:
-                self.stdout.write(
-                    f"  {user.username}: UID={uid} (would ensure account + chown data dir)"
+                action = (
+                    "would ensure account"
+                    if accounts_only
+                    else "would ensure account + chown data dir"
                 )
+                self.stdout.write(f"  {user.username}: UID={uid} ({action})")
                 continue
 
             ok_account = ensure_linux_account(user)
             if ok_account:
                 created += 1
 
-            ok_ownership = enforce_data_dir_ownership(user)
-            if ok_ownership:
+            ok_ownership = True if accounts_only else enforce_data_dir_ownership(user)
+            if ok_ownership and not accounts_only:
                 ownership_fixed += 1
 
             if not ok_account or not ok_ownership:
@@ -70,6 +79,9 @@ class Command(BaseCommand):
                     f"  WARN: partial failure for {user.username} "
                     f"(account={ok_account}, ownership={ok_ownership})"
                 )
+
+            if accounts_only:
+                continue
 
             # Update UserProfile.unix_uid/unix_gid if not already set
             try:
