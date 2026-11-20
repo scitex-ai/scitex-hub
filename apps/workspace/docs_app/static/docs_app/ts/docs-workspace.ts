@@ -13,6 +13,7 @@ import { initDocsColumns, syncDocsColumns } from "./docs-navigation";
 import { initDocsFilter } from "./docs-filter";
 import { initDocsCopy } from "./docs-copy";
 import { initMobileCascade, syncMobileCascade } from "./docs-mobile-nav";
+import { renderSphinxDiagrams } from "./sphinx-diagrams";
 
 // ── Types & Constants ────────────────────────────────────────
 
@@ -211,6 +212,7 @@ function loadDocPage(
       // Build section nav + scrollspy (replaces foldSections)
       buildSectionNav(contentArea, sidebar);
       document.dispatchEvent(new Event("docs:content-loaded"));
+      void renderSphinxDiagrams(contentArea);
 
       // Scroll to anchor if specified
       if (anchorId) {
