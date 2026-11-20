@@ -22,6 +22,7 @@ def test_selfhosted_catalogue_has_two_license_choices():
     }
 
 
+@override("en")
 def test_enterprise_is_quoted_without_a_numeric_floor():
     row = _rows()["selfhosted-commercial"]
     assert (row["price"], row["usd_amount"], row["is_from_price"]) == (
@@ -33,6 +34,7 @@ def test_cloud_academic_price_is_preserved():
     assert _rows()["subscription-student"]["price"] == "$19/mo"
 
 
+@override("en")
 def test_comparison_uses_the_same_enterprise_quote():
     rows = pricing.plan_comparison(TODAY)["rows"]
     price = next(row for row in rows if row.get("code") == "price")
@@ -81,8 +83,12 @@ def test_invalid_price_records_fail_loudly(item):
         pricing._published_price(item)
 
 
-def test_explicit_quote_record_has_no_numeric_price():
-    assert pricing._published_price({"amount": None, "price_status": "on-request"}) == "On request"
+@pytest.mark.parametrize("language,expected", [("en", "On request"), ("ja", "要相談")])
+def test_explicit_quote_record_has_no_numeric_price(language, expected):
+    with override(language):
+        assert pricing._published_price(
+            {"amount": None, "price_status": "on-request"}
+        ) == expected
 
 
 @pytest.mark.parametrize("language", ["en", "ja"])
