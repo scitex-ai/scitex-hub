@@ -29,9 +29,8 @@ export async function renderSphinxDiagrams(container: HTMLElement): Promise<void
         const wrapper = document.createElement("div");
         wrapper.className = "sphinx-diagram";
         appendSvgImage(wrapper, svg, "Documentation diagram");
-        node.replaceChildren(wrapper);
-        node.dataset.docsDiagram = "rendered";
-        node.style.whiteSpace = "normal";
+        wrapper.dataset.docsDiagram = "rendered";
+        node.replaceWith(wrapper);
       } catch {
         // Keep the readable source when an individual diagram is invalid.
         node.dataset.docsDiagram = "unavailable";

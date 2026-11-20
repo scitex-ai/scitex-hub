@@ -26,6 +26,7 @@ test("embedded Sphinx content gains an inert diagram image, once", async () => {
   expect(render).toHaveBeenCalledWith(expect.any(String), "graph LR; A-->B");
   expect(container.querySelector("img")?.getAttribute("src")).toBe("blob:owned-diagram");
   expect(container.querySelector("svg")).toBeNull();
+  expect(container.querySelector("pre")).toBeNull();
   await renderSphinxDiagrams(container);
   expect(render).toHaveBeenCalledTimes(1);
 });
