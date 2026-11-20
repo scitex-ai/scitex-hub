@@ -4,13 +4,14 @@ from django.db import migrations
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('scholar_app', '0019_savedgraph'),
+        ("scholar_app", "0019_savedgraph"),
     ]
 
     operations = [
-        migrations.DeleteModel(
-            name='SearchFilter',
+        # Retire the Hub model without deleting historical filter records.
+        # Some deployments already removed this unused table independently.
+        migrations.SeparateDatabaseAndState(
+            state_operations=[migrations.DeleteModel(name="SearchFilter")],
         ),
     ]
