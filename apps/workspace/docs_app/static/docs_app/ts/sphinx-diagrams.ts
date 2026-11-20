@@ -15,6 +15,7 @@ export async function renderSphinxDiagrams(container: HTMLElement): Promise<void
     mermaid.initialize({
       startOnLoad: false,
       securityLevel: "strict",
+      htmlLabels: false,
       theme: document.documentElement.getAttribute("data-theme") === "dark" ? "dark" : "default",
       flowchart: { htmlLabels: false },
     });
