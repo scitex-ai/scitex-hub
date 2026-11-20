@@ -125,6 +125,12 @@ controls for this path are in `tests/deployment/test_preflight_direct_bind.py`
 and `test_preflight_lock_snapshots.py`; passing them alone does not qualify a
 particular host's prospective package graph or frontend.
 
+If a container-create outcome is still unknown, the gate refuses and retains
+its owned workspace and labeled volume. The printed private
+`pending-creation.json` records their identity for later inspection and cleanup;
+an absent Docker inspection response does not establish that creation stopped.
+The creation and installation deadlines and ownership checks still apply.
+
 For a recreate, `compose.sh <env> up ...` keeps the sanctioned mapping.
 Configuration-changing global options before `up` (for example a different
 `-f`, `--env-file` or project name) are refused because the gate cannot

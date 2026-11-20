@@ -2,8 +2,10 @@
 # -*- coding: utf-8 -*-
 """Interrogates the DEPLOYMENT TARGET. This file is executed INSIDE the target.
 
-It is never imported by the deploy host. ``preflight_sibling_floors.py`` reads
-this source, appends a one-line ``_main(<spec json>)`` call, and pipes the whole
+The deploy host imports its standard-library definitions and report markers;
+target interrogation runs only when ``_main`` is called in the target.
+``preflight_sibling_floors.py`` reads this source, appends a one-line
+``_main(<spec json>)`` call, and pipes the whole
 thing into whatever command runs code inside the target:
 
     docker run --rm --network none --entrypoint python <image> -   < this
