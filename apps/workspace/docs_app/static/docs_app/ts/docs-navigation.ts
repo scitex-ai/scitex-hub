@@ -1,4 +1,6 @@
 /** Two stable documentation navigation columns, using server-owned groups. */
+import { syncDocsExportScope } from "./docs-export-scope";
+
 let root: HTMLElement | null = null;
 const lastPage = new Map<string, string>();
 
@@ -22,9 +24,7 @@ export function syncDocsColumns(slug: string): void {
   const title = page.querySelector("span")?.textContent?.trim() ?? slug;
   const heading = root.querySelector("#docs-page-title");
   if (heading) heading.textContent = title;
-  root.querySelectorAll<HTMLAnchorElement>("#docs-export-page-md, #docs-download-page").forEach((download) => {
-    download.href = "/apps/docs/export/" + encodeURIComponent(slug) + "/";
-  });
+  syncDocsExportScope(slug, undefined, root);
   document.dispatchEvent(new Event("docs:navigation"));
 }
 

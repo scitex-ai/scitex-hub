@@ -531,7 +531,7 @@ def _get_project_version() -> str:
 def _export_single_page(request, page) -> str:
     """Render a single doc page to Markdown."""
     converter = _make_html2text()
-    context = build_page_context(page["slug"])
+    context = build_page_context(page["slug"], sphinx_page=request.GET.get("page"))
     html = render(request, page["template"], context).content.decode()
     md = converter.handle(html)
     return f"# {page['label']}\n\n{md}"
