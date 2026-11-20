@@ -12,7 +12,7 @@ Hub supplies generic SDK project, storage, store and API-key identity capabiliti
 The installed leaf preserves the `clew_app` label, registration table and initial
 migration identity. Removing the duplicate Hub app does not migrate registry data.
 
-The qualified GUI floor is Clew 0.36.2 with SDK 0.3.25 and Dev 0.66.0. Live Paper
+The qualified GUI floor is Clew 0.36.3 with SDK 0.3.25 and Dev 0.66.0. Live Paper
 0.5.2 supplies the installed manuscript, graph, review and owned-asset routes;
 the host's existing resolver and login boundary apply to every resource. Those
 resource reads preserve the tab's project without changing remembered navigation.
