@@ -357,8 +357,8 @@ all = [
     # SAC uses the platform-owned SDK GUI dependency; its standalone [gui]
     # extra pins an older SDK and is not this host's GUI dependency contract.
     "scitex-sdk[gui]>=0.3.25",
-    "scitex-clew[gui]>=0.36.2",
-    "scitex-agent-container>=0.38.4",
+    "scitex-clew[gui]>=0.36.3",
+    "scitex-agent-container>=0.42.1",
     "scitex-cards[web]>=0.56.23",
     "scitex-storage[gui]>=0.6.11",
     "scitex-agentic-journal>=0.1.0a4",
@@ -640,8 +640,8 @@ dev = [
     # SAC uses the platform-owned SDK GUI dependency; its standalone [gui]
     # extra pins an older SDK and is not this host's GUI dependency contract.
     "scitex-sdk[gui]>=0.3.25",
-    "scitex-clew[gui]>=0.36.2",
-    "scitex-agent-container>=0.38.4",
+    "scitex-clew[gui]>=0.36.3",
+    "scitex-agent-container>=0.42.1",
     "scitex-cards[web]>=0.56.23",
     "scitex-storage[gui]>=0.6.11",
     "scitex-agentic-journal>=0.1.0a4",
