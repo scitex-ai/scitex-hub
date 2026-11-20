@@ -5,11 +5,14 @@
  * content replacement without needing to rebind.
  */
 
+import { renderSphinxDiagrams } from "./sphinx-diagrams";
+
 import { syncDocsExportScope } from "./docs-export-scope";
 
 function initSphinxPageNav(): void {
   const contentArea = document.getElementById("docs-content-area");
   if (!contentArea) return;
+  void renderSphinxDiagrams(contentArea);
 
   contentArea.addEventListener("click", (e: MouseEvent) => {
     const target = e.target as HTMLElement;
@@ -79,6 +82,7 @@ function loadSphinxPage(
     .then((html) => {
       contentArea.innerHTML = html;
       contentArea.style.opacity = "1";
+      void renderSphinxDiagrams(contentArea);
       syncDocsExportScope(slug, sphinxPage);
 
       // Move <link> tags to <head>
