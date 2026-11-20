@@ -82,7 +82,7 @@ dependencies = [
     # must resolve; see Dockerfile.prod's own convention). Do NOT lower this
     # floor to re-green an env that has not published yet: below 2.43.9 the
     # generic plugin mount cannot enforce tenancy for this leaf.
-    "scitex-writer>=2.43.9",
+    "scitex-writer>=2.44.1",
     # >=1.9.0 is a MOUNT requirement, not a feature preference. Below it the
     # leaf's client JS builds API urls from the SITE ROOT
     # (static/scholar/js/graph/citation-graph.js: fetch("/api/graph/health")),
@@ -101,7 +101,7 @@ dependencies = [
     # 1.12.0 supplies the optional graph capability report consumed by Hub.
     # 1.13.0 supplies storage.master_* (leaf owns MASTER writes; hub thin).
     # 1.29.1 uses SDK branding without a missing production static-manifest asset.
-    "scitex-scholar>=1.29.2",
+    "scitex-scholar>=1.29.3",
     # 0.2.16 supplies the shared SDK header/viewer integration in the
     # currently supported application cohort.
     # Live-paper mount (hub #1108): apps/workspace/live_paper_app/mount.py
@@ -131,7 +131,7 @@ dependencies = [
     "scitex-container>=0.4.2",
     "scitex-decorators>=0.1.12",
     "scitex-sh>=0.2.0",
-    "scitex-template>=0.7.0",
+    "scitex-template>=0.7.4",
     # 0.16.1 is the first release where `audit_all_for_package`
     # honours the HYPHENATED rule-id format that tests/develop/
     # test_audit.py uses (`[PA-307 …]` <- skip_rules=("PA-307",)).
