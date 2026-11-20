@@ -5,6 +5,8 @@
  * content replacement without needing to rebind.
  */
 
+import { syncDocsExportScope } from "./docs-export-scope";
+
 function initSphinxPageNav(): void {
   const contentArea = document.getElementById("docs-content-area");
   if (!contentArea) return;
@@ -77,6 +79,7 @@ function loadSphinxPage(
     .then((html) => {
       contentArea.innerHTML = html;
       contentArea.style.opacity = "1";
+      syncDocsExportScope(slug, sphinxPage);
 
       // Move <link> tags to <head>
       contentArea
