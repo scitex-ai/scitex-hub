@@ -29,7 +29,7 @@ services:
       - ../../..:/app:cached
 
       # SciTeX ecosystem packages (editable mode) - must exist in ~/proj/
-      - ../../../../scitex-python:/scitex-python:cached
+      - ${SCITEX_PYTHON_SOURCE_DIR:-../../../../scitex-python}:/scitex-python:cached
       - ../../../../scitex-core:/scitex-core:cached
       - ../../../../scitex-io:/scitex-io:cached
       - ../../../../scitex-stats:/scitex-stats:cached
@@ -327,7 +327,7 @@ services:
 
     volumes:
       - ../../..:/app:cached
-      - ../../../../scitex-python:/scitex-python:cached
+      - ${SCITEX_PYTHON_SOURCE_DIR:-../../../../scitex-python}:/scitex-python:cached
       - ../../../../scitex-core:/scitex-core:cached
       - ../../../../scitex-io:/scitex-io:cached
       - ../../../../scitex-stats:/scitex-stats:cached
@@ -459,7 +459,7 @@ services:
 
     volumes:
       - ../../..:/app:cached
-      - ../../../../scitex-python:/scitex-python:cached
+      - ${SCITEX_PYTHON_SOURCE_DIR:-../../../../scitex-python}:/scitex-python:cached
       - ../../../../scitex-core:/scitex-core:cached
       - ../../../../scitex-io:/scitex-io:cached
       - ../../../../scitex-stats:/scitex-stats:cached
