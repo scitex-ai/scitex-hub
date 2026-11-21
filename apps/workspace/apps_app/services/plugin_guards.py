@@ -300,8 +300,9 @@ def _plugin_mount_rejection(request, mount_path: str):
     request path or deriving policy authority from client parameters.
     """
     from django.conf import settings
+    from django.contrib.auth.views import redirect_to_login
     from django.http import JsonResponse
-    from django.shortcuts import redirect, render
+    from django.shortcuts import render
 
     match = _match_mount(mount_path)
     if match is None:
@@ -310,7 +311,7 @@ def _plugin_mount_rejection(request, mount_path: str):
 
     user = getattr(request, "user", None)
     if user is None or not user.is_authenticated:
-        return redirect(f"{settings.LOGIN_URL}?next={request.path}")
+        return redirect_to_login(request.get_full_path(), settings.LOGIN_URL)
 
     if not plugin_access_allowed(user, policy):
         if _wants_html(request):
