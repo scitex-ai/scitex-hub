@@ -4,3 +4,5 @@ include pyproject.toml
 recursive-include src/scitex_hub/_skills *.md
 recursive-include src/scitex_hub/skills *.md
 include src/scitex_hub/_cli_audit_dict.yaml
+prune .scitex/hub/runtime
+global-exclude ssh_host_rsa_key .ssh-host-key-*

@@ -11,6 +11,38 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- Apply the selected research scaffold to new Full projects after the Gitea
+  clone, retain its Git identity, and publish the populated project. Refuse
+  existing research contents and report template failures instead of silently
+  creating an empty project.
+
+- Record issue events with the model's `user` field. Creating, editing,
+  closing, reopening, assigning, labelling and milestoning an issue passed
+  `actor=` to `IssueEvent` and answered HTTP 500 after the change was saved.
+  Reopen now passes the acting user to `Issue.reopen`, and close/reopen no
+  longer record a second event on top of the one the model method records.
+
+## [0.22.0a8] - 2026-11-12
+
+### Changed
+
+- Adopt the qualified public Config 0.3.8, Dev 0.62.26, SDK 0.3.24,
+  Cards 0.56.23 and FigRecipe 0.44.7 releases across the runtime and
+  development profiles. FigRecipe includes the source-bound frontend and
+  rendered-token CSRF handling needed with HttpOnly cookies.
+
+### Fixed
+
+- Keep the gateway SSH host identity in persistent private state across
+  container starts. Refuse unsafe paths and preserve existing key ownership
+  and permissions instead of replacing identity during startup.
+- Upload browser console diagnostics only when Django advertises the
+  DEBUG-only upload endpoint. Retain local console history without issuing
+  requests to an unavailable production endpoint.
+
+
 ## [0.22.0a7] - 2026-11-09
 
 ### Changed

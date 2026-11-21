@@ -18,13 +18,84 @@
   min-width: 200px;
   border-right: 1px solid var(--workspace-border-default, #30363d);
   background: var(--workspace-bg-secondary, #161b22);
-  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  overflow: hidden;
   flex-shrink: 0;
 }
 
 .docs-nav {
   padding: 8px 0;
+  overflow-y: auto;
+  min-height: 0;
+  flex: 0 1 auto;
 }
+
+/* Category rows never gain inserted children or change position on selection. */
+.docs-categories {
+  width: 170px;
+  flex: 0 0 170px;
+  overflow-y: auto;
+  background: var(--workspace-bg-secondary, #161b22);
+  border-right: 1px solid var(--workspace-border-default, #30363d);
+}
+.docs-nav-heading {
+  padding: 12px 10px;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-tertiary, #8b949e);
+}
+.docs-category {
+  display: block;
+  width: 100%;
+  padding: 10px;
+  text-align: left;
+  font: inherit;
+  font-size: 12px;
+  color: var(--text-secondary, #c9d1d9);
+  background: transparent;
+  border: 0;
+  border-radius: 0;
+  border-right: 2px solid transparent;
+  cursor: pointer;
+}
+.docs-category:hover, .docs-category.active {
+  background: var(--workspace-bg-hover, #1c2128);
+  color: var(--text-primary, #e6edf3);
+}
+.docs-category.active { border-right-color: var(--stx-brand, #58a6ff); }
+.docs-category:focus-visible, .docs-nav-item:focus-visible {
+  outline: 2px solid var(--stx-brand, #58a6ff);
+  outline-offset: -2px;
+}
+.docs-page-group[hidden], .docs-section-nav[hidden] { display: none; }
+.docs-section-nav {
+  flex: 0 1 auto;
+  max-height: 40%;
+  overflow-y: auto;
+  padding: 8px 0;
+  border-top: 1px solid var(--workspace-border-default, #30363d);
+}
+.docs-content-column {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-width: 0;
+  min-height: 0;
+}
+.docs-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  flex: 0 0 auto;
+  padding: 8px 16px;
+  background: var(--workspace-bg-secondary, #161b22);
+  border-bottom: 1px solid var(--workspace-border-default, #30363d);
+}
+#docs-page-title { font-size: 13px; font-weight: 600; }
 
 /* Page-level nav items */
 .docs-nav-item {
@@ -201,23 +272,17 @@
 }
 
 /* ── Export / Download ──────────────────────────────────── */
-.docs-nav-footer {
-  padding: 12px;
-  margin-top: 8px;
-  border-top: 1px solid var(--workspace-border-default, #30363d);
-}
-
 .docs-export-btn {
   display: flex;
   align-items: center;
   gap: 4px;
   padding: 4px 8px;
   font-size: 11px;
-  color: var(--text-tertiary, #8b949e);
+  color: var(--stx-on-brand, #fff);
   text-decoration: none;
-  border: 1px solid var(--workspace-border-default, #30363d);
+  border: 1px solid var(--stx-brand, #1a2a40);
   border-radius: 4px;
-  background: transparent;
+  background: var(--stx-brand, #1a2a40);
   cursor: pointer;
   transition:
     background 0.15s ease,
@@ -225,9 +290,14 @@
 }
 
 .docs-export-btn:hover {
-  background: var(--workspace-bg-hover, #1c2128);
-  color: var(--text-primary, #e6edf3);
+  filter: brightness(1.1);
+  color: var(--stx-on-brand, #fff);
   text-decoration: none;
+}
+
+/* Older installed themes expose brand but not its paired foreground yet. */
+[data-theme="dark"] .docs-export-btn {
+  color: var(--stx-on-brand, #1a2a40);
 }
 
 /* ── Dropdown ──────────────────────────────────────────── */
@@ -239,9 +309,9 @@
 .docs-dropdown-menu {
   display: none;
   position: absolute;
-  bottom: 100%;
-  left: 0;
-  margin-bottom: 4px;
+  top: 100%;
+  right: 0;
+  margin-top: 4px;
   min-width: 120px;
   background: var(--workspace-bg-secondary, #161b22);
   border: 1px solid var(--workspace-border-default, #30363d);
@@ -250,12 +320,6 @@
   z-index: 100;
 }
 
-.docs-section-export .docs-dropdown-menu {
-  bottom: auto;
-  top: 100%;
-  margin-top: 4px;
-  margin-bottom: 0;
-}
 
 .docs-dropdown.open .docs-dropdown-menu {
   display: block;
@@ -284,13 +348,6 @@
   text-decoration: none;
 }
 
-.docs-section-export {
-  display: flex;
-  gap: 6px;
-  padding: 8px 16px;
-  border-bottom: 1px solid var(--workspace-border-default, #30363d);
-  background: var(--workspace-bg-secondary, #161b22);
-}
 
 /* ── Context Menu ──────────────────────────────────────── */
 .docs-ctx-menu {
@@ -356,6 +413,7 @@
    .docs-workspace); only docs-specific sizing lives here. Breakpoint
    matches workspace-shell.css (767px). */
 @media (max-width: 767px) {
+  .docs-categories,
   .docs-sidebar {
     display: none;
   }
@@ -401,6 +459,8 @@
     overflow-wrap: normal;
     word-break: normal;
   }
+
+  .docs-content-column { width: 100%; flex: 1 1 auto; }
 
   .docs-content {
     flex: 1 1 auto;

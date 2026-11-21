@@ -6,6 +6,7 @@
 from __future__ import annotations
 
 import os
+from datetime import datetime
 
 __FILE__ = "./apps/public_app/views/legal.py"
 __DIR__ = os.path.dirname(__FILE__)
@@ -21,6 +22,7 @@ Handles contact, privacy policy, terms of use, cookie policy, and the
 from django.conf import settings
 from django.shortcuts import render
 from django.utils import translation
+
 from ..pricing import annotate_jpy_reference, get_usd_jpy_rate, published_price_rows
 from ..pricing_pages import rate_card
 
@@ -124,6 +126,37 @@ def cookie_policy(request):
     return render(request, "public_app/legal/cookie_policy.html")
 
 
+#: Human-readable names for the FX suppliers ``get_usd_jpy_rate`` reports, so
+#: the page can say where its yen estimate's rate comes from.
+_FX_SOURCE_LABELS = {"open.er-api.com": "ExchangeRate-API (open.er-api.com)"}
+
+
+def _fx_note_context(fx: dict, as_of_format: str) -> dict:
+    """Display values for the page's FX note, from a ``get_usd_jpy_rate`` result.
+
+    Pure: takes the supplier's result, returns the rate (1 decimal), the
+    as-of date in ``as_of_format``, and the supplier's display name. Where
+    the rate comes from is part of the disclosed method (operator
+    2026-11-16: the page says how the rate is retrieved, that the yen is an
+    estimate, and that actual billing differs).
+    """
+    as_of = fx.get("as_of", "")
+    if as_of:
+        try:
+            as_of = datetime.strptime(as_of, "%a, %d %b %Y %H:%M:%S %z").strftime(
+                as_of_format
+            )
+        except ValueError:
+            pass  # show the supplier's own timestamp verbatim
+    source = fx.get("source", "")
+    return {
+        "fx_rate": fx["rate"],
+        "fx_rate_display": f"{fx['rate']:.1f}" if fx["rate"] else None,
+        "fx_as_of_display": as_of,
+        "fx_source_display": _FX_SOURCE_LABELS.get(source, source),
+    }
+
+
 def _tokushoho_context(as_of_format: str) -> dict:
     """Shared context for the tokushoho pages (JA legally-binding + EN reference).
 
@@ -159,20 +192,7 @@ def _tokushoho_context(as_of_format: str) -> dict:
     # rate + as-of date are shown on the page so the method is transparent.
     fx = get_usd_jpy_rate()
     annotate_jpy_reference(rows, fx["rate"])
-    context["fx_rate"] = fx["rate"]
-    # Display-ready values for the page note: rate to 1 decimal, and the
-    # rate's as-of date formatted by the caller.
-    context["fx_rate_display"] = f"{fx['rate']:.1f}" if fx["rate"] else None
-    if fx["as_of"]:
-        try:
-            from datetime import datetime
-
-            dt = datetime.strptime(fx["as_of"], "%a, %d %b %Y %H:%M:%S %z")
-            context["fx_as_of_display"] = dt.strftime(as_of_format)
-        except ValueError:
-            context["fx_as_of_display"] = fx["as_of"]
-    else:
-        context["fx_as_of_display"] = ""
+    context.update(_fx_note_context(fx, as_of_format))
     context["published_price_rows"] = rows
     # The metered rates (storage tiers, egress, compute — the latter labelled
     # coming soon) are prices too, so the 特商法 page states them as well.

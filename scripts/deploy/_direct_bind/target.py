@@ -11,6 +11,7 @@ from pathlib import Path
 from preflight_targets import Target, TargetUnreachable
 
 from . import snapshot
+from .installation import run_install
 
 
 class DirectBindTarget(Target):
@@ -27,14 +28,21 @@ class DirectBindTarget(Target):
         self.sources = {}
         self.image = None
         self.created_volume = False
+        self.pending_create = False
+        self.stage = "inspect image"
         self.timeout = timeout
         super().__init__(
             "direct-bind", "prospective image and normal editable cohort", [], True
         )
         try:
             self._prepare(context)
-        except Exception:
+        except Exception as exc:
             self.close()
+            if isinstance(exc, subprocess.TimeoutExpired):
+                raise TargetUnreachable(
+                    "owned development preparation timed out during {0}; "
+                    "no deployment changed".format(self.stage)
+                ) from None
             raise
 
     def _prepare(self, context):
@@ -45,6 +53,7 @@ class DirectBindTarget(Target):
                 timeout=self.timeout,
             )
         )[0]["Id"]
+        self.stage = "snapshot sources"
         directory = self.workspace / "sources"
         directory.mkdir()
         self.sources, objects = snapshot.prepare(context.direct_sources, directory)
@@ -56,6 +65,7 @@ class DirectBindTarget(Target):
             "scitex.hub.preflight=" + self.token,
             self.volume,
         ]
+        self.stage = "create owned volume"
         subprocess.run(
             command,
             check=True,
@@ -102,6 +112,8 @@ class DirectBindTarget(Target):
             "-c",
             "import time; time.sleep(1200)",
         ]
+        self.stage = "create owned preparation container"
+        self.pending_create = True
         subprocess.run(
             create,
             check=True,
@@ -109,6 +121,8 @@ class DirectBindTarget(Target):
             stderr=subprocess.PIPE,
             timeout=30,
         )
+        self.pending_create = False
+        self.stage = "start owned preparation container"
         subprocess.run(
             ["docker", "start", self.install_name],
             check=True,
@@ -125,28 +139,13 @@ class DirectBindTarget(Target):
             "/preflight-profile.py",
         ]
         spec = {"sources": self.sources, "uid": os.getuid(), "gid": os.getgid()}
-        completed = subprocess.run(
-            install,
-            input=json.dumps(spec).encode(),
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE,
-            timeout=self.timeout,
-        )
-        if completed.returncode:
-            descriptor, log_path = tempfile.mkstemp(
-                prefix="scitex-hub-preflight-", suffix=".private.log"
-            )
-            with os.fdopen(descriptor, "wb") as stream:
-                stream.write(completed.stdout)
-                stream.write(completed.stderr)
-            raise TargetUnreachable(
-                "normal prospective editable installation or dependency check failed; "
-                "private diagnostics: {0}; no deployment was changed".format(log_path)
-            )
+        self.stage = "normal editable install and source verification"
+        run_install(install, spec, self.timeout)
         snapshot.verify(self.sources)
         # Probe the exact installed image-plus-editables graph, without a
         # second resolver or a fabricated metadata overlay. Disconnect ONLY
         # this owned container; no serving network or source is modified.
+        self.stage = "disconnect owned network"
         subprocess.run(
             ["docker", "network", "disconnect", "bridge", self.install_name],
             check=True,
@@ -154,6 +153,7 @@ class DirectBindTarget(Target):
             stderr=subprocess.PIPE,
             timeout=30,
         )
+        self.stage = "verify owned network"
         document = json.loads(
             subprocess.check_output(
                 ["docker", "inspect", self.install_name],
@@ -200,6 +200,10 @@ class DirectBindTarget(Target):
                 stderr=subprocess.PIPE,
                 timeout=30,
             )
+            if value.returncode and name == self.install_name and self.pending_create:
+                from .pending_creation import preserve_pending_creation
+
+                raise TargetUnreachable(preserve_pending_creation(self))
             if value.returncode == 0:
                 document = json.loads(value.stdout)[0]
                 if (

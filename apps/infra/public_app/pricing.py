@@ -7,9 +7,9 @@ mirrors the operator's "SciTeX Services SSOT — Provisional v1.0" (2026-09-14).
 Prices are USD and USD is the only stored currency; the yen on /tokushoho/ is a
 reference computed at render time from the live exchange rate.
 
-The JSON stores an ``amount`` and never a formatted string. This module owns
-the formatting, so "2400" has exactly one rendering and changing a price is a
-one-place edit that reaches every page together.
+The JSON stores numeric ``amount`` values or an explicit on-request price
+with no amount, never a formatted price. This module owns the formatting so
+a catalogue change reaches every page together.
 
 English is the i18n SOURCE for every phrase built here; Japanese comes from the
 catalog (locale/ja/LC_MESSAGES/django.po), applied at CALL time so it follows
@@ -551,6 +551,21 @@ def annotate_jpy_reference(rows: list[dict], rate: float | None) -> list[dict]:
     return rows
 
 
+def _published_price(item: dict[str, Any]) -> str:
+    """Format a numeric price or an explicitly quoted offer; reject ambiguity."""
+    status = item.get("price_status", "fixed")
+    amount = item["amount"]
+    unit = item.get("unit", "once")
+    from_price = item.get("from_price", False)
+    if status == "on-request":
+        if amount is not None or from_price or unit not in _UNIT_SUFFIX:
+            raise ValueError("An on-request price needs a null amount, a known unit and no floor.")
+        return _("On request")
+    if status != "fixed":
+        raise ValueError(f"Unknown price_status {status!r} in pricing.json.")
+    return format_amount(amount, unit, from_price)
+
+
 def published_price_rows(today: date | None = None) -> list[dict[str, Any]]:
     """The price list the 特定商取引法 page publishes, formatted, gated by date.
 
@@ -568,7 +583,6 @@ def published_price_rows(today: date | None = None) -> list[dict[str, Any]]:
             continue
         if str(item.get("withheld", "")).strip():
             continue
-        unit = item.get("unit", "once")
         from_price = item.get("from_price", False)
         basis = item.get("basis", "")
         attrs = item.get("attributes", {})
@@ -590,7 +604,7 @@ def published_price_rows(today: date | None = None) -> list[dict[str, Any]]:
             {
                 "id": item["id"],
                 "label": item["label"],
-                "price": format_amount(item["amount"], unit, from_price),
+                "price": _published_price(item),
                 "price_note": "",
                 "storage": storage_str,
                 "compute_credit": credit_str,

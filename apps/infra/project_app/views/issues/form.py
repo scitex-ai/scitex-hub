@@ -80,7 +80,7 @@ def issue_create(request, username, slug):
                     pass
 
         # Create event
-        IssueEvent.objects.create(issue=issue, event_type="created", actor=request.user)
+        IssueEvent.objects.create(issue=issue, event_type="created", user=request.user)
 
         messages.success(request, f"Issue #{issue.number} created successfully")
         return redirect(issue.get_absolute_url())
@@ -171,7 +171,7 @@ def issue_edit(request, username, slug, issue_number):
             IssueEvent.objects.create(
                 issue=issue,
                 event_type="renamed",
-                actor=request.user,
+                user=request.user,
                 metadata={"old_title": old_title, "new_title": title},
             )
 

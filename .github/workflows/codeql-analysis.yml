@@ -22,6 +22,12 @@ concurrency:
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
+  runner-admission:
+    uses: scitex-ai/.github/.github/workflows/runner-admission.yml@main
+    permissions: {}
+    with:
+      runs_on: '["self-hosted","Linux","X64","scitex-org-cpu"]'
+
   analyze:
     name: Analyze Code
     # VERIFICATION, not an assumption. I claimed earlier that codeql "needs
@@ -33,12 +39,13 @@ jobs:
     # This is currently a GREEN check, so the risk is real and accepted
     # deliberately: an exemption I cannot justify by measurement is just a
     # skip_rules entry with better manners.
-    # scitex-local-cpu (scitex-compute-01..04) for trusted runs; fork PRs stay
-    # on ephemeral hosted VMs. Same predicate as scitex-ai/.github import-smoke.
+    # Shared admission keeps fork and unknown-author work hosted; trusted work
+    # targets the registered organization CPU pool.
+    needs: runner-admission
     runs-on: >-
-      ${{ (github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name != github.repository)
-          && fromJSON('["ubuntu-latest"]')
-          || fromJSON('["self-hosted","Linux","X64","scitex-local-cpu"]') }}
+      ${{ needs.runner-admission.outputs.native_authorized == 'true'
+          && fromJSON('{"group":"Organization","labels":["self-hosted","Linux","X64","scitex-org-cpu"]}')
+          || fromJSON('["ubuntu-latest"]') }}
     permissions:
       actions: read
       contents: read

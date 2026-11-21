@@ -135,7 +135,7 @@ def project_create(request):
             messages.warning(request, gitea_msg)
 
         try:
-            project = Project.objects.create(
+            project = Project(
                 name=name,
                 slug=unique_slug,
                 description=description,
@@ -143,6 +143,12 @@ def project_create(request):
                 # Set at create time: the post_save Gitea signal reads it.
                 visibility=visibility,
             )
+            # Gitea must create the repository, but its generic Writer seed
+            # must not occupy the path selected for the research scaffold.
+            project._research_template_pending = (
+                init_type == "template" and template_type == "research"
+            )
+            project.save()
         except Exception as e:
             logger.error(f"Failed to create project: {e}")
             messages.error(request, f"Failed to create project: {str(e)}")

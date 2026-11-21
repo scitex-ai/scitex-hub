@@ -33,7 +33,8 @@
         }
     })();
 </script>
-<!-- Console Logger (Development Only) - Captures browser console to ./logs/console.log -->
+<!-- The host advertises server log uploads only in DEBUG mode. -->
+{% include 'global_base_partials/console_logger_meta.html' %}
 {% vite_script 'shared/utils/console-interceptor' %}
 <!-- PWA service worker registration -->
 {% vite_script 'shared/utils/pwa-register' %}

@@ -36,7 +36,7 @@ body
 .pricing-card {
   background: var(--color-canvas-default);
   border: 1px solid var(--color-border-default);
-  border-radius: 12px;
+  border-radius: 0;
   padding: 2rem;
   height: 100%;
   display: flex;

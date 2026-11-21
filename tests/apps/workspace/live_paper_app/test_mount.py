@@ -177,5 +177,6 @@ def test_explicit_project_resource_read_preserves_committed_selection(tmp_path):
         context.source.load().root,
         request.live_paper_view_selection.scope,
         request.live_paper_view_selection.id,
+        request.live_paper_project_tools_url,
         preference.read_bytes(),
-    ) == (selected, "project", "selected", before)
+    ) == (selected, "project", "selected", "/bundle-reader/selected/", before)

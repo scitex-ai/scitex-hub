@@ -18,5 +18,8 @@ class DocsAppConfig(AppConfig):
             register_module_docs,
         )
 
+        from ._app_docs import register_installed_app_docs
+
         register_module_docs()
         register_sphinx_packages(DOCS_PAGES, _PAGES_BY_SLUG)
+        register_installed_app_docs(DOCS_PAGES, _PAGES_BY_SLUG)

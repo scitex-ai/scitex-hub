@@ -7,7 +7,6 @@ from __future__ import annotations
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.http import require_POST
 
-from ....models import IssueEvent
 from .utils import error_response, get_project_and_issue, success_response
 
 
@@ -30,11 +29,8 @@ def api_issue_close(request, username, slug, issue_number):
     if issue.state == "closed":
         return error_response("Issue is already closed")
 
-    # Close issue
+    # Close issue (Issue.close records the "closed" IssueEvent)
     issue.close(request.user)
-
-    # Create event
-    IssueEvent.objects.create(issue=issue, event_type="closed", actor=request.user)
 
     return success_response(
         "Issue closed successfully",
@@ -65,11 +61,8 @@ def api_issue_reopen(request, username, slug, issue_number):
     if issue.state == "open":
         return error_response("Issue is already open")
 
-    # Reopen issue
-    issue.reopen()
-
-    # Create event
-    IssueEvent.objects.create(issue=issue, event_type="reopened", actor=request.user)
+    # Reopen issue (Issue.reopen records the "reopened" IssueEvent)
+    issue.reopen(request.user)
 
     return success_response(
         "Issue reopened successfully",

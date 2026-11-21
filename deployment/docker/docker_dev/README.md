@@ -12,7 +12,16 @@ make env=dev start
 |---------|-----|
 | Django | http://localhost:8000 |
 | Gitea | http://localhost:3001 |
-| Flower | http://localhost:5555 |
+
+The listed host ports are defaults; development environment settings can
+override them. Flower is not a managed service in this Compose definition.
+
+## Environment configuration
+
+Development Compose reads `.env` in this directory, conventionally linked to
+`../envs/.env.dev`. A clean checkout contains only the placeholder template;
+configure private runtime values before starting services. See
+[environment configuration](../envs/README.md).
 
 ## Test User
 

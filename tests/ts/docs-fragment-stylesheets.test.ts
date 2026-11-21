@@ -9,14 +9,14 @@ afterEach(() => {
   vi.resetModules();
 });
 
-async function loadWorkspace() {
+async function loadWorkspace(response?: () => Promise<Response>) {
   document.body.innerHTML = `<main class="docs-workspace" data-active-doc="context-exposure">
     <aside class="docs-sidebar"><a class="docs-nav-item" data-doc-slug="context-exposure">Context</a>
     <a class="docs-nav-item" data-doc-slug="overview">Overview</a></aside>
     <div id="docs-content-area"></div></main>`;
-  const fetch = vi.fn(async () => new Response(`<p>Owned Docs content</p>
+  const fetch = vi.fn(response ?? (async () => new Response(`<p>Owned Docs content</p>
     <link rel="stylesheet" href="${stylesheet}" media="screen" data-docs-style-test>
-    <link rel="modulepreload" href="/static/vite/not-a-stylesheet.js">`));
+    <link rel="modulepreload" href="/static/vite/not-a-stylesheet.js">`)));
   vi.stubGlobal("fetch", fetch);
   await import("../../apps/workspace/docs_app/static/docs_app/ts/docs-workspace");
   document.dispatchEvent(new Event("DOMContentLoaded"));
@@ -49,4 +49,20 @@ test("real Docs fragment loader retains an already connected head stylesheet", a
   expect(document.head.querySelectorAll(`link[href="${stylesheet}"]`)).toHaveLength(1);
   expect(document.head.querySelector(`link[href="${stylesheet}"]`)).toBe(existing);
   expect(document.querySelector('#docs-content-area link[rel="stylesheet"]')).toBeNull();
+});
+
+
+test("a late response after unmount cannot publish a stylesheet globally", async () => {
+  // Arrange
+  let deliver!: (response: Response) => void;
+  const pending = new Promise<Response>((resolve) => { deliver = resolve; });
+  await loadWorkspace(() => pending);
+  document.querySelector(".docs-workspace")!.remove();
+  // Act
+  deliver(new Response(`<p>Late content</p><link rel="stylesheet" href="${stylesheet}" data-docs-style-test>`));
+  await pending;
+  await new Promise((resolve) => setTimeout(resolve, 0));
+  // Assert
+  expect(document.head.querySelector(`link[href="${stylesheet}"]`)).toBeNull();
+  expect(document.querySelector("#docs-content-area")).toBeNull();
 });

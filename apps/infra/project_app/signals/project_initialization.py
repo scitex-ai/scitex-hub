@@ -176,7 +176,9 @@ def _clone_gitea_repo_to_data_dir(project):
 
             # Initialize scitex structure (writer + scholar + integration)
             # Skip for app projects — they don't need writer/scholar
-            if not project.is_app:
+            if not project.is_app and not getattr(
+                project, "_research_template_pending", False
+            ):
                 _initialize_scitex_structure(project, project_dir)
 
         else:
@@ -198,7 +200,11 @@ def on_project_created_init_bibliography(sender, instance, created, **kwargs):
     management, but does NOT parse or merge files (that's opt-in).
     """
     # Only run for newly created projects with git clone path
-    if not created or not instance.git_clone_path:
+    if (
+        not created
+        or not instance.git_clone_path
+        or getattr(instance, "_research_template_pending", False)
+    ):
         return
 
     try:

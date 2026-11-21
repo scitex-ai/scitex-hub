@@ -3,23 +3,23 @@
 <!DOCTYPE html>
 <html class="writer-html5" lang="en" data-content_root="../../">
 <head>
-  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>scitex_hub &mdash; SciTeX Hub v0.22.0a7</title>
+  <title>scitex_hub &mdash; SciTeX Hub v0.22.0a8</title>
       <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=b86133f3" />
       <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css?v=9edc463e" />
       <link rel="stylesheet" type="text/css" href="../../_static/copybutton.css?v=76b2166b" />
 
 
-      <script src="../../_static/jquery.js?v=5d32c60e"></script>
-      <script src="../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-      <script src="../../_static/documentation_options.js?v=af24e983"></script>
-      <script src="../../_static/doctools.js?v=fd6eb6e6"></script>
-      <script src="../../_static/sphinx_highlight.js?v=6ffebe34"></script>
-      <script src="../../_static/clipboard.min.js?v=a7894cd8"></script>
-      <script src="../../_static/copybutton.js?v=f281be69"></script>
-    <script src="../../_static/js/theme.js"></script>
+<script src="../../_static/jquery.js?v=5d32c60e"></script>
+<script src="../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+<script src="../../_static/documentation_options.js?v=473e4a41"></script>
+<script src="../../_static/doctools.js?v=9a2dae69"></script>
+<script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
+<script src="../../_static/clipboard.min.js?v=a7894cd8"></script>
+<script src="../../_static/copybutton.js?v=f281be69"></script>
+<script src="../../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
     <link rel="next" title="scitex_hub.account" href="scitex_hub.account.html" />
@@ -133,6 +133,7 @@
 <li class="toctree-l4"><a class="reference internal" href="#scitex_hub.Environment"><code class="docutils literal notranslate"><span class="pre">Environment</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="#scitex_hub.get_environment"><code class="docutils literal notranslate"><span class="pre">get_environment()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="#scitex_hub.DockerManager"><code class="docutils literal notranslate"><span class="pre">DockerManager</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#scitex_hub._get_version"><code class="docutils literal notranslate"><span class="pre">_get_version()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="scitex_hub.account.html">scitex_hub.account</a></li>
 <li class="toctree-l4"><a class="reference internal" href="scitex_hub.appmaker.html">scitex_hub.appmaker</a></li>
 <li class="toctree-l4"><a class="reference internal" href="scitex_hub.module.html">scitex_hub.module</a></li>
@@ -300,7 +301,7 @@ current page.</p></li>
 
 <dl class="py class">
 <dt class="sig sig-object py" id="scitex_hub.CloudClient">
-<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">scitex_hub.</span></span><span class="sig-name descname"><span class="pre">CloudClient</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">api_key</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><span class="pre">str</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/constants.html#None" title="(in Python v3.15)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">base_url</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><span class="pre">str</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/constants.html#None" title="(in Python v3.15)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/scitex_hub/_api.html#CloudClient"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#scitex_hub.CloudClient" title="Link to this definition"></a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">scitex_hub.</span></span><span class="sig-name descname"><span class="pre">CloudClient</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">api_key</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><span class="pre">str</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/constants.html#None" title="(in Python v3.15)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">base_url</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><span class="pre">str</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/constants.html#None" title="(in Python v3.15)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/scitex_hub/_api.html#CloudClient"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#scitex_hub.CloudClient" title="Link to this definition"></a></dt>
 <dd><p>Python client for SciTeX Hub API.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -524,47 +525,47 @@ available actions, and aggregated context.</p>
 
 <dl class="py class">
 <dt class="sig sig-object py" id="scitex_hub.Environment">
-<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">scitex_hub.</span></span><span class="sig-name descname"><span class="pre">Environment</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><span class="pre">str</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">docker_compose_file</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><span class="pre">str</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">env_file</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><span class="pre">str</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">host</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><span class="pre">str</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">port</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.15)"><span class="pre">int</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">description</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><span class="pre">str</span></a></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/scitex_hub/_config/_environments.html#Environment"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#scitex_hub.Environment" title="Link to this definition"></a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">scitex_hub.</span></span><span class="sig-name descname"><span class="pre">Environment</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><span class="pre">str</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">docker_compose_file</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><span class="pre">str</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">env_file</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><span class="pre">str</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">host</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><span class="pre">str</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">port</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.15)"><span class="pre">int</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">description</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><span class="pre">str</span></a></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/scitex_hub/_config/_environments.html#Environment"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#scitex_hub.Environment" title="Link to this definition"></a></dt>
 <dd><p>Deployment environment configuration.</p>
 <dl class="py attribute">
 <dt class="sig sig-object py" id="scitex_hub.Environment.name">
-<span class="sig-name descname"><span class="pre">name</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><span class="pre">str</span></a></span><a class="headerlink" href="#scitex_hub.Environment.name" title="Link to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">name</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><span class="pre">str</span></a></em><a class="headerlink" href="#scitex_hub.Environment.name" title="Link to this definition"></a></dt>
 <dd></dd></dl>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="scitex_hub.Environment.docker_compose_file">
-<span class="sig-name descname"><span class="pre">docker_compose_file</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><span class="pre">str</span></a></span><a class="headerlink" href="#scitex_hub.Environment.docker_compose_file" title="Link to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">docker_compose_file</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><span class="pre">str</span></a></em><a class="headerlink" href="#scitex_hub.Environment.docker_compose_file" title="Link to this definition"></a></dt>
 <dd></dd></dl>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="scitex_hub.Environment.env_file">
-<span class="sig-name descname"><span class="pre">env_file</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><span class="pre">str</span></a></span><a class="headerlink" href="#scitex_hub.Environment.env_file" title="Link to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">env_file</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><span class="pre">str</span></a></em><a class="headerlink" href="#scitex_hub.Environment.env_file" title="Link to this definition"></a></dt>
 <dd></dd></dl>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="scitex_hub.Environment.host">
-<span class="sig-name descname"><span class="pre">host</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><span class="pre">str</span></a></span><a class="headerlink" href="#scitex_hub.Environment.host" title="Link to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">host</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><span class="pre">str</span></a></em><a class="headerlink" href="#scitex_hub.Environment.host" title="Link to this definition"></a></dt>
 <dd></dd></dl>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="scitex_hub.Environment.port">
-<span class="sig-name descname"><span class="pre">port</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.15)"><span class="pre">int</span></a></span><a class="headerlink" href="#scitex_hub.Environment.port" title="Link to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">port</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.15)"><span class="pre">int</span></a></em><a class="headerlink" href="#scitex_hub.Environment.port" title="Link to this definition"></a></dt>
 <dd></dd></dl>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="scitex_hub.Environment.description">
-<span class="sig-name descname"><span class="pre">description</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><span class="pre">str</span></a></span><a class="headerlink" href="#scitex_hub.Environment.description" title="Link to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">description</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><span class="pre">str</span></a></em><a class="headerlink" href="#scitex_hub.Environment.description" title="Link to this definition"></a></dt>
 <dd></dd></dl>
 
 <dl class="py property">
 <dt class="sig sig-object py" id="scitex_hub.Environment.env_path">
-<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">env_path</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/pathlib.html#pathlib.Path" title="(in Python v3.15)"><span class="pre">Path</span></a></span><a class="headerlink" href="#scitex_hub.Environment.env_path" title="Link to this definition"></a></dt>
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">env_path</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/pathlib.html#pathlib.Path" title="(in Python v3.15)"><span class="pre">Path</span></a></em><a class="headerlink" href="#scitex_hub.Environment.env_path" title="Link to this definition"></a></dt>
 <dd><p>Get full path to .env file.</p>
 </dd></dl>
 
 <dl class="py property">
 <dt class="sig sig-object py" id="scitex_hub.Environment.compose_path">
-<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">compose_path</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/pathlib.html#pathlib.Path" title="(in Python v3.15)"><span class="pre">Path</span></a></span><a class="headerlink" href="#scitex_hub.Environment.compose_path" title="Link to this definition"></a></dt>
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">compose_path</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/pathlib.html#pathlib.Path" title="(in Python v3.15)"><span class="pre">Path</span></a></em><a class="headerlink" href="#scitex_hub.Environment.compose_path" title="Link to this definition"></a></dt>
 <dd><p>Get full path to docker-compose file.</p>
 </dd></dl>
 
@@ -583,7 +584,7 @@ available actions, and aggregated context.</p>
 
 <dl class="py class">
 <dt class="sig sig-object py" id="scitex_hub.DockerManager">
-<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">scitex_hub.</span></span><span class="sig-name descname"><span class="pre">DockerManager</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">env</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#scitex_hub.Environment" title="scitex_hub._config._environments.Environment"><span class="pre">Environment</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/constants.html#None" title="(in Python v3.15)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">project_root</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/pathlib.html#pathlib.Path" title="(in Python v3.15)"><span class="pre">Path</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/constants.html#None" title="(in Python v3.15)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/scitex_hub/_utils/_docker.html#DockerManager"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#scitex_hub.DockerManager" title="Link to this definition"></a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">scitex_hub.</span></span><span class="sig-name descname"><span class="pre">DockerManager</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">env</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#scitex_hub.Environment" title="scitex_hub._config._environments.Environment"><span class="pre">Environment</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/constants.html#None" title="(in Python v3.15)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">project_root</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/pathlib.html#pathlib.Path" title="(in Python v3.15)"><span class="pre">Path</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/constants.html#None" title="(in Python v3.15)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/scitex_hub/_utils/_docker.html#DockerManager"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#scitex_hub.DockerManager" title="Link to this definition"></a></dt>
 <dd><p>Manage Docker containers for SciTeX Hub.</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="scitex_hub.DockerManager.__init__">
@@ -646,22 +647,37 @@ available actions, and aggregated context.</p>
 
 </dd></dl>
 
+<dl class="py function">
+<dt class="sig sig-object py" id="scitex_hub._get_version">
+<span class="sig-prename descclassname"><span class="pre">scitex_hub.</span></span><span class="sig-name descname"><span class="pre">_get_version</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><span class="pre">str</span></a></span></span><a class="reference internal" href="../../_modules/scitex_hub.html#_get_version"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#scitex_hub._get_version" title="Link to this definition"></a></dt>
+<dd><p>Read installed package version via <code class="docutils literal notranslate"><span class="pre">importlib.metadata</span></code>.</p>
+<p>PEP 566 / 621 publishes the distribution version in the package
+metadata. <code class="docutils literal notranslate"><span class="pre">importlib.metadata.version</span></code> reads that without
+re-parsing pyproject.toml — which (a) works the same on editable
+installs and on built wheels, (b) doesn’t break when pyproject.toml
+isn’t shipped (wheel / sdist install), and (c) matches the rule
+PA-202 §2 (version-not-from-metadata) the ecosystem audit enforces.</p>
+<p>Falls back to <code class="docutils literal notranslate"><span class="pre">&quot;unknown&quot;</span></code> when the dist isn’t installed (e.g.
+running directly from a checkout without <code class="docutils literal notranslate"><span class="pre">pip</span> <span class="pre">install</span> <span class="pre">-e</span> <span class="pre">.</span></code>),
+so import never raises.</p>
+</dd></dl>
+
 <p class="rubric">Modules</p>
 <table class="autosummary longtable docutils align-default">
 <tbody>
-<tr class="row-odd"><td><p><a class="reference internal" href="scitex_hub.account.html#module-scitex_hub.account" title="scitex_hub.account"><code class="xref py py-obj docutils literal notranslate"><span class="pre">account</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="scitex_hub.account.html#module-scitex_hub.account" title="scitex_hub.account"><code class="xref py py-obj docutils literal notranslate"><span class="pre">scitex_hub.account</span></code></a></p></td>
 <td><p>SciTeX Hub account namespace — Python parity for the <code class="docutils literal notranslate"><span class="pre">account</span></code> CLI tree.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="scitex_hub.appmaker.html#module-scitex_hub.appmaker" title="scitex_hub.appmaker"><code class="xref py py-obj docutils literal notranslate"><span class="pre">appmaker</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="scitex_hub.appmaker.html#module-scitex_hub.appmaker" title="scitex_hub.appmaker"><code class="xref py py-obj docutils literal notranslate"><span class="pre">scitex_hub.appmaker</span></code></a></p></td>
 <td><p>SciTeX App Tools — init, validate, develop, publish, and manage app plugins.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="scitex_hub.module.html#module-scitex_hub.module" title="scitex_hub.module"><code class="xref py py-obj docutils literal notranslate"><span class="pre">module</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="scitex_hub.module.html#module-scitex_hub.module" title="scitex_hub.module"><code class="xref py py-obj docutils literal notranslate"><span class="pre">scitex_hub.module</span></code></a></p></td>
 <td><p>SciTeX Hub Module -- decorator and output APIs for custom workspace modules.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="scitex_hub.project.html#module-scitex_hub.project" title="scitex_hub.project"><code class="xref py py-obj docutils literal notranslate"><span class="pre">project</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="scitex_hub.project.html#module-scitex_hub.project" title="scitex_hub.project"><code class="xref py py-obj docutils literal notranslate"><span class="pre">scitex_hub.project</span></code></a></p></td>
 <td><p>SciTeX Hub project management.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="scitex_hub.sdk.html#module-scitex_hub.sdk" title="scitex_hub.sdk"><code class="xref py py-obj docutils literal notranslate"><span class="pre">sdk</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="scitex_hub.sdk.html#module-scitex_hub.sdk" title="scitex_hub.sdk"><code class="xref py py-obj docutils literal notranslate"><span class="pre">scitex_hub.sdk</span></code></a></p></td>
 <td><p>SciTeX SDK — backward-compatible re-export from scitex-sdk.</p></td>
 </tr>
 </tbody>
@@ -692,7 +708,7 @@ available actions, and aggregated context.</p>
       </div>
     </section>
   </div>
-  <script>
+<script>
       jQuery(function () {
           SphinxRtdTheme.Navigation.enable(true);
       });
