@@ -114,6 +114,12 @@ def hub_resolver(request, **url_kwargs) -> BundleContext:
         ) from exc
     except BundleError as exc:
         raise BundleResolverError(f"Invalid LivePaper bundle: {exc}") from exc
+    if view_selection is not None and not url_kwargs:
+        owner, _, slug = view_selection.id.rpartition("/")
+        request.live_paper_project_tools_url = reverse(
+            "project_app:detail",
+            kwargs={"username": owner or request.user.username, "slug": slug},
+        )
     return BundleContext(
         source=BundleSource.from_bundle(bundle),
         paper_state=PaperState(),
