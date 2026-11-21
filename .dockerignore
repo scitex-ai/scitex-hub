@@ -94,6 +94,8 @@ test-paper-project/
 deployment/singularity/
 
 # Runtime data (mounted as volumes, not copied into image)
+# Service-owned logs and private runtime state must stay outside image contexts.
+GITIGNORED/
 data
 logs
 backups
