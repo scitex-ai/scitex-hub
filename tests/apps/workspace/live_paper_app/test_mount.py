@@ -193,3 +193,29 @@ def test_explicit_project_resource_read_preserves_committed_selection(tmp_path):
         },
         before,
     )
+
+
+def test_shared_project_uses_only_its_authorized_storage_root(tmp_path, monkeypatch):
+    from scitex_sdk import host
+
+    owner = tmp_path / "data/users/bundle-owner/proj"
+    shared = _bundle(owner / "shared")
+    sibling = _bundle(owner / "sibling")
+    access = host.ProjectAccess("bundle-owner/shared", "Shared", shared, False)
+    monkeypatch.setattr(host, "project_access", lambda request, **kwargs: access)
+    request = RequestFactory().get(
+        "/apps/live-paper/", {"project": access.id, "shared": "1"}
+    )
+    request.user = SimpleNamespace(username="bundle-reader", is_authenticated=True)
+    with override_settings(BASE_DIR=tmp_path):
+        context = hub_resolver(request)
+        assert context.source.load().root == shared
+        (shared / "claims.json").unlink()
+        (shared / "claims.json").symlink_to(sibling / "claims.json")
+        with pytest.raises(BundleAccessDenied):
+            context.source.load()
+        alias = owner / "alias"
+        alias.symlink_to(sibling, target_is_directory=True)
+        access = host.ProjectAccess("bundle-owner/shared", "Shared", alias, False)
+        with pytest.raises(BundleAccessDenied):
+            hub_resolver(request)
