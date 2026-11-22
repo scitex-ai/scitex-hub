@@ -178,5 +178,18 @@ def test_explicit_project_resource_read_preserves_committed_selection(tmp_path):
         request.live_paper_view_selection.scope,
         request.live_paper_view_selection.id,
         request.live_paper_project_tools_url,
+        request.live_paper_evidence_links(Path("data/run #1.py")),
+        request.live_paper_evidence_links(Path("README.md")),
         preference.read_bytes(),
-    ) == (selected, "project", "selected", "/bundle-reader/selected/", before)
+    ) == (
+        selected, "project", "selected", "/bundle-reader/selected/",
+        {
+            "file": "/bundle-reader/selected/blob/data/run%20%231.py",
+            "folder": "/bundle-reader/selected/data/",
+        },
+        {
+            "file": "/bundle-reader/selected/blob/README.md",
+            "folder": "/bundle-reader/selected/",
+        },
+        before,
+    )

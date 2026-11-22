@@ -114,12 +114,30 @@ def hub_resolver(request, **url_kwargs) -> BundleContext:
         ) from exc
     except BundleError as exc:
         raise BundleResolverError(f"Invalid LivePaper bundle: {exc}") from exc
-    if view_selection is not None and not url_kwargs:
+    if view_selection is not None:
         owner, _, slug = view_selection.id.rpartition("/")
-        request.live_paper_project_tools_url = reverse(
-            "project_app:detail",
-            kwargs={"username": owner or request.user.username, "slug": slug},
-        )
+        project = {"username": owner or request.user.username, "slug": slug}
+        if not url_kwargs:
+            request.live_paper_project_tools_url = reverse("project_app:detail", kwargs=project)
+
+        def evidence_links(file_path: Path) -> dict[str, str]:
+            folder = file_path.parent
+            return {
+                "file": reverse(
+                    "project_app:file_view",
+                    kwargs={**project, "file_path": file_path.as_posix()},
+                ),
+                "folder": (
+                    reverse(
+                        "project_app:directory_browse",
+                        kwargs={**project, "directory_path": folder.as_posix()},
+                    )
+                    if folder.parts
+                    else reverse("project_app:detail", kwargs=project)
+                ),
+            }
+
+        request.live_paper_evidence_links = evidence_links
     return BundleContext(
         source=BundleSource.from_bundle(bundle),
         paper_state=PaperState(),
