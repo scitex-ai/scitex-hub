@@ -213,7 +213,7 @@ def test_shared_project_uses_only_its_authorized_storage_root(tmp_path, monkeypa
         (shared / "claims.json").unlink()
         (shared / "claims.json").symlink_to(sibling / "claims.json")
         with pytest.raises(BundleAccessDenied):
-            context.source.load()
+            hub_resolver(request)
         alias = owner / "alias"
         alias.symlink_to(sibling, target_is_directory=True)
         access = host.ProjectAccess("bundle-owner/shared", "Shared", alias, False)
