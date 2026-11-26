@@ -110,53 +110,13 @@ def recruit(request):
     return render(request, "public_app/pages/recruit.html")
 
 
-def _notify_service_inquiry(inquiry):
-    """Best-effort email of a services inquiry — ONLY if an address is set.
-
-    Never falls back to recruit@ (the hiring inbox). The inquiry is already
-    persisted (ServiceInquiry) before this runs, so if no address is
-    configured, or if sending fails, nothing is lost — the DB (admin) is the
-    source of truth. A send failure is LOGGED loudly, never swallowed.
-    """
-    from django.conf import settings
-
-    to_addr = (getattr(settings, "SERVICES_INQUIRY_EMAIL", "") or "").strip()
-    if not to_addr:
-        return
-    from django.core.mail import send_mail
-
-    subject = f"[SciTeX services] お問い合わせ: {inquiry.name}"
-    body = (
-        f"お名前: {inquiry.name}\n"
-        f"ご所属: {inquiry.affiliation or '-'}\n"
-        f"ご予算感: {inquiry.budget or '-'}\n"
-        f"受付日時: {inquiry.created_at:%Y-%m-%d %H:%M}\n\n"
-        f"ご相談内容:\n{inquiry.request}\n"
-    )
-    try:
-        send_mail(
-            subject,
-            body,
-            settings.DEFAULT_FROM_EMAIL,
-            [to_addr],
-            fail_silently=False,
-        )
-    except Exception:  # noqa: BLE001 — email is best-effort; DB is the record
-        logger.warning(
-            "ServiceInquiry %s stored but email to %s failed",
-            inquiry.pk,
-            to_addr,
-            exc_info=True,
-        )
-
-
 def services(request):
     """Services page (日本語) — services list + price bands + inquiry form.
 
     Cash-runway entry point: makes "what can I hire them for" visible and
     gives an inquiry path. Deliberately NOT a billing system — inquiries are
-    persisted (ServiceInquiry) and, only when settings.SERVICES_INQUIRY_EMAIL
-    is set, emailed (never to recruit@). The BYOK / 前受金 model stays a
+    persisted (ServiceInquiry) and the operator is notified through
+    scitex-notification (never recruit@; scitex-hub#1235). The BYOK / 前受金 model stays a
     design memo until demand is visible (資金決済法 exposure otherwise).
     """
     submitted = False
@@ -183,7 +143,11 @@ def services(request):
                 request=form["request"],
                 budget=form["budget"][:120],
             )
-            _notify_service_inquiry(inquiry)
+            from ..services.inquiry_notification import (
+                dispatch_inquiry_notification,
+            )
+
+            dispatch_inquiry_notification(inquiry, source="services")
             submitted = True
             form = {"name": "", "affiliation": "", "request": "", "budget": ""}
 

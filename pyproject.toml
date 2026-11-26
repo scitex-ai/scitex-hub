@@ -44,6 +44,11 @@ dependencies = [
     # and an unguarded runtime import must resolve from
     # `[project.dependencies]` — not from an extra a minimal install skips.
     "scitex-logging>=0.2.5",
+    # Operator notification of new inquiries (scitex-hub#1235) goes through
+    # scitex_notification.send_email, the fleet's agent -> operator rail. It was
+    # already in every image transitively; an unguarded runtime import must
+    # still be declared here. 0.2.9 is the version prod and dev run.
+    "scitex-notification>=0.2.9",
     # App-contract surface (formerly `scitex-app`, archived 2026-10-09,
     # read-only) is sourced from scitex-sdk (card
     # hub-sdk-import-switch-20261015). Verified against the published

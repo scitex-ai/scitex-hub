@@ -6,7 +6,7 @@ Covers the load-bearing constraints from the design spec:
 - The page renders in Japanese with the services + transparency sections.
 - Every inquiry is PERSISTED (ServiceInquiry) so no lead is lost.
 - Required-field validation stores nothing on error.
-- Email is sent ONLY when SERVICES_INQUIRY_EMAIL is set, and NEVER to recruit@.
+- Operator notification is covered in test_inquiry_notification.py (#1235).
 """
 
 import subprocess
@@ -14,7 +14,6 @@ import sys
 from pathlib import Path
 
 import pytest
-from django.core import mail
 from django.urls import reverse
 from django.utils import translation
 
@@ -69,14 +68,6 @@ def valid_payload():
 def posted_valid(client, services_url, valid_payload, settings):
     """POST a valid inquiry with NO inquiry email configured."""
     settings.SERVICES_INQUIRY_EMAIL = ""
-    return client.post(services_url, valid_payload)
-
-
-@pytest.fixture
-def posted_with_email(client, services_url, valid_payload, settings):
-    """POST a valid inquiry WITH an inquiry email configured (locmem backend)."""
-    settings.SERVICES_INQUIRY_EMAIL = "inbox@example.com"
-    settings.EMAIL_BACKEND = "django.core.mail.backends.locmem.EmailBackend"
     return client.post(services_url, valid_payload)
 
 
@@ -278,12 +269,6 @@ class TestServicesInquiryValid:
         # Assert
         assert ServiceInquiry.objects.get().name == "山田太郎"
 
-    def test_valid_post_without_address_sends_no_email(self, posted_valid):
-        # Arrange
-        # Act
-        # Assert
-        assert len(mail.outbox) == 0
-
 
 @pytest.mark.django_db
 class TestServicesInquiryInvalid:
@@ -298,27 +283,6 @@ class TestServicesInquiryInvalid:
         # Act
         # Assert
         assert ServiceInquiry.objects.count() == 0
-
-
-@pytest.mark.django_db
-class TestServicesInquiryEmail:
-    def test_configured_address_sends_one_email(self, posted_with_email):
-        # Arrange
-        # Act
-        # Assert
-        assert len(mail.outbox) == 1
-
-    def test_email_goes_to_configured_address(self, posted_with_email):
-        # Arrange
-        # Act
-        # Assert
-        assert mail.outbox[0].to == ["inbox@example.com"]
-
-    def test_email_never_goes_to_recruit(self, posted_with_email):
-        # Arrange
-        # Act
-        # Assert
-        assert not any("recruit@" in addr for addr in mail.outbox[0].to)
 
 
 if __name__ == "__main__":

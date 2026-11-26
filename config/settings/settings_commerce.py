@@ -138,6 +138,16 @@ SERVICES_INQUIRY_EMAIL = (
     _getenv_alias("SCITEX_HUB_SERVICES_INQUIRY_EMAIL", "info@scitex.ai") or ""
 )
 
+# The OPERATOR, told about every new inquiry at once (scitex-hub#1235): all 8
+# prod inquiries sat unhandled because only the shared info@ box was mailed,
+# and through an SMTP login prod refused. Delivery goes through
+# scitex-notification (public_app/services/inquiry_notification.py), the same
+# agent -> operator route the fleet uses. info@ above is still copied.
+# Comma-separated for more than one address.
+INQUIRY_NOTIFY_TO = (
+    _getenv_alias("SCITEX_HUB_INQUIRY_NOTIFY_TO", "ywatanabe@scitex.ai") or ""
+)
+
 # ---------------------------------------
 # Billing plans (config-driven; empty = 準備中)
 # ---------------------------------------
