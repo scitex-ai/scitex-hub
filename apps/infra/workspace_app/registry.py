@@ -211,7 +211,6 @@ _BUILTIN_MANIFEST_PATHS: list[str] = [
     "workspace/figrecipe_app/manifest.json",
     "workspace/journal_app/manifest.json",
     "workspace/live_paper_app/manifest.json",
-    "workspace/clew_app/manifest.json",
     # NOTE: infra/public_app/manifest.json is intentionally NOT listed here.
     # It declares name="tools", which collided with workspace/tools_app
     # (also name="tools") once tools_app gained its own manifest in 20279c9e

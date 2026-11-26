@@ -11,7 +11,7 @@ from pathlib import Path
 from preflight_targets import Target, TargetUnreachable
 
 from . import snapshot
-from .installation import run_install
+from .installation import private_exception_log, run_install
 
 
 class DirectBindTarget(Target):
@@ -36,9 +36,18 @@ class DirectBindTarget(Target):
         )
         try:
             self._prepare(context)
-        except Exception as exc:
-            self.close()
-            if isinstance(exc, subprocess.TimeoutExpired):
+        except Exception as preparation_error:
+            try:
+                self._close()
+            except TargetUnreachable:
+                raise
+            except Exception as cleanup_error:
+                path = private_exception_log(preparation_error, cleanup_error)
+                raise TargetUnreachable(
+                    "prospective preparation and owned cleanup failed; "
+                    "private diagnostics: {0}; no deployment changed".format(path)
+                ) from preparation_error
+            if isinstance(preparation_error, subprocess.TimeoutExpired):
                 raise TargetUnreachable(
                     "owned development preparation timed out during {0}; "
                     "no deployment changed".format(self.stage)
@@ -188,8 +197,10 @@ class DirectBindTarget(Target):
         except TargetUnreachable:
             raise
         except Exception as exc:
+            path = private_exception_log(exc)
             raise TargetUnreachable(
-                "owned development preflight cleanup failed; no deployment was changed"
+                "owned development preflight cleanup failed; private diagnostics: "
+                "{0}; no deployment was changed".format(path)
             ) from exc
 
     def _close(self):
@@ -286,8 +297,10 @@ def prepare(context, timeout):
     except TargetUnreachable:
         raise
     except Exception as exc:
+        path = private_exception_log(exc)
         raise TargetUnreachable(
-            "prospective direct-bind profile could not be prepared ({0}); no deployment changed".format(
-                type(exc).__name__
+            "prospective direct-bind profile could not be prepared ({0}); "
+            "private diagnostics: {1}; no deployment changed".format(
+                type(exc).__name__, path
             )
         ) from exc

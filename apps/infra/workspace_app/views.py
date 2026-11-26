@@ -201,11 +201,12 @@ def workspace_module_content(request, module):
         get_current_project(request) if request.user.is_authenticated else None
     )
 
-    ctx = mod_config.build_context(request, current_project)
+    from .content import render_module_content
+
     from ._api_docs_metadata import stamp_module_docs_response
 
     return stamp_module_docs_response(
-        render(request, mod_config.partial_template, ctx), mod_config
+        render_module_content(request, mod_config, current_project), mod_config
     )
 
 

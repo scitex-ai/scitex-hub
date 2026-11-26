@@ -124,6 +124,12 @@ SCITEX_HUB_PLUGIN_OPERATORS = [
 SCITEX_PROJECT_STORAGE = (
     "apps.infra.project_app.services.project_scope.HubProjectStorage"
 )
+SCITEX_PROJECT_STORE = "apps.infra.project_app.services.project_store.HubProjectStore"
+SCITEX_API_AUTHENTICATOR = "apps.infra.project_app.services.project_store.api_key_user"
+# Operator-only credentials. An absent mapping leaves private stores unavailable;
+# no managed-store fallback or schema/data migration is performed here.
+SCITEX_STORE_TENANT_SECRETS = os.environ.get("SCITEX_HUB_STORE_TENANT_SECRETS", "")
+SCITEX_STORE_OWNER = os.environ.get("SCITEX_HUB_STORE_OWNER_ROLE", "scitex_cloud_owner")
 
 # ---------------------------------------
 # Paths

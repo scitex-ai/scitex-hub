@@ -17,15 +17,22 @@ ROOT = Path(__file__).resolve().parents[3]
 
 @pytest.fixture(scope="module")
 def diagram_browser(tmp_path_factory, browser):
+    from django.contrib.staticfiles import finders
+
+    renderer = finders.find("clew_app/ts/clew-rendering.ts")
+    assert renderer, "The installed Clew GUI must provide its renderer"
     output = tmp_path_factory.mktemp("diagram-browser")
     build = """
-import { build } from 'esbuild';
+import { createRequire } from 'node:module';
+const { build } = createRequire(import.meta.url)('esbuild');
 await build({entryPoints:['tests/security/fixtures/diagram-browser.ts'],
  outdir:process.argv[1],bundle:true,splitting:true,format:'esm',
- alias:{'@':process.cwd()+'/static/shared/ts'},entryNames:'fixture',logLevel:'silent'});
+ nodePaths:[process.cwd()+'/node_modules',...(process.env.NODE_PATH?.split(':')??[])],
+ alias:{'@':process.cwd()+'/static/shared/ts','clew-rendering':process.argv[2]},
+ entryNames:'fixture',logLevel:'silent'});
 """
     subprocess.run(
-        ["node", "--input-type=module", "-e", build, str(output)],
+        ["node", "--input-type=module", "-e", build, str(output), renderer],
         cwd=ROOT,
         check=True,
         timeout=60,

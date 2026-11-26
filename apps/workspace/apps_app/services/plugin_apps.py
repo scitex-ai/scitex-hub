@@ -140,12 +140,17 @@ def plugin_module_config(config):
         app_name=config.label,
         order=manifest.get("order", 90),
         ai_hint=manifest.get("ai_hint") or manifest.get("subtitle", ""),
-        # The app serves its own pages; there is no workspace partial.
-        partial_template="",
-        renders_ui=False,
+        # Trusted installed leaves own their optional workspace content too.
+        partial_template=manifest.get("partial_template", ""),
+        renders_ui=bool(manifest.get("partial_template")),
     )
     module = _manifest_to_module_config(manifest)
     module.url = "/" + mount_route(config)
+    # These manifests come from operator-installed packages. Keep raw SVG
+    # handling here, rather than enabling it for user-authored dev manifests.
+    for name in ("icon_svg_tab", "icon_svg_nav"):
+        if manifest.get(name):
+            setattr(module, name, manifest[name])
     return module
 
 

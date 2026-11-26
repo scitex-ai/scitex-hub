@@ -89,11 +89,13 @@ def test_plugin_with_unresolvable_label_is_skipped(declared_apps, caplog):
     )
 
 
-def test_real_clew_pair_skips_the_plugin():
+def test_released_clew_owns_its_preserved_label():
+    from django.apps import AppConfig
+
     # Arrange
-    local = "apps.workspace.clew_app"
     plugin = PluginApp("clew", "scitex_clew._django.apps.ClewAppConfig")
     # Act
-    entries = _with_host_plugin_apps([], [local], [plugin])
+    entries = _with_host_plugin_apps([], [], [plugin])
     # Assert
-    assert entries == [] and _entry_claimed_labels(local) == {"clew_app"}
+    assert entries == [plugin.app_config]
+    assert AppConfig.create(plugin.app_config).label == "clew_app"

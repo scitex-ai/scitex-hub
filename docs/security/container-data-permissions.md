@@ -56,6 +56,23 @@ network. Check mode, owner and content preservation, inaccessible-data refusal
 and the mounted root's permissions after the actual service starts. Preserve
 existing production ACLs; broader permission repairs are separate operations.
 
+## Development container accounts
+
+The development migration marker is shared persistent state. Unix accounts live
+in each container's writable layer, so a recreated web, worker or beat container
+must restore its accounts even when that marker already exists. The development
+entrypoint runs `sync_unix_users --accounts-only` on every start. This mode uses
+`useradd --no-create-home`; it does not change user files, directory ownership,
+private modes or profile records. The command's full ownership-repair mode is a
+separate operator operation.
+
+When selecting an isolated application checkout, preserve the complete original
+`/app/data` parent as well as its nested users mount: Git SSH keys and other
+persistent data can live outside `data/users`. Preserve the selected Hub runtime
+configuration separately from the source checkout too. Qualify a fresh container
+with an existing migration marker and private fixtures, checking restored account
+identities and unchanged fixture ownership, modes and bytes.
+
 
 ## SSH gateway identity
 

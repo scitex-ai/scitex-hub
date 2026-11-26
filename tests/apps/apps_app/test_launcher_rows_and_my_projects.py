@@ -84,6 +84,7 @@ _PLUGIN_LABEL_PINS = {
     "agent-container": "Agent Container",  # scitex-agent-container manifest
     "scitex-cards": "Cards",  # scitex-cards manifest
     "storage": "Storage",  # scitex-storage manifest
+    "clew": "Clew",  # scitex-clew manifest (leaf owns clew_app since #1211)
 }
 
 

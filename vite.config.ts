@@ -432,6 +432,9 @@ export default defineConfig(({ command }) => ({
 
   build: {
     outDir: "staticfiles/vite",
+    // Open tabs can still request assets from the previous manifest after a
+    // deployment. Retain content-hashed files; each build replaces the manifest.
+    emptyOutDir: false,
     manifest: true,
     rollupOptions: {
       input: getEntryPoints(__dirname),
