@@ -27,7 +27,7 @@ from __future__ import annotations
 # each group starts a new row and gets a soft colour band, and a group's last
 # row keeps its empty cells rather than pulling the next group's app up:
 #   FOUNDATION (基盤): My Projects, Agents, Cards, Storage, Files
-#   WORK (作業):       Scholar, Stats, FigRecipe, Writer, Chat, Tools
+#   WORK (作業):       Scholar, Dataset, Stats, FigRecipe, Writer, Chat, Tools
 #   PUBLISH (発信):    Public Projects — showing work outside
 #                      (proposed 2026-09-14, Telegram 6040; pending operator)
 #   SYSTEM (システム): Settings, Docs, App Store
@@ -64,6 +64,9 @@ LAUNCHER_GROUPS: tuple[LauncherGroup, ...] = (
         "Work",
         (
             "scholar",
+            # Dataset leaf (scitex-dataset plugin, #1226): the lifecycle's
+            # step after literature (scholar -> dataset -> compute -> stats).
+            "dataset",
             "stats",  # real mounted leaf or planned_apps.py fallback
             "figrecipe",
             "writer",
@@ -166,5 +169,6 @@ def group_cells(tiles: list[dict]) -> list[dict]:
         if cells:
             groups.append({"key": group.key, "label": group.label, "cells": cells})
     return groups
+
 
 # EOF
