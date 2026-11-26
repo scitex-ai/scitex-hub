@@ -398,3 +398,32 @@ def test_the_code_mailed_at_signin_activates_the_account(client, pending_user):
     user.refresh_from_db()
     # Assert
     assert user.is_active is True
+
+
+# ---------------------------------------------------------------------------
+# 4. A plus-addressed sign-up reaches a verify page that keeps the "+".
+# ---------------------------------------------------------------------------
+
+
+@pytest.fixture
+def plus_signup_response(db, client):
+    cache.clear()
+    with override_settings(EMAIL_BACKEND=LOCMEM):
+        return client.post(
+            reverse("auth_app:signup"),
+            {
+                "username": "plus_probe",
+                "email": "plus+tag@example.com",
+                "password": PASSWORD,
+                "agree_terms": "on",
+            },
+        )
+
+
+def test_signup_redirect_url_encodes_a_plus_address(plus_signup_response):
+    # Arrange: found on dev, a raw "+" arrived as a space and never verified.
+    expected = reverse("auth_app:verify_email") + "?email=plus%2Btag%40example.com"
+    # Act
+    location = plus_signup_response["Location"]
+    # Assert
+    assert location == expected

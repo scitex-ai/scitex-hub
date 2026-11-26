@@ -33,6 +33,21 @@ _SIGNUP_RESPONSE_MESSAGE = (
 )
 
 
+def _verify_page(email: str) -> str:
+    """The verification page for ``email``, with the address URL-ENCODED.
+
+    scitex-hub#1234, found on dev: the redirect used to interpolate the raw
+    address, so ``+`` arrived as a space ("a+b@x" became "a b@x"). The page
+    then submitted the mangled address, no pending signup matched it, and
+    every plus-addressed sign-up (common with Gmail) could never verify.
+    """
+    from urllib.parse import urlencode
+
+    from django.urls import reverse
+
+    return f"{reverse('auth_app:verify_email')}?{urlencode({'email': email})}"
+
+
 def _send_pending_signup_code(request, user, email, logger) -> bool:
     """Issue a fresh verification code for a PENDING signup and mail it.
 
@@ -146,10 +161,7 @@ def signup(request):
                 if consume_resend_budget(email):
                     _send_pending_signup_code(request, existing_user, email, logger)
                 messages.success(request, _SIGNUP_RESPONSE_MESSAGE)
-                from django.urls import reverse
-
-                verify_url = reverse("auth_app:verify_email")
-                return redirect(f"{verify_url}?email={email}")
+                return redirect(_verify_page(email))
 
             elif collision is SignupCollision.PENDING_LIVE:
                 # I2/I5: inside the window the account stands; the only useful
@@ -169,10 +181,7 @@ def signup(request):
                 if consume_resend_budget(email):
                     _send_pending_signup_code(request, existing_user, email, logger)
                 messages.success(request, _SIGNUP_RESPONSE_MESSAGE)
-                from django.urls import reverse
-
-                verify_url = reverse("auth_app:verify_email")
-                return redirect(f"{verify_url}?email={email}")
+                return redirect(_verify_page(email))
 
             elif collision in (
                 SignupCollision.ACTIVE,
@@ -194,10 +203,7 @@ def signup(request):
                 # enumeration oracle AND what stops it being a takeover.
                 logger.info("Signup attempt matched an existing account; generic reply")
                 messages.success(request, _SIGNUP_RESPONSE_MESSAGE)
-                from django.urls import reverse
-
-                verify_url = reverse("auth_app:verify_email")
-                return redirect(f"{verify_url}?email={email}")
+                return redirect(_verify_page(email))
 
             # Create inactive user (cannot log in until email verified)
             #
@@ -217,10 +223,7 @@ def signup(request):
             except IntegrityError:
                 logger.info("Signup insert lost a race; generic reply")
                 messages.success(request, _SIGNUP_RESPONSE_MESSAGE)
-                from django.urls import reverse
-
-                verify_url = reverse("auth_app:verify_email")
-                return redirect(f"{verify_url}?email={email}")
+                return redirect(_verify_page(email))
 
             # Create user profile (should be auto-created by signal, but ensure it exists)
             UserProfile.objects.get_or_create(user=user)
@@ -285,10 +288,7 @@ def signup(request):
                     # for create/resend/resume/already-active is the point.
                     messages.success(request, _SIGNUP_RESPONSE_MESSAGE)
                     # Redirect to email verification page
-                    from django.urls import reverse
-
-                    verify_url = reverse("auth_app:verify_email")
-                    return redirect(f"{verify_url}?email={email}")
+                    return redirect(_verify_page(email))
                 else:
                     logger.error(
                         f"Failed to send verification email to {email}: {message}"
@@ -300,19 +300,13 @@ def signup(request):
                     # NOT already registered. That is the same enumeration oracle
                     # the collision paths were unified to close.
                     messages.success(request, _SIGNUP_RESPONSE_MESSAGE)
-                    from django.urls import reverse
-
-                    verify_url = reverse("auth_app:verify_email")
-                    return redirect(f"{verify_url}?email={email}")
+                    return redirect(_verify_page(email))
             except Exception as e:
                 logger.error(f"Error during signup for {email}: {str(e)}")
                 # Don't delete user - keep the account
                 # GENERIC for the same reason as the branch above.
                 messages.success(request, _SIGNUP_RESPONSE_MESSAGE)
-                from django.urls import reverse
-
-                verify_url = reverse("auth_app:verify_email")
-                return redirect(f"{verify_url}?email={email}")
+                return redirect(_verify_page(email))
     else:
         form = SignupForm()
 
@@ -378,9 +372,6 @@ def _resume_pending_signup_on_signin(request, username, password):
     generic error.
     """
     import logging
-    from urllib.parse import urlencode
-
-    from django.urls import reverse
 
     from ..pending_signup import consume_resend_budget, has_pending_evidence
 
@@ -398,8 +389,7 @@ def _resume_pending_signup_on_signin(request, username, password):
         f"mail, a new verification code is on its way. It is valid for "
         f"{_CODE_VALIDITY_MINUTES} minutes. Check your inbox and spam folder.",
     )
-    verify_url = reverse("auth_app:verify_email")
-    return redirect(f"{verify_url}?{urlencode({'email': user.email})}")
+    return redirect(_verify_page(user.email))
 
 
 def login_view(request):
