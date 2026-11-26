@@ -11,6 +11,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Dataset app at `/apps/dataset/` (#1226): scitex-dataset[server] >= 0.15.0 is
+  mounted through the generic `scitex.apps` plugin mount (no hub-side views).
+  Project members list datasets with size and SHA-256, maintainers upload or
+  register a path/URL, non-members get 404; provenance (which scripts read a
+  dataset) comes from installed providers via the leaf's versioned contract.
+
 ### Fixed
 
 - The site dock renders collapsed to its grip pill by default, so it no longer sits open
