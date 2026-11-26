@@ -233,7 +233,9 @@ def signup(request):
             # what stops a suspended account acquiring signup authority.
             # The fleet store requires plan NOT NULL: an allowlisted ?plan=
             # wins, otherwise the newcomer default subscription-free.
-            requested_plan = (request.POST.get("plan") or request.GET.get("plan") or "").strip()
+            requested_plan = (
+                request.POST.get("plan") or request.GET.get("plan") or ""
+            ).strip()
             signup_plan = "subscription-free"
             if requested_plan:
                 try:
@@ -357,10 +359,53 @@ def _continue_app_name(next_value):
     return None
 
 
+def _resume_pending_signup_on_signin(request, username, password):
+    """Send an unverified account back to verification instead of a dead end.
+
+    scitex-hub#1234. ``authenticate()`` returns None for an inactive user. So
+    someone who signed up, never received or entered their code, and came back
+    later to sign in was told "Invalid username or password". Their password
+    was right, and nothing on the page said what to do next.
+
+    This path runs ONLY after the submitter has proven the password of a
+    PENDING signup (inactive AND carrying the typed PendingSignup marker), so it
+    reveals nothing to anyone who does not already hold the credentials. An
+    administrator-disabled account has no marker and still gets the generic
+    error. A fresh code is sent within the same per-address budget as every
+    other resend.
+
+    Returns a redirect to the verification page, or None to fall through to the
+    generic error.
+    """
+    import logging
+    from urllib.parse import urlencode
+
+    from django.urls import reverse
+
+    from ..pending_signup import consume_resend_budget, has_pending_evidence
+
+    logger = logging.getLogger(__name__)
+    user = User.objects.filter(username=username, is_active=False).first()
+    if user is None or not user.check_password(password):
+        return None
+    if not has_pending_evidence(user, user.email):
+        return None
+    if consume_resend_budget(user.email):
+        _send_pending_signup_code(request, user, user.email, logger)
+    messages.info(
+        request,
+        "Your email address is not verified yet. If that address can receive "
+        f"mail, a new verification code is on its way. It is valid for "
+        f"{_CODE_VALIDITY_MINUTES} minutes. Check your inbox and spam folder.",
+    )
+    verify_url = reverse("auth_app:verify_email")
+    return redirect(f"{verify_url}?{urlencode({'email': user.email})}")
+
+
 def login_view(request):
     """User login view with authentication."""
-    from .account_switching import add_authenticated_account
     from ..onboarding import resolve_post_login_url
+    from .account_switching import add_authenticated_account
 
     # The login gate carries its return in ?next= (e.g. /apps/stats/). The
     # signin form re-posts it as a hidden field, so read POST first (B2).
@@ -401,8 +446,13 @@ def login_view(request):
                 response = redirect(next_page)
                 add_authenticated_account(request, response)
                 return response
-            else:
-                messages.error(request, "Invalid username or password.")
+
+            pending_redirect = _resume_pending_signup_on_signin(
+                request, username, password
+            )
+            if pending_redirect is not None:
+                return pending_redirect
+            messages.error(request, "Invalid username or password.")
     else:
         form = LoginForm()
 
