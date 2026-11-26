@@ -2,7 +2,10 @@
  * Minimized dock — collapses the dock to a small grip pill (operator 2026-09-15:
  * the two-row phone dock took too much of apps like FigRecipe).
  *
- * The state is per device (localStorage). The dock's real height is published
+ * Collapsed is the default (live-paper QA 2026-11-26: the open dock sat over
+ * the middle of every Hub page and covered content). The state is per device
+ * (localStorage): "0" keeps the dock open once the user restores it, "1" or
+ * no entry shows the pill. The dock's real height is published
  * as --site-dock-live-height on <html> for scroll alignment only; neither the
  * expanded dock nor the pill reserves page layout space.
  */
@@ -11,11 +14,12 @@ export const MINIMIZED_KEY = "stx-site-dock-minimized";
 export const MINIMIZED_CLASS = "site-dock--minimized";
 export const LIVE_HEIGHT_VAR = "--site-dock-live-height";
 
+/** The saved preference; minimized unless the user chose the open dock. */
 export function readMinimized(): boolean {
   try {
-    return window.localStorage.getItem(MINIMIZED_KEY) === "1";
+    return window.localStorage.getItem(MINIMIZED_KEY) !== "0";
   } catch {
-    return false;
+    return true;
   }
 }
 
@@ -42,8 +46,7 @@ export function setMinimized(
   }
   try {
     if (persist) {
-      if (on) window.localStorage.setItem(MINIMIZED_KEY, "1");
-      else window.localStorage.removeItem(MINIMIZED_KEY);
+      window.localStorage.setItem(MINIMIZED_KEY, on ? "1" : "0");
     }
   } catch {
     /* storage unavailable: the state lasts for this page only */

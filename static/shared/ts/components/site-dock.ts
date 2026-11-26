@@ -10,8 +10,9 @@
  * 2. Drag: the grabber moves the dock anywhere in the viewport. The position is
  *    remembered per device in localStorage. Dropping the dock back at the
  *    bottom, or Escape on the grabber, docks it again.
- * 3. Minimize: one tap / click on the grip collapses the dock
- *    to a grip pill; tapping the pill restores it. Enter / Space on the grip
+ * 3. Minimize: the dock starts collapsed to a grip pill so it never covers
+ *    page content by default; one tap / click on the pill restores it and
+ *    one tap on the grip collapses it again. Enter / Space on the grip
  *    toggles. A press that travels TAP_SLOP_PX is a drag and never toggles.
  *    Remembered per device.
  * 4. Back / Forward: history.back() / history.forward(), enabled from the
@@ -128,7 +129,9 @@ class SiteDock {
     if (this.dock.parentElement !== document.body) {
       document.body.appendChild(this.dock);
     }
-    if (readMinimized()) setMinimized(this.dock, true);
+    // The template renders the pill (no open-dock flash over the page);
+    // apply the saved preference without rewriting it.
+    setMinimized(this.dock, readMinimized(), false);
     this.restorePosition();
     syncDockHeight(this.dock);
     window.addEventListener("resize", () => {
