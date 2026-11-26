@@ -13,6 +13,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- The site dock renders collapsed to its grip pill by default, so it no longer sits open
+  over the middle of every page. A tap on the pill opens it, and that choice is remembered
+  per device.
+
 - Apply the selected research scaffold to new Full projects after the Gitea
   clone, retain its Git identity, and publish the populated project. Refuse
   existing research contents and report template failures instead of silently
