@@ -14,14 +14,12 @@ from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 from uuid import uuid4
 
+from django.contrib.auth.models import User
 from django.test import Client, RequestFactory, override_settings
 from psycopg import sql
 from scitex_clew._claim._store import _CLAIMS_SCHEMA
 from scitex_clew._db._schema import (
     FILE_HASHES_SCHEMA,
-    RUNS_SCHEMA,
-    SESSION_PARENTS_SCHEMA,
-    VERIFICATION_RESULTS_SCHEMA,
 )
 from scitex_clew._django.models import HashRegistration
 from scitex_clew._django.services.project_store import execute, project_context
@@ -32,25 +30,6 @@ from scitex_dev.store import (
 )
 
 from apps.infra.project_app.models import Project, ProjectMembership
-
-SCHEMAS = (
-    RUNS_SCHEMA,
-    FILE_HASHES_SCHEMA,
-    VERIFICATION_RESULTS_SCHEMA,
-    SESSION_PARENTS_SCHEMA,
-    _CLAIMS_SCHEMA,
-)
-READ_ROUTES = (
-    "status/",
-    "stats/",
-    "runs/",
-    "verify-run/",
-    "verify-chain/",
-    "dag/json/",
-    "dag/mermaid/",
-    "claims/",
-)
-
 
 from ._clew_store_fixture import READ_ROUTES, SCHEMAS, ClewStoreFixture
 
@@ -249,12 +228,80 @@ class ClewTenantIntegrationTest(ClewStoreFixture):
             self.get("verify-chain/", target="escape/input.csv").status_code, 400
         )
 
-    def test_collaborator_does_not_borrow_the_owner_login(self):
-        ProjectMembership.objects.create(
-            project=self.paper, user=self.bob, permission_level="read"
+    def test_project_permission_matrix_over_http(self):
+        """scitex-hub#1225: members read the project's records; editors write.
+
+        Bob owns a same-named project in his own tenant, so a member read that
+        used the caller's credentials instead of the project's would show
+        ``bob-evidence`` here.
+        """
+        carol = User.objects.create_user(username="clew-carol")
+        for user, role, permission in (
+            (self.bob, "viewer", "read"),
+            (carol, "admin", "admin"),
+        ):
+            ProjectMembership.objects.create(
+                project=self.paper, user=user, role=role, permission_level=permission
+            )
+        outsider = User.objects.create_user(username="clew-outsider")
+        queries = {
+            "verify-run/": {"session_id": "same-session"},
+            "verify-chain/": {"target": "output.csv"},
+            "dag/json/": {"session_id": "same-session"},
+            "dag/mermaid/": {"session_id": "same-session"},
+        }
+        # The write gate is what Hub decides; ALLOWED means "passed the gate"
+        # (the leaf's example copy itself may still fail, e.g. when the wheel
+        # ships no bundled examples).
+        allowed = "passes the write gate"
+        cases = (
+            ("owner", self.alice, 200, allowed),
+            ("maintainer", carol, 200, allowed),
+            ("viewer", self.bob, 200, 403),
+            ("non-member", outsider, 404, 404),
+            ("anonymous", None, 401, 401),
         )
+        for label, user, read_status, write_status in cases:
+            client = Client()
+            if user is not None:
+                client.force_login(user)
+            for route in READ_ROUTES:
+                with self.subTest(who=label, route=route):
+                    response = client.get(
+                        "/apps/clew/api/" + route,
+                        {
+                            "project": "clew-alice/paper-scitex-clew",
+                            **queries.get(route, {}),
+                        },
+                    )
+                    self.assertEqual(
+                        response.status_code, read_status, response.content
+                    )
+                    self.assertNotIn("bob-evidence", response.content.decode())
+                    if read_status == 200:
+                        self.assertTrue(response.json()["success"])
+            if read_status == 200:
+                with self.subTest(who=label, route="runs/ content"):
+                    runs = client.get(
+                        "/apps/clew/api/runs/",
+                        {"project": "clew-alice/paper-scitex-clew"},
+                    )
+                    self.assertIn("alice-evidence", runs.content.decode())
+            with self.subTest(who=label, route="add-examples/"):
+                response = client.post(
+                    "/apps/clew/api/add-examples/?project=clew-alice/paper-scitex-clew"
+                )
+                if write_status == allowed:
+                    self.assertNotIn(response.status_code, (401, 403, 404))
+                else:
+                    self.assertEqual(
+                        response.status_code, write_status, response.content
+                    )
+        # A member's own project still resolves to their own tenant.
         self.client.force_login(self.bob)
-        self.assertEqual(self.get("runs/").status_code, 503)
+        own = self.get("runs/", project="clew-bob/paper-scitex-clew")
+        self.assertIn("bob-evidence", own.content.decode())
+        self.assertNotIn("alice-evidence", own.content.decode())
 
     def test_concurrent_requests_keep_tenant_and_project_separate(self):
         contexts = []

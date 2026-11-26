@@ -12,8 +12,8 @@ Hub supplies generic SDK project, storage, store and API-key identity capabiliti
 The installed leaf preserves the `clew_app` label, registration table and initial
 migration identity. Removing the duplicate Hub app does not migrate registry data.
 
-The qualified GUI floor is Clew 0.36.3 with SDK 0.3.25 and Dev 0.66.0. Live Paper
-0.5.2 supplies the installed manuscript, graph, review and owned-asset routes;
+The qualified GUI floor is Clew 0.36.4 with SDK 0.3.25 and Dev 0.66.1. Live Paper
+0.5.4 supplies the installed manuscript, graph, review and owned-asset routes;
 the host's existing resolver and login boundary apply to every resource. Those
 resource reads preserve the tab's project without changing remembered navigation.
 
@@ -31,10 +31,18 @@ request processes use only the restricted tenant LOGIN. Read requests do not
 provision schemas, migrate historical records or select a fleet default DSN.
 Historical data and persisted project scopes require a separately reviewed import.
 
-Hub currently grants private stores only to the authenticated project's individual
-owner. Collaborators and organization projects return unavailable until store
-capabilities can restrict access at project level. Invalid or absent configuration
-returns HTTP 503 rather than an empty success. API keys use Hub's existing active,
+Access follows Hub's project permission model. Whoever can open the project in
+Hub (its owner and every project member, any permission level) reads that
+project's Clew records; non-members get 404 and anonymous callers 401. The store
+belongs to the project: credentials are the project owner's tenant entry, and the
+project must be explicitly mapped to a scope there, so a member never reads with
+their own tenant or another of the owner's projects. Writes (e.g. adding examples)
+go through `HubProjectStorage.can_write` (`Project.can_edit`): the owner and
+members with `write`/`admin` permission; viewers are read-only. An unmapped
+project returns 503 "Clew records are not configured for this project yet".
+Invalid or absent configuration returns HTTP 503 rather than an empty success.
+`tests/security/test_clew_project_permissions.py` (CI) and the HTTP matrix in
+`test_clew_tenant_store` pin owner / maintainer / viewer / non-member / anonymous. API keys use Hub's existing active,
 unexpired key authority and existing `api`/`*` permission. Keys limited to
 `publish`, `mcp`, or an empty scope list do not authorize private project reads.
 Public hash proofs remain anonymous and omit private

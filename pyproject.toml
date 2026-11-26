@@ -82,7 +82,7 @@ dependencies = [
     # must resolve; see Dockerfile.prod's own convention). Do NOT lower this
     # floor to re-green an env that has not published yet: below 2.43.9 the
     # generic plugin mount cannot enforce tenancy for this leaf.
-    "scitex-writer>=2.44.1",
+    "scitex-writer>=2.44.5",
     # >=1.9.0 is a MOUNT requirement, not a feature preference. Below it the
     # leaf's client JS builds API urls from the SITE ROOT
     # (static/scholar/js/graph/citation-graph.js: fetch("/api/graph/health")),
@@ -101,7 +101,7 @@ dependencies = [
     # 1.12.0 supplies the optional graph capability report consumed by Hub.
     # 1.13.0 supplies storage.master_* (leaf owns MASTER writes; hub thin).
     # 1.29.1 uses SDK branding without a missing production static-manifest asset.
-    "scitex-scholar>=1.29.3",
+    "scitex-scholar>=1.29.4",
     # 0.2.16 supplies the shared SDK header/viewer integration in the
     # currently supported application cohort.
     # Live-paper mount (hub #1108): apps/workspace/live_paper_app/mount.py
@@ -109,7 +109,7 @@ dependencies = [
     # bottom border (no accent separator under the global header, operator
     # rule). Without this floor the fresh image fails the sibling-floor
     # preflight and the rebuild is refused.
-    "scitex-live-paper>=0.5.2",
+    "scitex-live-paper>=0.5.4",
     # THE FOUR SIBLINGS HUB IMPORTS BUT NEVER DECLARED — measured 2026-09-03/04
     # inside the dev image built from `.[all]` (sha256:70be677c04bf): hub's
     # `all` extra pulls the umbrella BARE (`scitex>=2.29.3`, below), whose base
@@ -271,7 +271,7 @@ dependencies = [
     # configures nothing is exactly the caller that DOES reach it.
     # 0.56.8 is the version measured good here, not proven to be the minimum.
     # 0.62.11 preserves explicit skill ownership through metadata reads.
-    "scitex-dev>=0.66.0",
+    "scitex-dev>=0.66.1",
     # `scitex-audio` owns the whisper.cpp transcription pipeline that
     # llm_app/views/stt.py delegates to (`scitex_audio.transcribe`).
     # Declared DIRECTLY rather than relied on transitively: llm_app/views/chat.py
@@ -357,14 +357,14 @@ all = [
     # SAC uses the platform-owned SDK GUI dependency; its standalone [gui]
     # extra pins an older SDK and is not this host's GUI dependency contract.
     "scitex-sdk[gui]>=0.3.25",
-    "scitex-clew[gui]>=0.36.3",
+    "scitex-clew[gui]>=0.36.4",
     "scitex-agent-container>=0.42.1",
     "scitex-cards[web]>=0.56.23",
     "scitex-storage[gui]>=0.6.11",
     "scitex-agentic-journal>=0.1.0a4",
     # 0.44.1 first publishes the scope capability declarations required by
     # the SDK's fail-closed project-jail admission.
-    "figrecipe[app,editor]>=0.44.7",
+    "figrecipe[app,editor]>=0.45.1",
     # --- Django stack (web framework + DRF + auth + ORM + ASGI) ---
     "Django>=5.2.11",
     "djangorestframework>=3.16",
@@ -436,7 +436,11 @@ all = [
     # `scitex-config==0.3.3` exact-pin on 2.29.0/2.29.1 was the original
     # ResolutionImpossible — see scitex-python#282, resolved). Floor at
     # 2.29.3 to skip the broken 2.29.0/2.29.1 entirely.
-    "scitex>=2.29.3",
+    # Raised to 2.30.11 (scitex-hub#1225): 2.29.3's `scitex.clew` re-exports
+    # `set_db`, which scitex-clew removed, so `import scitex.clew` fails
+    # against the clew floor below. A stale resolution must fail the install
+    # instead of serving the broken umbrella.
+    "scitex>=2.30.11",
     # >=0.8.0, and the floor is about what hub MOUNTS, not only what hub calls.
     #
     # 0.8.0 is where `shell_context()` grew its `panes` parameter (verified by
@@ -606,7 +610,7 @@ dev = [
     "celery[redis]>=5.4,<5.6",
     "fastmcp>=2.14.5",
     "paramiko>=3.4",
-    "scitex>=2.29.3",
+    "scitex>=2.30.11",
     # django-celery-beat is in INSTALLED_APPS (settings_shared.py), so
     # Django cannot even start without it — every Django test fails at
     # setup, not at some optional import. Matching [all]'s spec.
@@ -626,7 +630,7 @@ dev = [
     # decides the three required checks; the audit workflow's own pin cannot
     # substitute for it. Keep the two identical — if they drift, the matrix
     # and the audit test different versions and one of them is lying.
-    "scitex-dev>=0.66.0",
+    "scitex-dev>=0.66.1",
     # The board-tenancy suite is guarded by `_TODO_INSTALLED`
     # (middleware.py:115, find_spec("scitex_cards")). Without this package
     # installed, every one of those tests SKIPS and the job exits 0 — a
@@ -640,14 +644,14 @@ dev = [
     # SAC uses the platform-owned SDK GUI dependency; its standalone [gui]
     # extra pins an older SDK and is not this host's GUI dependency contract.
     "scitex-sdk[gui]>=0.3.25",
-    "scitex-clew[gui]>=0.36.3",
+    "scitex-clew[gui]>=0.36.4",
     "scitex-agent-container>=0.42.1",
     "scitex-cards[web]>=0.56.23",
     "scitex-storage[gui]>=0.6.11",
     "scitex-agentic-journal>=0.1.0a4",
     # 0.44.1 first publishes the scope capability declarations required by
     # the SDK's fail-closed project-jail admission.
-    "figrecipe[app,editor]>=0.44.7",
+    "figrecipe[app,editor]>=0.45.1",
     # Same floor as [all], and it must STAY the same — the two are swept
     # together by tests/config/test_shell_pane_contract_floor.py, which reads
     # every dependency group rather than one, precisely so the copies cannot
