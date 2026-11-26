@@ -574,6 +574,10 @@ services:
       - gitea_data:/data
       - /etc/timezone:/etc/timezone:ro
       - /etc/localtime:/etc/localtime:ro
+      # Tracked copy of the robots.txt that was hand-placed in the volume on
+      # 2026-07-12 (CUSTOM_PATH=/data/gitea). Polite crawlers honour it; the
+      # 2026-11 crawler does not (see REQUIRE_SIGNIN_VIEW below).
+      - ../common/gitea/public/robots.txt:/data/gitea/public/robots.txt:ro
     ports:
       - "${SCITEX_HUB_GITEA_HTTP_PORT_PROD:-3000}:3000"  # HTTP (configurable via .env)
       - "${SCITEX_HUB_GITEA_SSH_PORT_PROD:?required — pass --env-file ../envs/.env.prod}:22"
@@ -582,6 +586,21 @@ services:
     environment:
       - USER_UID=1000
       - USER_GID=1000
+      # Anonymous crawler protection. git.scitex.ai reaches gitea:3000 straight
+      # from the tunnel (not through nginx), so nginx's bot rules never see it.
+      # Measured 2026-11-26 (1 h of router log): 204,834 requests, 151,452 of
+      # them /compare/ from 82,117 distinct IPs (<=29 per IP: a distributed
+      # crawler that ignores robots.txt); compare p50 19 s, 126,626 x 500;
+      # 49,619 "pq: sorry, too many clients" errors on the postgres gitea shares
+      # with the hub; 120 MB of log per hour. "expensive" (gitea >= 1.24)
+      # redirects ANONYMOUS requests for compare/commit(s)/blame/src/raw/media/
+      # archive/graph/issues/pulls/wiki/activity to /user/login. Signed-in
+      # users, the API (/api/v1, used by Django), git over HTTP/SSH and repo
+      # home pages are unaffected. Set to false to reopen anonymous browsing.
+      - GITEA__service__REQUIRE_SIGNIN_VIEW=${SCITEX_HUB_GITEA_REQUIRE_SIGNIN_VIEW:-expensive}
+      # Info logs one "router: completed" line per request; keep warnings
+      # (slow requests) and errors only.
+      - GITEA__log__LEVEL=${SCITEX_HUB_GITEA_LOG_LEVEL:-Warn}
       - GITEA__database__DB_TYPE=postgres
       - GITEA__database__HOST=postgres:5432
       - GITEA__database__NAME=${SCITEX_HUB_POSTGRES_DB:?required — pass --env-file ../envs/.env.prod}
@@ -591,6 +610,13 @@ services:
       postgres:
         condition: service_healthy
     restart: always
+    # Same cap as the one applied by hand on 2026-11-26 (the uncapped json log
+    # had reached 55.9 GB).
+    logging:
+      driver: json-file
+      options:
+        max-size: "100m"
+        max-file: "5"
     networks:
       - scitex-network
     healthcheck:

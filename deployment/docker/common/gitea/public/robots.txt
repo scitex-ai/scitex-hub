@@ -1,0 +1,19 @@
+# Deter crawlers from the expensive, combinatorial git endpoints that pegged
+# gitea CPU (branch/commit diffs on repos with many branches — each diff cost
+# several seconds). Repo home, code browse, releases and issues stay crawlable
+# so public discoverability is preserved.
+User-agent: *
+Crawl-delay: 10
+Disallow: /*/*/compare/
+Disallow: /*/*/commit/
+Disallow: /*/*/commits/
+Disallow: /*/*/blame/
+Disallow: /*/*/raw/
+Disallow: /*/*/media/
+Disallow: /*/*/archive/
+Disallow: /*/*/find/
+Disallow: /*/*/graph
+Disallow: /*/*/activity
+Disallow: /*/*/src/commit/
+Disallow: /*/*/blob/
+Disallow: /*?*
