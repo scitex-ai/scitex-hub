@@ -67,7 +67,11 @@ services:
       # TypeScript output
       - /app/.jsbuild
     ports:
-      - "${SCITEX_HUB_HTTP_PORT:-31294}:8000"   # Staging port (3129X scheme)
+      # Loopback only (2026-11-27): on 0.0.0.0 this exposed staging Django,
+      # with every route prod has, to anything that reaches the host.
+      # Callers on the host (incl. host-network cloudflared) still reach
+      # 127.0.0.1:31294.
+      - "127.0.0.1:${SCITEX_HUB_HTTP_PORT:-31294}:8000"   # Staging port (3129X scheme)
       - "${SCITEX_HUB_SSH_PORT:-2213}:2200"     # Staging SSH
     env_file:
       - ./envs/.env.staging
