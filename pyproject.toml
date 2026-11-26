@@ -303,7 +303,7 @@ dependencies = [
     # 0.3.19 binds generated CSS to genuine Vite source inputs; older SDK
     # project audits misclassify canonical bundled component CSS as local forks.
     # 0.3.20 supplies API-docs header lifecycle and inert wheel declarations.
-    "scitex-sdk>=0.3.25",
+    "scitex-sdk>=0.3.26",
     "gitpython>=3.1.51",
 ]
 
@@ -356,14 +356,14 @@ all = [
     # Explicit plugin closure: these apps are not installed by the umbrella.
     # SAC uses the platform-owned SDK GUI dependency; its standalone [gui]
     # extra pins an older SDK and is not this host's GUI dependency contract.
-    "scitex-sdk[gui]>=0.3.25",
+    "scitex-sdk[gui]>=0.3.26",
     "scitex-clew[gui]>=0.36.4",
     "scitex-agent-container>=0.42.1",
     "scitex-cards[web]>=0.56.23",
     "scitex-storage[gui]>=0.6.11",
     # Dataset app at /apps/dataset/ (hub #1226): generic plugin mount from the
     # leaf's scitex.apps entry point; 0.15.0 first ships scitex_dataset._django.
-    "scitex-dataset[server]>=0.15.0",
+    "scitex-dataset[server]>=0.16.0",
     "scitex-agentic-journal>=0.1.0a4",
     # 0.44.1 first publishes the scope capability declarations required by
     # the SDK's fail-closed project-jail admission.
@@ -646,14 +646,14 @@ dev = [
     # Explicit plugin closure: these apps are not installed by the umbrella.
     # SAC uses the platform-owned SDK GUI dependency; its standalone [gui]
     # extra pins an older SDK and is not this host's GUI dependency contract.
-    "scitex-sdk[gui]>=0.3.25",
+    "scitex-sdk[gui]>=0.3.26",
     "scitex-clew[gui]>=0.36.4",
     "scitex-agent-container>=0.42.1",
     "scitex-cards[web]>=0.56.23",
     "scitex-storage[gui]>=0.6.11",
     # Dataset app at /apps/dataset/ (hub #1226): generic plugin mount from the
     # leaf's scitex.apps entry point; 0.15.0 first ships scitex_dataset._django.
-    "scitex-dataset[server]>=0.15.0",
+    "scitex-dataset[server]>=0.16.0",
     "scitex-agentic-journal>=0.1.0a4",
     # 0.44.1 first publishes the scope capability declarations required by
     # the SDK's fail-closed project-jail admission.
