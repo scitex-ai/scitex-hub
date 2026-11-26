@@ -51,8 +51,11 @@ def reject_unsigned_gitea_webhook(request) -> JsonResponse | None:
     """
     secret = gitea_webhook_secret()
     if not secret:
+        # Log a fixed message only: CodeQL (py/clear-text-logging-sensitive-data)
+        # treats any value derived from the secret's settings name as sensitive.
         logger.error(
-            "Gitea webhook refused: %s is not configured (fail closed)", SECRET_NAME
+            "Gitea webhook refused: the webhook signing key is not configured "
+            "(fail closed)"
         )
         return JsonResponse(
             {"error": "Webhook receiver is not configured."}, status=503
