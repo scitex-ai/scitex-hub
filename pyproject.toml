@@ -360,6 +360,9 @@ all = [
     "scitex-agent-container>=0.38.4",
     "scitex-cards[web]>=0.56.23",
     "scitex-storage[gui]>=0.6.11",
+    # Dataset app at /apps/dataset/ (hub #1226): generic plugin mount from the
+    # leaf's scitex.apps entry point; 0.15.0 first ships scitex_dataset._django.
+    "scitex-dataset[server]>=0.15.0",
     "scitex-agentic-journal>=0.1.0a4",
     # 0.44.1 first publishes the scope capability declarations required by
     # the SDK's fail-closed project-jail admission.
@@ -642,6 +645,9 @@ dev = [
     "scitex-agent-container>=0.38.4",
     "scitex-cards[web]>=0.56.23",
     "scitex-storage[gui]>=0.6.11",
+    # Dataset app at /apps/dataset/ (hub #1226): generic plugin mount from the
+    # leaf's scitex.apps entry point; 0.15.0 first ships scitex_dataset._django.
+    "scitex-dataset[server]>=0.15.0",
     "scitex-agentic-journal>=0.1.0a4",
     # 0.44.1 first publishes the scope capability declarations required by
     # the SDK's fail-closed project-jail admission.
