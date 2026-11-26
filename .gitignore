@@ -220,6 +220,9 @@ data/ssh_keys/
 !docs/images/**/*.svg
 !docs/images/**/*.gif
 
+# Gitea's robots.txt is deployment config, bind-mounted by docker_prod
+!deployment/docker/common/gitea/public/robots.txt
+
 ### Source: /home/ywatanabe/.git-templates/.gitignore-templates/Python.gitignore ###
 # Byte-compiled / optimized / DLL files
 __pycache__/
