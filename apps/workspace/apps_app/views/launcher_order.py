@@ -27,7 +27,7 @@ from __future__ import annotations
 # each group starts a new row and gets a soft colour band, and a group's last
 # row keeps its empty cells rather than pulling the next group's app up:
 #   FOUNDATION (基盤): My Projects, Agents, Cards, Storage, Files
-#   WORK (作業):       Scholar, Dataset, Stats, FigRecipe, Writer, Chat, Tools
+#   WORK (作業):       Scholar, Stats, FigRecipe, Writer, Dataset, Chat, Tools
 #   PUBLISH (発信):    Public Projects — showing work outside
 #                      (proposed 2026-09-14, Telegram 6040; pending operator)
 #   SYSTEM (システム): Settings, Docs, App Store
@@ -64,12 +64,14 @@ LAUNCHER_GROUPS: tuple[LauncherGroup, ...] = (
         "Work",
         (
             "scholar",
-            # Dataset leaf (scitex-dataset plugin, #1226): the lifecycle's
-            # step after literature (scholar -> dataset -> compute -> stats).
-            "dataset",
             "stats",  # real mounted leaf or planned_apps.py fallback
             "figrecipe",
             "writer",
+            # Dataset leaf (scitex-dataset plugin, #1226). After Writer, not
+            # inside the Scholar..Writer span the operator keeps contiguous
+            # (Telegram 4794 / 2026-09-14); a lifecycle-order position needs
+            # an operator ruling.
+            "dataset",
             "chat",  # link tile -> /chat/
             "clew",
             "create-app",  # App Creator: the empty "+" slot, always last in Work
