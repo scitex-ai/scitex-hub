@@ -211,4 +211,56 @@ STRIPE_PRICE_IDS = {
     if name.startswith(STRIPE_PRICE_ENV_PREFIX) and value
 }
 
+# ---------------------------------------
+# Spend controls (apps/infra/spend_app)
+# ---------------------------------------
+# The CAP VALUES (default and maximum per plan) are prices, so they live in the
+# price catalog (scitex-affairs -> pricing.json ``spend_cap``), not here. These
+# are the Hub's operational knobs.
+
+
+def _spend_int(name: str, default: int) -> int:
+    raw = os.environ.get(name, "")
+    return int(raw) if raw.strip() else default
+
+
+def _spend_mode() -> str:
+    mode = (os.environ.get("SCITEX_HUB_SPEND_CONTROLS_MODE", "") or "enforce").strip()
+    if mode not in ("enforce", "shadow"):
+        raise ValueError(
+            "SCITEX_HUB_SPEND_CONTROLS_MODE must be 'enforce' or 'shadow', "
+            f"not {mode!r}"
+        )
+    return mode
+
+
+SPEND_CONTROLS = {
+    # enforce: refuse/stop at the cap. shadow: compute, alert and log the
+    # decision, but never refuse (for rollout); the UI says which is active.
+    "mode": _spend_mode(),
+    # Running work at 100 %: how long it keeps running after the warning.
+    "running_grace_minutes": _spend_int("SCITEX_HUB_SPEND_RUNNING_GRACE_MINUTES", 15),
+    # Failed payment: days of grace before the account is restricted.
+    "payment_grace_days": _spend_int("SCITEX_HUB_BILLING_PAYMENT_GRACE_DAYS", 7),
+    # Reminder emails, as days after the first failure (0 = at once).
+    "payment_reminder_days": [
+        int(d)
+        for d in (
+            os.environ.get("SCITEX_HUB_BILLING_PAYMENT_REMINDER_DAYS", "") or "0,3,6"
+        ).split(",")
+        if d.strip()
+    ],
+    # Cancellation billed on actual usage, from the subscription's start.
+    "cancellation_window_days": _spend_int(
+        "SCITEX_HUB_BILLING_CANCELLATION_WINDOW_DAYS", 30
+    ),
+    # Interactive sessions with no input or output for this long are stopped.
+    "idle_stop_minutes": _spend_int("SCITEX_HUB_INTERACTIVE_IDLE_STOP_MINUTES", 30),
+    "idle_warning_minutes": _spend_int(
+        "SCITEX_HUB_INTERACTIVE_IDLE_WARNING_MINUTES", 5
+    ),
+    # How long a computed usage snapshot is reused by the request-path gate.
+    "usage_cache_seconds": _spend_int("SCITEX_HUB_SPEND_USAGE_CACHE_SECONDS", 120),
+}
+
 # EOF

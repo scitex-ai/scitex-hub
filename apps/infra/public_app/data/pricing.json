@@ -37,6 +37,12 @@
         "idle_reclaim": {
           "pause_after_days": 7,
           "delete_after_days": 30
+        },
+        "spend_cap": {
+          "default_usd": 0,
+          "max_usd": 0,
+          "unit": "USD/billing-cycle",
+          "scope": "usage beyond the plan fee"
         }
       },
       "description": "For trying SciTeX. No credit card required; limited workspace."
@@ -72,7 +78,13 @@
         },
         "overage": "metered",
         "monthly_limit_set_by": "user",
-        "eligibility": "University or research-institution email address (students, graduate students, faculty, researchers)"
+        "eligibility": "University or research-institution email address (students, graduate students, faculty, researchers)",
+        "spend_cap": {
+          "default_usd": 10,
+          "max_usd": 200,
+          "unit": "USD/billing-cycle",
+          "scope": "usage beyond the plan fee"
+        }
       },
       "description": "For eligible academic and research users."
     },
@@ -106,7 +118,13 @@
           "amount": 100
         },
         "overage": "metered",
-        "monthly_limit_set_by": "user"
+        "monthly_limit_set_by": "user",
+        "spend_cap": {
+          "default_usd": 20,
+          "max_usd": 500,
+          "unit": "USD/billing-cycle",
+          "scope": "usage beyond the plan fee"
+        }
       },
       "description": "For general and commercial users. Hosted at scitex.ai."
     },

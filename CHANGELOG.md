@@ -13,6 +13,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Spend controls at Settings > Spend controls (`apps/infra/spend_app`). Each account has a
+  monthly usage cap in USD (default and maximum per plan from the price catalog's
+  `spend_cap`), alerts at 50/80/100 % in-app and by email, and a hard stop at 100 %:
+  new terminals, services and jobs are refused with a link to raise the cap, running
+  work gets a grace window and is then stopped, and storage turns read-only (never
+  deleted). Failed Stripe payments get a grace period with reminders, then the account
+  is restricted (read-only, no new compute). Cancelling within 30 days bills actual
+  usage only (Stripe test mode). Interactive terminals auto-stop after 30 idle
+  minutes. Usage is read through a `UsageSource` interface that the usage ledger
+  (#1232) will implement; until then every figure is labelled provisional.
+- The SLURM, storage and project quotas in `config/settings/quotas.py` (with
+  per-user `UserQuota` overrides) are now enforced at job submission, uploads and
+  project creation.
+
 - Dataset app at `/apps/dataset/` (#1226): scitex-dataset[server] >= 0.15.0 is
   mounted through the generic `scitex.apps` plugin mount (no hub-side views).
   Project members list datasets with size and SHA-256, maintainers upload or

@@ -69,6 +69,10 @@ class BasePTY:
         self.reader_thread: Optional[threading.Thread] = None
         self._reader_generation: int = 0
         self._scrollback: collections.deque = collections.deque(maxlen=256)
+        #: Last keystroke in or byte out (epoch seconds). The idle reaper stops
+        #: interactive sessions with neither for SPEND_CONTROLS idle_stop_minutes,
+        #: so a process that is still printing counts as busy.
+        self.last_activity: float = time.time()
 
     @property
     def running(self) -> bool:
@@ -217,6 +221,7 @@ class BasePTY:
                         if r:
                             data = os.read(self.fd, 4096)
                             if data:
+                                self.last_activity = time.time()
                                 self._scrollback.append(data)
                                 output_callback(self.pty_id, data)
                             else:
@@ -265,6 +270,7 @@ class BasePTY:
     def write(self, data: bytes):
         """Write data to PTY."""
         if self.fd is not None:
+            self.last_activity = time.time()
             try:
                 os.write(self.fd, data)
             except OSError as e:

@@ -5,6 +5,7 @@ Loads quota configurations from environment variables.
 These can be overridden per-user in the database.
 """
 
+import copy
 import os
 
 
@@ -135,15 +136,12 @@ def get_user_quotas(user) -> dict:
     Returns:
         dict: User's effective quotas
     """
-    # Start with defaults
-    quotas = DEFAULT_USER_QUOTAS.copy()
+    # Per-user overrides live in console_app.UserQuota (admin-editable). A
+    # DEEP copy: the nested dicts are module globals, and a shallow copy let
+    # one user's override leak into every later user's defaults.
+    from apps.workspace.console_app.models import UserQuota
 
-    # TODO: Check for per-user overrides in UserQuota model
-    # This allows admins to adjust individual user quotas
-    # try:
-    #     user_quota = UserQuota.objects.get(user=user)
-    #     quotas = user_quota.to_dict()
-    # except UserQuota.DoesNotExist:
-    #     pass
-
-    return quotas
+    row = UserQuota.objects.filter(user=user).first() if user is not None else None
+    if row is not None:
+        return row.get_effective_quotas()
+    return copy.deepcopy(DEFAULT_USER_QUOTAS)

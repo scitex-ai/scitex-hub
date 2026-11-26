@@ -16,6 +16,7 @@ from django.utils.http import url_has_allowed_host_and_scheme
 from ...models import Project
 from .api.file_ops_utils import get_project_path, validate_path
 from .api.permissions import check_project_write_access
+from apps.infra.spend_app.decorators import storage_write
 
 logger = logging.getLogger(__name__)
 
@@ -80,6 +81,7 @@ def project_new_file(request, username, slug):
     )
 
 
+@storage_write
 def project_upload_files(request, username, slug):
     """Upload one or more files into a project directory."""
     project, project_path, error = _writable_project(request, username, slug)

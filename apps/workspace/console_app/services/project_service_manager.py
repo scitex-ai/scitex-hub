@@ -112,7 +112,13 @@ class ProjectServiceManager:
         if existing:
             return existing  # Return existing service
 
-        # 4. Check service limits
+        # 4. Spend controls: a new service is new billable compute. Refused at
+        # the monthly cap or on a restricted account (spend_app.services.gate).
+        from apps.infra.spend_app.services import gate
+
+        gate.require_compute(user)  # raises gate.Refused (the view answers 402)
+
+        # 5. Check service limits
         active_services_count = ProjectService.objects.filter(
             project=project, status__in=["starting", "running"]
         ).count()
@@ -144,6 +150,16 @@ class ProjectServiceManager:
             config=config or {},
         )
 
+        if service.status == "running":
+            from apps.infra.spend_app.services.workloads import open_workload
+
+            open_workload(
+                user,
+                kind="service",
+                project_id=project.pk,
+                scheduler_id=str(service.service_id),
+                label=service_type,
+            )
         return service
 
     def stop_service(self, user, service_id: str) -> bool:
@@ -183,6 +199,11 @@ class ProjectServiceManager:
         service.stopped_at = timezone.now()
         service.save(update_fields=["status", "stopped_at"])
 
+        from apps.infra.spend_app.services.workloads import close_workloads
+
+        close_workloads(
+            service.user, kind="service", reason="user", scheduler_id=str(service.service_id)
+        )
         return True
 
     def cleanup_idle_services(self, idle_hours: int = 4) -> int:

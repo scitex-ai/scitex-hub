@@ -134,8 +134,15 @@ class JobQueue:
         owner,
         params: Optional[Dict[str, Any]] = None,
     ):
-        """Create a PlatformJob record and dispatch the Celery task."""
+        """Create a PlatformJob record and dispatch the Celery task.
+
+        Raises ``spend_app.services.gate.Refused`` when the owner's account is
+        at its monthly spend cap or restricted: a job is new billable work.
+        """
         from apps.infra.platform_app.models import PlatformJob
+        from apps.infra.spend_app.services import gate
+
+        gate.require(owner, gate.Action.SUBMIT_JOB)
 
         job = PlatformJob.objects.create(
             app_name=app_name,

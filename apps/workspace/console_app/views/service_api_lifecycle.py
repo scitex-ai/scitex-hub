@@ -5,6 +5,7 @@ API views for Project Service lifecycle management (start/stop).
 
 import json
 import logging
+
 from django.contrib.auth.decorators import login_required
 from django.core.exceptions import PermissionDenied, ValidationError
 from django.http import JsonResponse
@@ -13,6 +14,7 @@ from django.utils.decorators import method_decorator
 from django.views import View
 
 from apps.infra.project_app.models.repository.project import Project
+from apps.infra.spend_app.services.gate import Refused, refusal_json
 from apps.workspace.console_app.services.project_service_manager import (
     ProjectServiceManager,
 )
@@ -90,6 +92,8 @@ class ServiceStartAPI(ProjectServiceAPIView):
                 }
             )
 
+        except Refused as e:
+            return refusal_json(e)
         except PermissionDenied as e:
             return JsonResponse({"success": False, "error": str(e)}, status=403)
         except ValidationError as e:
