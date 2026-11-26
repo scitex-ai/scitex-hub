@@ -95,4 +95,19 @@ else
     fi
 fi
 
+# Accounting (usage metering reads sacct). Where the cluster is configured for
+# slurmdbd accounting, broken accounting FAILS this check instead of warning.
+# A host whose SLURM has no accounting configured gets the report as a warning.
+if command -v sacct >/dev/null 2>&1; then
+    if ! "${SCRIPT_DIR}/check-slurm-accounting.sh"; then
+        # Read the local file (controller copy or configless cache), not the
+        # controller: a dead controller must not turn the failure into a warning.
+        if grep -qs '^AccountingStorageType=accounting_storage/slurmdbd' \
+            /etc/slurm/slurm.conf /run/slurm/conf/slurm.conf; then
+            exit 1
+        fi
+        echo -e "  ${YELLOW}[WARN] SLURM accounting is not configured on this cluster (no usage metering)${NC}"
+    fi
+fi
+
 exit 0
