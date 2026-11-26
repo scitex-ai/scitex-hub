@@ -6,12 +6,14 @@
  */
 
 import { openPrintWindow } from "./docs-print";
+import { printAllDocs } from "./docs-batch-print";
 import { PRINT_CSS } from "./docs-export-style";
 import { initDocsHtmlExport } from "./docs-html-export";
 import { initDocsColumns, syncDocsColumns } from "./docs-navigation";
 import { initDocsFilter } from "./docs-filter";
 import { initDocsCopy } from "./docs-copy";
 import { initMobileCascade, syncMobileCascade } from "./docs-mobile-nav";
+import { renderSphinxDiagrams } from "./sphinx-diagrams";
 
 // ── Types & Constants ────────────────────────────────────────
 
@@ -210,6 +212,7 @@ function loadDocPage(
       // Build section nav + scrollspy (replaces foldSections)
       buildSectionNav(contentArea, sidebar);
       document.dispatchEvent(new Event("docs:content-loaded"));
+      void renderSphinxDiagrams(contentArea);
 
       // Scroll to anchor if specified
       if (anchorId) {
@@ -418,17 +421,7 @@ function initDocsWorkspace(): void {
   if (allPdfBtn) {
     allPdfBtn.onclick = () => {
       const slugs = Array.from(navItems).map((i) => i.dataset.docSlug ?? "");
-      const fetches = slugs.map((s) =>
-        fetch("/apps/docs/content/" + encodeURIComponent(s) + "/", {
-          headers: { "X-Requested-With": "XMLHttpRequest" },
-        }).then((r) => r.text()),
-      );
-      Promise.all(fetches).then((pages) => {
-        const combined = pages
-          .map((html, i) => "<h1>" + slugs[i] + "</h1>" + html)
-          .join('<hr class="docs-print-page-break" />');
-        openPrintWindow(combined);
-      });
+      void printAllDocs(slugs);
     };
   }
 

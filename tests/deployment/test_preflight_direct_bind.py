@@ -74,6 +74,35 @@ def test_direct_bound_development_uses_complete_prospective_profile(tmp_path):
     assert "private-marker" not in str(context.summary())
 
 
+def test_selected_umbrella_remains_in_the_complete_all_extras_profile(tmp_path):
+    document = _document(tmp_path)
+    umbrella = tmp_path / "accepted-umbrella"
+    umbrella.mkdir()
+    (umbrella / "pyproject.toml").write_text(
+        '[project]\nname="scitex"\nversion="2.30.9"\n'
+    )
+    for role in environment.PYTHON_ROLES:
+        document["services"][role]["volumes"].append(
+            {"type": "bind", "source": str(umbrella), "target": "/scitex-python"}
+        )
+    context = environment.parse_context(document)
+    assert context.direct_sources["/scitex-python"] == {
+        "source": str(umbrella), "distribution": "scitex", "extras": "[all]"
+    }
+    assert environment.choose_target(context) == ("direct-bind", None)
+
+
+def test_selected_umbrella_must_agree_in_every_python_role(tmp_path):
+    document = _document(tmp_path)
+    for index, role in enumerate(environment.PYTHON_ROLES):
+        document["services"][role]["volumes"].append(
+            {"type": "bind", "source": str(tmp_path / str(index)),
+             "target": "/scitex-python"}
+        )
+    with pytest.raises(TargetUnreachable, match="source binds disagree"):
+        environment.parse_context(document)
+
+
 @pytest.mark.parametrize(
     "replacement", ["image:bare", "container:serving", "local", "cmd:other"]
 )
