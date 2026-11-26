@@ -17,10 +17,10 @@ from typing import Optional
 from django.db.models import Q
 from scitex_sdk.ui.project_scope import ProjectEntry
 
-from ..scope_capabilities import ScopeCapabilityProjectProvider
-
 from apps.infra.project_app.models import Project
 from apps.infra.project_app.services.filesystem.paths import get_project_root_path
+
+from ..scope_capabilities import ScopeCapabilityProjectProvider
 
 PROJECT_QUERY_PARAM = "project"
 
@@ -41,12 +41,18 @@ def accessible_projects(user):
 
 
 def find_accessible_project(user, key: Optional[str]) -> Optional[Project]:
-    """``owner/slug``, or a bare slug meaning the user's own project."""
+    """``owner/slug``, or a bare slug meaning the user's own project.
+
+    ``owner`` is the owning user's username or, for an organization-owned
+    project, the organization slug its page lives under (``/<org>/<slug>/``).
+    Either name only selects among projects the user can already access.
+    """
     if not key:
         return None
     owner, _, slug = key.strip().strip("/").rpartition("/")
-    lookup = {"slug": slug, "owner__username": owner or user.username}
-    return accessible_projects(user).filter(**lookup).first()
+    owner = owner or user.username
+    named = Q(owner__username=owner) | Q(org_owner__slug=owner)
+    return accessible_projects(user).filter(named, slug=slug).first()
 
 
 def last_visited_project(user) -> Optional[Project]:
@@ -65,7 +71,9 @@ def remember_last_visited(user, project: Project) -> None:
     profile.save(update_fields=["last_active_repository"])
 
 
-def resolve_scoped_project(request, explicit: Optional[str] = None) -> Optional[Project]:
+def resolve_scoped_project(
+    request, explicit: Optional[str] = None
+) -> Optional[Project]:
     """The project a project-scope app opens: explicit URL project, else last visited."""
     user = request.user
     if explicit is None:
@@ -88,7 +96,9 @@ def project_for_scope_app(request) -> Optional[Project]:
     if project is None:
         project = get_current_project(request)
         # The leaf picker shows the provider's last visited project as current.
-        if project is not None and find_accessible_project(request.user, project_key(project)):
+        if project is not None and find_accessible_project(
+            request.user, project_key(project)
+        ):
             remember_last_visited(request.user, project)
     return project
 
