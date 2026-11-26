@@ -142,7 +142,7 @@ class SiteDockOnEveryPageTest(TestCase):
         # Act
         response = self.client.get(url)
         # Assert
-        assert response.content.count(b"<nav class=\"site-dock\"") == 1
+        assert response.content.count(b"<nav class=\"site-dock ") == 1
 
     def test_middleware_injects_the_dock_into_a_leaf_page(self):
         # Arrange — a leaf app serves its OWN document, no hub template.
