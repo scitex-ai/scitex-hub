@@ -587,6 +587,9 @@ dev = [
     "ruff>=0.1.0",
     "pytest>=7.0",
     "pytest-cov>=4.0",
+    # tests/apps/public_app/_smtp_server.py mints a throwaway TLS certificate
+    # for its STARTTLS test server (scitex-hub#1235).
+    "cryptography>=48.0.1",
     # Floor moved 0.13.0 -> 0.34.5 -> 0.34.6 (both 2026-08-16). Below 0.34.5
     # the FigRecipe Template Gallery is empty in any INSTALLED deployment —
     # the asset dir resolved outside the package, so nothing shipped in the
