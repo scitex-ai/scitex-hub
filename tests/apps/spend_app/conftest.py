@@ -18,7 +18,7 @@ def _fresh_cache():
 @pytest.fixture
 def user(django_user_model):
     return django_user_model.objects.create_user(
-        username="spender", email="spender@example.org", password="pw-test-only"
+        username="spender", email="spender@example.org", password="pw-test-only",  # pragma: allowlist secret
     )
 
 

@@ -369,7 +369,7 @@ def test_a_user_quota_override_does_not_leak_into_other_users_defaults(
     UserQuota.objects.create(user=user, slurm_max_memory_gb_per_job=1)
     get_user_quotas(user)
     other = django_user_model.objects.create_user(
-        username="other", password="pw-test-only"
+        username="other", password="pw-test-only",  # pragma: allowlist secret
     )
     # Act
     quotas = get_user_quotas(other)
