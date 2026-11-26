@@ -626,22 +626,34 @@ services:
 
   # Cloudflare Tunnel (replaces traditional port forwarding!)
   cloudflared:
-    image: cloudflare/cloudflared:latest
-    # The token goes in the ENVIRONMENT, never on the command line.
-    # `--token <secret>` placed it in argv, where a bare `ps aux` by any user on
-    # the host prints it in full -- which is how it landed in an agent transcript
-    # on 2026-08-03. Note what rotating the token would NOT have fixed: the
-    # disclosure rate is a property of the STORAGE LOCATION, so a fresh token in
-    # argv leaks again on the next `ps`. cloudflared reads TUNNEL_TOKEN from the
-    # environment for exactly this reason.
-    # Interpolation is unchanged -- ${...} still resolves at compose parse time
-    # from --env-file, so this moves WHERE the secret lands, not where it comes
-    # from.
+    # Pinned to the version the hand-made container ran on 2026-11-26
+    # (`cloudflared version 2026.10.4`, pulled as :latest). Bump deliberately.
+    image: cloudflare/cloudflared:2026.10.4
+    # The token is read from a FILE, never from argv or the environment.
+    # - argv: `--token <secret>` is printed in full by a bare `ps aux` by any
+    #   user on the host -- which is how it landed in an agent transcript on
+    #   2026-08-03.
+    # - environment: TUNNEL_TOKEN is readable by `docker inspect`, and cloudflared
+    #   prints every flag's default in `--help`, where the default of `--token` IS
+    #   $TUNNEL_TOKEN -- so `docker exec <c> cloudflared tunnel run --help`
+    #   discloses it (measured 2026-11-26).
+    # A compose file secret is bind-mounted at /run/secrets/<name>; cloudflared
+    # reads it via TUNNEL_TOKEN_FILE (--token-file, supported by 2026.10.4).
+    # Nothing secret is interpolated from --env-file any more, and the service no
+    # longer takes env_file: it needs none of the hub's other secrets.
+    # Do NOT also set TUNNEL_TOKEN: --token takes precedence over --token-file.
     command: tunnel --no-autoupdate run
     environment:
-      TUNNEL_TOKEN: ${SCITEX_HUB_CLOUDFLARE_TUNNEL_TOKEN_PROD:?required — pass --env-file ../envs/.env.prod}
-    env_file:
-      - ../envs/.env.prod
+      TUNNEL_TOKEN_FILE: /run/secrets/cloudflared_tunnel_token
+    secrets:
+      - cloudflared_tunnel_token
+    # Same cap as the one applied by hand on 2026-11-26 (the uncapped json log
+    # had reached 11 GB).
+    logging:
+      driver: json-file
+      options:
+        max-size: "100m"
+        max-file: "5"
     restart: always
     networks:
       - scitex-network
@@ -753,3 +765,12 @@ volumes:
 networks:
   scitex-network:
     driver: bridge
+
+secrets:
+  # One line, the tunnel token only, no trailing data. Lives OUTSIDE git
+  # (deployment/docker/envs/secrets/ is gitignored). cloudflared runs as the
+  # distroless nonroot user 65532 and a compose file secret is a plain bind
+  # mount (no uid/mode remapping outside swarm), so the file must be readable
+  # by uid 65532: `sudo chown 65532:65532 <file> && sudo chmod 0400 <file>`.
+  cloudflared_tunnel_token:
+    file: ${SCITEX_HUB_CLOUDFLARED_TOKEN_FILE:-../envs/secrets/cloudflared-tunnel-token}
