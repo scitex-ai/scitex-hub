@@ -46,7 +46,10 @@ class HubProjectStore:
         configuration = getattr(settings, "SCITEX_STORE_TENANT_SECRETS", {})
         if isinstance(configuration, str):
             try:
-                configuration = json.loads(configuration)
+                # Unset (empty) means no tenant is configured, not invalid.
+                configuration = (
+                    json.loads(configuration) if configuration.strip() else {}
+                )
             except ValueError:
                 raise CapabilityUnavailable(
                     "Private store configuration is invalid"

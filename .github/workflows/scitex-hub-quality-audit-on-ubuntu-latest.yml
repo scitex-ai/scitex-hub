@@ -136,7 +136,7 @@ jobs:
           # Resolve the package and reviewed audit corpus together. A separate
           # Dev downgrade can violate the declared dependencies of mounted peers.
           # Keep corpus changes reviewable; do not suppress new findings.
-          uv pip install --python .venv/bin/python -e ".[dev]" "scitex-dev==0.65.0"
+          uv pip install --python .venv/bin/python -e ".[dev]" "scitex-dev==0.66.1"
           uv pip check --python .venv/bin/python
 
       # Use the pytest wrapper so the documented `skip_rules` deferrals in
