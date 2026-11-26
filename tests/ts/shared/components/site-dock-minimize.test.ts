@@ -9,6 +9,7 @@ import {
   isDrag,
   LIVE_HEIGHT_VAR,
   MINIMIZED_CLASS,
+  MINIMIZED_KEY,
   readMinimized,
   setMinimized,
   TAP_SLOP_PX,
@@ -42,11 +43,20 @@ describe("site dock minimize", () => {
     expect(readMinimized()).toBe(true);
   });
 
-  it("restore forgets the minimized state", () => {
+  it("is minimized by default, before any choice is saved", () => {
+    expect(readMinimized()).toBe(true);
+  });
+
+  it("restoring the dock is remembered as the open dock", () => {
     const dock = makeDock(150);
     setMinimized(dock, true);
     setMinimized(dock, false);
-    expect(readMinimized()).toBe(false);
+    expect([readMinimized(), window.localStorage.getItem(MINIMIZED_KEY)]).toEqual([false, "0"]);
+  });
+
+  it("an unsaved state change leaves the default alone", () => {
+    setMinimized(makeDock(150), false, false);
+    expect(readMinimized()).toBe(true);
   });
 
   it("publishes the dock's real height for scroll alignment", () => {
