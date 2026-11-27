@@ -61,6 +61,20 @@ def test_paid_plans_include_32_gb_storage_and_100_gb_egress(plan):  # e
     )
 
 
+@pytest.mark.parametrize("plan", ["subscription-student", "subscription-general"])
+def test_trial_includes_the_plan_storage_and_a_3_usd_credit(pricing, plan):
+    # Arrange — operator decision 2026-11-27: trial storage 10 GB -> 32 GB,
+    # matching the plan allowance; the $3 credit and 30 days are unchanged.
+    row = next(p for p in pricing["published_prices"] if p["id"] == plan)
+    # Act
+    trial = row["attributes"]["free_trial"]
+    # Assert
+    assert (trial, trial["storage_gb"]) == (
+        {"days": 30, "storage_gb": 32, "compute_credit": 3},
+        row["attributes"]["included_storage"]["amount"],
+    )
+
+
 def test_a_catalog_without_a_billing_policy_raises(pricing):
     # Arrange
     from apps.infra.spend_app.services import catalog
@@ -110,9 +124,7 @@ def test_an_unknown_payer_kind_raises(pricing):
         call()
 
 
-def test_a_currency_of_record_other_than_the_catalog_currency_raises(
-    pricing
-):  # h
+def test_a_currency_of_record_other_than_the_catalog_currency_raises(pricing):  # h
     # Arrange
     from apps.infra.spend_app.services import catalog
 
