@@ -209,7 +209,8 @@ def test_required_matrix_is_not_switched_to_shards_or_unbounded_cpus():
     test_step = next(step for step in job["steps"] if step.get("name") == "Run tests")
 
     assert job["name"] == "pytest-matrix-on-ubuntu-py${{ matrix.python-version }}"
-    assert job["strategy"]["matrix"]["python-version"] == ["3.11", "3.12", "3.13"]
+    # Event-dependent (PR into develop: 3.12 only); pinned in test_pr_ci_scope.py.
+    assert "fromJSON(" in job["strategy"]["matrix"]["python-version"]
     assert "--cpus 8" in job["container"]["options"]
     assert test_step["env"]["PYTEST_XDIST_WORKERS"] == (
         "${{ job.container.id && '8' || 'auto' }}"

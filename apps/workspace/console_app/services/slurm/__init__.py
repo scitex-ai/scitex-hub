@@ -15,6 +15,7 @@ from typing import Dict, Optional
 
 from .job_operations import cancel_job, get_job_output, get_job_status, submit_job
 from .queue_operations import get_queue_status, is_slurm_available, list_jobs
+from .tags import NO_PROJECT, ProjectRef, SlurmTags
 
 logger = logging.getLogger(__name__)
 
@@ -61,8 +62,10 @@ class SlurmManager:
         memory_gb: int = 4,
         time_limit: str = "01:00:00",
         env_vars: Optional[Dict[str, str]] = None,
+        *,
+        project_id: ProjectRef,
     ) -> Dict:
-        """Submit a job to SLURM."""
+        """Submit a job to SLURM, tagged with and recorded for ``project_id``."""
         return submit_job(
             job_scripts_dir=self.job_scripts_dir,
             user_id=user_id,
@@ -75,6 +78,7 @@ class SlurmManager:
             memory_gb=memory_gb,
             time_limit=time_limit,
             env_vars=env_vars,
+            project_id=project_id,
         )
 
     def get_job_status(self, job_id: int) -> Dict:
@@ -106,7 +110,7 @@ class SlurmManager:
         return get_job_output(job_id, workspace, tail_lines)
 
 
-__all__ = ["SlurmManager"]
+__all__ = ["NO_PROJECT", "SlurmManager", "SlurmTags"]
 
 
 # EOF

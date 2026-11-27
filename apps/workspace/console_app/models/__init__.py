@@ -10,6 +10,7 @@ from .compute_identity import ComputeIdentity
 from .execution import CodeExecutionJob, DataAnalysisJob
 from .notebook import CodeLibrary, Notebook
 from .tracking import ProjectService, ResourceUsage, UserQuota
+from .workload_session import WorkloadSession
 
 __all__ = [
     # capture.py
@@ -26,4 +27,6 @@ __all__ = [
     "ResourceUsage",
     "ProjectService",
     "UserQuota",
+    # workload_session.py
+    "WorkloadSession",
 ]
