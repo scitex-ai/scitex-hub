@@ -360,7 +360,7 @@ all = [
     "scitex-clew[gui]>=0.36.4",
     "scitex-agent-container>=0.42.1",
     "scitex-cards[web]>=0.56.23",
-    "scitex-storage[gui]>=0.6.11",
+    "scitex-storage[gui]>=0.6.20",
     # Dataset app at /apps/dataset/ (hub #1226): generic plugin mount from the
     # leaf's scitex.apps entry point; 0.15.0 first ships scitex_dataset._django.
     "scitex-dataset[server]>=0.16.0",
@@ -650,7 +650,7 @@ dev = [
     "scitex-clew[gui]>=0.36.4",
     "scitex-agent-container>=0.42.1",
     "scitex-cards[web]>=0.56.23",
-    "scitex-storage[gui]>=0.6.11",
+    "scitex-storage[gui]>=0.6.20",
     # Dataset app at /apps/dataset/ (hub #1226): generic plugin mount from the
     # leaf's scitex.apps entry point; 0.15.0 first ships scitex_dataset._django.
     "scitex-dataset[server]>=0.16.0",

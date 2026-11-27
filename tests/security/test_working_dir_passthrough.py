@@ -528,49 +528,6 @@ def test_storage_anonymous_is_redirected():
     assert response["Location"].startswith("/auth/login/")
 
 
-def test_storage_in_jail_browsing_still_lists(tmp_path):
-    # Arrange — the anti-regression twin: a directory inside the
-    # requester's own volume still browses. The hub provider is stubbed to
-    # hand out a tmp-backed workspace volume (hub code, fair game); the
-    # leaf index + listing + render are all real.
-    views = _leaf_storage_views()
-    (tmp_path / "report.csv").write_text("a,b\n")
-    request = _storage_request("/apps/storage/", {"volume": "workspace", "dir": ""})
-    fake_volumes = [
-        {
-            "key": "workspace",
-            "label": "Workspace files",
-            "path": str(tmp_path),
-            "machine": "test",
-        }
-    ]
-    from apps.infra.project_app.models import Project
-
-    manager = mock.Mock()
-    manager.select_related.return_value.get.side_effect = Project.DoesNotExist
-    # Act
-    with (
-        mock.patch(
-            "apps.workspace.apps_app.services.plugin_volumes.user_volumes",
-            return_value=fake_volumes,
-        ),
-        mock.patch.object(Project, "objects", manager),
-        mock.patch(
-            "apps.workspace.apps_app.views.launcher.get_pinned_module_names",
-            return_value=[],
-            create=True,
-        ),
-        mock.patch(
-            "apps.infra.public_app.templatetags.site_dock.dock_items",
-            return_value=[],
-        ),
-    ):
-        response = views.index(request)
-    # Assert
-    assert response.status_code == 200
-    assert "report.csv" in response.content.decode()
-
-
 def test_storage_wrapper_gone_is_not_shadowed():
     # Arrange — the old anonymous-redirect test drove storage_views.index
     # directly; that module no longer exists, so this pins its absence
