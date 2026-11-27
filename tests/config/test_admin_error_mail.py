@@ -40,7 +40,10 @@ def _load(module_filename: str):
     dependencies are absent -- which matters because a gate you cannot run is
     a gate that quietly stops running.
     """
-    path = SETTINGS_DIR / module_filename
+    return _load_path(SETTINGS_DIR / module_filename)
+
+
+def _load_path(path: Path):
     spec = importlib.util.spec_from_file_location(path.stem, path)
     module = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(module)
@@ -49,6 +52,8 @@ def _load(module_filename: str):
 
 LOGGING = _load("settings_logging.py").LOGGING
 SuppressRepeatedErrors = _load("_suppress_repeated_errors.py").SuppressRepeatedErrors
+parse_address_list = _load("_mail_routing.py").parse_address_list
+BRANDING = _load_path(SETTINGS_DIR.parent / "branding.py")
 
 # A handler may legitimately have no logger ONLY when its purpose is to be
 # referenced by name at runtime. Each entry needs a written reason; this list
@@ -70,12 +75,12 @@ LOGGERS_THAT_MUST_MAIL_ADMINS = (
     "apps.workspace.console_app",
 )
 
-def _admins_from_source(source: str) -> list[tuple[str, str]]:
-    """Read the ADMINS literal without importing settings_shared.
+def _admins_default_from_source(source: str) -> ast.expr:
+    """The default expression ADMINS falls back to, read without importing.
 
-    settings_shared reads the environment at import time, so evaluating it in
-    a test would measure this machine's env rather than the committed value.
-    ``ast.literal_eval`` reads exactly what is in the file.
+    settings_email reads the environment at import time, so evaluating it in
+    a test would measure this machine's env rather than the committed default.
+    The AST shows exactly what is in the file: ADMINS = parse(getenv(KEY, DEFAULT)).
     """
     tree = ast.parse(source)
     for node in tree.body:
@@ -83,9 +88,10 @@ def _admins_from_source(source: str) -> list[tuple[str, str]]:
             isinstance(target, ast.Name) and target.id == "ADMINS"
             for target in node.targets
         ):
-            return [tuple(entry) for entry in ast.literal_eval(node.value)]
+            getenv_call = node.value.args[0]
+            return getenv_call.args[1]
     raise AssertionError(
-        "settings_shared defines no ADMINS. The mail_admins handler would be "
+        "settings_email defines no ADMINS. The mail_admins handler would be "
         "constructed with the empty default and deliver to nobody."
     )
 
@@ -224,25 +230,53 @@ class TestHandlersAreActuallyWired:
 
 
 class TestAdminsAreRealRecipients:
-    def test_admins_has_at_least_one_recipient(self):
+    def test_admins_defaults_to_the_ops_alert_address(self):
         # Arrange
-        shared_source = (SETTINGS_DIR / "settings_shared.py").read_text()
+        email_source = (SETTINGS_DIR / "settings_email.py").read_text()
         # Act
-        admins = _admins_from_source(shared_source)
+        default = ast.unparse(_admins_default_from_source(email_source))
         # Assert
-        assert admins, (
-            "ADMINS is empty, so AdminEmailHandler builds a message and sends "
-            "it to nobody. An error-mail rail with no recipients fails exactly "
-            "like one that is not configured, but looks configured."
+        assert default == "branding.OPS_ALERT_EMAIL", (
+            "ADMINS must default to the ops alert address (dev@), not a "
+            "literal and not the operator's personal inbox: the operator's "
+            "inbox was flooded with Django error mail (policy 2026-11-27)."
         )
 
-    def test_every_admin_entry_carries_an_address(self):
+    def test_the_ops_alert_address_is_not_the_operators_inbox(self):
         # Arrange
-        shared_source = (SETTINGS_DIR / "settings_shared.py").read_text()
+        expected = "dev@scitex.ai"
         # Act
-        addresses = [address for _name, address in _admins_from_source(shared_source)]
+        actual = BRANDING.OPS_ALERT_EMAIL
         # Assert
-        assert all("@" in address for address in addresses)
+        assert actual == expected
+
+    def test_the_default_parses_to_one_real_recipient(self):
+        # Arrange
+        default = BRANDING.OPS_ALERT_EMAIL
+        # Act
+        admins = parse_address_list(default, "SCITEX_HUB_ADMINS")
+        # Assert
+        assert admins == [("dev@scitex.ai", "dev@scitex.ai")]
+
+    def test_an_override_with_names_and_several_addresses_parses(self):
+        # Arrange
+        value = "Ops <dev@scitex.ai>, oncall@example.org"
+        # Act
+        admins = parse_address_list(value, "SCITEX_HUB_ADMINS")
+        # Assert
+        assert admins == [
+            ("Ops", "dev@scitex.ai"),
+            ("oncall@example.org", "oncall@example.org"),
+        ]
+
+    @pytest.mark.parametrize("value", ["", " , ", "not-an-address", "a@b.c, oops"])
+    def test_an_empty_or_malformed_override_is_refused(self, value):
+        # Arrange
+        parse = lambda: parse_address_list(value, "SCITEX_HUB_ADMINS")  # noqa: E731
+        # Act
+        # Assert
+        with pytest.raises(ValueError, match="SCITEX_HUB_ADMINS"):
+            parse()
 
     def test_admins_is_defined_in_exactly_one_settings_module(self):
         # Arrange
@@ -256,10 +290,11 @@ class TestAdminsAreRealRecipients:
             )
         ]
         # Assert
-        assert definers == ["settings_shared.py"], (
-            "ADMINS must be defined only in settings_shared. Found it in "
-            f"{definers}. Defining it per environment is how staging ended up "
-            "constructing the handler with the empty default."
+        assert definers == ["settings_email.py"], (
+            "ADMINS must be defined only in settings_email (star-imported by "
+            f"settings_shared). Found it in {definers}. Defining it per "
+            "environment is how staging ended up constructing the handler "
+            "with the empty default."
         )
 
 
