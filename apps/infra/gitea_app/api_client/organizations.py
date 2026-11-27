@@ -21,6 +21,7 @@ class OrganizationOperationsMixin:
         description: str = "",
         website: str = "",
         location: str = "",
+        visibility: str = "",
     ) -> Dict:
         """
         Create an organization
@@ -31,10 +32,14 @@ class OrganizationOperationsMixin:
             description: Description
             website: Website URL
             location: Location
+            visibility: "public", "limited" or "private" (Gitea's own
+                values). Empty: Gitea's server default applies.
 
         Returns:
             Created organization object
         """
+        if visibility and visibility not in ("public", "limited", "private"):
+            raise ValueError(f"unknown Gitea visibility: {visibility!r}")
         data = {
             "username": name,
             "full_name": full_name or name,
@@ -42,6 +47,8 @@ class OrganizationOperationsMixin:
             "website": website,
             "location": location,
         }
+        if visibility:
+            data["visibility"] = visibility
 
         response = self._request("POST", "/orgs", json=data)
         return response.json()
