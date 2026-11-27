@@ -13,10 +13,13 @@ Four tables, each with one job:
   nothing here ever deletes user data.
 * :class:`BillingAccountEvent` — append-only history of every state change and
   the provider event that caused it (design §3.6.6).
-* :class:`WorkloadSession` — one row per billable workload launch (interactive
-  terminal, notebook/service, batch job). It is the join the future usage
-  ledger resolves against (design §3.2) and, until then, the PROVISIONAL
-  compute source.
+
+Launch records are NOT kept here: every billable workload (interactive
+terminal, project service, batch job) is ONE ``console_app.WorkloadSession``
+row, written by ``console_app.services.workload_sessions``. That row carries
+the allocation and the stop reason, is the join the future usage ledger
+resolves against (design §3.2) and, until then, the PROVISIONAL compute
+source (:mod:`.services.usage`).
 """
 
 from __future__ import annotations
@@ -138,50 +141,3 @@ class BillingAccountEvent(models.Model):
 
     def __str__(self):
         return f"{self.user.username} {self.kind} {self.from_state}->{self.to_state}"
-
-
-class WorkloadSession(models.Model):
-    class Kind(models.TextChoices):
-        TERMINAL = "terminal", "Interactive terminal"
-        SERVICE = "service", "Project service (notebook, TensorBoard, ...)"
-        JOB = "job", "Batch job"
-
-    class StopReason(models.TextChoices):
-        NONE = "", "Running"
-        COMPLETED = "completed", "Finished on its own"
-        USER = "user", "Stopped by the user"
-        IDLE = "idle", "Idle auto-stop"
-        SPEND_CAP = "spend_cap", "Monthly spend cap reached"
-        RESTRICTED = "restricted", "Account restricted"
-        EXPIRED = "expired", "Time limit reached"
-        LOST = "lost", "Ended without a stop record"
-
-    user = models.ForeignKey(
-        User, on_delete=models.CASCADE, related_name="spend_workloads"
-    )
-    project_id = models.BigIntegerField(null=True, blank=True)
-    kind = models.CharField(max_length=16, choices=Kind.choices)
-    #: Allocated (reserved) resources — compute is billed by allocation.
-    cpus = models.PositiveSmallIntegerField(default=1)
-    memory_gb = models.PositiveSmallIntegerField(default=4)
-    gpus = models.PositiveSmallIntegerField(default=0)
-    #: Upper bound on wall time when no stop is ever recorded (a SLURM job's
-    #: time limit). ``None`` = open until stopped.
-    max_seconds = models.PositiveIntegerField(null=True, blank=True)
-    scheduler_id = models.CharField(max_length=128, blank=True, default="")
-    label = models.CharField(max_length=128, blank=True, default="")
-    started_at = models.DateTimeField()
-    stopped_at = models.DateTimeField(null=True, blank=True)
-    stop_reason = models.CharField(
-        max_length=16, choices=StopReason.choices, blank=True, default=""
-    )
-
-    class Meta:
-        ordering = ["-started_at"]
-        indexes = [
-            models.Index(fields=["user", "stopped_at"]),
-            models.Index(fields=["user", "started_at"]),
-        ]
-
-    def __str__(self):
-        return f"{self.user.username} {self.kind} {self.started_at:%Y-%m-%d %H:%M}"

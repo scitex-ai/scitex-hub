@@ -14,7 +14,7 @@ import psutil
 from django.core.exceptions import PermissionDenied, ValidationError
 from django.utils import timezone
 
-from apps.workspace.console_app.models import ProjectService
+from apps.workspace.console_app.models import ProjectService, WorkloadSession
 
 logger = logging.getLogger(__name__)
 
@@ -151,13 +151,12 @@ class ProjectServiceManager:
         )
 
         if service.status == "running":
-            from apps.infra.spend_app.services.workloads import open_workload
+            from .workload_sessions import begin_service_workload
 
-            open_workload(
+            begin_service_workload(
                 user,
-                kind="service",
                 project_id=project.pk,
-                scheduler_id=str(service.service_id),
+                service_id=service.service_id,
                 label=service_type,
             )
         return service
@@ -199,12 +198,19 @@ class ProjectServiceManager:
         service.stopped_at = timezone.now()
         service.save(update_fields=["status", "stopped_at"])
 
-        from apps.infra.spend_app.services.workloads import close_workloads
+        self._close_service_workload(service, WorkloadSession.StopReason.USER)
+        return True
+
+    @staticmethod
+    def _close_service_workload(service, reason: str) -> None:
+        from .workload_sessions import close_workloads
 
         close_workloads(
-            service.user, kind="service", reason="user", scheduler_id=str(service.service_id)
+            service.user,
+            workload=WorkloadSession.WORKLOAD_SERVICE,
+            reason=reason,
+            scheduler_job_id=str(service.service_id),
         )
-        return True
 
     def cleanup_idle_services(self, idle_hours: int = 4) -> int:
         """
@@ -238,6 +244,10 @@ class ProjectServiceManager:
                 service.status = "stopped"
                 service.stopped_at = timezone.now()
                 service.save(update_fields=["status", "stopped_at"])
+                # Stop its allocation clock too, or it bills forever.
+                self._close_service_workload(
+                    service, WorkloadSession.StopReason.IDLE
+                )
                 count += 1
             except Exception as e:
                 print(f"Error cleaning up service {service.service_id}: {e}")

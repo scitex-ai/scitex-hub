@@ -217,7 +217,7 @@ def check_job_quota(
     partition: str,
     status: AccountStatus | None = None,
 ) -> None:
-    from ..models import WorkloadSession
+    from apps.workspace.console_app.models import WorkloadSession
 
     q = effective_quotas(user)["slurm"]
     if int(memory_gb) > int(q["max_memory_gb_per_job"]):
@@ -243,7 +243,9 @@ def check_job_quota(
     running = sum(
         1
         for started, limit in WorkloadSession.objects.filter(
-            user=user, kind=WorkloadSession.Kind.JOB, stopped_at__isnull=True
+            user=user,
+            workload=WorkloadSession.WORKLOAD_JOB,
+            stopped_at__isnull=True,
         ).values_list("started_at", "max_seconds")
         if limit is None or started + timedelta(seconds=limit) > now
     )

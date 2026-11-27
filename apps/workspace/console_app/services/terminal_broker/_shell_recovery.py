@@ -38,8 +38,9 @@ def _make_shell_exit_cb(broker, client: socket.socket):
         with broker.lock:
             alloc = broker.allocations.get(shell.allocation_id)
         if alloc and not alloc.check_alive():
-            # The Hub now knows the job ended (timeout, node failure, ...).
-            _alloc_workload.record_ended(alloc)
+            # The Hub now knows the job ended (timeout, node failure, ...),
+            # but not why: no stop was recorded for it.
+            _alloc_workload.record_ended(alloc, reason="lost")
             reason = alloc.get_failure_reason()
             shell.state = SessionState.DEAD
             alloc.decrement_shells()

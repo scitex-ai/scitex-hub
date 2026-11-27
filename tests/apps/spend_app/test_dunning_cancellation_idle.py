@@ -104,7 +104,7 @@ def test_a_restricted_account_cannot_start_compute(user, subscription):
 
 def test_restriction_never_deletes_the_workload_history(user, subscription, workload):
     # Arrange
-    from apps.infra.spend_app.models import WorkloadSession
+    from apps.workspace.console_app.models import WorkloadSession
     from apps.infra.spend_app.services import dunning
 
     workload(hours=1.0)
@@ -269,7 +269,7 @@ def test_an_idle_terminal_is_stopped_after_the_idle_limit(user, workload):
 
 def test_the_idle_stop_closes_the_allocation_record_as_idle(user, workload):
     # Arrange
-    from apps.infra.spend_app.models import WorkloadSession
+    from apps.workspace.console_app.models import WorkloadSession
 
     now = 10_000.0
     row = workload(open_=True)
@@ -303,7 +303,7 @@ def test_a_terminal_that_is_still_printing_is_not_idle(user, workload):
 
 def test_an_allocation_record_with_no_live_session_is_closed_as_lost(user, workload):
     # Arrange
-    from apps.infra.spend_app.models import WorkloadSession
+    from apps.workspace.console_app.models import WorkloadSession
 
     row = workload(open_=True)
     # Act

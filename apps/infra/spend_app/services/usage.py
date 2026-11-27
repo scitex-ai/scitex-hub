@@ -12,11 +12,12 @@ with the source it used. The UI shows that label next to every figure.
 =========  ==========================================  ========================
 resource   provisional source                          known gap
 =========  ==========================================  ========================
-compute    ``WorkloadSession`` rows (terminal,         allocation x wall time
-           services, SLURM jobs) + ``PlatformJob``     from launch/stop records,
-           start/finish; billed by ALLOCATION          not sacct/cgroup; a job
-           (cores x wall time, 4 GiB/core bundled)     with no stop record is
-                                                       charged to its time limit
+compute    ``console_app.WorkloadSession`` rows        allocation x wall time
+           (terminal, services, SLURM jobs) +          from launch/stop records,
+           ``PlatformJob`` start/finish; billed by     not sacct/cgroup; a job
+           ALLOCATION (cores x wall time, 4 GiB/core   with no stop record is
+           bundled); concurrent terminal rows of a     charged to its time limit
+           user share one allocation, billed once
 storage    on-demand scan of the user's data root      point-in-time size held
            (``filesystem.get_storage_usage``), cached  constant for the month
 egress     not measured anywhere yet                   always 0 until the
@@ -116,6 +117,47 @@ def _overlap_seconds(start, stop, window_start, window_end) -> Decimal:
     return Decimal(max(0.0, (hi - lo).total_seconds()))
 
 
+def _billed_span(row, window_start, window_end):
+    """``(lo, hi, cpus, memory_gb)`` of ``row`` inside the window, or None.
+
+    A row with no stop record runs to the window end, capped at its time
+    limit (``max_seconds``)."""
+    stop = row.stopped_at
+    if stop is None:
+        stop = window_end
+        if row.max_seconds:
+            stop = min(stop, row.started_at + timedelta(seconds=row.max_seconds))
+    lo = max(row.started_at, window_start)
+    hi = min(stop, window_end)
+    if hi <= lo:
+        return None
+    return lo, hi, max(1, row.cpus), row.memory_gb
+
+
+def _merge_concurrent(spans):
+    """Split overlapping spans into disjoint pieces, each carrying the
+    largest cpus and memory of the spans in force over it."""
+    edges = sorted({t for lo, hi, _, _ in spans for t in (lo, hi)})
+    pieces = []
+    for a, b in zip(edges, edges[1:]):
+        live = [(c, m) for lo, hi, c, m in spans if lo <= a and hi >= b]
+        if live:
+            pieces.append((a, b, max(c for c, _ in live), max(m for _, m in live)))
+    return pieces
+
+
+def _charge(span, rate) -> tuple[Decimal, Decimal]:
+    """USD and core-hours of one allocation span (cores x wall time, memory
+    beyond the bundled GiB per core as an add-on)."""
+    lo, hi, cpus, memory_gb = span
+    hours = Decimal((hi - lo).total_seconds()) / SECONDS_PER_HOUR
+    cpus = Decimal(cpus)
+    extra_mem = max(Decimal("0"), Decimal(memory_gb) - cpus * rate.gib_per_cpu_unit)
+    usd = cpus * hours * rate.cpu_unit_hour_usd
+    usd += extra_mem * hours * rate.memory_addon_gib_hour_usd
+    return usd, cpus * hours
+
+
 class ProvisionalUsageSource:
     """PROVISIONAL: today's best source per resource. Replaced by #1232."""
 
@@ -190,7 +232,7 @@ class ProvisionalUsageSource:
         )
 
     def _compute(self, user, start, end, rate):
-        from apps.infra.spend_app.models import WorkloadSession
+        from apps.workspace.console_app.models import WorkloadSession
 
         total = Decimal("0")
         core_hours = Decimal("0")
@@ -198,26 +240,25 @@ class ProvisionalUsageSource:
         rows = WorkloadSession.objects.filter(user=user, started_at__lt=end).exclude(
             stopped_at__lt=start
         )
+        terminal_spans = []
         for row in rows:
-            stop = row.stopped_at
-            if stop is None:
-                stop = end
-                if row.max_seconds:
-                    stop = min(
-                        stop, row.started_at + timedelta(seconds=row.max_seconds)
-                    )
-            secs = _overlap_seconds(row.started_at, stop, start, end)
-            if secs <= 0:
+            span = _billed_span(row, start, end)
+            if span is None:
                 continue
             count += 1
-            hours = secs / SECONDS_PER_HOUR
-            cpus = Decimal(max(1, row.cpus))
-            extra_mem = max(
-                Decimal("0"), Decimal(row.memory_gb) - cpus * rate.gib_per_cpu_unit
-            )
-            core_hours += cpus * hours
-            total += cpus * hours * rate.cpu_unit_hour_usd
-            total += extra_mem * hours * rate.memory_addon_gib_hour_usd
+            if row.workload == WorkloadSession.WORKLOAD_TERMINAL:
+                terminal_spans.append(span)
+                continue
+            usd, hours = _charge(span, rate)
+            total += usd
+            core_hours += hours
+        # Every terminal tab of a user runs on ONE interactive allocation, so
+        # overlapping terminal rows are billed once (the largest allocation
+        # in force), never once per tab.
+        for span in _merge_concurrent(terminal_spans):
+            usd, hours = _charge(span, rate)
+            total += usd
+            core_hours += hours
 
         try:
             from apps.infra.platform_app.models import PlatformJob
@@ -280,8 +321,12 @@ def current_snapshot(
 
 
 def invalidate(user) -> None:
+    invalidate_user_id(user.pk)
+
+
+def invalidate_user_id(user_id: int) -> None:
     period, _, _ = period_bounds()
-    cache.delete(f"spend:snapshot:{user.pk}:{period}")
+    cache.delete(f"spend:snapshot:{user_id}:{period}")
 
 
 __all__ = [
@@ -292,5 +337,6 @@ __all__ = [
     "current_snapshot",
     "get_usage_source",
     "invalidate",
+    "invalidate_user_id",
     "period_bounds",
 ]

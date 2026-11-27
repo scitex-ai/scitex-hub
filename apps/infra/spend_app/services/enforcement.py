@@ -8,7 +8,8 @@ At 100 % the 100 % alert's ``created_at`` starts the grace window. During the
 window work keeps running and the holder has the warning (email + in-app, and
 a line in every attached terminal). When it ends:
 
-* SLURM batch jobs recorded in ``WorkloadSession`` are ``scancel``-ed;
+* SLURM batch jobs recorded in ``console_app.WorkloadSession`` are
+  ``scancel``-ed;
 * queued/running ``PlatformJob`` rows are cancelled through ``JobQueue``;
 * project services (notebook, TensorBoard) are stopped;
 * terminals are stopped by the broker reaper.
@@ -46,7 +47,7 @@ def verdict_for(status: gate.AccountStatus, *, now=None) -> policy.RunningVerdic
 
 
 def _stop_reason(verdict: policy.RunningVerdict) -> str:
-    from ..models import WorkloadSession
+    from apps.workspace.console_app.models import WorkloadSession
 
     return (
         WorkloadSession.StopReason.RESTRICTED
@@ -57,35 +58,43 @@ def _stop_reason(verdict: policy.RunningVerdict) -> str:
 
 def stop_running_work(user, verdict: policy.RunningVerdict) -> dict:
     """Stop the non-terminal billable work of ``user``. Returns counts."""
-    from ..models import WorkloadSession
+    from apps.workspace.console_app.models import WorkloadSession
+    from apps.workspace.console_app.services.workload_sessions import (
+        close_workloads,
+        mark_stopped_by_session,
+    )
 
     reason = _stop_reason(verdict)
     stopped = {"jobs": 0, "platform_jobs": 0, "services": 0}
 
     for row in WorkloadSession.objects.filter(
-        user=user, kind=WorkloadSession.Kind.JOB, stopped_at__isnull=True
+        user=user,
+        workload=WorkloadSession.WORKLOAD_JOB,
+        scheduler=WorkloadSession.SCHEDULER_SLURM,
+        stopped_at__isnull=True,
     ):
-        if row.scheduler_id:
+        if row.scheduler_job_id:
             try:
                 from apps.workspace.console_app.services.slurm.job_operations import (
                     cancel_job,
                 )
 
-                result = cancel_job(int(row.scheduler_id))
+                # cancel_job closes the row with ``reason`` once scancel ran.
+                result = cancel_job(int(row.scheduler_job_id), reason=reason)
                 if not result.get("success"):
                     logger.error(
                         "spend: scancel %s for user %s failed: %s",
-                        row.scheduler_id,
+                        row.scheduler_job_id,
                         user.pk,
                         result.get("message"),
                     )
                     continue
             except (ValueError, FileNotFoundError) as exc:
-                logger.error("spend: cannot scancel %s: %s", row.scheduler_id, exc)
+                logger.error(
+                    "spend: cannot scancel %s: %s", row.scheduler_job_id, exc
+                )
                 continue
-        row.stopped_at = timezone.now()
-        row.stop_reason = reason
-        row.save(update_fields=["stopped_at", "stop_reason"])
+        mark_stopped_by_session(row.session_id, reason=reason)
         stopped["jobs"] += 1
 
     try:
@@ -115,9 +124,9 @@ def stop_running_work(user, verdict: policy.RunningVerdict) -> dict:
             if manager.stop_service(user, str(service.service_id)):
                 stopped["services"] += 1
         if stopped["services"]:
-            from .workloads import close_workloads
-
-            close_workloads(user, kind=WorkloadSession.Kind.SERVICE, reason=reason)
+            close_workloads(
+                user, workload=WorkloadSession.WORKLOAD_SERVICE, reason=reason
+            )
     except ImportError:  # pragma: no cover
         pass
 
@@ -146,13 +155,15 @@ def users_to_sweep(*, active_only: bool):
     account that used the product in the last 35 days."""
     from django.contrib.auth import get_user_model
 
-    from ..models import BillingAccountState, WorkloadSession
+    from apps.workspace.console_app.models import WorkloadSession
+
+    from ..models import BillingAccountState
 
     User = get_user_model()
     open_ids = set(
-        WorkloadSession.objects.filter(stopped_at__isnull=True).values_list(
-            "user_id", flat=True
-        )
+        WorkloadSession.objects.filter(
+            stopped_at__isnull=True, user__isnull=False
+        ).values_list("user_id", flat=True)
     )
     try:
         from apps.infra.platform_app.models import PlatformJob
@@ -185,10 +196,12 @@ def require_terminal(payer) -> None:
     refused only once that work is due to stop. Opening a new allocation is new
     billable compute and follows :func:`gate.require_compute`.
     """
-    from ..models import WorkloadSession
+    from apps.workspace.console_app.models import WorkloadSession
 
     running = WorkloadSession.objects.filter(
-        user=payer, kind=WorkloadSession.Kind.TERMINAL, stopped_at__isnull=True
+        user=payer,
+        workload=WorkloadSession.WORKLOAD_TERMINAL,
+        stopped_at__isnull=True,
     ).exists()
     if not running:
         gate.require_compute(payer)

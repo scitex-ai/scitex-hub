@@ -5,7 +5,6 @@ from .models import (
     BillingAccountState,
     SpendAlert,
     SpendControl,
-    WorkloadSession,
 )
 
 
@@ -63,17 +62,3 @@ class BillingAccountEventAdmin(admin.ModelAdmin):
     def has_delete_permission(self, request, obj=None):
         return False
 
-
-@admin.register(WorkloadSession)
-class WorkloadSessionAdmin(admin.ModelAdmin):
-    list_display = (
-        "user",
-        "kind",
-        "cpus",
-        "memory_gb",
-        "started_at",
-        "stopped_at",
-        "stop_reason",
-    )
-    list_filter = ("kind", "stop_reason")
-    search_fields = ("user__username", "scheduler_id")

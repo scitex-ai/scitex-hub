@@ -338,21 +338,22 @@ def handle_stop_allocation(broker, msg: dict) -> dict:
             }
 
     if alloc:
-        alloc.stop()
+        # Record the reason BEFORE stopping: alloc.stop() closes a still-open
+        # row as a plain completion. A reason written earlier (the idle
+        # reaper's) is kept, because only open rows change.
         _close_terminal_workloads(username, reason="user")
+        alloc.stop()
         return {"status": "ok"}
     return {"status": "error", "error": "No active session found"}
 
 
 def _close_terminal_workloads(username: str, *, reason: str) -> None:
-    """Stop the allocation clock (spend_app WorkloadSession). Idempotent: the
-    idle reaper's own reason, written first, is kept."""
+    """Stop the allocation clock (the terminal WorkloadSession rows).
+    Idempotent: the idle reaper's own reason, written first, is kept."""
     try:
-        from apps.infra.spend_app.services.workloads import (
-            close_workloads_for_username,
-        )
+        from ..workload_sessions import close_workloads_for_username
 
-        close_workloads_for_username(username, kind="terminal", reason=reason)
+        close_workloads_for_username(username, workload="terminal", reason=reason)
     except Exception:
         logger.exception("could not close terminal workload record")
 

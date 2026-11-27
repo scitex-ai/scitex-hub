@@ -1,8 +1,10 @@
 """Tag and record a terminal allocation's SLURM job (see services/workload_sessions).
 
-The shared allocation is one sbatch job per user. It is attributed to the
-project the user opened when the job was submitted; shells later attached
-for other projects run inside that same job and are not re-attributed.
+The shared allocation is one sbatch job per user, so it is ONE row: every
+shell (tab) attached to it runs inside that job and writes no row of its
+own, which is what keeps a multi-tab session billed once. The row is
+attributed to the project the user opened when the job was submitted;
+shells later attached for other projects are not re-attributed.
 """
 
 from __future__ import annotations
@@ -46,7 +48,12 @@ def abandon(alloc) -> None:
 
 
 def adopt_existing(alloc) -> None:
-    """Attach ``alloc`` to the open row of the job it is re-attaching to."""
+    """Attach ``alloc`` to the row of the job it is re-attaching to.
+
+    A row the idle reaper closed as ``lost`` (the broker restarted and lost
+    track of a job that kept running) is reopened: the allocation never
+    stopped, so neither does its clock.
+    """
     from apps.workspace.console_app.models import WorkloadSession
 
     try:
@@ -54,11 +61,17 @@ def adopt_existing(alloc) -> None:
             WorkloadSession.objects.filter(
                 scheduler=WorkloadSession.SCHEDULER_SLURM,
                 scheduler_job_id=str(alloc.job_id),
-                stopped_at__isnull=True,
             )
             .order_by("-started_at")
             .first()
         )
+        if row is not None and row.stopped_at is not None:
+            if row.stop_reason == WorkloadSession.StopReason.LOST:
+                row.stopped_at = None
+                row.stop_reason = WorkloadSession.StopReason.NONE
+                row.save(update_fields=["stopped_at", "stop_reason"])
+            else:
+                row = None
     except Exception:
         # The job was recorded when it was submitted; only its end time is
         # at risk, which must not block re-attaching a running terminal.
@@ -78,15 +91,18 @@ def adopt_existing(alloc) -> None:
     alloc.workload_row = row
 
 
-def record_ended(alloc) -> None:
-    """Set stopped_at on the allocation's row once the Hub knows the job ended."""
+def record_ended(alloc, reason: str = "completed") -> None:
+    """Close the allocation's row once the Hub knows the job ended.
+
+    Only an open row changes, so a reason recorded first (user, idle, spend
+    cap) is kept."""
     from ..workload_sessions import mark_stopped_by_session
 
     row = getattr(alloc, "workload_row", None)
     if row is None:
         return
     try:
-        mark_stopped_by_session(row.session_id)
+        mark_stopped_by_session(row.session_id, reason=reason)
     except Exception:
         # Called on teardown paths that must finish; the row stays open and
         # the collector still has sacct's End time for the job.

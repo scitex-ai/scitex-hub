@@ -37,7 +37,8 @@ def submit_job(
     Submit a job to SLURM.
 
     A ``WorkloadSession`` row is written before ``sbatch`` runs and gets the
-    job id afterwards, so no submitted job goes unrecorded.
+    job id afterwards, so no submitted job goes unrecorded. The row carries
+    the allocation (cpus, memory, time limit) spend controls bill by.
 
     Args:
         job_scripts_dir: Directory to store batch scripts
@@ -59,7 +60,12 @@ def submit_job(
     """
     from apps.workspace.console_app.models import WorkloadSession
 
-    from ..workload_sessions import abandon_workload, begin_workload, bind_job
+    from ..workload_sessions import (
+        abandon_workload,
+        begin_workload,
+        bind_job,
+        time_limit_seconds_from_slurm,
+    )
 
     # Create batch script. create_batch_script rejects tenant-controlled
     # fields containing shell/SLURM metacharacters (CWE-78) — fail closed
@@ -104,6 +110,10 @@ def submit_job(
         tags=tags,
         workload=WorkloadSession.WORKLOAD_JOB,
         extra_tags={"slurm.account": f"user_{user_id}"},
+        cpus=cpus,
+        memory_gb=memory_gb,
+        max_seconds=time_limit_seconds_from_slurm(time_limit),
+        label=job_name,
     )
 
     # Submit to SLURM
@@ -206,12 +216,14 @@ def get_job_status(job_id: int) -> Dict:
     }
 
 
-def cancel_job(job_id: int) -> Dict:
+def cancel_job(job_id: int, *, reason: str = "user") -> Dict:
     """
     Cancel a SLURM job.
 
     Args:
         job_id: SLURM job ID to cancel
+        reason: Stop reason recorded on its ``WorkloadSession`` row
+            (``user`` unless spend controls stopped it)
 
     Returns:
         Dict with success and message keys
@@ -227,7 +239,7 @@ def cancel_job(job_id: int) -> Dict:
 
     from ..workload_sessions import mark_stopped_by_job
 
-    mark_stopped_by_job(job_id)
+    mark_stopped_by_job(job_id, reason=reason)
     logger.info(f"Job {job_id} cancelled")
     return {"success": True, "message": f"Job {job_id} cancelled"}
 
