@@ -21,11 +21,12 @@ from django.http import JsonResponse
 from django.views.decorators.http import require_http_methods
 
 from apps.infra.spend_app.services import gate
-from apps.infra.spend_app.services.workloads import close_workloads, open_workload
 from apps.security import safe_log_field
 
+from .models import WorkloadSession
 from .services import SlurmManager
 from .services.job_ownership import job_belongs_to_user
+from .services.workload_sessions import close_workloads
 
 logger = logging.getLogger(__name__)
 
@@ -141,19 +142,10 @@ def api_submit_job(request):
         )
 
         if result["success"]:
+            # submit_job recorded the launch (with its allocation, which
+            # spend controls bill by) as one WorkloadSession row.
             logger.info(
                 f"Job {result['job_id']} submitted for user {request.user.username}"
-            )
-            # Allocation record (billed by allocation; a job with no stop
-            # record is charged up to its time limit — provisional).
-            open_workload(
-                request.user,
-                kind="job",
-                cpus=cpus,
-                memory_gb=memory_gb,
-                max_seconds=time_limit_seconds,
-                scheduler_id=str(result.get("job_id", "")),
-                label=job_name,
             )
         else:
             logger.error(
@@ -205,7 +197,10 @@ def api_job_status(request, job_id):
         if status.get("is_completed"):
             # The job has ended: stop its allocation clock (provisional source).
             close_workloads(
-                request.user, kind="job", reason="completed", scheduler_id=str(job_id)
+                request.user,
+                workload=WorkloadSession.WORKLOAD_JOB,
+                reason=WorkloadSession.StopReason.COMPLETED,
+                scheduler_job_id=str(job_id),
             )
         return JsonResponse(status)
     except Exception:
@@ -236,11 +231,9 @@ def api_cancel_job(request, job_id):
         # by someone else is indistinguishable from a nonexistent one.
         if not job_belongs_to_user(get_slurm_manager(), job_id, request.user.username):
             return JsonResponse({"success": False, "message": "Not found"}, status=404)
+        # A successful cancel closes the job's row as a user stop.
         result = get_slurm_manager().cancel_job(job_id)
         if result["success"]:
-            close_workloads(
-                request.user, kind="job", reason="user", scheduler_id=str(job_id)
-            )
             logger.info(
                 f"Job {safe_log_field(job_id)} cancelled by user {request.user.username}"
             )

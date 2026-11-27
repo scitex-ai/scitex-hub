@@ -327,7 +327,8 @@ def test_running_jobs_are_stopped_when_the_grace_window_ends(
     user, cap, workload, subscription
 ):
     # Arrange
-    from apps.infra.spend_app.models import SpendAlert, WorkloadSession
+    from apps.infra.spend_app.models import SpendAlert
+    from apps.workspace.console_app.models import WorkloadSession
     from apps.infra.spend_app.services import enforcement
 
     cap("0.10")

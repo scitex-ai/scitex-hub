@@ -108,13 +108,12 @@ class IdleReaper:
 
     def _stop_user(self, username: str, ptys, *, reason: str) -> None:
         """Stop every interactive PTY/allocation of ``username``."""
-        from apps.infra.spend_app.services.workloads import close_workloads_for_username
-
+        from ..workload_sessions import close_workloads_for_username
         from ._handlers_shared import handle_stop_allocation
 
         # Record the REAL reason first: handle_stop_allocation closes any
         # still-open record as a user stop.
-        close_workloads_for_username(username, kind="terminal", reason=reason)
+        close_workloads_for_username(username, workload="terminal", reason=reason)
         with self.broker.lock:
             has_alloc = (username,) in self.broker.alloc_index
         if has_alloc:
@@ -215,20 +214,31 @@ class IdleReaper:
         self._close_orphans(set(live))
 
     def _close_orphans(self, live_users: set) -> None:
-        from apps.infra.spend_app.models import WorkloadSession
+        """Close open terminal rows this broker no longer runs anything for.
+
+        Direct-mode terminals (the deprecated web-process fallback) are not
+        the broker's: their own PTY reader closes them, and their time limit
+        caps billing if it never does."""
+        from apps.workspace.console_app.models import WorkloadSession
+
+        from ..workload_sessions import mark_stopped_by_session
 
         with self.broker.lock:
             alloc_users = {key[0] for key in self.broker.alloc_index}
         alive = live_users | alloc_users
-        for row in WorkloadSession.objects.filter(
-            kind=WorkloadSession.Kind.TERMINAL, stopped_at__isnull=True
-        ).select_related("user"):
-            if row.user.username not in alive:
-                from django.utils import timezone
-
-                row.stopped_at = timezone.now()
-                row.stop_reason = WorkloadSession.StopReason.LOST
-                row.save(update_fields=["stopped_at", "stop_reason"])
+        rows = (
+            WorkloadSession.objects.filter(
+                workload=WorkloadSession.WORKLOAD_TERMINAL,
+                stopped_at__isnull=True,
+            )
+            .exclude(tags__contains={"scitex.terminal_mode": "direct"})
+            .select_related("user")
+        )
+        for row in rows:
+            if row.user is None or row.user.username not in alive:
+                mark_stopped_by_session(
+                    row.session_id, reason=WorkloadSession.StopReason.LOST
+                )
 
 
 __all__ = ["IdleReaper"]

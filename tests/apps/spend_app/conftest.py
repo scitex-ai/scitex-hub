@@ -37,15 +37,17 @@ def cap(user):
 
 @pytest.fixture
 def workload(user):
-    """A closed allocation of ``cpus`` x ``hours`` this month."""
-    from apps.infra.spend_app.models import WorkloadSession
+    """A closed allocation of ``cpus`` x ``hours`` this month: one
+    ``console_app.WorkloadSession`` row, the Hub's single launch record."""
+    from apps.workspace.console_app.models import WorkloadSession
 
     def _make(*, cpus=2, memory_gb=4, hours=1.0, kind="terminal", open_=False, **kw):
         now = timezone.now()
         start = now - timedelta(hours=hours)
         return WorkloadSession.objects.create(
             user=user,
-            kind=kind,
+            workload=kind,
+            host="test-host",
             cpus=cpus,
             memory_gb=memory_gb,
             started_at=start,

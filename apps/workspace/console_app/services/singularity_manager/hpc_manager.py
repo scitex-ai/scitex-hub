@@ -85,7 +85,13 @@ class HPCManager:
         from apps.workspace.console_app.models import WorkloadSession
 
         from ..slurm.tags import SlurmTags
-        from ..workload_sessions import abandon_workload, begin_workload, bind_job
+        from ..workload_sessions import (
+            abandon_workload,
+            begin_workload,
+            bind_job,
+            memory_gb_from_slurm,
+            time_limit_seconds_from_slurm,
+        )
 
         tags = SlurmTags.for_project(project_id)
 
@@ -115,7 +121,13 @@ singularity exec \\
 
         # Record the launch before submitting so no job runs unrecorded.
         row = begin_workload(
-            user_id=user.id, tags=tags, workload=WorkloadSession.WORKLOAD_JOB
+            user_id=user.id,
+            tags=tags,
+            workload=WorkloadSession.WORKLOAD_JOB,
+            cpus=int(hpc_config["cpus"]),
+            memory_gb=memory_gb_from_slurm(hpc_config["mem"]),
+            max_seconds=time_limit_seconds_from_slurm(hpc_config["time"]),
+            label=f"scitex_{user.id}",
         )
 
         # Submit to SLURM
