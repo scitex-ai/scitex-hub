@@ -46,6 +46,7 @@ jobs:
       runs_on: '["self-hosted","Linux","X64","scitex-org-cpu"]'
 
   typescript-check:
+    timeout-minutes: 20
     name: TypeScript Compilation & Linting
     # Needs BOTH node and Python, which is why it waited: a failure here
     # could not have told us which half was at fault. Both are now proven
@@ -137,6 +138,7 @@ jobs:
         run: bash scripts/maintenance/normalize_workspace_ownership.sh
 
   vitest:
+    timeout-minutes: 15
     name: Vitest Unit Tests
     # Was the NODE CANARY for the spartan migration — that migration is
     # reversed as of 2026-08-10 (operator ruling 2026-08-05, "stop Spartan
@@ -205,6 +207,7 @@ jobs:
         run: bash scripts/maintenance/normalize_workspace_ownership.sh
 
   terminal-tests:
+    timeout-minutes: 20
     name: "Terminal Broker & Session Tests (Python)"
     # Not on pull requests into develop: these directories are part of
     # `pytest tests/`, which the REQUIRED pytest-matrix-on-ubuntu-py3.12 job
@@ -323,6 +326,7 @@ jobs:
         run: bash scripts/maintenance/normalize_workspace_ownership.sh
 
   security-regression:
+    timeout-minutes: 25
     name: "Security Regression Gates (tests/security/)"
     # Not on pull requests into develop, for the same reason as terminal-tests:
     # tests/security/ is part of `pytest tests/`, which the REQUIRED
@@ -461,6 +465,7 @@ jobs:
         run: bash scripts/maintenance/normalize_workspace_ownership.sh
 
   test-summary:
+    timeout-minutes: 10
     name: Test Summary
     # Pure bash over `needs.*.result` — no checkout, no Python, no node, no
     # network. Nothing here can depend on a hosted-runner preinstall, which

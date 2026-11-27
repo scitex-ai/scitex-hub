@@ -39,6 +39,7 @@ jobs:
     secrets: inherit
 
   build:
+    timeout-minutes: 30
     needs: test
     # Same reasoning as `test`: a pure `python -m build`, nothing privileged.
     runs-on: [self-hosted, Linux, X64, scitex-docker]
@@ -84,6 +85,7 @@ jobs:
           path: dist/
 
   publish:
+    timeout-minutes: 15
     needs: build
     runs-on: [self-hosted, Linux, X64, scitex-docker]
     environment:
@@ -99,6 +101,7 @@ jobs:
       - uses: pypa/gh-action-pypi-publish@release/v1
 
   release:
+    timeout-minutes: 15
     needs: [build, publish]
     runs-on: [self-hosted, Linux, X64, scitex-docker]
     permissions:
@@ -138,6 +141,7 @@ jobs:
             dist/*
 
   sync-main:
+    timeout-minutes: 15
     # Open develop→main PR so main always equals the latest released
     # commit. Branch protection and ordinary review remain authoritative;
     # publication never grants permission to merge a branch.

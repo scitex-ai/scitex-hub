@@ -26,6 +26,7 @@ jobs:
       runs_on: '["self-hosted","Linux","X64","scitex-org-cpu"]'
 
   sphinx:
+    timeout-minutes: 15
     # Skip when HEAD is the bot's own previous docs auto-commit — breaks
     # the infinite loop without using `[skip ci]`, which would also
     # suppress the tag-push and release workflows when the auto-commit

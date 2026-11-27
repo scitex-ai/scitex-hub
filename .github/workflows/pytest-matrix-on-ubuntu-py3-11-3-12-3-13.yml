@@ -48,6 +48,7 @@ concurrency:
 
 jobs:
   test:
+    timeout-minutes: 90
     name: pytest-matrix-on-ubuntu-py${{ matrix.python-version }}
     # Same-repo runs: scitex-docker runners (scitex-compute-03/04), inside a
     # throwaway job container so the suite never sees the runner host's $HOME
