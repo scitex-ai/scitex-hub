@@ -29,6 +29,7 @@ jobs:
       runs_on: '["self-hosted","Linux","X64","scitex-org-cpu"]'
 
   analyze:
+    timeout-minutes: 25
     name: Analyze Code
     # VERIFICATION, not an assumption. I claimed earlier that codeql "needs
     # its toolcache" and had NOT measured it — this job is how that gets
