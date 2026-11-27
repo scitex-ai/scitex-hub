@@ -715,6 +715,9 @@ services:
     restart: always
     networks:
       - scitex-network
+      # Prod tunnel -> staging django (stag.scitex.ai), on a network that
+      # holds only these two containers. Declared so a recreate keeps it.
+      - scitex-hub-stag-ingress
     depends_on:
       - nginx
     healthcheck:
@@ -823,3 +826,7 @@ volumes:
 networks:
   scitex-network:
     driver: bridge
+  # Created once by hand (internal bridge, label purpose=prod-tunnel-to-staging-django);
+  # shared with the staging stack, so external here and there.
+  scitex-hub-stag-ingress:
+    external: true
