@@ -446,7 +446,23 @@ else
     echo -e "${YELLOW}   ⚠️ No verify URL for env '${ENV}' — service check SKIPPED${NC}" >&2
 fi
 
-# Deployment verification ends at service health and public HTTP checks;
+# 7d. Can the deployment send mail? (scitex-hub#1234)
+# A site that serves 200 but cannot log in to SMTP has a dead signup: no
+# verification code arrives, and the reply is deliberately the same either way,
+# so nobody sees the failure. On prod that held for three months (SMTP 535).
+# check_mail_delivery connects and authenticates WITHOUT sending, and prints
+# only the stage and status code, never the account or password.
+echo "   Checking mail delivery (login only, nothing is sent)"
+if docker exec -w /app "scitex-hub-${ENV}-django-1" python manage.py check_mail_delivery; then
+    echo -e "${GREEN}   Mail backend accepts login${NC}"
+else
+    echo -e "${RED}   ❌ Mail backend REFUSED — sign-up verification and notifications cannot be delivered${NC}" >&2
+    echo -e "${YELLOW}      Fix the SCITEX_HUB_EMAIL_* values in the ${ENV} env file, then rerun:${NC}" >&2
+    echo -e "${YELLOW}      docker exec -w /app scitex-hub-${ENV}-django-1 python manage.py check_mail_delivery${NC}" >&2
+    VERIFY_FAILED=1
+fi
+
+# Deployment verification ends at service health, public HTTP and mail checks;
 # authenticated workspace acceptance is exercised by the application tests.
 
 echo ""
