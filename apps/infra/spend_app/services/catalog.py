@@ -121,6 +121,108 @@ def rates() -> Rates:
     )
 
 
+#: Who may pay for usage (decision a, 2026-11-27). Only "individual" is
+#: wired today: billing state is per user. "organization" is decided policy
+#: whose data model is designed in docs/design/org-billing-account.md (#1255).
+KNOWN_PAYERS = frozenset({"individual", "organization"})
+
+_BILLING_POLICY_KEYS = (
+    "currency_of_record",
+    "overseas_customers_accepted",
+    "markets",
+    "payers",
+    "storage_counts_backups",
+    "ingress",
+    "public_anonymous_download_egress",
+    "api_calls_billed",
+    "credit_sources",
+    "external_services_markup_percent",
+)
+
+
+@dataclass(frozen=True)
+class BillingPolicy:
+    """The account-wide billing rules (operator decisions 2026-11-27, a-h)."""
+
+    currency_of_record: str
+    overseas_customers_accepted: bool
+    jp_tax_inclusive_display: bool
+    payers: frozenset
+    storage_counts_backups: bool
+    ingress_free: bool
+    public_download_paid_by: str
+    #: ``None`` = the cap is not decided, so no download egress is sponsored.
+    public_download_monthly_cap_gb: Decimal | None
+    api_calls_billed: bool
+    credit_sources: tuple
+    external_services_markup_percent: Decimal
+
+
+def billing_policy(data: dict | None = None) -> BillingPolicy:
+    """Read ``billing_policy`` from the catalog (or ``data``), or raise.
+
+    The flat external-services markup (decision f) is stated once here and
+    must equal every per-surface copy the price pages render, so a page can
+    never quote a different markup than the one that is billed.
+    """
+    data = _pricing() if data is None else data
+    raw = data.get("billing_policy")
+    if not isinstance(raw, dict):
+        raise CatalogError(
+            "pricing.json has no billing_policy. Mirror it from the "
+            "scitex-affairs catalog; billing must not guess its rules."
+        )
+    missing = [k for k in _BILLING_POLICY_KEYS if k not in raw]
+    if missing:
+        raise CatalogError(f"pricing.json billing_policy is missing {missing}")
+    currency = str(raw["currency_of_record"]).upper()
+    if currency != str(data.get("currency", "")).upper():
+        raise CatalogError(
+            f"billing_policy.currency_of_record {currency!r} != pricing.json "
+            f"currency {data.get('currency')!r}"
+        )
+    payers = frozenset(raw["payers"])
+    if not payers or not payers <= KNOWN_PAYERS:
+        raise CatalogError(
+            f"billing_policy.payers {sorted(payers)} must be a non-empty subset "
+            f"of {sorted(KNOWN_PAYERS)}"
+        )
+    markup = _dec(raw["external_services_markup_percent"])
+    card = data["rate_card"]
+    copies = {
+        "rate_card.payg_margin_pct": card.get("payg_margin_pct"),
+        "rate_card.compute.external_fee_percent": card["compute"].get(
+            "external_fee_percent"
+        ),
+        "rate_card.api.agents_fee_percent": card.get("api", {}).get(
+            "agents_fee_percent"
+        ),
+    }
+    differing = {k: v for k, v in copies.items() if v is None or _dec(v) != markup}
+    if differing:
+        raise CatalogError(
+            f"external services carry one flat markup ({markup}%), but "
+            f"{differing} differ"
+        )
+    download = raw["public_anonymous_download_egress"]
+    cap = download.get("monthly_cap_gb")
+    return BillingPolicy(
+        currency_of_record=currency,
+        overseas_customers_accepted=bool(raw["overseas_customers_accepted"]),
+        jp_tax_inclusive_display=bool(
+            raw["markets"].get("JP", {}).get("tax_inclusive_display")
+        ),
+        payers=payers,
+        storage_counts_backups=bool(raw["storage_counts_backups"]),
+        ingress_free=raw["ingress"] == "free",
+        public_download_paid_by=str(download.get("paid_by", "")),
+        public_download_monthly_cap_gb=None if cap is None else _dec(cap),
+        api_calls_billed=bool(raw["api_calls_billed"]),
+        credit_sources=tuple(raw["credit_sources"]),
+        external_services_markup_percent=markup,
+    )
+
+
 def plan_id_for(user) -> str:
     """The plan the account is on: provider-confirmed subscription, else the
     plan the onboarding authority recorded at activation, else Free."""
@@ -155,10 +257,13 @@ def plan_id_for(user) -> str:
 
 
 __all__ = [
+    "BillingPolicy",
     "CatalogError",
+    "KNOWN_PAYERS",
     "FREE_PLAN_ID",
     "PlanTerms",
     "Rates",
+    "billing_policy",
     "plan_id_for",
     "plan_terms",
     "rates",
