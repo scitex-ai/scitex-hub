@@ -688,8 +688,10 @@ RUN uv pip install --system --no-cache \
     # ensure_workspace + manuscript compile produced a 5-page PDF.
     # 2.43.6 (2026-09-17): PDF provenance names the code that ran and both
     # stamp writers share one template.
-    # 2.43.19 is the current qualified public plugin/section implementation.
-    "scitex-writer==2.43.19" \
+    # 2.43.19 was the qualified public plugin/section implementation.
+    # 2.45.2 (2026-11-27): mounted by the GENERIC plugin mount (hub-side
+    # writer wrapper retired); manifest declares mount_policy.requires_project.
+    "scitex-writer==2.45.2" \
     # 0.7.1 (2026-09-03): clone_scitex_minimal returns CloneOutcome.failed(reason=...)
     # instead of a bare False, so a failed visitor reset records WHY it failed
     # (prod 2026-08-31: "the template reported NO reason"). Verified against the
