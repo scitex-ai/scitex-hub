@@ -11,8 +11,9 @@ wiring:
   * MANIFEST RESOLUTION — _scope_for reads the LEAF package's _django
     manifest (not the hub wrapper manifest) — deterministic fixtures for both
     leaves (figrecipe + writer), non-skipping.
-  * ENDPOINT INTEGRATION — authenticated FigRecipe editor + Writer
-    editor/viewer return EXACTLY ONE marker; the API dispatch path is
+  * ENDPOINT INTEGRATION — authenticated FigRecipe editor (the Writer leaf
+    now stamps its own marker and is mounted generically)
+    returns EXACTLY ONE marker; the API dispatch path is
     unchanged (no marker, JSON).
 
 Pure resolver/idempotency/cache tests use unittest.mock (no DB). Endpoint
@@ -166,29 +167,6 @@ class BridgeEndpointScopeMetaTest(TestCase):
             resp = fr.api_dispatch_with_context(self._req("/apps/figrecipe/figrecipe/api/health"), "api/health")
         assert b"stx-app-scope" not in resp.content
         assert "application/json" in resp.get("Content-Type", "")
-
-    def test_writer_editor_and_viewer_pages_stamp_exactly_one_marker(self):
-        import apps.workspace.writer_app.urls.writer_django as wd
-
-        with mock.patch.object(wd, "_editor_view", return_value=HttpResponse(HTML)), mock.patch.object(
-            scope_meta, "_scope_for", return_value="project"
-        ):
-            ed = wd.editor_page(self._req("/apps/writer/editor-v2/"))
-        with mock.patch.object(wd, "_viewer_view", return_value=HttpResponse(HTML)), mock.patch.object(
-            scope_meta, "_scope_for", return_value="project"
-        ):
-            vw = wd.viewer_page(self._req("/apps/writer/viewer-v2/"))
-        assert ed.content.count(MARKER_COUNT) == 1
-        assert vw.content.count(MARKER_COUNT) == 1
-
-    def test_writer_api_dispatch_is_unchanged(self):
-        import apps.workspace.writer_app.urls.writer_django as wd
-
-        with mock.patch.object(wd, "_api_view", return_value=JsonResponse({"ok": True})), mock.patch.object(
-            scope_meta, "_scope_for", return_value="project"
-        ):
-            resp = wd.api_dispatch(self._req("/apps/writer/v2/api/health"), "api/health")
-        assert b"stx-app-scope" not in resp.content
 
     def test_user_scoped_leaf_page_is_unchanged(self):
         import apps.workspace.figrecipe_app.urls.figrecipe as fr

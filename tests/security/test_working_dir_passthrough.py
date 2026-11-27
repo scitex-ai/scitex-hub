@@ -67,7 +67,6 @@ from apps.infra.project_app.services.working_dir_resolver import (
     WorkingDirScopedView,
 )
 from apps.workspace.figrecipe_app.urls import figrecipe as figrecipe_urls
-from apps.workspace.writer_app.urls import writer_django as writer_urls
 
 pytestmark = pytest.mark.security
 
@@ -123,17 +122,6 @@ def _resolver_returning_none(request):
     return None
 
 
-def _prepare_writer_api(query, resolver):
-    """Build (recorder, view, request) for the writer api wrapper."""
-    recorder = Recorder()
-    view = WorkingDirScopedView(
-        recorder, resolver=resolver, on_missing=writer_urls._no_project_json
-    )
-    request = RF.get("/apps/writer/v2/api/files", query)
-    request.user = FakeUser("alice")
-    return recorder, view, request
-
-
 def _prepare_figrecipe_api(query, resolver):
     """Build (recorder, view, request) for the figrecipe api wrapper (GET)."""
     recorder = Recorder()
@@ -172,60 +160,13 @@ def _prepare_figrecipe_api_post(body, resolver):
 
 
 # =====================================================================
-# SITE 1 — writer wrapper (authenticated cross-tenant pass-through)
+# SITE 1 — writer: the hub-side wrapper is GONE. The writer leaf is mounted
+# by the generic plugin mount and gives ?working_dir= no authority in hub
+# mode (scitex_sdk.host owns identity and the project root). The exploit
+# regression drives the REAL leaf through its mounted URL in
+# tests/apps/workspace/writer_app/test_slice1_stateless_reads.py
+# (test_forged_working_dir_never_reaches_leaf).
 # =====================================================================
-def test_writer_override_discards_caller_supplied_working_dir():
-    # Arrange
-    recorder, view, request = _prepare_writer_api(
-        {"working_dir": ATTACKER_DIR}, _resolver_returning(ALICE_PROJECT_DIR)
-    )
-    # Act
-    view(request, "api/files")
-    # Assert — downstream saw the SERVER-derived dir, never the attacker's
-    assert recorder.calls[0]["working_dir"] == ALICE_PROJECT_DIR
-
-
-def test_writer_normal_request_resolves_own_project():
-    # Arrange — anti-regression twin: no ?working_dir= supplied
-    recorder, view, request = _prepare_writer_api(
-        {}, _resolver_returning(ALICE_PROJECT_DIR)
-    )
-    # Act
-    view(request, "api/files")
-    # Assert
-    assert recorder.calls[0]["working_dir"] == ALICE_PROJECT_DIR
-
-
-def test_writer_fail_closed_status_is_404():
-    # Arrange — no project resolves
-    _recorder, view, request = _prepare_writer_api(
-        {"working_dir": ATTACKER_DIR}, _resolver_returning_none
-    )
-    # Act
-    response = view(request, "api/files")
-    # Assert
-    assert response.status_code == 404
-
-
-def test_writer_fail_closed_does_not_dispatch_to_package():
-    # Arrange
-    recorder, view, request = _prepare_writer_api(
-        {"working_dir": ATTACKER_DIR}, _resolver_returning_none
-    )
-    # Act
-    view(request, "api/files")
-    # Assert — package view NEVER reached when no project resolves
-    assert recorder.calls == []
-
-
-def test_writer_api_anonymous_is_redirected():
-    # Arrange
-    request = RF.get("/apps/writer/v2/api/files", {"working_dir": ATTACKER_DIR})
-    request.user = AnonymousUser()
-    # Act
-    response = writer_urls.api_dispatch(request, "api/files")
-    # Assert — login_required gate on the real URL view
-    assert response.status_code == 302
 
 
 # =====================================================================

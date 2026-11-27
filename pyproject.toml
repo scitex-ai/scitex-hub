@@ -82,7 +82,11 @@ dependencies = [
     # must resolve; see Dockerfile.prod's own convention). Do NOT lower this
     # floor to re-green an env that has not published yet: below 2.43.9 the
     # generic plugin mount cannot enforce tenancy for this leaf.
-    "scitex-writer>=2.44.5",
+    # 2.45.2 (2026-11-27): /apps/writer/ is served by the generic plugin mount
+    # alone (the hub-side wrapper is retired); this floor is also enforced at
+    # mount time (plugin_apps._version_incompatibility), and 2.45.2 declares
+    # mount_policy.requires_project for the project-less redirect.
+    "scitex-writer>=2.45.2",
     # >=1.9.0 is a MOUNT requirement, not a feature preference. Below it the
     # leaf's client JS builds API urls from the SITE ROOT
     # (static/scholar/js/graph/citation-graph.js: fetch("/api/graph/health")),
