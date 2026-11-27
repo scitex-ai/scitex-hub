@@ -13,6 +13,8 @@ patched.
 from __future__ import annotations
 
 import datetime as _dt
+import ipaddress
+import os
 import socket
 import socketserver
 import ssl
@@ -23,7 +25,15 @@ from email import message_from_bytes
 from pathlib import Path
 
 
-def _self_signed_context() -> ssl.SSLContext:
+def _self_signed_context() -> tuple[ssl.SSLContext, Path]:
+    """Server context plus the certificate path a client must trust.
+
+    The certificate names both ``localhost`` and ``127.0.0.1`` as subject
+    alternative names: scitex-notification >= 0.3.0 verifies the STARTTLS
+    certificate AND host name (``ssl.create_default_context()``), and the tests
+    connect by IP. Trust is granted through ``SSL_CERT_FILE`` while the server
+    runs (see ``TestSMTPServer``), so the client's verification stays real.
+    """
     from cryptography import x509
     from cryptography.hazmat.primitives import hashes, serialization
     from cryptography.hazmat.primitives.asymmetric import ec
@@ -40,6 +50,16 @@ def _self_signed_context() -> ssl.SSLContext:
         .serial_number(x509.random_serial_number())
         .not_valid_before(now - _dt.timedelta(minutes=1))
         .not_valid_after(now + _dt.timedelta(hours=1))
+        .add_extension(
+            x509.SubjectAlternativeName(
+                [
+                    x509.DNSName("localhost"),
+                    x509.IPAddress(ipaddress.ip_address("127.0.0.1")),
+                ]
+            ),
+            critical=False,
+        )
+        .add_extension(x509.BasicConstraints(ca=True, path_length=None), critical=True)
         .sign(key, hashes.SHA256())
     )
     tmp = Path(tempfile.mkdtemp(prefix="test-smtp-"))
@@ -53,7 +73,7 @@ def _self_signed_context() -> ssl.SSLContext:
     )
     ctx = ssl.SSLContext(ssl.PROTOCOL_TLS_SERVER)
     ctx.load_cert_chain(tmp / "cert.pem", tmp / "key.pem")
-    return ctx
+    return ctx, tmp / "cert.pem"
 
 
 @dataclass
@@ -160,7 +180,11 @@ class TestSMTPServer:
     def __enter__(self):
         self._server = _Server(("127.0.0.1", 0), _Handler)
         self._server.state = self.state
-        self._server.tls_context = _self_signed_context()
+        self._server.tls_context, cert = _self_signed_context()
+        # ssl.create_default_context() reads SSL_CERT_FILE when it loads the
+        # default verify paths, so the client trusts exactly this server.
+        self._saved_cert_file = os.environ.get("SSL_CERT_FILE")
+        os.environ["SSL_CERT_FILE"] = str(cert)
         self.port = self._server.server_address[1]
         self._thread = threading.Thread(target=self._server.serve_forever, daemon=True)
         self._thread.start()
@@ -169,6 +193,10 @@ class TestSMTPServer:
     def __exit__(self, *exc):
         self._server.shutdown()
         self._server.server_close()
+        if self._saved_cert_file is None:
+            os.environ.pop("SSL_CERT_FILE", None)
+        else:
+            os.environ["SSL_CERT_FILE"] = self._saved_cert_file
         return False
 
 

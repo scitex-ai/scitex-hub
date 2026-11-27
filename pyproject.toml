@@ -48,7 +48,7 @@ dependencies = [
     # scitex_notification.send_email, the fleet's agent -> operator rail. It was
     # already in every image transitively; an unguarded runtime import must
     # still be declared here. 0.2.9 is the version prod and dev run.
-    "scitex-notification>=0.2.9",
+    "scitex-notification>=0.3.1",
     # App-contract surface (formerly `scitex-app`, archived 2026-10-09,
     # read-only) is sourced from scitex-sdk (card
     # hub-sdk-import-switch-20261015). Verified against the published
