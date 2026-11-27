@@ -578,6 +578,8 @@ all = [
     "sphinx-autodoc-typehints>=1.25",
 ]
 dev = [
+    # tests/apps/integrations_app/test_field_encryption.py imports it (PS-210).
+    "cryptography>=48.0.1",
     "black>=23.0",
     "ruff>=0.1.0",
     "pytest>=7.0",
