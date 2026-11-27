@@ -218,6 +218,24 @@ jobs:
             && '' || 'buildpack-deps:noble' }}
       options: --user 1000:1000 --cpus 4 --memory 8g
 
+    # The terminal broker records allocations as WorkloadSession rows
+    # (test_alloc_workload.py), so this job needs the same real database
+    # as security-regression; without it those tests error on connect.
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_DB: scitex_test
+          POSTGRES_USER: scitex
+          POSTGRES_PASSWORD: scitex_test_pass  # pragma: allowlist secret
+        ports:
+          - 5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
     steps:
       # Backstop for the runs-on predicate: never check out fork code on our hardware.
       - name: Refuse to run fork-authored code on self-hosted infrastructure
@@ -275,6 +293,12 @@ jobs:
         env:
           SCITEX_HUB_DJANGO_SECRET_KEY: ci-test-key  # pragma: allowlist secret
           SCITEX_HUB_GITEA_SSH_PORT_DEV: "2222"
+          SCITEX_HUB_DB_NAME_DEV: scitex_test
+          SCITEX_HUB_DB_USER_DEV: scitex
+          SCITEX_HUB_DB_PASSWORD_DEV: scitex_test_pass  # pragma: allowlist secret
+          SCITEX_HUB_DB_HOST_DEV: ${{ job.container.id && 'postgres' || 'localhost' }}
+          SCITEX_HUB_DB_PORT_DEV: ${{ job.container.id && '5432' || job.services.postgres.ports['5432'] }}
+          SCITEX_HUB_TEST_MODE: "1"
         run: |
           python -m pytest \
             tests/apps/console_app/views/terminal/ \
