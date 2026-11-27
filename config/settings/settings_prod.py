@@ -227,7 +227,8 @@ else:
         }
     }
 
-# ADMINS / MANAGERS moved to settings_shared on 2026-08-15 so that every
+# ADMINS / MANAGERS moved to settings_shared (now settings_email, which it
+# star-imports) on 2026-08-15 so that every
 # non-dev environment inherits the same recipients. Defining them only here
 # left staging with the empty default, i.e. an error-mail handler wired to
 # nobody.

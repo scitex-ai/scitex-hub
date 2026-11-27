@@ -11,6 +11,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- Outgoing mail follows the per-purpose routing policy of 2026-11-27
+  (docs/ops/mail-routing.md). Django error mail (`ADMINS`/`MANAGERS`) and the
+  site-down, recovery and flood alarms go to `dev@scitex.ai` instead of the
+  operator's personal inbox; override with `SCITEX_HUB_ADMINS`,
+  `SCITEX_HUB_MANAGERS` and `SCITEX_HUB_HEALTH_NOTIFICATION_RECIPIENT`.
+  `SERVER_EMAIL` and `DEFAULT_FROM_EMAIL` are explicit settings
+  (`no-reply@scitex.ai`; `SCITEX_HUB_SERVER_EMAIL`,
+  `SCITEX_HUB_DEFAULT_FROM_EMAIL`) rather than the SMTP login.
+- The same error subject is mailed at most once per hour across all workers:
+  the repeat window moved from per-process memory to the shared cache, ids in
+  the message are folded, and the window defaults to 3600 s
+  (`SCITEX_HUB_ADMIN_MAIL_REPEAT_WINDOW_SECONDS`).
+
 ### Added
 
 - Dataset app at `/apps/dataset/` (#1226): scitex-dataset[server] >= 0.15.0 is

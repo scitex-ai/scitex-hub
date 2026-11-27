@@ -6794,8 +6794,8 @@ msgid "SMTP for sign-up, password reset and notifications."
 msgstr "登録、パスワード再設定、通知に使う SMTP。"
 
 #: apps/infra/public_app/templates/public_app/pages/setup.html
-msgid "Where site-down alerts go. Unset means nobody is alerted."
-msgstr "サイト停止アラートの送信先。未設定の場合、誰にも通知されません。"
+msgid "Where site-down alerts go. Defaults to the ops alert address."
+msgstr "サイト停止アラートの送信先。既定は運用アラート用アドレスです。"
 
 #: apps/infra/public_app/templates/public_app/pages/setup.html
 msgid "Optional Google and ORCID sign-in (with their client secrets)."
