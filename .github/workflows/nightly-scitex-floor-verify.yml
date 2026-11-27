@@ -92,6 +92,7 @@ permissions:
 
 jobs:
   verify-and-stage:
+    timeout-minutes: 120
     name: Build prod image against today's scitex floor, stage candidate
     runs-on: ubuntu-latest
     steps:

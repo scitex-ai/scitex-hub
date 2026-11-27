@@ -139,15 +139,18 @@ def _install_django_stubs_fixture():
 # `storages_changed` signal runs, producing ~1000 spurious errors across
 # tests/apps/*.
 #
-# NOTE: we deliberately restore ONLY the `django` keys. The local
-# `apps.workspace.console_app.views.terminal.{config,_command_builder}`
-# stubs are intentionally left installed — sibling tests in this directory
-# (e.g. test_config.py) import that stubbed `config` module and rely on it
-# being present in sys.modules. Those app-local stubs don't poison the
-# wider suite the way the MagicMock `django.conf` does.
+# The app-local `config` / `_command_builder` stubs are restored too. Left
+# installed, every later lazy `from ..._command_builder import build_sbatch_cmd`
+# in the SAME worker (the terminal broker's Allocation.start, the legacy
+# srun session) silently got the MagicMock builder or a config stub missing
+# DEV_REPOS -- an order-dependent failure in whichever worker collected
+# this file. The module-scoped autouse fixture re-installs them for this
+# module's own tests.
 _STUB_KEYS = (
     "django",
     "django.conf",
+    "apps.workspace.console_app.views.terminal.config",
+    "apps.workspace.console_app.views.terminal._command_builder",
 )
 _ORIGINAL_MODULES = {k: sys.modules.get(k) for k in _STUB_KEYS}
 _install_django_stubs()
@@ -176,6 +179,7 @@ for _part in [
 
 # Point the package's __init__ at our config stub
 _term_pkg = sys.modules["apps.workspace.console_app.views.terminal"]
+_ORIGINAL_PKG_CONFIG = getattr(_term_pkg, "config", None)
 _term_pkg.config = sys.modules["apps.workspace.console_app.views.terminal.config"]
 
 # Finally import the module under test
@@ -208,6 +212,10 @@ for _k, _v in _ORIGINAL_MODULES.items():
         sys.modules.pop(_k, None)
     else:
         sys.modules[_k] = _v
+if _ORIGINAL_PKG_CONFIG is None:
+    _term_pkg.__dict__.pop("config", None)
+else:
+    _term_pkg.config = _ORIGINAL_PKG_CONFIG
 
 # ===========================================================================
 # Tests: check_slurm_status

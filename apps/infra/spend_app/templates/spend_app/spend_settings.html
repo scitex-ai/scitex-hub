@@ -1,0 +1,165 @@
+{% extends 'global_base.html' %}
+{% load static %}
+{% load i18n %}
+
+{% block title %}{% trans "Spend controls - Settings - SciTeX Hub" %}{% endblock %}
+{% block extra_css %}
+    <link rel="stylesheet" href="{% static 'shared/css/layouts/settings-layout.css' %}" />
+    <style>
+        .spend-meter { height: 10px; border-radius: 5px; background: var(--color-border-default, #d0d7de); overflow: hidden; margin: 8px 0 4px; }
+        .spend-meter > span { display: block; height: 100%; background: var(--color-success-fg, #1a7f37); }
+        .spend-meter[data-level="50"] > span { background: var(--color-attention-fg, #9a6700); }
+        .spend-meter[data-level="80"] > span { background: var(--color-severe-fg, #bc4c00); }
+        .spend-meter[data-level="100"] > span { background: var(--color-danger-fg, #cf222e); }
+        .spend-badge { display: inline-block; font-size: 0.75rem; padding: 1px 6px; border-radius: 10px; border: 1px solid currentColor; margin-left: 6px; }
+        .spend-table { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
+        .spend-table th, .spend-table td { text-align: left; padding: 6px 8px; border-bottom: 1px solid var(--color-border-muted, #d8dee4); vertical-align: top; }
+        .spend-table td.num { text-align: right; font-variant-numeric: tabular-nums; }
+        .spend-note { color: var(--color-fg-muted, #57606a); font-size: 0.8rem; }
+        .spend-cap-form { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+        .spend-cap-form input { width: 9rem; }
+    </style>
+{% endblock %}
+{% block content %}
+    <div class="settings-page">
+        <div class="settings-layout">
+            <aside class="settings-nav">
+                {% include 'accounts_app/partials/settings_nav.html' with active='spend' %}
+            </aside>
+            <main class="settings-content" data-spend-page data-spend-level="{{ status.level|stringformat:'d' }}" data-spend-standing="{{ status.standing.value }}">
+                <div class="settings-header">
+                    <h1 class="settings-title">{% trans "Spend controls" %}</h1>
+                    <p class="settings-subtitle">
+                        {% trans "A monthly cap on usage charges beyond your plan fee. You are alerted at 50%, 80% and 100%; at 100% new compute is paused and storage becomes read-only. Nothing is ever deleted." %}
+                    </p>
+                </div>
+
+                {% if messages %}
+                    <div class="mb-4">
+                        {% for message in messages %}
+                            <div class="alert-banner alert-banner-{% if message.tags == 'error' %}danger{% elif message.tags == 'success' %}success{% elif message.tags == 'warning' %}warning{% else %}info{% endif %} mb-3" data-spend-message>
+                                {{ message }}
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+
+                {% if status.standing.value == 'past_due' %}
+                    <div class="alert-banner alert-banner-warning mb-3" data-spend-alert="past_due">
+                        {% blocktrans with until=state_row.grace_until|date:"Y-m-d H:i" %}A payment did not go through. Everything keeps working until {{ until }} UTC; after that the account becomes read-only until the payment is settled. Nothing is deleted.{% endblocktrans %}
+                        <a href="{% url 'accounts_app:billing' %}">{% trans "Update payment method" %}</a>
+                    </div>
+                {% elif status.standing.value == 'restricted' %}
+                    <div class="alert-banner alert-banner-danger mb-3" data-spend-alert="restricted">
+                        {% trans "Your account is restricted after a failed payment: your data is kept and readable, but new compute and uploads are paused." %}
+                        <a href="{% url 'accounts_app:billing' %}">{% trans "Update payment method" %}</a>
+                    </div>
+                {% endif %}
+
+                {% if status.level == 100 %}
+                    <div class="alert-banner alert-banner-danger mb-3" data-spend-alert="100">
+                        <strong>{% trans "Monthly spend cap reached." %}</strong>
+                        {% trans "New compute sessions and jobs are refused and storage is read-only until next month, or until you raise your cap below." %}
+                        {% if verdict.verdict.value == 'warn' and verdict.stop_at %}
+                            {% blocktrans with at=verdict.stop_at|date:"H:i" %}Work that is already running is stopped at {{ at }} UTC.{% endblocktrans %}
+                        {% endif %}
+                    </div>
+                {% elif status.level == 80 %}
+                    <div class="alert-banner alert-banner-warning mb-3" data-spend-alert="80">
+                        {% blocktrans with p=status.percent %}You have used {{ p }}% of your monthly spend cap. Nothing is paused yet.{% endblocktrans %}
+                    </div>
+                {% elif status.level == 50 %}
+                    <div class="alert-banner alert-banner-info mb-3" data-spend-alert="50">
+                        {% blocktrans with p=status.percent %}You have used {{ p }}% of your monthly spend cap.{% endblocktrans %}
+                    </div>
+                {% endif %}
+
+                <div class="settings-card" data-spend-section="summary">
+                    <h2>{% blocktrans with period=status.snapshot.period %}This month ({{ period }}){% endblocktrans %}
+                        {% if status.snapshot.provisional %}<span class="spend-badge" title="{% trans 'Computed from launch and storage records until full usage metering is live.' %}">{% trans "provisional" %}</span>{% endif %}
+                        {% if status.mode == 'shadow' %}<span class="spend-badge">{% trans "shadow mode: not enforced" %}</span>{% endif %}
+                    </h2>
+                    <p>
+                        <strong data-spend-amount>${{ status.spend_usd|floatformat:2 }}</strong>
+                        {% trans "of" %} <strong data-spend-cap>${{ status.cap_usd|floatformat:2 }}</strong>
+                        ({{ status.percent }}%)
+                        — {{ status.terms.label }}
+                    </p>
+                    <div class="spend-meter" data-level="{{ status.level|stringformat:'d' }}" role="meter" aria-valuemin="0" aria-valuemax="100" aria-valuenow="{{ status.percent }}" aria-label="{% trans 'Share of monthly cap used' %}">
+                        <span style="width: {% if status.percent > 100 %}100{% else %}{{ status.percent }}{% endif %}%"></span>
+                    </div>
+                    <table class="spend-table" data-spend-lines>
+                        <thead>
+                            <tr><th>{% trans "Resource" %}</th><th>{% trans "Quantity" %}</th><th class="num">{% trans "Amount" %}</th><th>{% trans "Source" %}</th></tr>
+                        </thead>
+                        <tbody>
+                            {% for line in lines %}
+                                <tr data-spend-line="{{ line.resource }}">
+                                    <td>{{ line.resource|capfirst }}</td>
+                                    <td>{{ line.quantity }} {{ line.unit }}</td>
+                                    <td class="num">${{ line.amount_usd|floatformat:4 }}</td>
+                                    <td>{{ line.source }}{% if line.provisional %}<span class="spend-badge">{% trans "provisional" %}</span>{% endif %}<div class="spend-note">{{ line.note }}</div></td>
+                                </tr>
+                            {% endfor %}
+                            {% if status.snapshot.compute_credit_usd %}
+                                <tr><td>{% trans "Included compute credit" %}</td><td></td><td class="num">−${{ status.snapshot.compute_credit_usd|floatformat:2 }}</td><td></td></tr>
+                            {% endif %}
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="settings-card" data-spend-section="cap">
+                    <h2>{% trans "Monthly cap" %}</h2>
+                    <p>
+                        {% if status.cap_is_default %}
+                            {% blocktrans with cap=status.cap_usd|floatformat:2 %}You are on your plan's default cap of ${{ cap }}.{% endblocktrans %}
+                        {% else %}
+                            {% blocktrans with cap=status.cap_usd|floatformat:2 %}Your cap is ${{ cap }}.{% endblocktrans %}
+                        {% endif %}
+                        {% blocktrans with max=status.terms.max_cap_usd|floatformat:2 default=status.terms.default_cap_usd|floatformat:2 %}Plan default ${{ default }}; you can set anything from $0 to ${{ max }}.{% endblocktrans %}
+                    </p>
+                    <form method="post" action="{% url 'spend_app:set_cap' %}" class="spend-cap-form" data-spend-cap-form>
+                        {% csrf_token %}
+                        <label for="spend-cap-input">{% trans "Cap (USD)" %}</label>
+                        <input id="spend-cap-input" type="number" name="monthly_cap_usd" min="0" max="{{ status.terms.max_cap_usd }}" step="0.01" value="{{ status.cap_usd }}" class="form-control">
+                        <button type="submit" class="btn btn-primary">{% trans "Save cap" %}</button>
+                        {% if not status.cap_is_default %}
+                            <button type="submit" name="reset" value="1" class="btn btn-outline-secondary">{% trans "Use plan default" %}</button>
+                        {% endif %}
+                    </form>
+                </div>
+
+                <div class="settings-card" data-spend-section="alerts">
+                    <h2>{% trans "Alerts" %}</h2>
+                    {% if alerts %}
+                        <ul>
+                            {% for a in alerts %}
+                                <li data-spend-alert-row="{{ a.threshold }}">
+                                    {{ a.created_at|date:"Y-m-d H:i" }} — {{ a.period }}: {{ a.threshold }}% (${{ a.spend_usd|floatformat:2 }} / ${{ a.cap_usd|floatformat:2 }})
+                                    {% if a.emailed_at %}<span class="spend-note">{% trans "emailed" %}</span>{% elif a.email_error %}<span class="spend-note">{{ a.email_error }}</span>{% endif %}
+                                </li>
+                            {% endfor %}
+                        </ul>
+                    {% else %}
+                        <p>{% trans "No alerts this month." %}</p>
+                    {% endif %}
+                </div>
+
+                {% if eligibility.subscription %}
+                    <div class="settings-card" data-spend-section="cancel">
+                        <h2>{% trans "Cancel within 30 days" %}</h2>
+                        {% if eligibility.eligible %}
+                            <p>{% blocktrans with ends=eligibility.window_ends|date:"Y-m-d" %}Until {{ ends }} you can cancel at any time and pay only for what you actually used up to that moment. Your data is kept; the account continues on the Free plan.{% endblocktrans %}</p>
+                            <form method="post" action="{% url 'spend_app:cancel_within_window' %}">
+                                {% csrf_token %}
+                                <button type="submit" class="btn btn-outline-danger">{% trans "Cancel now and pay actual usage" %}</button>
+                            </form>
+                        {% else %}
+                            <p>{% trans "The 30-day cancellation window has closed. You can still cancel at the end of the billing period from Payment method." %}</p>
+                        {% endif %}
+                    </div>
+                {% endif %}
+            </main>
+        </div>
+    </div>
+{% endblock %}

@@ -37,6 +37,7 @@ jobs:
       runs_on: '["self-hosted","Linux","X64","scitex-org-cpu"]'
 
   check-command-v-args:
+    timeout-minutes: 15
     name: No command -v calls with trailing args
     # Pure bash + git, no Python — mirrors the symlink guard, so no uv/venv step.
     # Shared admission keeps fork and unknown-author work hosted; trusted work

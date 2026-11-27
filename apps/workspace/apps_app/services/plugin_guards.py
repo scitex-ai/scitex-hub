@@ -22,6 +22,9 @@ the plugin were mounted raw)::
       "writable_routes": ["dm/thread/<str:peer>"],  # non-safe methods only
                                   # here (Django converter syntax, anchored
                                   # full match on the mount sub-path)
+      "requires_project": true,   # a page navigation by a user with no
+                                  # project goes to the hub's create-project
+                                  # page instead of the leaf's 404
     }
 
 Notes on the individual rules:
@@ -48,7 +51,7 @@ from __future__ import annotations
 
 import logging
 import re
-from functools import cached_property, lru_cache
+from functools import lru_cache
 
 logger = logging.getLogger(__name__)
 
@@ -200,7 +203,9 @@ def _compile_route(pattern: str) -> re.Pattern:
         converter, _name = match.group(1) or "str", match.group(2)
         return _CONVERTER_RES.get(converter, "[^/]+")
 
-    return re.compile("^" + re.sub(r"<(?:(str|slug|uuid|int|path):)?(\w+)>", _convert, pattern) + "$")
+    return re.compile(
+        "^" + re.sub(r"<(?:(str|slug|uuid|int|path):)?(\w+)>", _convert, pattern) + "$"
+    )
 
 
 def _writable_compiled(policy):
@@ -265,7 +270,9 @@ def _server_route_store(prefix: str, path: str):
     """
     from django.conf import settings
 
-    bindings = getattr(settings, "PLUGIN_STORE_ROUTE_SECRET_BINDINGS", {}).get(prefix, {})
+    bindings = getattr(settings, "PLUGIN_STORE_ROUTE_SECRET_BINDINGS", {}).get(
+        prefix, {}
+    )
     subpath = path[len(prefix) :]
     for route, store in sorted(bindings.items(), key=lambda item: -len(item[0])):
         if (
@@ -290,6 +297,17 @@ def _wants_html(request) -> bool:
     """
     accept = request.headers.get("Accept", "")
     return "text/html" in accept and "application/json" not in accept
+
+
+#: Where a project-less user is sent from a ``requires_project`` app page.
+_NEW_PROJECT_URL = "/new/"
+
+
+def _current_project(request):
+    """The requester's current hub project, or ``None`` when they have none."""
+    from apps.infra.project_app.services.project_utils import get_current_project
+
+    return get_current_project(request, user=request.user)
 
 
 def _plugin_mount_rejection(request, mount_path: str):
@@ -329,6 +347,16 @@ def _plugin_mount_rejection(request, mount_path: str):
             status=403,
         )
 
+    if (
+        policy.get("requires_project")
+        and request.method in _SAFE_METHODS
+        and _wants_html(request)
+        and _current_project(request) is None
+    ):
+        from django.shortcuts import redirect
+
+        return redirect(_NEW_PROJECT_URL)
+
     tenant_store = policy.get("tenant_store", "")
     tenant_attr = policy.get("tenant_attribute", "")
     server_store = _server_route_store(prefix, mount_path)
@@ -363,16 +391,22 @@ def _plugin_mount_rejection(request, mount_path: str):
 
     if request.method not in _SAFE_METHODS:
         compiled = _writable_compiled(policy)
-        subpath = mount_path[len(prefix):].strip("/")
+        subpath = mount_path[len(prefix) :].strip("/")
         if compiled is None:
             if policy.get("audience") == _AUDIENCE_STAFF:
                 return JsonResponse(
-                    {"error": "Writes are not enabled on this mount.", "reason": "plugin-mount-readonly"},
+                    {
+                        "error": "Writes are not enabled on this mount.",
+                        "reason": "plugin-mount-readonly",
+                    },
                     status=403,
                 )
         elif not _is_writable_subpath(subpath, compiled):
             return JsonResponse(
-                {"error": "Writes are not enabled for this route.", "reason": "plugin-mount-readonly"},
+                {
+                    "error": "Writes are not enabled for this route.",
+                    "reason": "plugin-mount-readonly",
+                },
                 status=403,
             )
         else:

@@ -36,6 +36,26 @@ from .workspace import ensure_workspace
 logger = slogging.getLogger(__name__)
 
 
+def _record_terminal_workload(consumer) -> None:
+    """One open allocation record per owner (shared by every tab), billed by
+    allocation: the interactive CPUs/memory for up to the SLURM time limit.
+    Closed by the broker when the allocation stops (idle, cap, user, expiry)."""
+    from apps.infra.spend_app.services.workloads import open_workload
+
+    from .config import SLURM_CPUS, SLURM_MEMORY_GB, SLURM_TIME_LIMIT_SECONDS
+
+    open_workload(
+        consumer.project.owner,
+        kind="terminal",
+        project_id=consumer.project.pk,
+        cpus=SLURM_CPUS,
+        memory_gb=SLURM_MEMORY_GB,
+        max_seconds=SLURM_TIME_LIMIT_SECONDS,
+        reuse_open=True,
+        label="interactive",
+    )
+
+
 async def _send_pipeline_failure(consumer, pipeline: PipelineStatus) -> None:
     """Send pipeline diagnostic flowchart to the user's terminal."""
     rendered = pipeline.render()
@@ -205,6 +225,7 @@ async def spawn_via_broker(consumer):
         pipeline.pass_stage("apptainer")
         pipeline.pass_stage("shell")
         logger.info(f"Terminal session started via broker: {session_id}")
+        await asyncio.to_thread(_record_terminal_workload, consumer)
 
     except Exception as e:
         logger.error(f"Broker spawn failed: {e}")
@@ -288,6 +309,23 @@ async def spawn_direct(consumer):
         )
         return
 
+    # Record the srun job before forking it (the child execs immediately).
+    from apps.workspace.console_app.services.workload_sessions import (
+        begin_terminal_workload,
+    )
+
+    try:
+        row, tags = await asyncio.to_thread(
+            begin_terminal_workload,
+            username,
+            project_slug,
+            {"scitex.terminal_mode": "direct"},
+        )
+    except Exception as exc:
+        await send_decline(consumer, "workload recording", exc, code=4010)
+        return
+    consumer.workload_session_id = str(row.session_id)
+
     # Block signals during PTY fork to prevent "Interrupted system call"
     old_mask = signal.pthread_sigmask(
         signal.SIG_BLOCK,
@@ -311,6 +349,7 @@ async def spawn_direct(consumer):
                     container_path,
                     project_slug,
                     screen_session=consumer.screen_session,
+                    tags=tags,
                 )
             except Exception as e:
                 import sys
@@ -325,6 +364,7 @@ async def spawn_direct(consumer):
             signal.pthread_sigmask(signal.SIG_SETMASK, old_mask)
 
     if consumer.pid != 0:
+        await asyncio.to_thread(_record_terminal_workload, consumer)
         consumer.reader_task = asyncio.create_task(_read_pty_direct(consumer))
 
 
@@ -347,7 +387,22 @@ async def _read_pty_direct(consumer):
     except Exception as e:
         logger.error(f"PTY read error: {e}")
     finally:
+        await _record_direct_ended(consumer)
         await consumer.close()
+
+
+async def _record_direct_ended(consumer):
+    """The PTY closed, so its srun job ended: close the WorkloadSession row."""
+    from apps.workspace.console_app.services.workload_sessions import (
+        mark_stopped_by_session,
+    )
+
+    try:
+        await asyncio.to_thread(
+            mark_stopped_by_session, getattr(consumer, "workload_session_id", None)
+        )
+    except Exception:
+        logger.exception("Could not record the end of a direct terminal job")
 
 
 # EOF

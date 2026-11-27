@@ -1,4 +1,8 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import {
+  recordGlobalListeners,
+  warmModuleGraph,
+} from "../../_helpers/module-graph";
 
 // Both loaded entrypoints that toggle the Scholar tabs. scholar_unified.html
 // mounts scholar-unified-init (the LIVE page); scholar_partial.html mounts
@@ -27,9 +31,27 @@ async function loadSwitchTab(which: EntryKind): Promise<(tab: string) => void> {
 
 const config = { urls: { health: "/apps/scholar/citation-graph/health/" } };
 
+// Pay the cold transform of all three graphs here, at collection time,
+// instead of inside the first test's 5 s budget. The page has no
+// #serviceStatus yet, so evaluating them sends no health request.
+window.CITATION_GRAPH_CONFIG = config as typeof window.CITATION_GRAPH_CONFIG;
+await warmModuleGraph(() =>
+  Promise.all([
+    import("@scholar_app/graph/citation-graph"),
+    import("@scholar_app/scholar-unified-init"),
+    import("@scholar_app/scholar-tab-switcher"),
+  ]),
+);
+delete window.CITATION_GRAPH_CONFIG;
+
 describe.each(ENTRYPOINTS)("$label", (entrypoint) => {
+  let releaseListeners: () => void = () => {};
+
   beforeEach(() => {
     vi.resetModules();
+    // Each evaluation adds document/window listeners. Remove them after
+    // every test so earlier evaluations cannot react to later events.
+    releaseListeners = recordGlobalListeners();
     document.documentElement.lang = "en";
     document.body.innerHTML = `
     <button class="scholar-tab" data-tab="graph">Citations</button>
@@ -39,6 +61,7 @@ describe.each(ENTRYPOINTS)("$label", (entrypoint) => {
   });
 
   afterEach(() => {
+    releaseListeners();
     delete window.CITATION_GRAPH_CONFIG;
     document.body.innerHTML = "";
     vi.unstubAllGlobals();

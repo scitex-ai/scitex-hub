@@ -197,6 +197,7 @@
                             {% include 'global_base_partials/module_tab_bar.html' %}
                         {% endif %}
                     {% endif %}
+                    {% if spend_banner %}{% include 'spend_app/partials/spend_banner.html' %}{% endif %}
                     <main id="main-content"
                           {% if active_module_name %}data-app-accent="{{ active_module_name }}"{% endif %}>
                         {% block content %}{% endblock %}

@@ -52,8 +52,22 @@ for arg in "$@"; do
             echo "[compose.sh] DEPLOY REFUSED: pre-up global Compose overrides are not modelled by the dependency preflight. Declare them in compose_env.sh so config and recreate use the same contract." >&2
             exit 2
         fi
-        echo "[compose.sh] running the sibling floor + import preflight before 'up'" >&2
-        "$SCRIPT_DIR/preflight_sibling_floors.sh" "$ENV"
+        # The preflight interrogates the hub APPLICATION image (Django, Celery).
+        # It is skipped only when up_needs_app_preflight.py PROVES that every
+        # service this `up` starts -- dependencies included unless --no-deps --
+        # is a literal third-party image the hub does not build (gitea, nginx).
+        # A bare `up`, an unknown option, an unparseable file, a missing python:
+        # anything short of that proof runs the preflight, exactly as before.
+        verdict=""
+        if command -v python3 >/dev/null 2>&1; then
+            verdict="$(python3 "$SCRIPT_DIR/up_needs_app_preflight.py" "$DOCKER_DIR" "$COMPOSE_CMD" "$@" || true)"
+        fi
+        if [ "$verdict" = "skip" ]; then
+            echo "[compose.sh] sibling floor + import preflight not needed: no service built from the application image is started" >&2
+        else
+            echo "[compose.sh] running the sibling floor + import preflight before 'up'" >&2
+            "$SCRIPT_DIR/preflight_sibling_floors.sh" "$ENV"
+        fi
         break
     fi
 done

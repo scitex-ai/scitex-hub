@@ -1,18 +1,13 @@
-import base64
-import hashlib
+import logging
 
-from cryptography.fernet import Fernet
-from django.conf import settings
+from cryptography.fernet import InvalidToken
 from django.contrib.auth.models import User
 from django.db import models
 from django.utils import timezone
 
+from apps import field_encryption
 
-def _get_fernet_key() -> bytes:
-    """Derive a valid 32-byte Fernet key from Django's SECRET_KEY."""
-    return base64.urlsafe_b64encode(
-        hashlib.sha256(settings.SECRET_KEY.encode()).digest()
-    )
+logger = logging.getLogger(__name__)
 
 
 class IntegrationConnection(models.Model):
@@ -86,22 +81,39 @@ class IntegrationConnection(models.Model):
         verbose_name = "Integration Connection"
         verbose_name_plural = "Integration Connections"
 
+    # Columns holding field_encryption ciphertext (reencrypt_encrypted_fields).
+    ENCRYPTED_FIELDS = (
+        "access_token",
+        "refresh_token",
+        "api_key",
+        "api_secret",
+        "webhook_secret",
+    )
+
     def __str__(self):
         return f"{self.user.username} - {self.get_service_display()}"
 
     def encrypt_value(self, value):
         """Encrypt sensitive data"""
-        if not value:
-            return ""
-        f = Fernet(_get_fernet_key())
-        return f.encrypt(value.encode()).decode()
+        return field_encryption.encrypt(value)
 
     def decrypt_value(self, encrypted_value):
-        """Decrypt sensitive data"""
-        if not encrypted_value:
+        """Decrypt sensitive data.
+
+        Ciphertext no accepted key can read (e.g. written under a rotated-away
+        key) reads as "" — "not configured" — so callers ask the user to enter
+        the secret again instead of failing the request.
+        """
+        try:
+            return field_encryption.decrypt(encrypted_value)
+        except InvalidToken:
+            logger.warning(
+                "IntegrationConnection %s (%s): stored secret is unreadable "
+                "with the configured keys; treating it as not set",
+                self.pk,
+                self.service,
+            )
             return ""
-        f = Fernet(_get_fernet_key())
-        return f.decrypt(encrypted_value.encode()).decode()
 
     def set_access_token(self, token):
         """Set encrypted access token"""

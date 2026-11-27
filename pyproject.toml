@@ -87,7 +87,11 @@ dependencies = [
     # must resolve; see Dockerfile.prod's own convention). Do NOT lower this
     # floor to re-green an env that has not published yet: below 2.43.9 the
     # generic plugin mount cannot enforce tenancy for this leaf.
-    "scitex-writer>=2.44.5",
+    # 2.45.2 (2026-11-27): /apps/writer/ is served by the generic plugin mount
+    # alone (the hub-side wrapper is retired); this floor is also enforced at
+    # mount time (plugin_apps._version_incompatibility), and 2.45.2 declares
+    # mount_policy.requires_project for the project-less redirect.
+    "scitex-writer>=2.45.2",
     # >=1.9.0 is a MOUNT requirement, not a feature preference. Below it the
     # leaf's client JS builds API urls from the SITE ROOT
     # (static/scholar/js/graph/citation-graph.js: fetch("/api/graph/health")),
@@ -276,7 +280,7 @@ dependencies = [
     # configures nothing is exactly the caller that DOES reach it.
     # 0.56.8 is the version measured good here, not proven to be the minimum.
     # 0.62.11 preserves explicit skill ownership through metadata reads.
-    "scitex-dev>=0.66.1",
+    "scitex-dev>=0.67.0",
     # `scitex-audio` owns the whisper.cpp transcription pipeline that
     # llm_app/views/stt.py delegates to (`scitex_audio.transcribe`).
     # Declared DIRECTLY rather than relied on transitively: llm_app/views/chat.py
@@ -308,7 +312,7 @@ dependencies = [
     # 0.3.19 binds generated CSS to genuine Vite source inputs; older SDK
     # project audits misclassify canonical bundled component CSS as local forks.
     # 0.3.20 supplies API-docs header lifecycle and inert wheel declarations.
-    "scitex-sdk>=0.3.25",
+    "scitex-sdk>=0.3.26",
     "gitpython>=3.1.51",
 ]
 
@@ -361,14 +365,14 @@ all = [
     # Explicit plugin closure: these apps are not installed by the umbrella.
     # SAC uses the platform-owned SDK GUI dependency; its standalone [gui]
     # extra pins an older SDK and is not this host's GUI dependency contract.
-    "scitex-sdk[gui]>=0.3.25",
+    "scitex-sdk[gui]>=0.3.26",
     "scitex-clew[gui]>=0.36.4",
     "scitex-agent-container>=0.42.1",
     "scitex-cards[web]>=0.56.23",
-    "scitex-storage[gui]>=0.6.11",
+    "scitex-storage[gui]>=0.6.20",
     # Dataset app at /apps/dataset/ (hub #1226): generic plugin mount from the
     # leaf's scitex.apps entry point; 0.15.0 first ships scitex_dataset._django.
-    "scitex-dataset[server]>=0.15.0",
+    "scitex-dataset[server]>=0.16.0",
     "scitex-agentic-journal>=0.1.0a4",
     # 0.44.1 first publishes the scope capability declarations required by
     # the SDK's fail-closed project-jail admission.
@@ -583,6 +587,8 @@ all = [
     "sphinx-autodoc-typehints>=1.25",
 ]
 dev = [
+    # tests/apps/integrations_app/test_field_encryption.py imports it (PS-210).
+    "cryptography>=48.0.1",
     "black>=23.0",
     "ruff>=0.1.0",
     "pytest>=7.0",
@@ -641,7 +647,7 @@ dev = [
     # decides the three required checks; the audit workflow's own pin cannot
     # substitute for it. Keep the two identical — if they drift, the matrix
     # and the audit test different versions and one of them is lying.
-    "scitex-dev>=0.66.1",
+    "scitex-dev>=0.67.0",
     # The board-tenancy suite is guarded by `_TODO_INSTALLED`
     # (middleware.py:115, find_spec("scitex_cards")). Without this package
     # installed, every one of those tests SKIPS and the job exits 0 — a
@@ -654,14 +660,14 @@ dev = [
     # Explicit plugin closure: these apps are not installed by the umbrella.
     # SAC uses the platform-owned SDK GUI dependency; its standalone [gui]
     # extra pins an older SDK and is not this host's GUI dependency contract.
-    "scitex-sdk[gui]>=0.3.25",
+    "scitex-sdk[gui]>=0.3.26",
     "scitex-clew[gui]>=0.36.4",
     "scitex-agent-container>=0.42.1",
     "scitex-cards[web]>=0.56.23",
-    "scitex-storage[gui]>=0.6.11",
+    "scitex-storage[gui]>=0.6.20",
     # Dataset app at /apps/dataset/ (hub #1226): generic plugin mount from the
     # leaf's scitex.apps entry point; 0.15.0 first ships scitex_dataset._django.
-    "scitex-dataset[server]>=0.15.0",
+    "scitex-dataset[server]>=0.16.0",
     "scitex-agentic-journal>=0.1.0a4",
     # 0.44.1 first publishes the scope capability declarations required by
     # the SDK's fail-closed project-jail admission.

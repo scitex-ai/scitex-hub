@@ -13,6 +13,7 @@ from apps.infra.platform_app.services.paths import resolve_within
 from apps.security import safe_log_field
 
 from .script_generator import create_batch_script
+from .tags import ProjectRef, SlurmTags
 
 logger = logging.getLogger(__name__)
 
@@ -29,13 +30,20 @@ def submit_job(
     memory_gb: int = 4,
     time_limit: str = "01:00:00",
     env_vars: Optional[Dict[str, str]] = None,
+    *,
+    project_id: ProjectRef,
 ) -> Dict:
     """
     Submit a job to SLURM.
 
+    A ``WorkloadSession`` row is written before ``sbatch`` runs and gets the
+    job id afterwards, so no submitted job goes unrecorded.
+
     Args:
         job_scripts_dir: Directory to store batch scripts
         user_id: User identifier for accounting
+        project_id: Project the job is attributed to (``NO_PROJECT`` for a
+            job that genuinely belongs to no project)
         script_path: Path to Python script inside container
         container_path: Path to Apptainer .sif file
         workspace: User workspace directory (will be bound to /workspace)
@@ -49,10 +57,15 @@ def submit_job(
     Returns:
         Dict with success, job_id, partition, and message keys
     """
+    from apps.workspace.console_app.models import WorkloadSession
+
+    from ..workload_sessions import abandon_workload, begin_workload, bind_job
+
     # Create batch script. create_batch_script rejects tenant-controlled
     # fields containing shell/SLURM metacharacters (CWE-78) — fail closed
     # (do NOT submit) with the validation message rather than raising.
     try:
+        tags = SlurmTags.for_project(project_id)
         batch_script = create_batch_script(
             user_id=user_id,
             script_path=script_path,
@@ -64,6 +77,7 @@ def submit_job(
             memory_gb=memory_gb,
             time_limit=time_limit,
             env_vars=env_vars or {},
+            tags=tags,
         )
     except ValueError:
         logger.warning(
@@ -82,6 +96,16 @@ def submit_job(
 
     logger.info("Created batch script: %s", safe_log_field(batch_file))
 
+    # Record the launch BEFORE submitting: if the row cannot be written this
+    # raises and nothing runs unrecorded. The script already carries the
+    # same session id in its --comment.
+    row = begin_workload(
+        user_id=int(user_id),
+        tags=tags,
+        workload=WorkloadSession.WORKLOAD_JOB,
+        extra_tags={"slurm.account": f"user_{user_id}"},
+    )
+
     # Submit to SLURM
     cmd = ["sbatch", str(batch_file)]
 
@@ -89,16 +113,27 @@ def submit_job(
         result = subprocess.run(cmd, capture_output=True, text=True, check=True)
         # Parse output: "Submitted batch job 12345"
         job_id = int(result.stdout.strip().split()[-1])
-        logger.info(f"Job {job_id} submitted for user {user_id}")
-        return {
-            "success": True,
-            "job_id": job_id,
-            "partition": partition,
-            "message": f"Job {job_id} submitted successfully",
-        }
-    except subprocess.CalledProcessError:
+    except (subprocess.CalledProcessError, ValueError, IndexError):
+        abandon_workload(row)
         logger.exception("Job submission failed for user %s", safe_log_field(user_id))
         return {"success": False, "message": "Job submission failed."}
+
+    try:
+        bind_job(row, job_id)
+    except Exception:
+        # The job is queued but its id could not be recorded: cancel it
+        # rather than let it run unattributed.
+        logger.exception("Could not record SLURM job %s; cancelling it", job_id)
+        cancel_job(job_id)
+        raise
+    logger.info(f"Job {job_id} submitted for user {user_id}")
+    return {
+        "success": True,
+        "job_id": job_id,
+        "partition": partition,
+        "workload_session_id": str(row.session_id),
+        "message": f"Job {job_id} submitted successfully",
+    }
 
 
 def get_job_status(job_id: int) -> Dict:
@@ -185,12 +220,16 @@ def cancel_job(job_id: int) -> Dict:
 
     try:
         subprocess.run(cmd, check=True, capture_output=True, text=True)
-        logger.info(f"Job {job_id} cancelled")
-        return {"success": True, "message": f"Job {job_id} cancelled"}
     except subprocess.CalledProcessError as e:
         error_msg = e.stderr.strip()
         logger.error(f"Failed to cancel job {job_id}: {error_msg}")
         return {"success": False, "message": error_msg}
+
+    from ..workload_sessions import mark_stopped_by_job
+
+    mark_stopped_by_job(job_id)
+    logger.info(f"Job {job_id} cancelled")
+    return {"success": True, "message": f"Job {job_id} cancelled"}
 
 
 def get_job_output(job_id: int, workspace: Path, tail_lines: int = 100) -> Dict:

@@ -1,0 +1,12 @@
+[Unit]
+Description=SciTeX: fail loudly when SLURM accounting (slurmdbd/sacct) is down
+Documentation=file:///etc/scitex/slurm-README.md
+After=network-online.target slurmctld.service slurmdbd.service
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/sbin/scitex-check-slurm-accounting
+# A failure leaves this unit `failed` (visible in `systemctl --failed`) and logs
+# daemon.crit under the tag scitex-slurm-accounting. To page someone, add a
+# drop-in with OnFailure=<your alarm unit>.

@@ -1,48 +1,42 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""The Dataset app (/apps/dataset/) through the generic plugin mount, per role.
+"""The Dataset leaf through the hub's GENERIC mounts, per role, end to end.
 
-The leaf (scitex-dataset >= 0.15.0) owns the views and the dataset logic; the
-hub only mounts it (``plugin_urlpatterns``) and answers the SDK host contract
-(``SCITEX_PROJECT_PROVIDER`` / ``SCITEX_PROJECT_STORAGE``). These tests pin the
-contract END TO END over the hub's real project model, not the leaf in
-isolation:
+The leaf (scitex-dataset >= 0.16.0) owns its pages (``scitex.apps`` →
+/apps/dataset/) and its REST operations (``scitex.apis`` →
+/api/v1/dataset/); the hub mounts both generically and answers the SDK host
+contract over its real project model and API keys:
 
-- a project MEMBER (read permission) can open the page and list datasets;
-- a MAINTAINER (owner, or member with write permission) can upload/register;
-- a read-only member gets 403 on every write and nothing is written;
-- a NON-MEMBER gets 404 — the same answer as a project that does not exist;
-- an anonymous visitor is sent to log in (the mount's login boundary).
-
-Project roots live under ``settings.BASE_DIR``, so each test points BASE_DIR
-at a fresh temporary directory and creates the owner's real project folder.
-
-scitex-dataset[server] is a declared dependency of both ``[all]`` and ``[dev]``,
-so it is imported unguarded here: a skip when it is absent would read as a
-passing role matrix over an unmounted app.
+- a project MEMBER (read permission) opens the page and lists the project's
+  public datasets; a NON-MEMBER gets 404, the same as a missing project;
+- a MAINTAINER records a public dataset in the project; a read-only member
+  gets 403 and nothing is written;
+- a personal API key scoped ``dataset:*:read`` searches from a script, and
+  cannot write;
+- anonymous: the page sends to log in; the API answers 401 problem+json.
 """
 
 from __future__ import annotations
 
-import hashlib
+import json
 import tempfile
 from pathlib import Path
 
 from django.conf import settings as django_settings
 from django.contrib.auth.models import User
-from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import Client, TestCase, override_settings
 from django.urls import resolve
 
+from apps.infra.accounts_app.models.api_key import APIKey
 from apps.infra.project_app.models import Project, ProjectMembership
-
 
 PASSWORD = "TestPass123!"  # pragma: allowlist secret
 BASE = "/apps/dataset/"
-CSV = b"x,y\n1,2\n"
+API = "/api/v1/dataset/"
+PROJECT = "ds-owner/eeg"
 
 
-def test_the_dataset_route_resolves_to_the_leaf_namespace():
+def test_the_dataset_page_resolves_to_the_leaf_namespace():
     # Arrange
     path = BASE
     # Act
@@ -83,9 +77,8 @@ class DatasetMountRoleTest(TestCase):
         self.addCleanup(overrides.disable)
         assert str(django_settings.BASE_DIR) == str(self.base)
         self.root = self.base / "data" / "users" / "ds-owner" / "proj" / "eeg"
-        (self.root / "data").mkdir(parents=True)
-        (self.root / "data" / "a.csv").write_bytes(CSV)
-        self.query = "?project=ds-owner/eeg"
+        (self.root / "data" / "results").mkdir(parents=True)
+        (self.root / "data" / "results" / "metrics.json").write_text("{}")
 
     def _client(self, user=None):
         client = Client()
@@ -93,19 +86,23 @@ class DatasetMountRoleTest(TestCase):
             client.force_login(user)
         return client
 
-    def _get(self, user, path=""):
-        return self._client(user).get(BASE + path + self.query)
+    def _page(self, user):
+        return self._client(user).get(BASE + f"?project={PROJECT}")
 
-    def _upload(self, user):
+    def _api_get(self, user, path, **params):
+        return self._client(user).get(API + path, params)
+
+    def _record(self, user, key="rec-1"):
         return self._client(user).post(
-            BASE + "api/upload" + self.query,
-            {"file": SimpleUploadedFile("b.csv", b"1,2\n")},
+            API + "project-datasets",
+            json.dumps({"project": PROJECT, "dataset": "reference:mnist-idx"}),
+            content_type="application/json",
+            HTTP_IDEMPOTENCY_KEY=key,
         )
 
-    def _register(self, user):
-        return self._client(user).post(
-            BASE + "api/register" + self.query, {"path": "data/a.csv", "name": "A"}
-        )
+    def _token(self, scopes):
+        _key, raw = APIKey.create_key(self.stranger, "script", scopes=scopes)
+        return raw
 
     # -- members read ------------------------------------------------------
 
@@ -113,148 +110,131 @@ class DatasetMountRoleTest(TestCase):
         # Arrange
         user = self.member
         # Act
-        response = self._get(user)
+        response = self._page(user)
         # Assert
         assert response.status_code == 200
 
-    def test_the_page_shows_the_file_checksum(self):
-        # Arrange
-        expected = hashlib.sha256(CSV).hexdigest()
-        # Act
-        html = self._get(self.member).content.decode()
-        # Assert
-        assert expected in html
-
-    def test_a_member_lists_datasets_with_size_and_checksum(self):
-        # Arrange
-        expected = [("data/a.csv", len(CSV), hashlib.sha256(CSV).hexdigest())]
-        # Act
-        body = self._get(self.member, "api/datasets").json()
-        # Assert
-        assert [(f["path"], f["size"], f["sha256"]) for f in body["files"]] == expected
-
-    def test_a_member_is_told_it_cannot_write(self):
+    def test_project_outputs_are_not_shown_as_datasets(self):
         # Arrange
         user = self.member
         # Act
-        body = self._get(user, "api/datasets").json()
+        html = self._page(user).content.decode()
+        # Only the leaf's own content: the hub's workspace sidebar preloads
+        # the project file tree, where project outputs legitimately appear.
+        # A missing <main> raises here instead of passing vacuously.
+        leaf = html.split('<main id="main-content"', 1)[1].split("</main>", 1)[0]
         # Assert
-        assert body["project"]["can_write"] is False
+        assert "metrics.json" not in leaf
 
-    def test_a_maintainer_is_told_it_can_write(self):
+    def test_a_member_lists_the_projects_public_datasets(self):
+        # Arrange
+        user = self.member
+        # Act
+        response = self._api_get(user, "project-datasets", project=PROJECT)
+        # Assert
+        assert (response.status_code, response.json()["data"]) == (200, [])
+
+    # -- writes ----------------------------------------------------------------
+
+    def test_a_maintainer_records_a_public_dataset(self):
         # Arrange
         user = self.maintainer
         # Act
-        body = self._get(user, "api/datasets").json()
+        response = self._record(user)
         # Assert
-        assert body["project"]["can_write"] is True
-
-    # -- members cannot write ----------------------------------------------
-
-    def test_a_member_cannot_upload(self):
-        # Arrange
-        user = self.member
-        # Act
-        response = self._upload(user)
-        # Assert
-        assert (response.status_code, (self.root / "data" / "b.csv").exists()) == (
-            403,
-            False,
+        assert (
+            response.status_code,
+            (self.root / ".scitex/dataset/sources.json").exists(),
+        ) == (
+            201,
+            True,
         )
 
-    def test_a_member_cannot_register(self):
+    def test_a_read_only_member_cannot_record(self):
         # Arrange
         user = self.member
         # Act
-        response = self._register(user)
+        response = self._record(user)
         # Assert
         assert (response.status_code, (self.root / ".scitex").exists()) == (403, False)
 
-    # -- maintainers write ---------------------------------------------------
-
-    def test_a_maintainer_can_upload(self):
-        # Arrange
-        user = self.maintainer
-        # Act
-        response = self._upload(user)
-        # Assert
-        assert (response.status_code, (self.root / "data" / "b.csv").read_bytes()) == (
-            201,
-            b"1,2\n",
-        )
-
-    def test_the_owner_can_register(self):
-        # Arrange
-        user = self.owner
-        # Act
-        response = self._register(user)
-        # Assert
-        assert (response.status_code, response.json()["dataset"]["registered_by"]) == (
-            201,
-            "ds-owner",
-        )
-
-    def test_a_registration_is_visible_to_members(self):
-        # Arrange
-        self._register(self.maintainer)
-        # Act
-        body = self._get(self.member, "api/datasets").json()
-        # Assert
-        assert [(d["name"], d["state"]) for d in body["registered"]] == [
-            ("A", "unchanged")
-        ]
-
-    # -- non-members: 404 -----------------------------------------------------
+    # -- non-members and anonymous ---------------------------------------------
 
     def test_a_non_member_gets_404_on_the_page(self):
         # Arrange
         user = self.stranger
         # Act
-        response = self._get(user)
+        response = self._page(user)
         # Assert
         assert response.status_code == 404
 
-    def test_a_non_member_gets_404_on_the_listing(self):
+    def test_a_non_member_gets_404_on_the_api(self):
         # Arrange
         user = self.stranger
         # Act
-        response = self._get(user, "api/datasets")
-        # Assert
-        assert response.status_code == 404
-
-    def test_a_non_member_gets_404_on_upload(self):
-        # Arrange
-        user = self.stranger
-        # Act
-        response = self._upload(user)
-        # Assert
-        assert (response.status_code, (self.root / "data" / "b.csv").exists()) == (
-            404,
-            False,
-        )
-
-    def test_a_non_member_gets_404_on_register(self):
-        # Arrange
-        user = self.stranger
-        # Act
-        response = self._register(user)
+        response = self._api_get(user, "project-datasets", project=PROJECT)
         # Assert
         assert response.status_code == 404
 
     def test_a_missing_project_answers_like_a_foreign_one(self):
         # Arrange
-        client = self._client(self.member)
+        user = self.member
         # Act
-        response = client.get(BASE + "api/datasets?project=ds-owner/nope")
+        response = self._api_get(user, "project-datasets", project="ds-owner/nope")
         # Assert
         assert response.status_code == 404
-
-    # -- anonymous --------------------------------------------------------------
 
     def test_an_anonymous_visitor_is_sent_to_log_in(self):
         # Arrange
         client = self._client()
         # Act
-        response = client.get(BASE + self.query)
+        response = client.get(BASE + f"?project={PROJECT}")
         # Assert
         assert (response.status_code, "login" in response["Location"]) == (302, True)
+
+    def test_an_anonymous_api_call_is_a_401_problem(self):
+        # Arrange
+        client = self._client()
+        # Act
+        response = client.get(API + "datasets", {"q": "mnist"})
+        # Assert
+        assert (response.status_code, response["Content-Type"]) == (
+            401,
+            "application/problem+json",
+        )
+
+    # -- personal API keys ------------------------------------------------------
+
+    def test_a_read_key_searches_public_datasets_from_a_script(self):
+        # Arrange
+        raw = self._token(["dataset:*:read"])
+        # Act
+        response = Client().get(
+            API + "datasets",
+            {"q": "mnist", "repository": "reference"},
+            HTTP_AUTHORIZATION=f"Bearer {raw}",
+        )
+        # Assert
+        assert "reference:mnist-idx" in [d["id"] for d in response.json()["data"]]
+
+    def test_a_read_key_cannot_write(self):
+        # Arrange
+        raw = self._token(["dataset:*:read"])
+        # Act
+        response = Client().post(
+            API + "project-datasets",
+            json.dumps({"project": PROJECT, "dataset": "reference:mnist-idx"}),
+            content_type="application/json",
+            HTTP_AUTHORIZATION=f"Bearer {raw}",
+            HTTP_IDEMPOTENCY_KEY="k",
+        )
+        # Assert
+        assert response.json()["code"] == "api.insufficient_scope"
+
+    def test_a_bad_key_is_401_not_anonymous(self):
+        # Arrange
+        header = "Bearer scitex_not_a_key"
+        # Act
+        response = Client().get(API + "datasets", {"q": "x"}, HTTP_AUTHORIZATION=header)
+        # Assert
+        assert response.status_code == 401

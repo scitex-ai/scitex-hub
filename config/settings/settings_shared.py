@@ -126,6 +126,15 @@ SCITEX_PROJECT_STORAGE = (
 )
 SCITEX_PROJECT_STORE = "apps.infra.project_app.services.project_store.HubProjectStore"
 SCITEX_API_AUTHENTICATOR = "apps.infra.project_app.services.project_store.api_key_user"
+# Leaf REST APIs at /api/v1/<package>/ (scitex_sdk.app.api_serve). The hub
+# mounts every scitex.apis plugin from a SciTeX distribution GENERICALLY — no
+# leaf-specific code here — and answers the SDK's host hooks: who is calling
+# (API key scopes or the session), and where idempotency keys live. Rate
+# limiting and metering hooks (SCITEX_API_RATE_LIMITER / SCITEX_API_METER)
+# plug in here when the usage ledger (#1232) lands.
+SCITEX_API_CALLER = "apps.infra.accounts_app.services.api_caller.api_caller"
+SCITEX_API_TRUSTED_DISTRIBUTIONS = ("scitex-*", "figrecipe")
+SCITEX_API_IDEMPOTENCY_STORE = "scitex_sdk.app.api_serve.CacheIdempotencyStore"
 # Operator-only credentials. An absent mapping leaves private stores unavailable;
 # no managed-store fallback or schema/data migration is performed here.
 SCITEX_STORE_TENANT_SECRETS = os.environ.get("SCITEX_HUB_STORE_TENANT_SECRETS", "")
@@ -319,6 +328,7 @@ TEMPLATES = [
                 "apps.infra.project_app.context_processors.version_context",
                 "apps.infra.project_app.context_processors.project_context",
                 "config.context_processors.cache_buster",
+                "apps.infra.spend_app.context_processors.spend_banner",
                 "config.context_processors.debug_mode",
                 "config.context_processors.scitex_version",
                 "config.context_processors.umami_analytics",

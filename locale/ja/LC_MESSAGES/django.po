@@ -10028,3 +10028,214 @@ msgstr "都度払い(セルフホスト導入サポート・カスタム開発�
 
 msgid "Subscription: available immediately after signup (card registration) is complete. Setup support, maintenance support, custom development, consulting and Enterprise License: provided on the schedule agreed at the time of contract."
 msgstr "サブスクリプション: お申し込み(カード登録)完了後、直ちにご利用いただけます。導入サポート・保守サポート・カスタム開発・コンサルティング・Enterprise ライセンス: ご契約時に取り決めた日程で提供します。"
+
+#: apps/infra/spend_app/templates/spend_app/spend_settings.html
+msgid "Spend controls - Settings - SciTeX Hub"
+msgstr "利用上限 - 設定 - SciTeX Hub"
+
+#: apps/infra/accounts_app/templates/accounts_app/partials/settings_nav_links.html
+msgid "Spend controls"
+msgstr "利用上限"
+
+#: apps/infra/spend_app/templates/spend_app/spend_settings.html
+msgid "A monthly cap on usage charges beyond your plan fee. You are alerted at 50%, 80% and 100%; at 100% new compute is paused and storage becomes read-only. Nothing is ever deleted."
+msgstr "プラン料金を超える従量料金の月額上限です。50%・80%・100% でお知らせし、100% で新しい計算は停止され、ストレージは読み取り専用になります。データが削除されることはありません。"
+
+#: apps/infra/spend_app/templates/spend_app/spend_settings.html
+#, python-format
+msgid "A payment did not go through. Everything keeps working until %(until)s UTC; after that the account becomes read-only until the payment is settled. Nothing is deleted."
+msgstr "お支払いが完了しませんでした。%(until)s UTC までは通常どおりご利用いただけます。それ以降はお支払いが完了するまでアカウントが読み取り専用になります。データは削除されません。"
+
+#: apps/infra/spend_app/templates/spend_app/spend_settings.html
+msgid "Update payment method"
+msgstr "支払い方法を更新"
+
+#: apps/infra/spend_app/templates/spend_app/spend_settings.html
+msgid "Your account is restricted after a failed payment: your data is kept and readable, but new compute and uploads are paused."
+msgstr "お支払いが完了しなかったため、アカウントが制限されています。データは保持され閲覧できますが、新しい計算とアップロードは停止しています。"
+
+#: apps/infra/spend_app/templates/spend_app/spend_settings.html
+msgid "Monthly spend cap reached."
+msgstr "月額の利用上限に達しました。"
+
+#: apps/infra/spend_app/templates/spend_app/spend_settings.html
+msgid "New compute sessions and jobs are refused and storage is read-only until next month, or until you raise your cap below."
+msgstr "翌月まで、または下で上限を引き上げるまで、新しい計算セッションとジョブは受け付けず、ストレージは読み取り専用になります。"
+
+#: apps/infra/spend_app/templates/spend_app/spend_settings.html
+#, python-format
+msgid "Work that is already running is stopped at %(at)s UTC."
+msgstr "実行中の処理は %(at)s UTC に停止されます。"
+
+#: apps/infra/spend_app/templates/spend_app/spend_settings.html
+#, python-format
+msgid "You have used %(p)s%% of your monthly spend cap. Nothing is paused yet."
+msgstr "月額の利用上限の %(p)s%% を使用しました。まだ何も停止していません。"
+
+#: apps/infra/spend_app/templates/spend_app/spend_settings.html
+#, python-format
+msgid "You have used %(p)s%% of your monthly spend cap."
+msgstr "月額の利用上限の %(p)s%% を使用しました。"
+
+#: apps/infra/spend_app/templates/spend_app/spend_settings.html
+#, python-format
+msgid "This month (%(period)s)"
+msgstr "今月（%(period)s）"
+
+#: apps/infra/spend_app/templates/spend_app/spend_settings.html
+msgid "Computed from launch and storage records until full usage metering is live."
+msgstr "正式な利用量計測が始まるまでは、起動記録とストレージの記録から算出しています。"
+
+#: apps/infra/spend_app/templates/spend_app/spend_settings.html
+msgid "provisional"
+msgstr "暫定"
+
+#: apps/infra/spend_app/templates/spend_app/spend_settings.html
+msgid "shadow mode: not enforced"
+msgstr "シャドーモード: 制限は未適用"
+
+#: apps/infra/spend_app/templates/spend_app/spend_settings.html
+msgid "of"
+msgstr "／"
+
+#: apps/infra/spend_app/templates/spend_app/spend_settings.html
+msgid "Share of monthly cap used"
+msgstr "月額上限の使用率"
+
+#: apps/infra/spend_app/templates/spend_app/spend_settings.html
+msgid "Resource"
+msgstr "リソース"
+
+#: apps/infra/spend_app/templates/spend_app/spend_settings.html
+msgid "Quantity"
+msgstr "数量"
+
+#: apps/infra/spend_app/templates/spend_app/spend_settings.html
+msgid "Amount"
+msgstr "金額"
+
+#: apps/infra/spend_app/templates/spend_app/spend_settings.html
+msgid "Source"
+msgstr "算出元"
+
+#: apps/infra/spend_app/templates/spend_app/spend_settings.html
+msgid "Included compute credit"
+msgstr "付帯の計算クレジット"
+
+#: apps/infra/spend_app/templates/spend_app/spend_settings.html
+msgid "Monthly cap"
+msgstr "月額上限"
+
+#: apps/infra/spend_app/templates/spend_app/spend_settings.html
+#, python-format
+msgid "You are on your plan's default cap of $%(cap)s."
+msgstr "プランの既定上限 $%(cap)s が適用されています。"
+
+#: apps/infra/spend_app/templates/spend_app/spend_settings.html
+#, python-format
+msgid "Your cap is $%(cap)s."
+msgstr "上限は $%(cap)s です。"
+
+#: apps/infra/spend_app/templates/spend_app/spend_settings.html
+#, python-format
+msgid "Plan default $%(default)s; you can set anything from $0 to $%(max)s."
+msgstr "プランの既定値は $%(default)s です。$0 から $%(max)s までの任意の額に設定できます。"
+
+#: apps/infra/spend_app/templates/spend_app/spend_settings.html
+msgid "Cap (USD)"
+msgstr "上限（USD）"
+
+#: apps/infra/spend_app/templates/spend_app/spend_settings.html
+msgid "Save cap"
+msgstr "上限を保存"
+
+#: apps/infra/spend_app/templates/spend_app/spend_settings.html
+msgid "Use plan default"
+msgstr "プランの既定値に戻す"
+
+#: apps/infra/spend_app/templates/spend_app/spend_settings.html
+msgid "Alerts"
+msgstr "お知らせ"
+
+#: apps/infra/spend_app/templates/spend_app/spend_settings.html
+msgid "emailed"
+msgstr "メール送信済み"
+
+#: apps/infra/spend_app/templates/spend_app/spend_settings.html
+msgid "No alerts this month."
+msgstr "今月のお知らせはありません。"
+
+#: apps/infra/spend_app/templates/spend_app/spend_settings.html
+msgid "Cancel within 30 days"
+msgstr "30日以内の解約"
+
+#: apps/infra/spend_app/templates/spend_app/spend_settings.html
+#, python-format
+msgid "Until %(ends)s you can cancel at any time and pay only for what you actually used up to that moment. Your data is kept; the account continues on the Free plan."
+msgstr "%(ends)s まではいつでも解約でき、その時点までの実際の利用分のみをお支払いいただきます。データは保持され、アカウントは Free プランで継続します。"
+
+#: apps/infra/spend_app/templates/spend_app/spend_settings.html
+msgid "Cancel now and pay actual usage"
+msgstr "今すぐ解約して実際の利用分を支払う"
+
+#: apps/infra/spend_app/templates/spend_app/spend_settings.html
+msgid "The 30-day cancellation window has closed. You can still cancel at the end of the billing period from Payment method."
+msgstr "30日間の解約期間は終了しました。支払い方法の画面から、請求期間の終了時に解約できます。"
+
+#: apps/infra/spend_app/templates/spend_app/partials/spend_banner.html
+#, python-format
+msgid "$%(spend)s of $%(cap)s. New compute is paused and storage is read-only; nothing is deleted."
+msgstr "$%(cap)s 中 $%(spend)s。新しい計算は停止し、ストレージは読み取り専用です。データは削除されません。"
+
+#: apps/infra/spend_app/templates/spend_app/partials/spend_banner.html
+msgid "Raise your cap"
+msgstr "上限を引き上げる"
+
+#: apps/infra/spend_app/templates/spend_app/partials/spend_banner.html
+msgid "80% of your monthly spend cap used."
+msgstr "月額の利用上限の 80% を使用しました。"
+
+#: apps/infra/spend_app/templates/spend_app/partials/spend_banner.html
+#, python-format
+msgid "$%(spend)s of $%(cap)s."
+msgstr "$%(cap)s 中 $%(spend)s。"
+
+#: apps/infra/spend_app/templates/spend_app/partials/spend_banner.html
+msgid "View usage or change your cap"
+msgstr "利用量の確認・上限の変更"
+
+#: apps/infra/spend_app/templates/spend_app/partials/spend_banner.html
+msgid "A payment did not go through."
+msgstr "お支払いが完了しませんでした。"
+
+#: apps/infra/spend_app/templates/spend_app/partials/spend_banner.html
+#, python-format
+msgid "Everything keeps working until %(until)s."
+msgstr "%(until)s までは通常どおりご利用いただけます。"
+
+#: apps/infra/spend_app/templates/spend_app/partials/spend_banner.html
+msgid "Account restricted."
+msgstr "アカウントが制限されています。"
+
+#: apps/infra/spend_app/templates/spend_app/partials/spend_banner.html
+msgid "Your data is kept and readable; new compute and uploads are paused."
+msgstr "データは保持され閲覧できますが、新しい計算とアップロードは停止しています。"
+
+#: apps/infra/spend_app/views.py
+#, python-format
+msgid "Monthly cap set to $%(cap)s."
+msgstr "月額上限を $%(cap)s に設定しました。"
+
+#: apps/infra/spend_app/views.py
+msgid "Enter an amount in USD."
+msgstr "USD で金額を入力してください。"
+
+#: apps/infra/spend_app/views.py
+#, python-format
+msgid "The cancellation could not be completed (%(err)s). Nothing was changed."
+msgstr "解約を完了できませんでした（%(err)s）。何も変更されていません。"
+
+#: apps/infra/spend_app/views.py
+#, python-format
+msgid "Your plan is cancelled. You are billed only for actual usage ($%(usd)s). Your data is kept."
+msgstr "プランを解約しました。請求は実際の利用分（$%(usd)s）のみです。データは保持されます。"
