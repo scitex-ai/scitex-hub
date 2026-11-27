@@ -49,6 +49,19 @@ DEFAULT_FROM_EMAIL = _getenv_alias(
 )
 SERVER_EMAIL = _getenv_alias("SCITEX_HUB_SERVER_EMAIL", branding.NOREPLY_EMAIL)
 
+# Date header with an EXPLICIT numeric offset. With the default (False),
+# Django 5.2 stamps ``formatdate(localtime=False)``, which RFC 5322 3.3 renders
+# as ``-0000`` -- "UTC, but the sender's offset is unknown". Readers are free
+# to treat that as a floating wall-clock time: Python's
+# ``email.utils.parsedate_to_datetime`` returns a NAIVE datetime for it, and
+# whatever then localises it to JST shifts the instant by 9 h. Prod mail
+# (signup verification, ADMINS error mail) showed exactly that on 2026-11-27:
+# "03:11 +00:00" for a message sent at 12:11Z. True makes Django format the
+# current instant in TIME_ZONE with its real offset (``+0000`` under UTC,
+# ``+0900`` under Asia/Tokyo), which every reader resolves to the same instant.
+# Container TZ does not leak in: Django sets the process TZ from TIME_ZONE.
+EMAIL_USE_LOCALTIME = True
+
 # Recipients of the mail_admins logging handler (settings_logging). Defined
 # HERE, once, rather than per environment: it lived only in settings_prod
 # until 2026-08-15, which meant staging constructed the handler, passed every
