@@ -491,6 +491,17 @@ from apps.workspace.apps_app.services.plugin_apps import plugin_urlpatterns  # n
 
 urlpatterns[:0] = plugin_urlpatterns(urlpatterns)
 
+# --- Leaf REST APIs (scitex.apis entry point) at /api/v1/<package>/ ---
+# Generic: scitex-sdk admits every trusted plugin and serves its declared
+# operations (scopes, problem+json, pagination, idempotency) through the host
+# hooks in settings. First, so no hub route shadows a leaf operation; the
+# problem+json 404 for other api/v1 paths goes just before the username
+# catch-all, after the hub's own legacy api/v1 routes in config.urls_api.
+from scitex_sdk.app.api_serve import api_not_found_pattern, api_urlpatterns  # noqa: E402
+
+urlpatterns[:0] = api_urlpatterns(catch_all=False)
+urlpatterns.insert(len(urlpatterns) - 1, api_not_found_pattern())
+
 # --- Debug-only ---
 if settings.DEBUG:
     if "django_browser_reload" in settings.INSTALLED_APPS:
