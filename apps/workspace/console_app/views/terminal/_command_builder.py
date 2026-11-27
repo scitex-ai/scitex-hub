@@ -28,6 +28,7 @@ from apps.workspace.console_app.services.compute_user import (
     with_sbatch_identity,
     wrap_script_with_scratch,
 )
+from apps.workspace.console_app.services.slurm.tags import SlurmTags, with_slurm_tags
 
 from .config import (
     DEV_REPOS,
@@ -79,9 +80,14 @@ def build_srun_cmd(
     host_project_dir: Path,
     project_slug: str,
     screen_session: str = "scitex-0",
+    *,
+    tags: SlurmTags,
 ) -> list[str]:
-    """Build ``srun`` + ``apptainer`` command, injecting Django config automatically."""
-    return build_srun_command(
+    """Build ``srun`` + ``apptainer`` command, injecting Django config automatically.
+
+    ``srun --pty`` creates its own job, so it carries the attribution ``tags``.
+    """
+    cmd = build_srun_command(
         container_path=container_path,
         username=username,
         host_user_dir=host_user_dir,
@@ -96,6 +102,7 @@ def build_srun_cmd(
         slurm_memory_gb=SLURM_MEMORY_GB,
         screen_session=screen_session,
     )
+    return with_slurm_tags(cmd, tags)
 
 
 def build_instance_start_script_cmd(
@@ -163,10 +170,13 @@ def build_sbatch_cmd(
     uid: int | None = None,
     gid: int | None = None,
     as_root: bool | None = None,
+    *,
+    tags: SlurmTags,
 ) -> list[str]:
     """Build ``sbatch`` command, injecting Django SLURM config automatically.
 
     With ``uid``/``gid`` and a root broker, the job is submitted as that user.
+    ``tags`` puts the project and workload session on the job.
     """
     cmd = build_sbatch_command(
         instance_name=instance_name,
@@ -178,7 +188,7 @@ def build_sbatch_cmd(
         username=username,
         project_slug=project_slug,
     )
-    return with_sbatch_identity(cmd, uid, gid, as_root=as_root)
+    return with_sbatch_identity(with_slurm_tags(cmd, tags), uid, gid, as_root=as_root)
 
 
 def build_shell_in_allocation_cmd(

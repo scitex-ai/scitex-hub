@@ -19,6 +19,8 @@ from apps.infra.accounts_app.views.me_token_views import (
     api_me_token_revoke,
 )
 from apps.infra.accounts_app.views.me_whoami_views import api_me
+from apps.infra.gitea_app.views.webhook_sync import gitea_sync_webhook
+from apps.infra.gitea_app.webhook_auth import require_gitea_signature
 from apps.infra.integrations_app.views_events import list_events, receive_event
 from apps.infra.project_app.views import api_check_name_availability
 from apps.infra.project_app.views.projects.api import (
@@ -96,17 +98,17 @@ urlpatterns = [
         csrf_exempt(api_submit_jwt),
         name="api_apps_submit_jwt",
     ),
+    # Gitea webhooks change state (app approval, org membership), so both
+    # require a valid X-Gitea-Signature (HMAC-SHA256, fail closed).
     path(
         "apps/webhook/",
-        csrf_exempt(api_registry_webhook),
+        csrf_exempt(require_gitea_signature(api_registry_webhook)),
         name="api_apps_registry_webhook",
     ),
     # Gitea → Django org/member sync webhook
     path(
         "gitea/webhook/sync/",
-        __import__(
-            "apps.infra.gitea_app.views.webhook_sync", fromlist=["gitea_sync_webhook"]
-        ).gitea_sync_webhook,
+        require_gitea_signature(gitea_sync_webhook),
         name="api_gitea_sync_webhook",
     ),
     # Event bus

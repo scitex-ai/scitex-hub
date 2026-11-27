@@ -119,7 +119,12 @@ class SingularityManager:
 
     # HPC methods
     def submit_to_hpc(
-        self, user: User, script_path: Path, hpc_config: Optional[Dict[str, Any]] = None
+        self,
+        user: User,
+        script_path: Path,
+        hpc_config: Optional[Dict[str, Any]] = None,
+        *,
+        project_id,
     ) -> str:
         """
         Submit job to HPC cluster (e.g., Spartan) via SLURM
@@ -128,6 +133,7 @@ class SingularityManager:
             user: Django user object
             script_path: Path to Python script
             hpc_config: HPC configuration (partition, time, cpus, mem)
+            project_id: Project the job is attributed to, or ``NO_PROJECT``
 
         Returns:
             SLURM job ID
@@ -135,7 +141,9 @@ class SingularityManager:
         Raises:
             SingularityError: On submission failure
         """
-        return self.hpc_manager.submit_to_hpc(user, script_path, hpc_config)
+        return self.hpc_manager.submit_to_hpc(
+            user, script_path, hpc_config, project_id=project_id
+        )
 
     def get_hpc_job_status(self, job_id: str) -> Dict[str, Any]:
         """

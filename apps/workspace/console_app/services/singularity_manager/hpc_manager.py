@@ -46,7 +46,12 @@ class HPCManager:
         self.config = config
 
     def submit_to_hpc(
-        self, user: User, script_path: Path, hpc_config: Optional[Dict[str, Any]] = None
+        self,
+        user: User,
+        script_path: Path,
+        hpc_config: Optional[Dict[str, Any]] = None,
+        *,
+        project_id,
     ) -> str:
         """
         Submit job to HPC cluster (e.g., Spartan) via SLURM
@@ -55,6 +60,8 @@ class HPCManager:
             user: Django user object
             script_path: Path to Python script
             hpc_config: HPC configuration (partition, time, cpus, mem)
+            project_id: Project the job is attributed to, or ``NO_PROJECT``.
+                The job is tagged with it and recorded as a WorkloadSession.
 
         Returns:
             SLURM job ID
@@ -75,9 +82,17 @@ class HPCManager:
         hpc_workspace = f"/data/projects/scitex/users/{user.id}/workspace"
         hpc_logs = f"/data/projects/scitex/users/{user.id}/logs"
 
+        from apps.workspace.console_app.models import WorkloadSession
+
+        from ..slurm.tags import SlurmTags
+        from ..workload_sessions import abandon_workload, begin_workload, bind_job
+
+        tags = SlurmTags.for_project(project_id)
+
         # Create SLURM submission script
         slurm_script = f"""#!/bin/bash
 #SBATCH --job-name=scitex_{user.id}
+{tags.directives()}
 #SBATCH --partition={hpc_config["partition"]}
 #SBATCH --time={hpc_config["time"]}
 #SBATCH --cpus-per-task={hpc_config["cpus"]}
@@ -98,11 +113,16 @@ singularity exec \\
     python {script_path}
 """
 
+        # Record the launch before submitting so no job runs unrecorded.
+        row = begin_workload(
+            user_id=user.id, tags=tags, workload=WorkloadSession.WORKLOAD_JOB
+        )
+
         # Submit to SLURM
         try:
             result = subprocess.run(
                 ["sbatch", "-"],
-                input=slurm_script.encode(),
+                input=slurm_script,
                 capture_output=True,
                 text=True,
                 check=True,
@@ -112,18 +132,22 @@ singularity exec \\
             # Parse job ID from SLURM output: "Submitted batch job 12345"
             job_id = result.stdout.strip().split()[-1]
 
-            logger.info(f"Submitted HPC job {job_id} for user {user.username}")
-            return job_id
-
         except subprocess.CalledProcessError as e:
+            abandon_workload(row)
             error_msg = f"Failed to submit HPC job: {e.stderr}"
             logger.error(error_msg)
             raise SingularityError(error_msg)
 
         except subprocess.TimeoutExpired:
+            # sbatch may have queued the job before timing out: keep the row
+            # (no job id) rather than lose a possibly running job.
             error_msg = "HPC job submission timed out"
             logger.error(error_msg)
             raise SingularityError(error_msg)
+
+        bind_job(row, job_id)
+        logger.info(f"Submitted HPC job {job_id} for user {user.username}")
+        return job_id
 
     def get_hpc_job_status(self, job_id: str) -> Dict[str, Any]:
         """
