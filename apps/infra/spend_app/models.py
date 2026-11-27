@@ -157,7 +157,7 @@ class WorkloadSession(models.Model):
         LOST = "lost", "Ended without a stop record"
 
     user = models.ForeignKey(
-        User, on_delete=models.CASCADE, related_name="workload_sessions"
+        User, on_delete=models.CASCADE, related_name="spend_workloads"
     )
     project_id = models.BigIntegerField(null=True, blank=True)
     kind = models.CharField(max_length=16, choices=Kind.choices)

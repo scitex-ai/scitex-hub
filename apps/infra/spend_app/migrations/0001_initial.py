@@ -241,7 +241,7 @@ class Migration(migrations.Migration):
                     "user",
                     models.ForeignKey(
                         on_delete=django.db.models.deletion.CASCADE,
-                        related_name="workload_sessions",
+                        related_name="spend_workloads",
                         to=settings.AUTH_USER_MODEL,
                     ),
                 ),
