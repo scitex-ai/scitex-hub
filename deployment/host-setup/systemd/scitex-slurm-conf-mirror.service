@@ -1,0 +1,16 @@
+[Unit]
+Description=SciTeX: mirror the configless slurm.conf to /etc/slurm for Hub containers
+Documentation=file:///etc/scitex/slurm-README.md
+# Configless workers keep the controller's config only in /run/slurm/conf/
+# (slurmd's cache). Hub containers bind-mount the host's /etc/slurm/slurm.conf;
+# when that path does not exist Docker creates an EMPTY DIRECTORY there
+# (scitex-compute-03, 2026-08-20), which also breaks every host SLURM client
+# ("ClusterName needs to be specified").
+ConditionPathExists=/run/slurm/conf/slurm.conf
+
+[Service]
+Type=oneshot
+# Write IN PLACE (same inode): a running container's single-file bind mount
+# keeps pointing at the old inode if the file is replaced by rename.
+# `$$` is a literal `$` for the shell (systemd expands `$name` itself).
+ExecStart=/bin/sh -c 'for f in slurm.conf cgroup.conf gres.conf; do [ -f /run/slurm/conf/$$f ] || continue; [ -d /etc/slurm/$$f ] && { echo "/etc/slurm/$$f is a directory; refusing" >&2; exit 1; }; cat /run/slurm/conf/$$f > /etc/slurm/$$f || exit 1; chmod 0644 /etc/slurm/$$f; done'

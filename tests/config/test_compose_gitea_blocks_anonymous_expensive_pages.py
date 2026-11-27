@@ -188,3 +188,16 @@ def test_tracked_robots_txt_disallows_compare():
     lines = text.splitlines()
     # Assert
     assert "Disallow: /*/*/compare/" in lines
+
+
+def test_front_logs_only_5xx_and_a_one_percent_sample():
+    # Arrange
+    text = FRONT_CONF.read_text()
+    # Act
+    wiring = (
+        "1%  1;" in text,
+        '"00"    0;' in text,
+        "access_log /dev/stdout front if=$front_log;" in text,
+    )
+    # Assert
+    assert wiring == (True, True, True)

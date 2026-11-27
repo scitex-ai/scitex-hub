@@ -319,6 +319,51 @@ class TerminalSession(BasePTY):
         self.container_path = container_path
         self.project_slug = project_slug
         self.client_socket: Optional[socket.socket] = None
+        # Each spawn is a new ``srun --pty`` job: a new WorkloadSession row
+        # and tags. The job id is never seen here; collectors join on the
+        # session id in the job's --comment.
+        self.slurm_tags = None
+        self.workload_session_id: Optional[str] = None
+
+    def spawn(self) -> bool:
+        """Record the srun job's WorkloadSession, then fork it."""
+        from apps.workspace.console_app.services.workload_sessions import (
+            begin_terminal_workload,
+        )
+
+        try:
+            row, self.slurm_tags = begin_terminal_workload(
+                self.username,
+                self.project_slug,
+                extra_tags={"scitex.terminal_mode": "srun-pty"},
+            )
+        except Exception as e:
+            logger.exception(f"PTY {self.pty_id[:8]}: workload not recorded")
+            self.last_error = f"Could not record terminal session: {e}"
+            self.state = SessionState.DEAD
+            return False
+        self.workload_session_id = str(row.session_id)
+        ok = super().spawn()
+        if not ok:
+            self._record_ended()
+        return ok
+
+    def cleanup_fd(self):
+        """Reap the srun child and mark its job ended."""
+        had_child = bool(self.pid and self.pid > 0)
+        super().cleanup_fd()
+        if had_child:
+            self._record_ended()
+
+    def _record_ended(self):
+        from apps.workspace.console_app.services.workload_sessions import (
+            mark_stopped_by_session,
+        )
+
+        try:
+            mark_stopped_by_session(self.workload_session_id)
+        except Exception:
+            logger.exception(f"PTY {self.pty_id[:8]}: could not record job end")
 
     def _exec_in_child(self):
         """Execute srun command in child process."""
@@ -341,6 +386,7 @@ class TerminalSession(BasePTY):
                 host_user_dir=host_user_dir,
                 host_project_dir=host_project_dir,
                 project_slug=self.project_slug,
+                tags=self.slurm_tags,
             )
             os.execvpe("srun", cmd, env)
         except Exception as e:

@@ -113,6 +113,18 @@ def api_submit_job(request):
         safe_label = re.sub(r"[^A-Za-z0-9._-]", "_", str(raw_label))[:64] or "job"
         job_name = f"scitex_{request.user.username}_{safe_label}"
 
+        # Attribution: the job is tagged and recorded for this project. The
+        # batch API runs in the user's workspace, so omitting the field
+        # explicitly means "no project" (tagged project:none).
+        try:
+            project_id = resolve_job_project(request.user, data)
+        except ValueError:
+            return JsonResponse(
+                {"success": False, "message": "Invalid project_id."}, status=400
+            )
+        except LookupError:
+            return JsonResponse({"success": False, "message": "Not found"}, status=404)
+
         # Submit job
         result = get_slurm_manager().submit_job(
             user_id=str(request.user.id),
@@ -125,6 +137,7 @@ def api_submit_job(request):
             memory_gb=memory_gb,
             time_limit=time_limit,
             env_vars=data.get("env_vars", {}),
+            project_id=project_id,
         )
 
         if result["success"]:
@@ -397,6 +410,27 @@ def api_user_jobs(request):
             },
             status=500,
         )
+
+
+def resolve_job_project(user, data: dict):
+    """Return the project a submitted job is attributed to.
+
+    ``project_id`` absent or null -> ``NO_PROJECT``. Otherwise it must be a
+    positive JSON integer (ValueError) naming a project the user owns or
+    collaborates on (LookupError; reported as 404, no existence disclosure).
+    """
+    from apps.infra.project_app.services.project_scope import accessible_projects
+
+    from .services.slurm import NO_PROJECT
+
+    raw = data.get("project_id")
+    if raw is None:
+        return NO_PROJECT
+    if type(raw) is not int or raw < 1:
+        raise ValueError("project_id must be a positive integer")
+    if not accessible_projects(user).filter(pk=raw).exists():
+        raise LookupError("project not accessible")
+    return raw
 
 
 def get_user_workspace(user):
