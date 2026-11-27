@@ -10,6 +10,7 @@ Centralized environment files for SciTeX Hub deployment.
 | `.env.staging` | Staging server | `docker-compose.staging.yml` |
 | `.env.prod` | Production server | `docker_prod/` |
 | `.env.example` | Template with placeholders | New deployments |
+| `secrets/cloudflared-tunnel-token` | Prod tunnel token, one line; owner 65532, mode 0400 | `docker_prod/` `cloudflared` (compose `secrets:`) |
 
 ## Symlinks
 
