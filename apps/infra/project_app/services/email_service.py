@@ -19,6 +19,9 @@ SITE_URL = getattr(settings, "SITE_URL", "http://127.0.0.1:8000")
 # is, so the email bodies below can interpolate it like any other value.
 CONTACT_EMAIL = branding.CONTACT_EMAIL
 
+# The navy brand mark at the top of every HTML mail (config/branding.py).
+EMAIL_HEADER_ICON_URL = f"{SITE_URL}/static/{branding.EMAIL_HEADER_ICON}"
+
 
 def _code_validity_minutes() -> int:
     """The OTP lifetime, read from the model that ENFORCES it (never retyped)."""
@@ -100,13 +103,11 @@ class EmailService:
             <!DOCTYPE html>
             <html>
             <head>
-                <link rel="icon" type="image/png" href="https://scitex.ai/static/shared/images/favicon.png">
-                <link rel="shortcut icon" type="image/png" href="https://scitex.ai/static/shared/images/favicon.png">
             </head>
             <body>
             <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
                 <div style="text-align: left; margin-bottom: 30px;">
-                    <img src="{SITE_URL}/static/shared/images/scitex_logos/scitex-logo-cropped.png" alt="SciTeX Logo" style="height: 60px; margin-bottom: 20px;">
+                    <img src="{EMAIL_HEADER_ICON_URL}" alt="SciTeX" width="48" height="48" style="height: 48px; width: 48px; margin-bottom: 20px;">
                     <h2 style="margin-top: 20px;">Email Verification</h2>
                 </div>
 
@@ -193,13 +194,11 @@ class EmailService:
             <!DOCTYPE html>
             <html>
             <head>
-                <link rel="icon" type="image/png" href="https://scitex.ai/static/shared/images/favicon.png">
-                <link rel="shortcut icon" type="image/png" href="https://scitex.ai/static/shared/images/favicon.png">
             </head>
             <body>
             <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
                 <div style="text-align: left; margin-bottom: 30px;">
-                    <img src="{SITE_URL}/static/shared/images/scitex_logos/scitex-logo-cropped.png" alt="SciTeX Logo" style="height: 60px; margin-bottom: 20px;">
+                    <img src="{EMAIL_HEADER_ICON_URL}" alt="SciTeX" width="48" height="48" style="height: 48px; width: 48px; margin-bottom: 20px;">
                     <h2 style="margin-top: 20px;">Welcome to Scientific Excellence!</h2>
                 </div>
 
@@ -290,13 +289,11 @@ class EmailService:
             <!DOCTYPE html>
             <html>
             <head>
-                <link rel="icon" type="image/png" href="https://scitex.ai/static/shared/images/favicon.png">
-                <link rel="shortcut icon" type="image/png" href="https://scitex.ai/static/shared/images/favicon.png">
             </head>
             <body>
             <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
                 <div style="text-align: left; margin-bottom: 30px;">
-                    <img src="{SITE_URL}/static/shared/images/scitex_logos/scitex-logo-cropped.png" alt="SciTeX Logo" style="height: 60px; margin-bottom: 20px;">
+                    <img src="{EMAIL_HEADER_ICON_URL}" alt="SciTeX" width="48" height="48" style="height: 48px; width: 48px; margin-bottom: 20px;">
                     <h2 style="margin-top: 20px; color: #e74c3c;">Account Deletion Scheduled</h2>
                 </div>
 
@@ -403,7 +400,7 @@ class EmailService:
             <body>
             <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
                 <div style="text-align: left; margin-bottom: 30px;">
-                    <img src="{SITE_URL}/static/shared/images/scitex_logos/scitex-logo-cropped.png" alt="SciTeX Logo" style="height: 60px; margin-bottom: 20px;">
+                    <img src="{EMAIL_HEADER_ICON_URL}" alt="SciTeX" width="48" height="48" style="height: 48px; width: 48px; margin-bottom: 20px;">
                     <h2 style="margin-top: 20px;">App Submission Received</h2>
                 </div>
                 <div style="background: #f8f9fa; padding: 20px; border-radius: 8px; margin-bottom: 20px;">
@@ -478,7 +475,7 @@ class EmailService:
             <body>
             <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
                 <div style="text-align: left; margin-bottom: 30px;">
-                    <img src="{SITE_URL}/static/shared/images/scitex_logos/scitex-logo-cropped.png" alt="SciTeX Logo" style="height: 60px; margin-bottom: 20px;">
+                    <img src="{EMAIL_HEADER_ICON_URL}" alt="SciTeX" width="48" height="48" style="height: 48px; width: 48px; margin-bottom: 20px;">
                     <h2 style="margin-top: 20px;">App Review Complete</h2>
                 </div>
                 <div style="background: #f8f9fa; padding: 20px; border-radius: 8px; margin-bottom: 20px;">
