@@ -1,24 +1,25 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 # File: tests/apps/workspace/writer_app/test_writer_v2_compile_csrf.py
-"""A real browser compile POST to /apps/writer/v2/api/compile is not CSRF-403'd.
+"""Compile POSTs at /apps/writer/api/compile follow the LEAF's CSRF decision.
 
-The hub wrapper dropped scitex-writer's @csrf_exempt on api_dispatch; the
-writer's bundled frontend sends no CSRF token, so editor-v2 compile got 403.
+The hub used to exempt the writer API from CSRF because the leaf's bundled
+frontend sent no token. Since scitex-writer 2.44.5 (the hub's floor) the
+frontend sends ``X-CSRFToken`` on every write, so the generic plugin mount
+keeps the leaf's ``csrf_protect``: a token-bearing browser POST is accepted
+by the CSRF layer, a token-less cross-site one is refused.
 """
 
 from django.contrib.auth.models import User
 from django.test import Client, TestCase
 
 from apps.infra.project_app.models import Project
-from tests.apps.workspace.writer_app._old_direct_gate import (
-    writer_old_direct_urls,
-)
 
 PASSWORD = "TestPass123!"  # pragma: allowlist secret
+COMPILE = "/apps/writer/api/compile"
 
 
-class WriterV2CompileCsrfTest(TestCase):
+class WriterCompileCsrfTest(TestCase):
     @classmethod
     def setUpTestData(cls):
         cls.owner = User.objects.create_user(username="csrf-owner", password=PASSWORD)
@@ -33,22 +34,30 @@ class WriterV2CompileCsrfTest(TestCase):
         cls.owner.profile.last_active_repository = cls.project
         cls.owner.profile.save(update_fields=["last_active_repository"])
 
-    def test_owner_compile_post_is_not_csrf_rejected(self):
-        # Arrange
+    def _client(self):
         client = Client(enforce_csrf_checks=True)
         client.login(username="csrf-owner", password=PASSWORD)
-        # Act (CUTOVER: the v2 path lives ONLY at old-direct in dev now —
-        # same view, same assertions, only the prefix moved.)
-        with writer_old_direct_urls():
-            response = client.post(
-                "/apps/writer/old-direct/v2/api/compile", data="{}", content_type="application/json"
-            )
+        return client
+
+    def test_compile_post_with_the_session_token_is_not_csrf_rejected(self):
+        # Arrange — any rendered form page sets the session CSRF cookie
+        client = self._client()
+        client.get("/auth/login/")
+        token = client.cookies["csrftoken"].value
+        # Act
+        response = client.post(
+            COMPILE, data="{}", content_type="application/json", HTTP_X_CSRFTOKEN=token
+        )
         # Assert
-        # TEMPORARY DIAGNOSTIC (remove after one CI cycle): the 403 reason
-        # lives past the 500-char assert cut — discriminate csrf-vs-jail.
-        if response.status_code == 403:
-            print("DIAG-CSRF-BODY:", response.content[500:1500])
         assert response.status_code != 403, response.content
+
+    def test_compile_post_without_a_token_is_csrf_rejected(self):
+        # Arrange
+        client = self._client()
+        # Act
+        response = client.post(COMPILE, data="{}", content_type="application/json")
+        # Assert
+        assert response.status_code == 403
 
 
 # EOF

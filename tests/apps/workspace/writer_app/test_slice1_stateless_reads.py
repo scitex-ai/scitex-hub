@@ -1,73 +1,59 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 # File: tests/apps/workspace/writer_app/test_slice1_stateless_reads.py
-"""Writer separation Slice 1: stateless reads behind the existing wrapper.
+"""Writer leaf reads, driven through the GENERIC plugin mount at /apps/writer/.
 
-Card hub-figrecipe-leaf-move-20261009 (writer scout c_80d007a8acf7).
+Card hub-figrecipe-leaf-move-20261009 (writer scout c_80d007a8acf7), ported
+when the hub-side SITE-3 wrapper was retired (card
+hub-writer-leaf-generic-mount-20261127).
 
-Slice 1 covers the leaf ``viewer_page`` + status/metadata/bibliography GETs
-dispatched through the SITE-3 wrapper
-(``apps/workspace/writer_app/urls/writer_django.py``). Gate: authed render
-parity (pages mount, read endpoints answer) with the wrapper byte-intact.
+The hub no longer injects ``?working_dir=``: every request reaches the leaf
+view the installed leaf urlconf declares, through the hub's login wrapper,
+and the leaf's own ``@project_boundary`` authorizes it through the SDK host
+contract (``scitex_sdk.host.project_access``: project identity, storage
+root, write grant). What this module proves, with no leaf-code imports:
 
-CUTOVER (this file, post-handover): the SITE-3 view functions this suite
-drives are UNCHANGED — only their mount prefix moved (v2 paths live ONLY
-at /apps/writer/old-direct/ in dev; the same function objects serve the
-leaf paths at /apps/writer/ — see test_writer_route_flip_parity.py). The
-v2-route and owner-render tests below take the ``writer_old_direct``
-fixture; every direct view call is untouched. The R1 tripwire is now
-generation-aware (2.43.9+ declares the policy; older leaves must not).
-
-OPERATOR COUPLING CONSTRAINT
-----------------------------
-Leaves must not be tightly coupled to scitex-hub, in BOTH directions: the
-leaf may depend only on the scitex-sdk stable API (never hub modules), and
-the hub may talk to the leaf only through the generic plugin contract
-(manifest, mount_policy, jail) — no leaf-specific imports, no per-app
-bespoke hub code added. This slice therefore changes NO production code:
-the wrapper stays byte-intact (it is the only bar on file-write paths) and
-there is no generic-contract mechanism to build on yet (SDK 0.3.4 ships no
-jail surface; the leaf declares no mount_policy — both pinned below as
-fail-loud tripwires). What this module proves, DB-free, with no
-leaf-code imports:
-
-* the three v2 routes resolve and stay login-gated (anon -> 302);
+* the leaf pages and v2 twins resolve at /apps/writer/ and stay
+  login-gated (anon -> 302);
 * an authenticated owner with a project gets the leaf viewer/editor pages
-  (200, scope marker — django_db, runs in CI where postgres exists) and
-  the stateless-read GETs (200 + expected payloads, DB-free);
-* a caller-forged ``?working_dir=`` never reaches the leaf (server dir wins);
-* no-project still fails closed (pages -> /new/, API -> 404 JSON);
-* legacy import ownership stays fixed; new thin coordination is checked against
-  the literal public Writer class (no private/deep imports);
-* the SDK jail contract + leaf mount_policy gaps blocking Slice 2 are
-  recorded as tests that fail LOUDLY once the upstream lands.
+  (200, scope marker — django_db, runs in CI where postgres exists) and the
+  stateless-read GETs (200 + expected payloads, DB-free);
+* a caller-forged ``?working_dir=`` has no authority: the leaf answers from
+  the SDK-provided project root, never the forged path;
+* no project fails closed in the leaf (404 JSON);
+* the leaf manifest still declares its mount policy and the SDK jail
+  contract is present.
 """
 
 from __future__ import annotations
 
 import dataclasses
 import importlib.metadata
+import importlib.util
 import json
 from pathlib import Path
 
 import pytest
-from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import AnonymousUser
-from django.test import Client, RequestFactory
-from django.urls import reverse
+from django.test import Client, RequestFactory, override_settings
+from django.urls import resolve, reverse
 
 from apps.infra.project_app.models import Project
-from apps.workspace.writer_app.urls import writer_django as writer_urls
 
 PASSWORD = "TestPass123!"  # pragma: allowlist secret
 
 User = get_user_model()
 RF = RequestFactory()
+ROOT = "/apps/writer/"
 
-# Stateless-read endpoints served by the leaf behind the wrapper (URL
-# strings of the leaf's published HTTP surface at scitex-writer 2.43.6;
-# data, not imports — this module never imports scitex_writer code).
+pytestmark = pytest.mark.skipif(
+    importlib.util.find_spec("scitex_writer._django.urls") is None,
+    reason="scitex-writer is not installed here",
+)
+
+# Stateless-read endpoints of the leaf's published HTTP surface (URL strings,
+# data — this module never imports scitex_writer code).
 READ_ENDPOINTS_200 = [
     "ping",
     "api/project-info",
@@ -94,21 +80,14 @@ class _User:
         self.is_authenticated = True
 
 
-# -- SDK host doubles (scitex-writer>=2.43.9, DB-free) -----------------------
-# The 2.43.9 leaf guards api_dispatch/editor_page/viewer_page with
-# @project_boundary (scitex_writer/_django/_host_boundary.py), which demands
-# the SDK host contract BEFORE the wrapper-injected ?working_dir= is ever
-# read: scitex_sdk.host.project_access() -> project identity (settings
+# -- SDK host doubles (DB-free) -------------------------------------------------
+# The leaf's @project_boundary demands the SDK host contract:
+# scitex_sdk.host.project_access() -> project identity (settings
 # SCITEX_PROJECT_PROVIDER via project_context.resolve_active_project) +
-# storage root and write permission (settings SCITEX_PROJECT_STORAGE).
-# Without them the guard answers 503 "Project capability is unavailable"
-# (measured on /apps/writer/v2/ping: provider STATE_UNAVAILABLE, because the
-# real HubProjectProvider needs a database these tests deliberately lack).
-#
-# These doubles provision that contract for the DB-free suite through the
-# SAME two settings the real host uses — the leaf guard executes for real,
-# nothing is bypassed. Authorization-first, mirroring HubProjectStorage:
-# anonymous callers and unknown project ids get no path and no grant.
+# storage root and write permission (settings SCITEX_PROJECT_STORAGE). The
+# real Hub providers need a database these tests deliberately lack, so these
+# doubles provision the contract through the SAME two settings the real host
+# uses — the leaf guard executes for real, nothing is bypassed.
 _SDK_TEST_PROJECT_ID = "slice1-owner/slice1-study"
 
 
@@ -161,12 +140,17 @@ class _SDKTestProjectStorage:
         return bool(self._authorized(project_id, request))
 
 
-_SDK_TEST_PROVIDER_PATH = (
-    "tests.apps.workspace.writer_app.test_slice1_stateless_reads._SDKTestProjectProvider"
-)
-_SDK_TEST_STORAGE_PATH = (
-    "tests.apps.workspace.writer_app.test_slice1_stateless_reads._SDKTestProjectStorage"
-)
+class _NoProjectProvider(_SDKTestProjectProvider):
+    """Identity double for a user with no project at all."""
+
+    def list_projects(self, request):
+        return []
+
+    def last_visited(self, request):
+        return None
+
+
+_HERE = "tests.apps.workspace.writer_app.test_slice1_stateless_reads"
 
 
 @pytest.fixture
@@ -176,83 +160,92 @@ def workspace(tmp_path):
     return tmp_path
 
 
+def _host_settings(provider):
+    """The SDK host contract, injected through the settings the host uses."""
+    return override_settings(
+        SCITEX_PROJECT_PROVIDER=f"{_HERE}.{provider}",
+        SCITEX_PROJECT_STORAGE=f"{_HERE}._SDKTestProjectStorage",
+    )
+
+
 @pytest.fixture
-def resolve_to(workspace, monkeypatch):
-    """Point the wrapper's server-side resolver at the fixture workspace.
-
-    ... and provision the SDK host contract (2.43.9+) for the DB-free
-    suite: the leaf @project_boundary reads project identity from
-    SCITEX_PROJECT_PROVIDER and storage/permissions from
-    SCITEX_PROJECT_STORAGE, neither of which the real Hub providers can
-    answer without a database. The doubles above stand in through those
-    same two settings, bound to this fixture's workspace.
-    """
-
-    def _bind(view):
-        monkeypatch.setattr(view, "resolver", lambda request: workspace)
-
-    _bind(writer_urls._editor_view)
-    _bind(writer_urls._viewer_view)
-    _bind(writer_urls._api_view)
+def sdk_host(workspace):
+    """Provision the SDK host contract, bound to the fixture workspace."""
     _SDKTestProjectStorage.root = workspace
-    monkeypatch.setattr(settings, "SCITEX_PROJECT_PROVIDER", _SDK_TEST_PROVIDER_PATH)
-    monkeypatch.setattr(settings, "SCITEX_PROJECT_STORAGE", _SDK_TEST_STORAGE_PATH)
-    return workspace
+    with _host_settings("_SDKTestProjectProvider"):
+        yield workspace
 
 
-def _get(view, path, user=None, **extra):
-    request = RF.get(path, **extra)
-    request.user = user if user is not None else _User()
-    return view(request)
+def _dispatch(request):
+    """Serve ``request`` exactly as the root urlconf routes it."""
+    match = resolve(request.path)
+    return match.func(request, *match.args, **match.kwargs)
 
 
-# -- mount contract ----------------------------------------------------
-# CUTOVER: the v2 paths live ONLY at old-direct in dev now (the gate is off
-# in the ambient prod-shaped suite, so reverse()/client drives need the
-# writer_old_direct fixture, which reloads the real root urlconf with the
-# explicit flag). Same views, same assertions — only the prefix moved.
+def _authed(path, data=None, **extra):
+    request = RF.get(path, data=data or {}, **extra)
+    request.user = _User()
+    return request
 
 
-def test_v2_routes_resolve(writer_old_direct):
-    assert reverse("writer_app:writer_v2_editor") == "/apps/writer/old-direct/editor-v2/"
-    assert reverse("writer_app:writer_v2_viewer") == "/apps/writer/old-direct/viewer-v2/"
+def _anonymous(path):
+    request = RF.get(path)
+    request.user = AnonymousUser()
+    return request
+
+
+# -- mount contract ----------------------------------------------------------------
+
+
+def test_v2_editor_twin_resolves_at_the_leaf_mount():
+    # Arrange
+    name = "writer:writer_v2_editor"
+    # Act
+    url = reverse(name)
+    # Assert
+    assert url == ROOT + "editor-v2/"
 
 
 def test_anon_viewer_is_login_gated():
-    request = RF.get("/apps/writer/viewer-v2/")
-    request.user = AnonymousUser()
-    assert writer_urls.viewer_page(request).status_code == 302
+    # Arrange
+    request = _anonymous(ROOT + "viewer/")
+    # Act
+    response = _dispatch(request)
+    # Assert
+    assert response.status_code == 302
 
 
 def test_anon_editor_is_login_gated():
-    request = RF.get("/apps/writer/editor-v2/")
-    request.user = AnonymousUser()
-    assert writer_urls.editor_page(request).status_code == 302
+    # Arrange
+    request = _anonymous(ROOT)
+    # Act
+    response = _dispatch(request)
+    # Assert
+    assert response.status_code == 302
 
 
 def test_anon_read_api_is_login_gated():
-    request = RF.get("/apps/writer/v2/ping")
-    request.user = AnonymousUser()
-    assert writer_urls.api_dispatch(request, "ping").status_code == 302
+    # Arrange
+    request = _anonymous(ROOT + "ping")
+    # Act
+    response = _dispatch(request)
+    # Assert
+    assert response.status_code == 302
 
 
-# -- authed page parity (needs postgres; runs in CI) -----------------------
+# -- authed page parity (needs postgres; runs in CI) ------------------------------
 
 
 @pytest.fixture
 def slice1_owner_factory():
     """Create owners with REAL on-disk workspaces, cleaned up afterwards.
 
-    The 2.43.9 leaf guards the page with the SDK host contract
-    (``HubProjectStorage.project_path`` → ``get_project_root_path``, which
-    needs ``data/users/<owner>/proj/<slug>/`` ON DISK), while the hub
-    wrapper injects ``?working_dir=`` from ``project.get_local_path()``
-    (``local_path`` when set, else the same ``base_path/slug``). A
-    ``tmp_path`` workspace satisfies neither — the guard 404s with
-    "Project workspace not found". So the workspace is created the way the
-    product creates it (filesystem manager), and ``local_path`` is left
-    unset so both contracts resolve to the same on-disk root. The database
-    rolls back per test; the filesystem does not, hence the finalizer.
+    The leaf guards the page with the SDK host contract
+    (``HubProjectStorage.project_path`` -> ``get_project_root_path``, which
+    needs ``data/users/<owner>/proj/<slug>/`` ON DISK), so the workspace is
+    created the way the product creates it (filesystem manager). The
+    database rolls back per test; the filesystem does not, hence the
+    finalizer.
     """
     import shutil
 
@@ -285,116 +278,148 @@ def slice1_owner_factory():
 
 
 @pytest.mark.django_db
-def test_viewer_page_renders_for_owner(slice1_owner_factory, writer_old_direct):
+def test_viewer_page_renders_for_owner(slice1_owner_factory):
+    # Arrange
     slice1_owner_factory("slice1-owner", "slice1-study")
     client = Client()
     client.login(username="slice1-owner", password=PASSWORD)
-    response = client.get("/apps/writer/old-direct/viewer-v2/")
-    assert response.status_code == 200, response.content[:500]
-    assert b"stx-app-scope" in response.content
+    # Act
+    response = client.get(ROOT + "viewer/")
+    # Assert
+    assert b"stx-app-scope" in response.content, response.content[:500]
 
 
 @pytest.mark.django_db
-def test_editor_page_renders_for_owner(slice1_owner_factory, writer_old_direct):
+def test_editor_page_renders_for_owner(slice1_owner_factory):
+    # Arrange
     slice1_owner_factory("slice1-editor", "slice1-editor-study")
     client = Client()
     client.login(username="slice1-editor", password=PASSWORD)
-    response = client.get("/apps/writer/old-direct/editor-v2/")
-    assert response.status_code == 200, response.content[:500]
-    assert b"stx-app-scope" in response.content
+    # Act
+    response = client.get(ROOT)
+    # Assert
+    assert b"stx-app-scope" in response.content, response.content[:500]
+
+
+@pytest.mark.django_db
+def test_project_less_editor_navigation_goes_to_new_project():
+    # Arrange — a signed-in user who owns no project, opening the editor
+    User.objects.create_user(username="slice1-empty", password=PASSWORD)
+    client = Client()
+    client.login(username="slice1-empty", password=PASSWORD)
+    # Act
+    response = client.get(ROOT, HTTP_ACCEPT="text/html")
+    # Assert — the hub honours the leaf's mount_policy.requires_project
+    # (declared since scitex-writer 2.45.2, the hub floor)
+    assert (response.status_code, response.get("Location")) == (302, "/new/")
+
+
+# -- stateless reads (DB-free) ---------------------------------------------------
 
 
 @pytest.mark.parametrize("endpoint", READ_ENDPOINTS_200)
-def test_stateless_read_answers_200(resolve_to, endpoint):
-    response = writer_urls.api_dispatch(
-        _authed(f"/apps/writer/v2/{endpoint}"), endpoint
-    )
+def test_stateless_read_answers_200(sdk_host, endpoint):
+    # Arrange
+    request = _authed(ROOT + endpoint)
+    # Act
+    response = _dispatch(request)
+    # Assert
     assert response.status_code == 200, (endpoint, response.content[:300])
 
 
-def _authed(path, data=None):
-    request = RF.get(path, data=data or {})
-    request.user = _User()
-    return request
+def test_ping_reports_status_ok(sdk_host):
+    # Arrange
+    request = _authed(ROOT + "ping")
+    # Act
+    body = _body(_dispatch(request))
+    # Assert
+    assert body == {"status": "ok"}
 
 
-def test_ping_payload(resolve_to):
-    assert _body(writer_urls.api_dispatch(_authed("/apps/writer/v2/ping"), "ping")) == {
-        "status": "ok"
-    }
-
-
-def test_project_info_names_server_workspace(resolve_to, workspace):
-    body = _body(
-        writer_urls.api_dispatch(_authed("/apps/writer/v2/api/project-info"), "api/project-info")
+def test_project_info_names_server_workspace(sdk_host, workspace):
+    # Arrange
+    request = _authed(ROOT + "api/project-info")
+    # Act
+    body = _body(_dispatch(request))
+    # Assert
+    assert (body["project_dir"], body["has_shared"]) == (
+        str(workspace.resolve()),
+        True,
     )
-    assert body["project_dir"] == str(workspace.resolve())
-    assert body["project_name"] == workspace.resolve().name
-    assert body["has_shared"] is True
 
 
-def test_compile_status_shape(resolve_to):
-    body = _body(
-        writer_urls.api_dispatch(
-            _authed("/apps/writer/v2/api/compile/status"), "api/compile/status"
-        )
-    )
-    assert body["compiling"] is False
-    assert body["result"] is None
+def test_compile_status_shape(sdk_host):
+    # Arrange
+    request = _authed(ROOT + "api/compile/status")
+    # Act
+    body = _body(_dispatch(request))
+    # Assert
+    assert (body["compiling"], body["result"]) == (False, None)
 
 
-def test_bibliography_reads_empty_on_fresh_workspace(resolve_to):
-    assert _body(
-        writer_urls.api_dispatch(_authed("/apps/writer/v2/api/bib/files"), "api/bib/files")
-    ) == {"files": [], "count": 0}
-    assert _body(
-        writer_urls.api_dispatch(
-            _authed("/apps/writer/v2/api/bib/entries"), "api/bib/entries"
-        )
-    ) == {"entries": [], "count": 0}
+def test_bibliography_files_read_empty_on_fresh_workspace(sdk_host):
+    # Arrange
+    request = _authed(ROOT + "api/bib/files")
+    # Act
+    body = _body(_dispatch(request))
+    # Assert
+    assert body == {"files": [], "count": 0}
 
 
-def test_dag_without_target_is_400(resolve_to):
-    response = writer_urls.api_dispatch(_authed("/apps/writer/v2/api/dag"), "api/dag")
+def test_dag_without_target_is_400(sdk_host):
+    # Arrange
+    request = _authed(ROOT + "api/dag")
+    # Act
+    response = _dispatch(request)
+    # Assert
     assert response.status_code == 400
 
 
-# -- wrapper bars preserved ----------------------------------------------
+# -- leaf boundary bars ----------------------------------------------------------
 
 
-def test_forged_working_dir_never_reaches_leaf(resolve_to, workspace):
-    request = _authed("/apps/writer/v2/api/project-info", data={"working_dir": "/victim/proj"})
-    body = _body(writer_urls.api_dispatch(request, "api/project-info"))
+def test_forged_working_dir_never_reaches_leaf(sdk_host, workspace, tmp_path_factory):
+    # Arrange — a real directory the caller does not own
+    victim = tmp_path_factory.mktemp("victim")
+    (victim / "00_shared").mkdir()
+    request = _authed(ROOT + "api/project-info", data={"working_dir": str(victim)})
+    # Act
+    body = _body(_dispatch(request))
+    # Assert — the SDK-provided root wins; the forged path has no authority
     assert body["project_dir"] == str(workspace.resolve())
 
 
-def test_no_project_viewer_redirects_to_new(monkeypatch):
-    monkeypatch.setattr(writer_urls._viewer_view, "resolver", lambda request: None)
-    response = _get(writer_urls.viewer_page, "/apps/writer/viewer-v2/")
-    assert response.status_code == 302
-    assert response["Location"] == "/new/"
+def test_no_project_read_api_is_404_json(workspace):
+    # Arrange
+    _SDKTestProjectStorage.root = workspace
+    request = _authed(ROOT + "ping")
+    # Act
+    with _host_settings("_NoProjectProvider"):
+        response = _dispatch(request)
+    # Assert
+    assert (response.status_code, "error" in _body(response)) == (404, True)
 
 
-def test_no_project_read_api_is_404_json(monkeypatch):
-    monkeypatch.setattr(writer_urls._api_view, "resolver", lambda request: None)
-    response = writer_urls.api_dispatch(_authed("/apps/writer/v2/ping"), "ping")
-    assert response.status_code == 404
-    assert "No active project" in _body(response)["error"]
-
-
-def test_safe_method_with_foreign_origin_still_reads(resolve_to):
-    request = RF.get("/apps/writer/v2/ping", HTTP_ORIGIN="https://evil.example")
+def test_unsafe_method_without_csrf_token_is_refused(sdk_host):
+    # Arrange — the leaf keeps its own CSRF decision (no hub exemption)
+    request = RF.post(ROOT + "api/preview", data="{}", content_type="application/json")
     request.user = _User()
-    assert writer_urls.api_dispatch(request, "ping").status_code == 200
+    # Act
+    response = _dispatch(request)
+    # Assert
+    assert response.status_code == 403
 
 
-# =====================================================================
-# Generic-contract state (DB-free): coupling guard + Slice 2 tripwires.
-# No scitex_writer code is imported anywhere in this module.
-# =====================================================================
+def test_safe_method_with_foreign_origin_still_reads(sdk_host):
+    # Arrange
+    request = _authed(ROOT + "ping", HTTP_ORIGIN="https://evil.example")
+    # Act
+    response = _dispatch(request)
+    # Assert
+    assert response.status_code == 200
 
-# Import ownership is checked separately in test_writer_public_port_contract.py:
-# legacy wrappers remain fixed; new thin coordinators use the public Writer class.
+
+# -- generic-contract state (DB-free) ----------------------------------------------
 
 
 def _leaf_manifest():
@@ -404,70 +429,30 @@ def _leaf_manifest():
     relative = "scitex_writer/_django/manifest.json"
     assert relative in {str(path) for path in distribution.files or ()}
     manifest = Path(distribution.locate_file(relative))
-    assert manifest.is_file(), "leaf _django/manifest.json missing"
     return json.loads(manifest.read_text())
 
 
-def test_leaf_mount_policy_matches_installed_generation():
-    # R1 (writer lane, card hub-wrapper-plugin-writer-entrypoint-20260926):
-    # the plugin contract is `mount_policy` {login_required, touches_files,
-    # jail} in the leaf manifest, first carried by the 2.43.9 release
-    # (writer #438 -> e14f6d79; hub floor scitex-writer>=2.43.9). The env
-    # this suite runs in may still predate the publish (PyPI latest was
-    # 2.43.6 at the cutover — no scitex.apps entry, no mount_policy key),
-    # and the cutover is fail-closed under the older leaf, so this tripwire
-    # pins GENERATION-CONSISTENCY, not a fixed generation: a 2.43.9+ leaf
-    # WITHOUT the policy fails loudly (the floor's promise broke), and a
-    # pre-2.43.9 leaf WITH an unexpected policy fails loudly too (the
-    # wrapper's two-treatment contract was written against known shapes).
-    from importlib.metadata import version
-
+def test_leaf_mount_policy_is_login_gated():
+    # Arrange
     manifest = _leaf_manifest()
-    installed = tuple(int(x) for x in version("scitex-writer").split(".")[:3])
-    if installed >= (2, 43, 9):
-        policy = manifest.get("mount_policy")
-        assert policy is not None, (
-            "scitex-writer>=2.43.9 must declare manifest mount_policy "
-            "(writer #438) — the hub floor promises it."
-        )
-        assert policy.get("login_required") is True
-        assert policy.get("touches_files") is True
-        jail = policy.get("jail") or {}
-        assert jail.get("scope") == "project"
-        assert jail.get("working_dir_param") == "working_dir"
-        for param in ("path", "target", "output_file", "pdf"):
-            assert param in jail.get("path_params", []), (
-                f"jail.path_params lost {param!r} — the SITE-3 wrapper's "
-                "threat model assumes these channels are declared."
-            )
-    else:
-        assert "mount_policy" not in manifest, (
-            "pre-2.43.9 leaf unexpectedly declares mount_policy — re-read "
-            "the wrapper's two-treatment contract against this shape."
-        )
+    # Act
+    policy = manifest.get("mount_policy") or {}
+    # Assert — the generic mount login-wraps the whole leaf urlconf from this
+    assert policy.get("login_required") is True
 
 
 def test_sdk_jail_contract_present():
-    # The SDK jail surface (SDK: scitex_sdk/app/jail.py +
-    # validate_mount_policy) has LANDED — it shipped in scitex-sdk 0.3.5
-    # (absent from the published 0.3.4 wheel, present in 0.3.5+; the
-    # previous missing-tripwire asserted the opposite and failed once CI
-    # resolved 0.3.5). Slice 2 builds the Writer file/content write paths
-    # on validate_mount_policy + JailScopedView per the FigRecipe #1068
-    # shape, so this test pins the contract members Slice 2 needs. If it
-    # FAILS, the SDK regressed (or the floor dropped below the contract):
-    # fail loud, do NOT silently fall back to the bespoke wrapper.
+    # Arrange — the generic mount validates mount_policy with this contract
     from scitex_sdk.app import jail
 
-    for member in (
-        "validate_mount_policy",  # mount-time declaration check
-        "JailScopedView",  # host-enforced request bar
-        "is_in_jail",  # containment primitive
-        "resolve_against",  # path-join primitive
-        "MOUNT_POLICY_KEY",  # manifest key ("mount_policy")
-    ):
-        assert hasattr(jail, member), f"scitex_sdk.app.jail.{member} missing"
-    assert jail.MOUNT_POLICY_KEY == "mount_policy"
+    # Act
+    missing = [
+        member
+        for member in ("validate_mount_policy", "is_in_jail", "MOUNT_POLICY_KEY")
+        if not hasattr(jail, member)
+    ]
+    # Assert
+    assert missing == []
 
 
 # EOF

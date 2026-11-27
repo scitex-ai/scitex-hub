@@ -71,13 +71,15 @@ def test_writer_root_url_does_not_reach_the_raw_upstream_namespace():
     assert not view_name.startswith("writer:")
 
 
-def test_no_urlpattern_includes_the_raw_scitex_writer_urlconf():
-    # Arrange: the security invariant itself — nothing anywhere may re-mount the
-    # package urlconf. Asserted against the RESOLVED urlconf, so a re-add under
-    # any prefix (or via a second include) is caught, not just the old line.
+def test_raw_scitex_writer_urlconf_is_mounted_only_at_the_apps_route():
+    # Arrange: the security invariant itself — the package urlconf may be
+    # mounted ONLY by the generic plugin mount at /apps/writer/ (login-gated
+    # by the leaf manifest; the leaf authorizes every request through
+    # scitex_sdk.host). Asserted against the RESOLVED urlconf, so a re-add
+    # under any other prefix (or via a second include) is caught.
     from django.urls import get_resolver
 
-    def _module_names(patterns):
+    def _mounts(patterns, prefix=""):
         # ``urlconf_name`` is a module for ``include("a.b.urls")``, a plain str
         # in some paths, and a LIST of patterns for ``include([...])`` or a
         # namespace tuple. Only the first two name a module; a list is not
@@ -87,19 +89,20 @@ def test_no_urlpattern_includes_the_raw_scitex_writer_urlconf():
             nested = getattr(entry, "url_patterns", None)
             if nested is None:
                 continue
+            here = prefix + str(entry.pattern)
             raw = getattr(entry, "urlconf_name", None)
             name = getattr(raw, "__name__", None)
-            if isinstance(name, str):
-                yield name
-            elif isinstance(raw, str):
-                yield raw
-            yield from _module_names(nested)
+            if name is None and isinstance(raw, str):
+                name = raw
+            if name == "scitex_writer._django.urls":
+                yield here
+            yield from _mounts(nested, here)
 
     # Act
-    mounted = set(_module_names(get_resolver().url_patterns))
+    mounted = sorted(set(_mounts(get_resolver().url_patterns)))
 
     # Assert
-    assert "scitex_writer._django.urls" not in mounted
+    assert mounted == (["apps/writer/"] if _WRITER_INSTALLED else [])
 
 
 @pytest.mark.django_db

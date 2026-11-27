@@ -68,8 +68,9 @@ def test_required_matrix_owns_a_fresh_seeded_managed_runtime_per_attempt():
         "||" in commands,
     )
     # Assert: runtime isolation cannot drop pip seeding or the declared cohort.
+    # The version list is event-dependent; test_pr_ci_scope.py resolves it.
     assert observed == (
-        ["3.11", "3.12", "3.13"],
+        "${{ fromJSON((github.event_name == 'pull_request' && github.base_ref == 'develop') && '[\"3.12\"]' || '[\"3.11\", \"3.12\", \"3.13\"]') }}",
         "${{ runner.temp }}/hub-managed-python-${{ github.run_id }}-${{ github.run_attempt }}-${{ github.job }}-${{ matrix.python-version }}",
         "uv venv --seed --managed-python --python ${{ matrix.python-version }} .venv",
         True,
