@@ -324,11 +324,28 @@ fi
 
 # Step 6: Purge Cloudflare cache
 echo -e "${CYAN}  6. Purging Cloudflare cache...${NC}"
+# The purge reads the same env file compose used. Its stderr is NOT discarded:
+# until 2026-11-27 `2>/dev/null || echo skipped` hid every failure, including
+# the script never finding its env file, so prod was never purged. Exit 2 means
+# "not configured for this env" (expected on dev); any other failure is loud and
+# is repeated in the final summary. It does not fail the rebuild: the new
+# containers are already serving, and a stale edge cache is not an outage.
 CACHE_PURGE_SCRIPT="$PROJECT_ROOT/deployment/docker/common/scripts/cloudflare_cache_purge.sh"
+CACHE_PURGE_FAILED=0
 if [ -x "$CACHE_PURGE_SCRIPT" ]; then
-    "$CACHE_PURGE_SCRIPT" all 2>/dev/null || echo -e "${YELLOW}   ⚠️ Cache purge skipped (no API credentials)${NC}"
+    set +e
+    CLOUDFLARE_ENV_FILE="$PROJECT_ROOT/deployment/docker/envs/.env.${ENV}" "$CACHE_PURGE_SCRIPT" all
+    CACHE_PURGE_RC=$?
+    set -e
+    if [ "$CACHE_PURGE_RC" = 2 ]; then
+        echo -e "${YELLOW}   ⚠️ Cache purge not configured for '${ENV}' — skipped${NC}"
+    elif [ "$CACHE_PURGE_RC" != 0 ]; then
+        echo -e "${RED}   ❌ Cache purge FAILED (exit ${CACHE_PURGE_RC}) — see the Cloudflare error above${NC}" >&2
+        CACHE_PURGE_FAILED=1
+    fi
 else
-    echo -e "${YELLOW}   ⚠️ Cache purge script not found${NC}"
+    echo -e "${RED}   ❌ Cache purge script missing or not executable: ${CACHE_PURGE_SCRIPT}${NC}" >&2
+    CACHE_PURGE_FAILED=1
 fi
 
 # ==============================================================================
@@ -473,5 +490,9 @@ if [ "$VERIFY_FAILED" != "0" ]; then
 fi
 
 echo -e "${GREEN}✅ ${ENV} rebuild complete — verified serving${NC}"
+if [ "$CACHE_PURGE_FAILED" != "0" ]; then
+    echo -e "${RED}⚠️  BUT the Cloudflare cache purge FAILED — the edge may serve stale assets.${NC}" >&2
+    echo -e "${YELLOW}   Retry: CLOUDFLARE_ENV_FILE=deployment/docker/envs/.env.${ENV} deployment/docker/common/scripts/cloudflare_cache_purge.sh all${NC}" >&2
+fi
 echo ""
 echo -e "${CYAN}Check status with:${NC} make ENV=${ENV} status"
