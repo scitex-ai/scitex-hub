@@ -64,6 +64,12 @@ SECRET_KEY = _require_env_alias("SCITEX_HUB_DJANGO_SECRET_KEY")
 ALLOWED_HOSTS = _getenv_alias(
     "SCITEX_HUB_ALLOWED_HOSTS", "localhost,127.0.0.1,0.0.0.0"
 ).split(",")
+# Public staging hostname, served by the prod tunnel over the internal
+# scitex-hub-stag-ingress network. Appended (not a default) so an env file
+# that sets SCITEX_HUB_ALLOWED_HOSTS cannot drop it.
+STAGING_PUBLIC_HOST = "stag.scitex.ai"
+if STAGING_PUBLIC_HOST not in ALLOWED_HOSTS:
+    ALLOWED_HOSTS.append(STAGING_PUBLIC_HOST)
 
 # Security headers (lighter than production - no external access)
 SECURE_BROWSER_XSS_FILTER = True
@@ -90,6 +96,9 @@ CSRF_TRUSTED_ORIGINS = _getenv_alias(
     "SCITEX_HUB_CSRF_TRUSTED_ORIGINS",
     "http://localhost:31294,http://127.0.0.1:31294",
 ).split(",")
+# Cloudflare terminates TLS for stag.scitex.ai, so the browser's Origin is https.
+if f"https://{STAGING_PUBLIC_HOST}" not in CSRF_TRUSTED_ORIGINS:
+    CSRF_TRUSTED_ORIGINS.append(f"https://{STAGING_PUBLIC_HOST}")
 
 # ---------------------------------------
 # Database

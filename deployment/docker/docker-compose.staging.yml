@@ -132,6 +132,9 @@ services:
       start_period: 720s
     networks:
       - scitex-network
+      # stag.scitex.ai: the prod tunnel reaches this container here
+      # (http://scitex-hub-staging-django-1:8000), not via a host port.
+      - scitex-hub-stag-ingress
 
   # ============================================
   # PostgreSQL (Staging overrides)
@@ -328,3 +331,9 @@ volumes:
     driver: local
   npm_cache_volume:
     driver: local
+
+networks:
+  # See docker_prod/docker-compose.yml (cloudflared). Internal bridge that
+  # holds only prod cloudflared and staging django.
+  scitex-hub-stag-ingress:
+    external: true
