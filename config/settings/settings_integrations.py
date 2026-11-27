@@ -7,8 +7,22 @@
 import os
 from pathlib import Path
 
+from config._env import getenv_with_legacy_alias as _getenv_alias
+
 # Get BASE_DIR from parent
 BASE_DIR = Path(__file__).resolve().parent.parent.parent
+
+# ---------------------------------------
+# Field encryption (stored API keys / OAuth tokens)
+# ---------------------------------------
+# Kept apart from SECRET_KEY so a SECRET_KEY rotation never strands stored
+# ciphertext. Comma-separated Fernet keys, newest first; unset keeps the legacy
+# sha256(SECRET_KEY) key. See apps/field_encryption.py.
+FIELD_ENCRYPTION_KEYS = [
+    part.strip()
+    for part in (_getenv_alias("SCITEX_HUB_FIELD_ENCRYPTION_KEYS", "") or "").split(",")
+    if part.strip()
+]
 
 # ---------------------------------------
 # SciTeX Scholar Search Settings
