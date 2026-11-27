@@ -12,9 +12,11 @@
                     <i class="fas fa-chevron-right"></i>
                 </button>
                 <span id="ws-viewer-title-short" class="stx-shell-sidebar__title" title="Viewer"><i class="fas fa-eye"></i> Viewer</span>
-                <span id="ws-viewer-mode-toggle"
-                      class="stx-shell-sidebar__title-full ws-viewer-mode-toggle-title"
-                      title="Switch to Editor"><i class="fas fa-eye"></i> Viewer</span>
+                <button type="button"
+                        id="ws-viewer-mode-toggle"
+                        class="stx-shell-sidebar__title-full ws-viewer-mode-toggle-title ws-viewer-mode-toggle-btn"
+                        style="border: 1px solid var(--workspace-border-default); border-radius: 6px; padding: 3px 8px; white-space: nowrap"
+                        title="Switch to Editor"><i class="fas fa-eye" aria-hidden="true"></i> Viewer</button>
                 <div class="stx-shell-sidebar__header-actions ws-viewer-header-actions">
                     <div id="ws-viewer-tabs" class="ws-viewer-tabs"></div>
                     {% comment %}
