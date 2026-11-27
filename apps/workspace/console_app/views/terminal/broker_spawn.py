@@ -36,6 +36,26 @@ from .workspace import ensure_workspace
 logger = slogging.getLogger(__name__)
 
 
+def _record_terminal_workload(consumer) -> None:
+    """One open allocation record per owner (shared by every tab), billed by
+    allocation: the interactive CPUs/memory for up to the SLURM time limit.
+    Closed by the broker when the allocation stops (idle, cap, user, expiry)."""
+    from apps.infra.spend_app.services.workloads import open_workload
+
+    from .config import SLURM_CPUS, SLURM_MEMORY_GB, SLURM_TIME_LIMIT_SECONDS
+
+    open_workload(
+        consumer.project.owner,
+        kind="terminal",
+        project_id=consumer.project.pk,
+        cpus=SLURM_CPUS,
+        memory_gb=SLURM_MEMORY_GB,
+        max_seconds=SLURM_TIME_LIMIT_SECONDS,
+        reuse_open=True,
+        label="interactive",
+    )
+
+
 async def _send_pipeline_failure(consumer, pipeline: PipelineStatus) -> None:
     """Send pipeline diagnostic flowchart to the user's terminal."""
     rendered = pipeline.render()
@@ -205,6 +225,7 @@ async def spawn_via_broker(consumer):
         pipeline.pass_stage("apptainer")
         pipeline.pass_stage("shell")
         logger.info(f"Terminal session started via broker: {session_id}")
+        await asyncio.to_thread(_record_terminal_workload, consumer)
 
     except Exception as e:
         logger.error(f"Broker spawn failed: {e}")
@@ -343,6 +364,7 @@ async def spawn_direct(consumer):
             signal.pthread_sigmask(signal.SIG_SETMASK, old_mask)
 
     if consumer.pid != 0:
+        await asyncio.to_thread(_record_terminal_workload, consumer)
         consumer.reader_task = asyncio.create_task(_read_pty_direct(consumer))
 
 

@@ -328,6 +328,7 @@ TEMPLATES = [
                 "apps.infra.project_app.context_processors.version_context",
                 "apps.infra.project_app.context_processors.project_context",
                 "config.context_processors.cache_buster",
+                "apps.infra.spend_app.context_processors.spend_banner",
                 "config.context_processors.debug_mode",
                 "config.context_processors.scitex_version",
                 "config.context_processors.umami_analytics",

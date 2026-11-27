@@ -1,0 +1,22 @@
+{% load i18n %}
+<div class="alert-banner {% if spend_banner.kind == 'cap100' or spend_banner.kind == 'restricted' %}alert-banner-danger{% else %}alert-banner-warning{% endif %}"
+     role="status" data-spend-banner="{{ spend_banner.kind }}"
+     style="margin: 8px 16px; padding: 10px 14px;">
+    {% if spend_banner.kind == 'cap100' %}
+        <strong>{% trans "Monthly spend cap reached." %}</strong>
+        {% blocktrans with spend=spend_banner.spend_usd|floatformat:2 cap=spend_banner.cap_usd|floatformat:2 %}${{ spend }} of ${{ cap }}. New compute is paused and storage is read-only; nothing is deleted.{% endblocktrans %}
+        <a href="{{ spend_banner.url }}">{% trans "Raise your cap" %}</a>
+    {% elif spend_banner.kind == 'cap80' %}
+        <strong>{% trans "80% of your monthly spend cap used." %}</strong>
+        {% blocktrans with spend=spend_banner.spend_usd|floatformat:2 cap=spend_banner.cap_usd|floatformat:2 %}${{ spend }} of ${{ cap }}.{% endblocktrans %}
+        <a href="{{ spend_banner.url }}">{% trans "View usage or change your cap" %}</a>
+    {% elif spend_banner.kind == 'past_due' %}
+        <strong>{% trans "A payment did not go through." %}</strong>
+        {% blocktrans with until=spend_banner.grace_until|date:"Y-m-d" %}Everything keeps working until {{ until }}.{% endblocktrans %}
+        <a href="{{ spend_banner.url }}">{% trans "Update payment method" %}</a>
+    {% elif spend_banner.kind == 'restricted' %}
+        <strong>{% trans "Account restricted." %}</strong>
+        {% trans "Your data is kept and readable; new compute and uploads are paused." %}
+        <a href="{{ spend_banner.url }}">{% trans "Update payment method" %}</a>
+    {% endif %}
+</div>

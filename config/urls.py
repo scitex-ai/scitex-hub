@@ -285,6 +285,10 @@ urlpatterns = [
     # --- AI Setup (AI agent configuration hub) ---
     path("ai-setup/", include("apps.infra.accounts_app.urls_ai_setup")),
     # --- Auth ---
+    path(
+        "accounts/settings/spend/",
+        include(("apps.infra.spend_app.urls", "spend_app")),
+    ),
     path("accounts/", include(("apps.infra.accounts_app.urls", "accounts_app"))),
     path("auth/", include(("apps.infra.auth_app.urls", "auth_app"))),
     path("auth/social/", include("allauth.urls")),

@@ -189,6 +189,23 @@ class TerminalConsumer(ChannelEventsMixin, AsyncWebsocketConsumer):
             await self.close(code=4008)
             return
 
+        # Spend controls: an interactive session on the hub's compute is
+        # billable to the project OWNER (the broker allocates per owner).
+        # Refused at the monthly cap or on a restricted account, with the reason
+        # and the link to raise the cap written into the terminal. Remote/TRIP
+        # projects run on the user's own machine and are not billed.
+        from apps.infra.spend_app.services import gate
+        from apps.infra.spend_app.services.enforcement import require_terminal
+
+        try:
+            if self.project.project_type != "remote":
+                await asyncio.to_thread(require_terminal, self.project.owner)
+        except gate.Refused as e:
+            await self.accept()
+            await self.send(text_data=f"\x1b[1;31m❌ {e.message}\x1b[0m\r\n")
+            await self.close(code=4403 if e.code.startswith("account_") else 4402)
+            return
+
         await self.accept()
         await self._run_post_accept_setup()
 

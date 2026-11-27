@@ -157,6 +157,19 @@ CELERY_BEAT_SCHEDULE = {
             "expire_seconds": 55,  # Expire after 55 seconds if not started
         },
     },
+    # Spend controls (apps/infra/spend_app): alerts at 50/80/100 % of the
+    # monthly cap, the running-work grace window and stop, and failed-payment
+    # reminders / restriction. Active accounts every 5 min, everyone hourly.
+    "spend-sweep-active": {
+        "task": "apps.infra.spend_app.tasks.sweep_active_spend",
+        "schedule": 300.0,
+        "options": {"expire_seconds": 290},
+    },
+    "spend-sweep-all": {
+        "task": "apps.infra.spend_app.tasks.sweep_all_spend",
+        "schedule": 3600.0,  # stx-allow: STX-NL001
+        "options": {"expire_seconds": 3300},  # stx-allow: STX-NL001
+    },
     # End-to-end queue-liveness beacons — the watchdog for wedged workers.
     #
     # Prod workers intermittently stop dispatching while every control-plane

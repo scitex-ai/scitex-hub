@@ -39,6 +39,9 @@ SUBSCRIPTION_EVENT_TYPES = (
     "customer.subscription.deleted",
 )
 
+INVOICE_FAILED_EVENT_TYPES = ("invoice.payment_failed",)
+INVOICE_PAID_EVENT_TYPES = ("invoice.paid", "invoice.payment_succeeded")
+
 
 def verify_stripe_signature(
     payload: bytes,
@@ -158,6 +161,16 @@ class StripeBillingProvider:
             self._confirm_activation(
                 self._sync_subscription(_field(_field(event, "data"), "object"))
             )
+        elif event_type in INVOICE_FAILED_EVENT_TYPES:
+            # Failed payment: grace period with reminders, then read-only (no
+            # new compute). Never deletes. See spend_app.services.dunning.
+            from apps.infra.spend_app.services import dunning
+
+            dunning.on_payment_failed(event)
+        elif event_type in INVOICE_PAID_EVENT_TYPES:
+            from apps.infra.spend_app.services import dunning
+
+            dunning.on_payment_succeeded(event)
 
     def activate_trial_from_setup(self, event, card, *, stripe_client=None):
         """Create the trial the payment step promised, from the completed setup.
