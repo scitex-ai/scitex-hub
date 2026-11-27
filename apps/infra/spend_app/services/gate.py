@@ -145,10 +145,23 @@ def message_for(code: str, status: AccountStatus | None = None) -> str:
     return "This action is not available on your account right now."
 
 
+def has_account(user) -> bool:
+    """Whether ``user`` is a stored, signed-in account spend controls apply to.
+
+    Anonymous visitors (and a request no auth middleware has populated) have
+    nothing to bill; the view's own access check decides for them, and an
+    unsaved user object has no rows to read. Both are allowed through here
+    rather than raising, so the gate never replaces a view's 401/403.
+    """
+    return bool(getattr(user, "is_authenticated", False)) and (
+        getattr(user, "pk", None) is not None
+    )
+
+
 def check(
     user, action: Action, *, status: AccountStatus | None = None
 ) -> policy.Decision:
-    if not getattr(user, "is_authenticated", False):
+    if not has_account(user):
         return policy.ALLOW
     status = status or account_status(user)
     decision = policy.decide(status.standing, status.level, action, mode=status.mode)
@@ -164,7 +177,7 @@ def check(
 
 def require(user, action: Action) -> AccountStatus | None:
     """Raise :class:`Refused` if the account may not take ``action`` now."""
-    if not getattr(user, "is_authenticated", False):
+    if not has_account(user):
         return None
     status = account_status(user)
     decision = check(user, action, status=status)
@@ -292,7 +305,7 @@ def require_job(user, *, cpus, memory_gb, time_limit_seconds, partition) -> None
 
 def require_storage_write(user, *, incoming_sizes: list[int] | None = None) -> None:
     require(user, Action.WRITE_STORAGE)
-    if incoming_sizes is not None and getattr(user, "is_authenticated", False):
+    if incoming_sizes is not None and has_account(user):
         check_storage_quota(user, incoming_sizes=incoming_sizes)
 
 
@@ -322,6 +335,7 @@ __all__ = [
     "check_storage_quota",
     "effective_cap",
     "effective_quotas",
+    "has_account",
     "message_for",
     "refusal_json",
     "refusal_payload",

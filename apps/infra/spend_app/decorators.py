@@ -44,7 +44,9 @@ def storage_write(view):
         if request.method in ("POST", "PUT", "PATCH"):
             sizes = [f.size for files in request.FILES.lists() for f in files[1]]
             try:
-                gate.require_storage_write(request.user, incoming_sizes=sizes)
+                gate.require_storage_write(
+                    getattr(request, "user", None), incoming_sizes=sizes
+                )
             except gate.Refused as exc:
                 return refusal_response(request, exc)
         return view(request, *args, **kwargs)

@@ -23,6 +23,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   usage only (Stripe test mode). Interactive terminals auto-stop after 30 idle
   minutes. Usage is read through a `UsageSource` interface that the usage ledger
   (#1232) will implement; until then every figure is labelled provisional.
+  `spend_cap` is an enforcement-only catalog attribute: `pricing.py` validates its
+  shape (`default_usd` <= `max_usd`, USD per billing cycle) and never prints it on
+  /pricing/, /services/ or /tokushoho/. `public_app/pricing.py` is split into
+  `pricing_format` / `pricing_attributes` / `pricing_metered` / `pricing_comparison`
+  / `pricing_fx`, re-exported unchanged.
 - The SLURM, storage and project quotas in `config/settings/quotas.py` (with
   per-user `UserQuota` overrides) are now enforced at job submission, uploads and
   project creation.

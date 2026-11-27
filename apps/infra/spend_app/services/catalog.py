@@ -79,12 +79,15 @@ def plan_terms(pricing_id: str) -> PlanTerms:
             "Add them in the scitex-affairs catalog and mirror them here; an "
             "account must never run without a stated cap."
         )
+    # One schema for the attribute: the same validator the price pages run.
+    from apps.infra.public_app.pricing import validate_spend_cap
+
+    try:
+        validate_spend_cap(cap)
+    except ValueError as exc:
+        raise CatalogError(f"pricing.json row {pricing_id!r}: {exc}") from exc
     default_cap = _dec(cap["default_usd"])
     max_cap = _dec(cap["max_usd"])
-    if default_cap < 0 or max_cap < default_cap:
-        raise CatalogError(
-            f"pricing.json row {pricing_id!r}: need 0 <= default_usd <= max_usd"
-        )
     storage = attrs.get("included_storage", {}) or {}
     credit = attrs.get("included_compute_credit", {}) or {}
     egress = attrs.get("included_egress", {}) or {}
