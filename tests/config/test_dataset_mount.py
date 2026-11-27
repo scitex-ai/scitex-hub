@@ -119,8 +119,12 @@ class DatasetMountRoleTest(TestCase):
         user = self.member
         # Act
         html = self._page(user).content.decode()
+        # Only the leaf's own content: the hub's workspace sidebar preloads
+        # the project file tree, where project outputs legitimately appear.
+        # A missing <main> raises here instead of passing vacuously.
+        leaf = html.split('<main id="main-content"', 1)[1].split("</main>", 1)[0]
         # Assert
-        assert "metrics.json" not in html
+        assert "metrics.json" not in leaf
 
     def test_a_member_lists_the_projects_public_datasets(self):
         # Arrange
