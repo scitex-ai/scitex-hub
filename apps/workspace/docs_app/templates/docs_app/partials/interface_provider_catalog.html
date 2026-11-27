@@ -23,6 +23,13 @@
     {% for package in interface_catalog.packages %}
         <article class="api-section" data-provider-package="{{ package.distribution }}">
             <h3><a href="{{ package.api_docs_url }}">{{ package.distribution }}</a>{% if package.version %} <small>{{ package.version }}</small>{% endif %}</h3>
+            {% if package.navigation.state == "indexed" %}
+            <nav aria-label="{% trans 'Package hierarchy' %}" data-package-hierarchy="{{ package.navigation.node_id }}">
+                {% for ancestor in package.navigation.breadcrumbs %}<span>{% if not forloop.first %} › {% endif %}{{ ancestor.index }} {{ ancestor.label }}</span>{% endfor %}
+            </nav>
+            {% elif package.navigation.state == "unindexed" %}
+            <p>{% trans "No hierarchy index has been allocated to this package." %}</p>
+            {% endif %}
             <p>{{ package.summary }}</p>
             <h4>{% trans "Installed skills and MCP setup" %}</h4>
             <pre><code class="language-bash">{{ package.skills_command }}</code></pre>
