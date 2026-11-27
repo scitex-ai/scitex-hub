@@ -19,6 +19,8 @@ compute    ``WorkloadSession`` rows (terminal,         allocation x wall time
                                                        charged to its time limit
 storage    on-demand scan of the user's data root      point-in-time size held
            (``filesystem.get_storage_usage``), cached  constant for the month
+           backup snapshots live outside that root,
+           so they are never counted (decision b)
 egress     not measured anywhere yet                   always 0 until the
                                                        egress collector lands
 =========  ==========================================  ========================
@@ -121,9 +123,10 @@ class ProvisionalUsageSource:
 
     name = "provisional"
 
-    def __init__(self, *, storage_bytes_fn=None, now_fn=None):
+    def __init__(self, *, storage_bytes_fn=None, now_fn=None, billing_policy_fn=None):
         self._storage_bytes_fn = storage_bytes_fn or _scan_storage_bytes
         self._now_fn = now_fn or timezone.now
+        self._billing_policy_fn = billing_policy_fn or catalog.billing_policy
 
     def snapshot(self, user, *, start, end) -> UsageSnapshot:
         now = self._now_fn()
@@ -145,6 +148,16 @@ class ProvisionalUsageSource:
             )
         )
 
+        policy = self._billing_policy_fn()
+        if policy.storage_counts_backups:
+            # Decision b (2026-11-27) is that backups are NOT counted; the scan
+            # below covers the user's data root only, and backup snapshots live
+            # outside it. A catalog saying otherwise needs a meter that counts
+            # them, not a silent under-charge.
+            raise catalog.CatalogError(
+                "billing_policy.storage_counts_backups is true, but the storage "
+                "meter scans the user's data root only and cannot count backups"
+            )
         storage_bytes = int(self._storage_bytes_fn(user))
         over_gb = max(
             Decimal("0"), Decimal(storage_bytes) / GIB - terms.included_storage_gb
@@ -162,6 +175,7 @@ class ProvisionalUsageSource:
                 provisional=True,
                 note=(
                     f"{terms.included_storage_gb} GB included ({terms.storage_tier}); "
+                    "backup copies are not counted; "
                     "current size held constant for the month"
                 ),
             )
