@@ -23,10 +23,13 @@ from .liveness import (
     queue_liveness_beacon,
     write_liveness_stamp,
 )
+from .inquiries import notify_service_inquiry
 from .metrics import collect_server_metrics
 from .utils import check_port
 
 __all__ = [
+    # Inquiries
+    "notify_service_inquiry",
     # Metrics
     "collect_server_metrics",
     # NOTE: no chart-render tasks. The /server-status/ charts are drawn in the
