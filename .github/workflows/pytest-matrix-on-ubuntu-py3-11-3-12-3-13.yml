@@ -1,6 +1,7 @@
-# The FULL pytest suite, across Python 3.11 / 3.12 / 3.13. This workflow
-# carries the three required status checks on main and develop
-# (pytest-matrix-on-ubuntu-py3.11/3.12/3.13) -- those come from the JOB name
+# The FULL pytest suite, across Python 3.11 / 3.12 / 3.13 (pull requests into
+# develop run 3.12 only -- see `strategy` below). This workflow carries the
+# required status checks: pytest-matrix-on-ubuntu-py3.11/3.12/3.13 on main,
+# pytest-matrix-on-ubuntu-py3.12 on develop -- those come from the JOB name
 # below, never from this `name:`.
 #
 # Named `pytest-matrix`, not `tests`: tests.yml is a DIFFERENT workflow and was
@@ -76,8 +77,20 @@ jobs:
         shell: bash
     strategy:
       fail-fast: false
+      # Which Python versions run depends on the event (2026-11-27 ruling:
+      # PRs waited hours for the 7 scitex-docker runners, and every PR held
+      # three of them for the same suite):
+      #   * pull_request into develop -> 3.12 only. That one job is the
+      #     required check on develop (pytest-matrix-on-ubuntu-py3.12).
+      #   * everything else -> 3.11 / 3.12 / 3.13: pushes to develop and main
+      #     (each merge), the nightly schedule, workflow_dispatch, the release
+      #     gate (workflow_call from a tag push) and PRs into main (the
+      #     release PR, gated by all three required checks on main).
+      # A version-specific break therefore surfaces on develop within one
+      # merge, never later than the next release PR, and never reaches main.
+      # tests/config/test_container_python_runtime.py pins both lists.
       matrix:
-        python-version: ["3.11", "3.12", "3.13"]
+        python-version: ${{ fromJSON((github.event_name == 'pull_request' && github.base_ref == 'develop') && '["3.12"]' || '["3.11", "3.12", "3.13"]') }}
     # PostgreSQL is the only engine Django supports here now. This matrix used
     # to run with no database service at all and set a flag that swapped the
     # ENGINE for a local file-backed one -- so the required status checks were
