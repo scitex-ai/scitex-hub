@@ -418,4 +418,22 @@ def test_private_host_identities_are_excluded_from_image_context(matcher, path):
     assert excluded, f"Server identity must not enter a Docker build context: {path}"
 
 
+@pytest.mark.parametrize(
+    "path",
+    [
+        "GITIGNORED",
+        "GITIGNORED/logs/fig-preview-rollback-a9e575e4",
+        "GITIGNORED/logs/worker/output.txt",
+        "GITIGNORED/private-publication/draft.json",
+    ],
+)
+def test_private_runtime_tree_is_excluded(matcher, path):
+    """Mounted runtime state must neither enter nor block image builds."""
+    assert matcher.is_excluded(path), (
+        f"{path} enters the image context. The host runtime tree can contain "
+        "private files and unreadable service-owned directories; exclude it "
+        "without changing its ownership or permissions."
+    )
+
+
 # EOF
