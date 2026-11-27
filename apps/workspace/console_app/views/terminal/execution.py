@@ -133,9 +133,14 @@ def exec_slurm_shell(
     container_path: str,
     project_slug: str,
     screen_session: str = "scitex-0",
+    *,
+    tags,
 ):
     """
     Execute shell via SLURM (REQUIRED for all users).
+
+    ``tags`` (``SlurmTags``) attributes the ``srun --pty`` job; the caller
+    records its WorkloadSession before forking.
 
     SECURITY: This is the ONLY way to spawn terminals. No fallbacks allowed.
     """
@@ -153,6 +158,7 @@ def exec_slurm_shell(
         host_project_dir=host_project_dir,
         project_slug=project_slug,
         screen_session=screen_session,
+        tags=tags,
     )
 
     # Environment for srun process (host-side, before exec into container)

@@ -10,6 +10,7 @@ from apps.workspace.console_app.services.compute_user import (
     provision_commands,
     with_sbatch_identity,
 )
+from apps.workspace.console_app.services.slurm.tags import SlurmTags
 from apps.workspace.console_app.views.terminal._command_builder import (
     build_instance_start_script_cmd,
     build_sbatch_cmd,
@@ -25,6 +26,7 @@ def _sbatch(as_root=True):
         uid=20001,
         gid=20001,
         as_root=as_root,
+        tags=SlurmTags.for_project(7),
     )
 
 

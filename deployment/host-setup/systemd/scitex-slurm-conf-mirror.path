@@ -1,0 +1,9 @@
+[Unit]
+Description=SciTeX: re-mirror slurm.conf whenever slurmd refreshes its configless cache
+
+[Path]
+PathChanged=/run/slurm/conf/slurm.conf
+Unit=scitex-slurm-conf-mirror.service
+
+[Install]
+WantedBy=multi-user.target

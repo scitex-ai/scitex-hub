@@ -12,6 +12,7 @@ Fields that land in #SBATCH directives / arithmetic (job_name, partition,
 time_limit, cpus, memory_gb) cannot be shell-quoted (SLURM parses them), so they
 are validated and REJECTED; env-var values that land in bash are shlex-quoted.
 """
+
 from __future__ import annotations
 
 from pathlib import Path
@@ -21,6 +22,7 @@ import pytest
 from apps.workspace.console_app.services.slurm.script_generator import (
     create_batch_script,
 )
+from apps.workspace.console_app.services.slurm.tags import SlurmTags
 
 pytestmark = pytest.mark.security
 
@@ -39,6 +41,7 @@ def _script(tmp_path, **overrides):
         memory_gb=4,
         time_limit="01:00:00",
         env_vars={},
+        tags=SlurmTags.for_project(7),
     )
     kwargs.update(overrides)
     return create_batch_script(**kwargs)
