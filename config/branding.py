@@ -245,6 +245,27 @@ FAVICON_DARK_BY_ENV = {
 }
 
 
+# ---------------------------------------------------------------------------
+# Mail: the brand mark as mail clients see it
+# ---------------------------------------------------------------------------
+# Static-relative paths; callers prefix them with SITE_URL + "/static/", since
+# a mail body needs absolute URLs. Both are the PRODUCTION favicon above (white
+# snake on navy), so the inbox matches the tab:
+#
+#   EMAIL_HEADER_ICON  PNG render of FAVICON_BY_ENV[production] for the header
+#                      of the Hub's HTML mails. PNG, not SVG: Gmail and
+#                      Outlook do not display SVG images in a message body.
+#   BIMI_LOGO          SVG Tiny PS (the BIMI profile: square, solid background,
+#                      no CSS) with the favicon's exact snake paths, for the
+#                      `default._bimi` DNS record. Served at a stable URL.
+#
+# tests/config/test_mail_brand_icons.py pins both to the favicon, so a brand
+# change that regenerates the favicon fails until these follow.
+_MAIL_IMAGE_DIR = "shared/images"
+EMAIL_HEADER_ICON = f"{_MAIL_IMAGE_DIR}/email/scitex-icon-white-bg-navy-192.png"
+BIMI_LOGO = f"{_MAIL_IMAGE_DIR}/bimi/scitex-bimi.svg"
+
+
 def favicon_for_env(env):
     """Return the static-relative favicon path for ``env``.
 
