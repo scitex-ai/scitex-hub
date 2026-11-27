@@ -92,7 +92,7 @@
       "attributes": {
         "free_trial": {
           "days": 30,
-          "storage_gb": 10,
+          "storage_gb": 32,
           "compute_credit": 3
         },
         "workspace_limits": {
@@ -133,7 +133,7 @@
       "attributes": {
         "free_trial": {
           "days": 30,
-          "storage_gb": 10,
+          "storage_gb": 32,
           "compute_credit": 3
         },
         "workspace_limits": {

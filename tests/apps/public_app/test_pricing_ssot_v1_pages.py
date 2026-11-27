@@ -86,6 +86,19 @@ def test_page_shows_every_ssot_usd_price(client, page_name):
 
 
 @pytest.mark.django_db
+@pytest.mark.parametrize("page_name", ["pricing", "tokushoho_en"])
+def test_page_states_the_trial_includes_32_gb_storage(client, page_name):
+    # Arrange — operator decision 2026-11-27: the 30-day trial's storage is
+    # 32 GB, the same as Academic and Standard (was 10 GB); $3 credit unchanged.
+    current = "30-day free trial with 32 GB Cool storage and a $3 trial compute credit"
+    retired = "free trial with 10 GB"
+    # Act
+    visible = _visible(_get(client, page_name))
+    # Assert
+    assert (current in visible, retired in visible) == (True, False)
+
+
+@pytest.mark.django_db
 @pytest.mark.parametrize("language", ["en", "ja"])
 def test_services_page_shows_no_jpy_price_band(client, language):
     # Arrange
@@ -121,7 +134,9 @@ def test_tokushoho_drops_the_retired_early_adopter_strikethrough(client, page_na
 
 
 @pytest.mark.django_db
-@pytest.mark.parametrize("page_name", ["pricing", "services", "tokushoho", "tokushoho_en"])
+@pytest.mark.parametrize(
+    "page_name", ["pricing", "services", "tokushoho", "tokushoho_en"]
+)
 def test_storage_is_described_by_tier_names_never_hardware(client, page_name):
     # Arrange
     expected = (STORAGE_TIERS, [])
@@ -145,7 +160,10 @@ def test_pricing_page_labels_unbuilt_features_coming_soon(client):
         r'Compute billing\s*<span class="pricing-coming-soon">Coming soon</span>', html
     )
     # Assert
-    assert ([n for n in needles if n not in html], compute_badge is not None) == ([], True)
+    assert ([n for n in needles if n not in html], compute_badge is not None) == (
+        [],
+        True,
+    )
 
 
 @pytest.mark.django_db
