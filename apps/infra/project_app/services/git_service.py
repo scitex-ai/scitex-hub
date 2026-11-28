@@ -15,7 +15,8 @@ import logging
 import os
 import subprocess
 from pathlib import Path
-from typing import Optional, List, Tuple
+from typing import List, Optional, Tuple
+
 from django.conf import settings
 
 # SECURITY: the origin-credential scrub lives in ONE module (gitea_app owns
@@ -119,7 +120,11 @@ def git_commit_and_push(
         else:
             # Add all changes
             result = subprocess.run(
-                ["git", "add", "."], cwd=project_dir, capture_output=True, text=True
+                ["git", "add", "."],
+                cwd=project_dir,
+                capture_output=True,
+                text=True,
+                timeout=60,
             )
             if result.returncode != 0:
                 return False, f"git add failed: {result.stderr}"
@@ -130,6 +135,7 @@ def git_commit_and_push(
             cwd=project_dir,
             capture_output=True,
             text=True,
+            timeout=60,
         )
 
         if not status.stdout.strip():
@@ -141,6 +147,7 @@ def git_commit_and_push(
             cwd=project_dir,
             capture_output=True,
             text=True,
+            timeout=60,
         )
 
         if result.returncode != 0:
@@ -173,8 +180,8 @@ def git_commit_and_push(
 
         return True, f"✓ Committed locally\n{commit_output}"
 
-    except subprocess.TimeoutExpired:
-        return False, "git push timeout"
+    except subprocess.TimeoutExpired as exc:
+        return False, f"git timed out after {exc.timeout:g} s: {' '.join(exc.cmd)}"
     except Exception as e:
         logger.exception(f"Git operation failed for {project_dir}")
         return False, str(e)

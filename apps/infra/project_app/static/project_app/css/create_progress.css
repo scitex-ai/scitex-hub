@@ -1,0 +1,47 @@
+/* Creation progress on /new/: shown while the POST runs (20-40 s for a
+ * template project), so the wait is never a silent, frozen page (hub#1273).
+ * The panel lives in create.html; create.ts shows it and counts seconds. */
+.create-progress {
+  display: flex;
+  gap: 0.75rem;
+  align-items: flex-start;
+  padding: 1rem;
+  margin-top: 1rem;
+  background: var(--color-canvas-subtle, #161b22);
+  border: 1px solid var(--color-border-default, #30363d);
+  border-radius: 6px;
+  font-size: 0.875rem;
+  color: var(--color-fg-default, #c9d1d9);
+}
+
+.create-progress[hidden] {
+  display: none;
+}
+
+.create-progress p {
+  margin: 0.25rem 0 0;
+  color: var(--color-fg-muted, #8b949e);
+}
+
+.create-progress-spinner {
+  flex: none;
+  width: 1.25rem;
+  height: 1.25rem;
+  margin-top: 0.125rem;
+  border: 2px solid var(--color-border-default, #30363d);
+  border-top-color: var(--color-accent-fg, #58a6ff);
+  border-radius: 50%;
+  animation: create-progress-spin 0.9s linear infinite;
+}
+
+@keyframes create-progress-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .create-progress-spinner {
+    animation: none;
+  }
+}

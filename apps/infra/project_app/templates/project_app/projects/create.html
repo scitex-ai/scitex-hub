@@ -8,6 +8,7 @@
     <link rel="stylesheet" href="{% static 'shared/css/common.css' %}" />
     <link rel="stylesheet" href="{% static 'project_app/css/create_landing.css' %}" />
     <link rel="stylesheet" href="{% static 'project_app/css/create_remote.css' %}" />
+    <link rel="stylesheet" href="{% static 'project_app/css/create_progress.css' %}" />
     <link rel="stylesheet" href="{% static 'project_app/css/create_mobile.css' %}" />
 {% endblock %}
 {% block content %}
@@ -626,6 +627,24 @@
                     <div class="form-actions">
                         <a href="/{{ user.username }}/projects/" class="btn btn-secondary">{% trans "Cancel" %}</a>
                         <button type="submit" class="btn btn-primary" id="create-submit-btn">{% trans "Create project" %}</button>
+                    </div>
+                    <div class="create-progress"
+                         id="create-progress"
+                         role="status"
+                         aria-live="polite"
+                         data-slow-after-seconds="90"
+                         data-slow-message="{% trans "This is taking longer than usual. Please keep waiting: if creation fails, nothing is kept and you will be brought back here with your entries." %}"
+                         hidden>
+                        <span class="create-progress-spinner" aria-hidden="true"></span>
+                        <div>
+                            <strong>{% trans "Creating your project…" %}</strong>
+                            <p id="create-progress-detail">
+                                {% trans "Setting up its repository, manuscript workspace and examples. This usually takes 20 to 40 seconds; please keep this page open." %}
+                            </p>
+                            <p>
+                                <span id="create-progress-seconds">0</span> {% trans "seconds" %}
+                            </p>
+                        </div>
                     </div>
                 </form>
                 <div class="create-help-text">

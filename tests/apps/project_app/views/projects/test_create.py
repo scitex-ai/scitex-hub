@@ -1,190 +1,205 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""Tests for apps/project_app/views/projects/create.py"""
+"""Creating a project from /new/, end to end, for EVERY tab the page offers.
+
+Nothing here is simulated: a real Gitea (scripts/testing/start_test_gitea.sh),
+the real template packages (scitex-template, scitex-writer) and the real view.
+The "Recommended" template failed for every new user for a week (hub#1273)
+while unit tests of each piece stayed green, because no test ever created a
+project the way a user does. These do.
+
+Without a Gitea token the module skips — the main pytest job runs without a
+Gitea server on purpose. The dedicated workflow
+(project-create-every-template.yml) sets SCITEX_HUB_REQUIRE_LIVE_GITEA=1, which
+turns that skip into a failure so the job cannot pass by not running.
+"""
+
+from __future__ import annotations
+
+import os
+import re
+import subprocess
+import uuid
+from pathlib import Path
 
 import pytest
+from django.conf import settings
+from django.contrib.auth.models import User
 
-# from apps.infra.project_app.views.projects.create import ...
+from apps.infra.project_app.models import Project
+from apps.infra.project_app.views.projects.create_helpers import (
+    LOCAL_CREATION_TABS,
+)
+
+pytestmark = [pytest.mark.django_db(transaction=True), pytest.mark.integration]
+
+# What each offered tab must leave in the working tree, beyond the common
+# checks (git repository, everything committed and pushed). One path per tab
+# is enough to prove the tab's own scaffold landed, not just Gitea's README.
+SCAFFOLD_MARKERS = {
+    "minimal": ".scitex/writer/01_manuscript",
+    "full": ".scitex/template/MANIFEST.yaml",
+    "app": "pyproject.toml",
+    "blank": "README.md",
+}
 
 
-class TestPlaceholder:
-    """Placeholder test class - replace with actual tests."""
+def _live_gitea_or_skip():
+    if getattr(settings, "GITEA_TOKEN", ""):
+        return
+    reason = (
+        "no Gitea token (SCITEX_HUB_GITEA_TOKEN_DEV); start one with "
+        "scripts/testing/start_test_gitea.sh"
+    )
+    if os.environ.get("SCITEX_HUB_REQUIRE_LIVE_GITEA") == "1":
+        pytest.fail(reason)
+    pytest.skip(reason)
 
-    def test_placeholder_pending_implementation(self):
-        """Placeholder test - implement actual tests."""
-        # Arrange
-        # Act
-        # Assert
-        pytest.skip("Not implemented yet")
+
+@pytest.fixture
+def new_user(client, settings, tmp_path):
+    """A fresh, non-staff account signed in, with its own data root."""
+    _live_gitea_or_skip()
+    settings.BASE_DIR = tmp_path
+    username = f"new{uuid.uuid4().hex[:10]}"
+    user = User.objects.create_user(
+        username, email=f"{username}@example.invalid", password="pw-1234567890"
+    )
+    client.force_login(user)
+    yield user
+    for project in Project.objects.filter(owner=user):
+        project.delete()  # post_delete removes the Gitea repository
 
 
-if __name__ == "__main__":
-    import os
+def _project_dir(user, slug) -> Path:
+    return Path(settings.BASE_DIR) / "data" / "users" / user.username / "proj" / slug
 
-    import pytest
 
-    pytest.main([os.path.abspath(__file__)])
+def _git(root, *args) -> str:
+    return subprocess.run(
+        ["git", "-C", str(root), *args],
+        check=True,
+        capture_output=True,
+        text=True,
+        timeout=30,
+    ).stdout.strip()
 
-# --------------------------------------------------------------------------------
-# Start of Source Code from: apps/project_app/views/projects/create.py
-# --------------------------------------------------------------------------------
-# #!/usr/bin/env python3
-# # -*- coding: utf-8 -*-
-# """
-# Project Create Views
-#
-# Handle project creation with various initialization options.
-# """
-#
-# from __future__ import annotations
-# import logging
-# from pathlib import Path
-#
-# from django.shortcuts import render, redirect
-# from django.contrib.auth.decorators import login_required
-# from django.contrib import messages
-# from django.utils.safestring import mark_safe
-# from django.conf import settings
-#
-# from ...models import Project, RemoteCredential
-# from .create_remote import create_remote_project
-# from .create_helpers import (
-#     get_available_templates,
-#     validate_project_name,
-#     verify_gitea_availability,
-#     generate_unique_slug,
-# )
-# from .create_handlers import (
-#     handle_gitea_creation,
-#     handle_github_import,
-#     handle_template_creation,
-#     handle_git_clone,
-#     handle_empty_creation,
-#     handle_scitex_initialization,
-# )
-#
-# logger = logging.getLogger(__name__)
-#
-#
-# @login_required
-# def project_create(request):
-#     """Create new project"""
-#     if request.method == "POST":
-#         name = request.POST.get("name", "").strip()
-#         description = request.POST.get("description", "").strip()
-#         init_type = request.POST.get("init_type", "empty")
-#         template_type = request.POST.get("template_type", "research")
-#         git_url = request.POST.get("git_url", "").strip()
-#         init_scitex = request.POST.get("init_scitex") == "true"
-#
-#         # Project type (local or remote)
-#         project_type = request.POST.get("project_type", "local")
-#
-#         # Remote project fields
-#         remote_credential_id = request.POST.get("remote_credential_id")
-#         remote_path = request.POST.get("remote_path", "").strip()
-#
-#         # Handle remote project creation separately
-#         if project_type == "remote":
-#             return create_remote_project(
-#                 request, name, description, remote_credential_id, remote_path
-#             )
-#
-#         # Initialize directory manager for all init types (local projects only)
-#         from apps.infra.project_app.services.project_filesystem import (
-#             get_project_filesystem_manager,
-#         )
-#
-#         manager = get_project_filesystem_manager(request.user)
-#
-#         # If importing from Git and no name provided, extract from URL
-#         if not name and git_url and init_type in ["github", "git"]:
-#             name = Project.extract_repo_name_from_url(git_url)
-#
-#         # Validate project name
-#         is_valid, error_msg = validate_project_name(request, name)
-#         if not is_valid:
-#             messages.error(request, error_msg)
-#             available_templates = get_available_templates()
-#             context = {
-#                 "available_templates": available_templates,
-#                 "name": name,
-#                 "description": description,
-#                 "init_type": init_type,
-#                 "git_url": git_url,
-#             }
-#             return render(request, "project_app/projects/create.html", context)
-#
-#         # Generate slug and verify Gitea availability
-#         unique_slug = generate_unique_slug(name, request.user)
-#         is_available, gitea_msg = verify_gitea_availability(request, request.user, unique_slug)
-#         if not is_available:
-#             messages.error(request, mark_safe(gitea_msg))
-#             available_templates = get_available_templates()
-#             context = {
-#                 "available_templates": available_templates,
-#                 "name": name,
-#                 "description": description,
-#                 "init_type": init_type,
-#             }
-#             return render(request, "project_app/projects/create.html", context)
-#         elif gitea_msg:  # Warning case
-#             messages.warning(request, gitea_msg)
-#
-#         try:
-#             project = Project.objects.create(
-#                 name=name,
-#                 slug=unique_slug,
-#                 description=description,
-#                 owner=request.user,
-#             )
-#         except Exception as e:
-#             logger.error(f"Failed to create project: {e}")
-#             messages.error(request, f"Failed to create project: {str(e)}")
-#             return redirect("project_app:list")
-#
-#         # Handle different initialization types
-#         success = True
-#         if init_type == "gitea":
-#             success = handle_gitea_creation(request, project)
-#         elif init_type == "github":
-#             success = handle_github_import(request, project, manager, git_url)
-#         elif init_type == "template":
-#             success = handle_template_creation(request, project, manager, template_type)
-#         elif init_type == "git":
-#             success = handle_git_clone(request, project, manager, git_url)
-#         else:
-#             # Create empty project
-#             success = handle_empty_creation(request, project, manager)
-#
-#         if not success:
-#             return redirect("project_app:list")
-#
-#         # Initialize SciTeX Writer template if requested
-#         if init_scitex:
-#             handle_scitex_initialization(request, project, manager)
-#
-#         return redirect(
-#             "project_app:detail",
-#             username=request.user.username,
-#             slug=project.slug,
-#         )
-#
-#     # GET request - get available templates and remote credentials
-#     available_templates = get_available_templates()
-#     remote_credentials = RemoteCredential.objects.filter(
-#         user=request.user, is_active=True
-#     ).order_by("name")
-#
-#     context = {
-#         "available_templates": available_templates,
-#         "remote_credentials": remote_credentials,
-#     }
-#     return render(request, "project_app/projects/create.html", context)
-#
-#
-# # EOF
 
-# --------------------------------------------------------------------------------
-# End of Source Code from: apps/project_app/views/projects/create.py
-# --------------------------------------------------------------------------------
+def _gitea_branch_sha(owner, repo, branch="main"):
+    from apps.infra.gitea_app.api_client import GiteaClient
+
+    data = (
+        GiteaClient()._request("GET", f"/repos/{owner}/{repo}/branches/{branch}").json()
+    )
+    return data["commit"]["id"]
+
+
+def _form_for(tab, name):
+    init_type, template_type = LOCAL_CREATION_TABS[tab]
+    return {
+        "name": name,
+        "description": f"Created from the {tab} tab",
+        "init_type": init_type,
+        "template_type": template_type,
+        "project_type": "local",
+        "visibility": "private",
+    }
+
+
+def test_every_offered_local_tab_is_covered(client, new_user):
+    # Arrange
+    offered = set(
+        re.findall(r'data-tab="([a-z]+)"', client.get("/new/").content.decode())
+    )
+
+    # Act
+    local_tabs = offered - {"import", "remote"}  # need an outside URL / host
+
+    # Assert
+    assert local_tabs == set(LOCAL_CREATION_TABS) == set(SCAFFOLD_MARKERS)
+
+
+@pytest.mark.parametrize("tab", sorted(LOCAL_CREATION_TABS))
+def test_creating_from_each_tab_opens_the_project(client, new_user, tab):
+    # Arrange
+    name = f"first-{tab}-project" + ("-app" if tab == "app" else "")
+
+    # Act
+    response = client.post("/new/", _form_for(tab, name))
+
+    # Assert
+    project = Project.objects.filter(owner=new_user, name=name).first()
+    root = _project_dir(new_user, project.slug) if project else None
+    assert (
+        response.status_code,
+        response.get("Location"),
+        (root / SCAFFOLD_MARKERS[tab]).exists() if root else None,
+        _git(root, "status", "--porcelain") if root else None,
+        (
+            _git(root, "rev-parse", "HEAD")
+            == _gitea_branch_sha(new_user.username, project.slug)
+        )
+        if root
+        else None,
+        client.get(f"/{new_user.username}/{project.slug}/").status_code
+        if project
+        else None,
+    ) == (
+        302,
+        f"/{new_user.username}/{project.slug if project else '?'}/",
+        True,
+        "",
+        True,
+        200,
+    )
+
+
+@pytest.mark.guards(
+    defect="a failed creation deleted the row but left the folder and lost the form"
+)
+def test_failed_creation_leaves_nothing_and_keeps_the_form(client, new_user, settings):
+    # Arrange: a Writer template branch that does not exist makes the real
+    # template step fail after Gitea has created and cloned the repository.
+    settings.SCITEX_WRITER_TEMPLATE_BRANCH = "no-such-branch-hub-1273"
+    form = _form_for("minimal", "doomed-project")
+
+    # Act
+    response = client.post("/new/", form)
+
+    # Assert
+    html = response.content.decode()
+    assert (
+        response.status_code,
+        Project.objects.filter(owner=new_user).count(),
+        _project_dir(new_user, "doomed-project").exists(),
+        'value="doomed-project"' in html,
+        form["description"] in html,
+        "Nothing was kept" in html,
+    ) == (200, 0, False, True, True, True)
+
+
+@pytest.mark.guards(
+    defect="a leftover folder made the retry with the same name fail silently"
+)
+def test_leftover_folder_is_reported_and_reconciled(client, new_user):
+    # Arrange: what an earlier failed attempt used to leave behind.
+    leftover = _project_dir(new_user, "retry-project")
+    leftover.mkdir(parents=True)
+    _git(leftover, "init", "-q", "-b", "main")
+    (leftover / "README.md").write_text("half-created\n")
+
+    # Act
+    check = client.get("/api/project/check-name/", {"name": "retry-project"}).json()
+    response = client.post("/new/", _form_for("blank", "retry-project"))
+
+    # Assert
+    project = Project.objects.filter(owner=new_user, name="retry-project").first()
+    quarantine = leftover.parent.parent / ".project-leftovers"
+    assert (
+        check["available"],
+        check.get("leftover"),
+        response.status_code,
+        project is not None and project.slug,
+        _git(leftover, "status", "--porcelain"),
+        len(list(quarantine.glob("retry-project-*"))),
+    ) == (True, True, 302, "retry-project", "", 1)
