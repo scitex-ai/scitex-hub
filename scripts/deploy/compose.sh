@@ -37,6 +37,21 @@ shift
 
 resolve_compose_env "$ENV" "$PROJECT_ROOT"
 
+# Compose interpolates every service's build args for ANY command (ps, logs,
+# up --no-build), and the release compose files require
+# SCITEX_HUB_DEPENDENCY_RESOLUTION (`:?set by protected rebuild`). It is not a
+# secret and does not belong in .env.<env>: it is the committed release input
+# deployment/docker/dependency-resolution.nonce, the same value rebuild.sh
+# passes to the image build. Derive it here the same way, never from the
+# caller's environment, so a manual build cannot carry a different value.
+if ! SCITEX_HUB_DEPENDENCY_RESOLUTION="$("$SCRIPT_DIR/resolve_dependency_resolution.sh" "$ENV")"; then
+    echo "[compose.sh] Error: cannot derive SCITEX_HUB_DEPENDENCY_RESOLUTION for env=$ENV." >&2
+    echo "[compose.sh] It comes from deployment/docker/dependency-resolution.nonce (one line, [A-Za-z0-9._-]+)." >&2
+    echo "[compose.sh] Restore that file from the release branch; do not set the variable by hand." >&2
+    exit 1
+fi
+export SCITEX_HUB_DEPENDENCY_RESOLUTION
+
 if [ $# -eq 0 ]; then
     echo "Error: no compose arguments given (e.g. 'ps', 'logs -f django')" >&2
     exit 2
