@@ -102,3 +102,49 @@ def test_mobile_css_hides_sidebar_keeps_content_floor():
     assert "min-height: 330px" in mobile
     # No char-by-char token shredding anywhere in the docs CSS
     assert "break-all" not in css
+
+
+def test_desktop_columns_share_the_mobile_taxonomy():
+    # Arrange
+    from bs4 import BeautifulSoup
+
+    context = build_docs_context(None)
+    # Act
+    soup = BeautifulSoup(render_to_string("docs_app/docs_partial.html", context), "html.parser")
+    # Assert
+    assert [item["data-doc-category"] for item in soup.select(".docs-category")] == [
+        section["key"] for section in context["docs_sections"]
+    ]
+    assert [item["data-doc-slug"] for item in soup.select(".docs-page-group .docs-nav-item")] == [
+        page["slug"] for section in context["docs_sections"] for page in section["pages"]
+    ]
+    assert len(soup.select(".docs-page-group:not([hidden])")) == 1
+    assert soup.select_one(".docs-section-nav").parent == soup.select_one(".docs-sidebar")
+
+
+def test_download_lives_once_in_content_header():
+    # Arrange
+    from bs4 import BeautifulSoup
+
+    context = build_docs_context(None)
+    # Act
+    soup = BeautifulSoup(render_to_string("docs_app/docs_partial.html", context), "html.parser")
+    # Assert
+    assert len(soup.select(".docs-download-split")) == 1
+    assert len(soup.select(".docs-download-split .docs-export-btn")) == 2
+    assert soup.select_one(".docs-export-btn").find_parent("header") is not None
+    assert not soup.select(".docs-nav-footer, .docs-sidebar .docs-export-btn")
+    assert soup.select_one("#docs-export-page-md")["href"] == "/apps/docs/export/overview/"
+    assert soup.select_one("#docs-export-all-pdf") is not None
+
+
+def test_markdown_export_converter_preserves_headers_and_links():
+    # Arrange
+    from apps.workspace.docs_app.views import _make_html2text
+
+    html = '<h1>Documentation</h1><p><a href="https://example.org/guide">Read the guide</a></p>'
+    # Act
+    markdown = _make_html2text().handle(html)
+    # Assert
+    assert "# Documentation" in markdown
+    assert "[Read the guide](<https://example.org/guide>)" in markdown

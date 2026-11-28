@@ -11,6 +11,84 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- Outgoing mail follows the per-purpose routing policy of 2026-11-27
+  (docs/ops/mail-routing.md). Django error mail (`ADMINS`/`MANAGERS`) and the
+  site-down, recovery and flood alarms go to `dev@scitex.ai` instead of the
+  operator's personal inbox; override with `SCITEX_HUB_ADMINS`,
+  `SCITEX_HUB_MANAGERS` and `SCITEX_HUB_HEALTH_NOTIFICATION_RECIPIENT`.
+  `SERVER_EMAIL` and `DEFAULT_FROM_EMAIL` are explicit settings
+  (`no-reply@scitex.ai`; `SCITEX_HUB_SERVER_EMAIL`,
+  `SCITEX_HUB_DEFAULT_FROM_EMAIL`) rather than the SMTP login.
+- The same error subject is mailed at most once per hour across all workers:
+  the repeat window moved from per-process memory to the shared cache, ids in
+  the message are folded, and the window defaults to 3600 s
+  (`SCITEX_HUB_ADMIN_MAIL_REPEAT_WINDOW_SECONDS`).
+
+### Added
+
+- Spend controls at Settings > Spend controls (`apps/infra/spend_app`). Each account has a
+  monthly usage cap in USD (default and maximum per plan from the price catalog's
+  `spend_cap`), alerts at 50/80/100 % in-app and by email, and a hard stop at 100 %:
+  new terminals, services and jobs are refused with a link to raise the cap, running
+  work gets a grace window and is then stopped, and storage turns read-only (never
+  deleted). Failed Stripe payments get a grace period with reminders, then the account
+  is restricted (read-only, no new compute). Cancelling within 30 days bills actual
+  usage only (Stripe test mode). Interactive terminals auto-stop after 30 idle
+  minutes. Usage is read through a `UsageSource` interface that the usage ledger
+  (#1232) will implement; until then every figure is labelled provisional.
+  `spend_cap` is an enforcement-only catalog attribute: `pricing.py` validates its
+  shape (`default_usd` <= `max_usd`, USD per billing cycle) and never prints it on
+  /pricing/, /services/ or /tokushoho/. `public_app/pricing.py` is split into
+  `pricing_format` / `pricing_attributes` / `pricing_metered` / `pricing_comparison`
+  / `pricing_fx`, re-exported unchanged.
+- The SLURM, storage and project quotas in `config/settings/quotas.py` (with
+  per-user `UserQuota` overrides) are now enforced at job submission, uploads and
+  project creation.
+
+- Dataset app at `/apps/dataset/` (#1226): scitex-dataset[server] >= 0.15.0 is
+  mounted through the generic `scitex.apps` plugin mount (no hub-side views).
+  Project members list datasets with size and SHA-256, maintainers upload or
+  register a path/URL, non-members get 404; provenance (which scripts read a
+  dataset) comes from installed providers via the leaf's versioned contract.
+
+### Fixed
+
+- The site dock renders collapsed to its grip pill by default, so it no longer sits open
+  over the middle of every page. A tap on the pill opens it, and that choice is remembered
+  per device.
+
+- Apply the selected research scaffold to new Full projects after the Gitea
+  clone, retain its Git identity, and publish the populated project. Refuse
+  existing research contents and report template failures instead of silently
+  creating an empty project.
+
+- Record issue events with the model's `user` field. Creating, editing,
+  closing, reopening, assigning, labelling and milestoning an issue passed
+  `actor=` to `IssueEvent` and answered HTTP 500 after the change was saved.
+  Reopen now passes the acting user to `Issue.reopen`, and close/reopen no
+  longer record a second event on top of the one the model method records.
+
+## [0.22.0a8] - 2026-11-12
+
+### Changed
+
+- Adopt the qualified public Config 0.3.8, Dev 0.62.26, SDK 0.3.24,
+  Cards 0.56.23 and FigRecipe 0.44.7 releases across the runtime and
+  development profiles. FigRecipe includes the source-bound frontend and
+  rendered-token CSRF handling needed with HttpOnly cookies.
+
+### Fixed
+
+- Keep the gateway SSH host identity in persistent private state across
+  container starts. Refuse unsafe paths and preserve existing key ownership
+  and permissions instead of replacing identity during startup.
+- Upload browser console diagnostics only when Django advertises the
+  DEBUG-only upload endpoint. Retain local console history without issuing
+  requests to an unavailable production endpoint.
+
+
 ## [0.22.0a7] - 2026-11-09
 
 ### Changed

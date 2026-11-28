@@ -152,7 +152,7 @@
                     {% if message.tags != 'success' %}
                         <div class="django-alert alert alert-{% if message.tags == 'error' %}danger{% else %}{{ message.tags }}{% endif %}"
                              role="alert">
-                            {{ message|safe }}
+                            {{ message }}
                             <button type="button" class="alert-close-btn" aria-label="Close">&times;</button>
                         </div>
                     {% endif %}
@@ -197,6 +197,7 @@
                             {% include 'global_base_partials/module_tab_bar.html' %}
                         {% endif %}
                     {% endif %}
+                    {% if spend_banner %}{% include 'spend_app/partials/spend_banner.html' %}{% endif %}
                     <main id="main-content"
                           {% if active_module_name %}data-app-accent="{{ active_module_name }}"{% endif %}>
                         {% block content %}{% endblock %}

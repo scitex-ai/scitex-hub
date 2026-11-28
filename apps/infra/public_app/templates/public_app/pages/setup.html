@@ -185,7 +185,7 @@ make ENV=prod verify-health</code></pre>
                                 <td>
                                     <code>SCITEX_HUB_HEALTH_NOTIFICATION_RECIPIENT</code>
                                 </td>
-                                <td>{% trans "Where site-down alerts go. Unset means nobody is alerted." %}</td>
+                                <td>{% trans "Where site-down alerts go. Defaults to the ops alert address." %}</td>
                             </tr>
                             <tr>
                                 <td>
@@ -251,7 +251,7 @@ make ENV=prod db-shell</code></pre>
             </section>
             <section class="about-section">
                 <h2>{% trans "License" %}</h2>
-                <p>{% trans "SciTeX Hub is free software under the GNU AGPL v3.0: you may run, study, modify and share it, and a modified version offered as a network service must publish its source. Universities and public research institutions can also use the free Academic License. Proprietary use requires the Commercial License." %}</p>
+                <p>{% trans "SciTeX Hub is free software under AGPL-3.0. Anyone may use it under its terms. Enterprise and custom licenses are available by consultation." %}</p>
                 <p>
                     <a href="{% url 'public_app:pricing' %}" class="setup-external-link">{% trans "Self-hosted licenses and pricing" %}</a>
                     ·

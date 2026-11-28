@@ -49,7 +49,7 @@ def api_issue_label(request, username, slug, issue_number):
         IssueEvent.objects.create(
             issue=issue,
             event_type="labeled",
-            actor=request.user,
+            user=request.user,
             metadata={"label": label.name, "color": label.color},
         )
         message = f'Label "{label.name}" added successfully'
@@ -59,7 +59,7 @@ def api_issue_label(request, username, slug, issue_number):
         IssueEvent.objects.create(
             issue=issue,
             event_type="unlabeled",
-            actor=request.user,
+            user=request.user,
             metadata={"label": label.name, "color": label.color},
         )
         message = f'Label "{label.name}" removed successfully'
@@ -106,7 +106,7 @@ def api_issue_milestone(request, username, slug, issue_number):
             IssueEvent.objects.create(
                 issue=issue,
                 event_type="milestoned",
-                actor=request.user,
+                user=request.user,
                 metadata={"milestone": milestone.title},
             )
             message = f'Milestone "{milestone.title}" set successfully'
@@ -122,7 +122,7 @@ def api_issue_milestone(request, username, slug, issue_number):
             IssueEvent.objects.create(
                 issue=issue,
                 event_type="demilestoned",
-                actor=request.user,
+                user=request.user,
                 metadata={"milestone": old_milestone.title},
             )
             message = "Milestone removed successfully"

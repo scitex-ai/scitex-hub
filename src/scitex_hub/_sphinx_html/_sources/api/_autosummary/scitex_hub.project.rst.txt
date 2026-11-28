@@ -3,20 +3,24 @@ scitex\_hub.project
 
 .. automodule:: scitex_hub.project
 
-   
+
+
    .. rubric:: Module Attributes
 
    .. autosummary::
-   
+
       PROJECT_CATEGORIES
       APP_NAME_SUFFIX
-   
+
+
+
+
+
    .. rubric:: Functions
 
    .. autosummary::
-   
+
       project_create
       project_delete
       project_list
       project_rename
-   

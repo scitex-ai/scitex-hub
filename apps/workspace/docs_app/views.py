@@ -334,7 +334,7 @@ def register_module_docs():
             "icon": icon,
             "template": template_path,
             "badges": ["app"],
-            "section": "apps",
+            "section": "howto",
         }
         DOCS_PAGES.append(page)
         _PAGES_BY_SLUG[mod.docs_slug] = page
@@ -367,6 +367,9 @@ def get_docs_sections(pages=None) -> list:
 
 def build_docs_context(request, current_project=None):
     """Build context for the docs workspace partial."""
+    from ._app_docs import register_installed_app_docs
+
+    register_installed_app_docs(DOCS_PAGES, _PAGES_BY_SLUG)
     active_page = _PAGES_BY_SLUG.get(DEFAULT_DOC_SLUG, {})
     return {
         "current_project": current_project,
@@ -528,7 +531,7 @@ def _get_project_version() -> str:
 def _export_single_page(request, page) -> str:
     """Render a single doc page to Markdown."""
     converter = _make_html2text()
-    context = build_page_context(page["slug"])
+    context = build_page_context(page["slug"], sphinx_page=request.GET.get("page"))
     html = render(request, page["template"], context).content.decode()
     md = converter.handle(html)
     return f"# {page['label']}\n\n{md}"

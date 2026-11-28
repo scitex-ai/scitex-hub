@@ -14,41 +14,12 @@ checks. Use the canonical wrapper; never substitute a bare Compose invocation
 that omits its reviewed env-file and overlays. Keep resolved environment JSON
 and credentials private. Existing authorization governs the deployment scope.
 
-## Preserve serving state before building
+## Complete preparation first
 
-Record the accepted source, all running image/container identities, process
-births and persisted mounts. Preserve the current writable-layer repairs as
-private rollback images when present; an old image tag cannot capture them.
-Take a consistent database dump, restore it into an owned isolated database,
-and preserve user/media/static/config/frontend mount data where startup writes.
-A live file archive is not a quiescent cross-resource snapshot. Retain the old
-hashed static chunks. Never publish private rollback images or database dumps.
-
-Preserve existing user-data and configuration ownership and file modes through
-startup. Private `0700` directories and `0600` files are valid, not broken
-permissions. Qualify an owned private fixture before and after boot. Inaccessible
-existing data requires a separately reviewed operator repair; do not recursively
-change its ownership or widen its permissions to make startup succeed. Only
-absent directories or empty root-owned mount roots may be initialized for the
-application user with private permissions.
-The Docker constructor separately prepares all ten image-owned state directories
-and existing image configuration after the final install/import gates. It must
-precreate `/app/data` before nested users mounts can be attached. Build-time
-`scripts/deploy/verify_default_bootstrap.py` gates inspect those defaults and run
-the complete root initializer with empty synthetic private tmpfs mounts under
-`--network=none`. This initialization concerns image defaults only; do not
-recursively repair runtime mounts. Require the canonical image cold boot and
-actual staging/native smoke before tagging or publishing the successor.
-See [the bootstrap permission boundary](../../../../docs/security/container-data-permissions.md)
-for the source-backed checks and root-owned mount qualification.
-
-`rebuild.sh` is NOT the preserve-jobs route: it cancels SLURM jobs after building
-and then swaps services. It has no build-only option. Its current build command
-uses `nice`, but does not create a systemd build scope or take the stack down
-before building. `make build` has no swap, but does not enforce worker limits.
-Do not stop unrelated services or delete Redis, jobs or mounted data to deploy.
-Development app startup must not cancel jobs or reset scheduler node states.
-Keep scheduler recovery separate from web and worker starts.
+Before building, complete [deployment preparation](12_deployment-preparation.md):
+preserve source, writable-layer repairs, private data and SSH identity, then
+prepare the verified production build tool. Keep the old static artifacts and
+rollback state. A successful image build does not replace these prerequisites.
 
 ## Build a candidate without changing production's latest tag
 
@@ -86,6 +57,11 @@ with runtime frontend build mode. Both modes are derived by the canonical
 resolver, not caller overrides. Production is always image-only/baked.
 An ambient mode variable cannot change this policy. Development's direct-bind
 installer does not support this image override.
+Its preflight also refuses `--env dev --target image:...` and other substitute
+targets: use the complete prospective mounted profile. Standalone image checks
+remain separate from development admission; never weaken this refusal to reuse
+a production recipe. `preflight_environment.choose_target` owns the policy;
+`tests/deployment/test_preflight_direct_bind.py` exercises the refusal.
 Development installs the full npm graph after source peers are mounted; an
 existing `node_modules` directory is not dependency evidence. A failed install
 or bundle build stops startup, even if an earlier manifest remains. `SCITEX_UI_SOURCE_DIR` can select the release-matched legacy npm

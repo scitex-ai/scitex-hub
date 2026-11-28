@@ -46,6 +46,7 @@ from __future__ import annotations
 from pathlib import Path
 from types import SimpleNamespace
 from unittest import mock
+from urllib.parse import parse_qs, urlsplit
 
 from django.contrib.auth.models import AnonymousUser
 from django.http import HttpResponse
@@ -202,6 +203,20 @@ def test_retired_per_app_wrapper_modules_are_gone():
 # =====================================================================
 # Audience: who may open a governed mount
 # =====================================================================
+def test_anonymous_writer_deep_link_keeps_the_project_and_view():
+    path = "/apps/writer/?project=alice%2Fmanuscript&view=preview"
+    request = _request(AnonymousUser(), path)
+    table = [("/apps/writer/", "Writer", OPEN_POLICY)]
+
+    response, seen = _run(request, table=table)
+
+    assert response.status_code == 302
+    redirect = urlsplit(response.url)
+    assert redirect.path == "/auth/login/"
+    assert parse_qs(redirect.query) == {"next": [path]}
+    assert seen == {}
+
+
 def test_anonymous_request_redirects_to_login_without_reaching_downstream():
     # Arrange
     request = _request(AnonymousUser())

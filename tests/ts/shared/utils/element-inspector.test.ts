@@ -3,30 +3,46 @@
  */
 
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import {
+    recordGlobalListeners,
+    warmModuleGraph,
+} from '../../_helpers/module-graph';
 
-// TODO: Update import path based on your tsconfig paths
-// import { } from '@/static/shared/ts/utils/element-inspector';
+const MODULE = '../../../../static/shared/ts/utils/element-inspector';
+const FLAG = '__scitexElementInspectorLoaded';
+
+function clearInspectorGlobals(): void {
+    delete (window as any)[FLAG];
+    delete (window as any).elementInspector;
+}
+
+// Pay the cold transform of the inspector graph here, at collection time,
+// instead of inside the first test's 5 s budget.
+await warmModuleGraph(() => import(MODULE));
+clearInspectorGlobals();
 
 describe('element-inspector', () => {
-    const FLAG = '__scitexElementInspectorLoaded';
+    let releaseListeners: () => void = () => {};
 
     beforeEach(() => {
         document.body.innerHTML = '';
+        // Each evaluation adds a document keydown and a window resize
+        // listener. Remove them after every test so the next evaluation
+        // starts from a clean document.
+        releaseListeners = recordGlobalListeners();
     });
 
     afterEach(() => {
+        releaseListeners();
+        clearInspectorGlobals();
         document.body.innerHTML = '';
-        delete (window as any)[FLAG];
-        delete (window as any).elementInspector;
         vi.resetModules();
         vi.restoreAllMocks();
     });
 
     async function importFresh() {
         vi.resetModules();
-        return await import(
-            '../../../../static/shared/ts/utils/element-inspector'
-        );
+        return await import(MODULE);
     }
 
     function pressAltI(target: EventTarget = document): KeyboardEvent {

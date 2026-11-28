@@ -45,8 +45,11 @@ except Exception as e:
 # ---------------------------------------
 # Security
 # ---------------------------------------
-# Staging allows DEBUG for testing (configurable via env)
-DEBUG = os.getenv("DEBUG", "False").lower() in ("true", "1", "yes")
+# Never on: staging is reachable from the internet (stag.scitex.ai), and a
+# generic DEBUG env var is easy to leave set in a shared env file. DEBUG pages
+# show tracebacks, settings and SQL. Troubleshoot from the logs, or use the dev
+# settings on a dev host.
+DEBUG = False
 
 # ---------------------------------------
 # SciTeX Settings
@@ -64,24 +67,41 @@ SECRET_KEY = _require_env_alias("SCITEX_HUB_DJANGO_SECRET_KEY")
 ALLOWED_HOSTS = _getenv_alias(
     "SCITEX_HUB_ALLOWED_HOSTS", "localhost,127.0.0.1,0.0.0.0"
 ).split(",")
+# Public staging hostname, served by the prod tunnel over the internal
+# scitex-hub-stag-ingress network. Appended (not a default) so an env file
+# that sets SCITEX_HUB_ALLOWED_HOSTS cannot drop it.
+STAGING_PUBLIC_HOST = "stag.scitex.ai"
+if STAGING_PUBLIC_HOST not in ALLOWED_HOSTS:
+    ALLOWED_HOSTS.append(STAGING_PUBLIC_HOST)
 
-# Security headers (lighter than production - no external access)
+# Security headers: same as production. Browsers reach staging only over
+# https (Cloudflare terminates TLS for stag.scitex.ai).
 SECURE_BROWSER_XSS_FILTER = True
 SECURE_CONTENT_TYPE_NOSNIFF = True
 X_FRAME_OPTIONS = "SAMEORIGIN"
+SECURE_REFERRER_POLICY = "strict-origin-when-cross-origin"
 
-# No SSL in staging (direct HTTP access)
+# HTTPS, handled like production. TLS ends at Cloudflare and the tunnel reaches
+# Django over plain HTTP, so Django's own SECURE_SSL_REDIRECT stays off: it
+# would also redirect internal http callers (gitea webhooks, health checks).
+# The visitor-facing redirect is the edge redirect (EDGE_HTTPS_REDIRECT, edge
+# scheme "http" only); the setting is inert where that middleware is absent.
 SECURE_SSL_REDIRECT = False
-SECURE_HSTS_SECONDS = 0
+EDGE_HTTPS_REDIRECT = True
+SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
+# HSTS without subdomains/preload: the header only ever reaches browsers over
+# https, and staging must not pin policy for other hosts.
+SECURE_HSTS_SECONDS = 31_536_000  # one year
 SECURE_HSTS_INCLUDE_SUBDOMAINS = False
 SECURE_HSTS_PRELOAD = False
 
 # ---------------------------------------
 # Cookie
 # ---------------------------------------
-# No HTTPS in staging
-SESSION_COOKIE_SECURE = False
-CSRF_COOKIE_SECURE = False
+# Secure: the session and CSRF cookies are sent only over https. Browsers
+# treat http://localhost as a secure context, so local access keeps working.
+SESSION_COOKIE_SECURE = True
+CSRF_COOKIE_SECURE = True
 SESSION_COOKIE_HTTPONLY = True
 CSRF_COOKIE_HTTPONLY = True
 
@@ -90,6 +110,9 @@ CSRF_TRUSTED_ORIGINS = _getenv_alias(
     "SCITEX_HUB_CSRF_TRUSTED_ORIGINS",
     "http://localhost:31294,http://127.0.0.1:31294",
 ).split(",")
+# Cloudflare terminates TLS for stag.scitex.ai, so the browser's Origin is https.
+if f"https://{STAGING_PUBLIC_HOST}" not in CSRF_TRUSTED_ORIGINS:
+    CSRF_TRUSTED_ORIGINS.append(f"https://{STAGING_PUBLIC_HOST}")
 
 # ---------------------------------------
 # Database

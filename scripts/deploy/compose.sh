@@ -37,6 +37,21 @@ shift
 
 resolve_compose_env "$ENV" "$PROJECT_ROOT"
 
+# Compose interpolates every service's build args for ANY command (ps, logs,
+# up --no-build), and the release compose files require
+# SCITEX_HUB_DEPENDENCY_RESOLUTION (`:?set by protected rebuild`). It is not a
+# secret and does not belong in .env.<env>: it is the committed release input
+# deployment/docker/dependency-resolution.nonce, the same value rebuild.sh
+# passes to the image build. Derive it here the same way, never from the
+# caller's environment, so a manual build cannot carry a different value.
+if ! SCITEX_HUB_DEPENDENCY_RESOLUTION="$("$SCRIPT_DIR/resolve_dependency_resolution.sh" "$ENV")"; then
+    echo "[compose.sh] Error: cannot derive SCITEX_HUB_DEPENDENCY_RESOLUTION for env=$ENV." >&2
+    echo "[compose.sh] It comes from deployment/docker/dependency-resolution.nonce (one line, [A-Za-z0-9._-]+)." >&2
+    echo "[compose.sh] Restore that file from the release branch; do not set the variable by hand." >&2
+    exit 1
+fi
+export SCITEX_HUB_DEPENDENCY_RESOLUTION
+
 if [ $# -eq 0 ]; then
     echo "Error: no compose arguments given (e.g. 'ps', 'logs -f django')" >&2
     exit 2
@@ -52,8 +67,22 @@ for arg in "$@"; do
             echo "[compose.sh] DEPLOY REFUSED: pre-up global Compose overrides are not modelled by the dependency preflight. Declare them in compose_env.sh so config and recreate use the same contract." >&2
             exit 2
         fi
-        echo "[compose.sh] running the sibling floor + import preflight before 'up'" >&2
-        "$SCRIPT_DIR/preflight_sibling_floors.sh" "$ENV"
+        # The preflight interrogates the hub APPLICATION image (Django, Celery).
+        # It is skipped only when up_needs_app_preflight.py PROVES that every
+        # service this `up` starts -- dependencies included unless --no-deps --
+        # is a literal third-party image the hub does not build (gitea, nginx).
+        # A bare `up`, an unknown option, an unparseable file, a missing python:
+        # anything short of that proof runs the preflight, exactly as before.
+        verdict=""
+        if command -v python3 >/dev/null 2>&1; then
+            verdict="$(python3 "$SCRIPT_DIR/up_needs_app_preflight.py" "$DOCKER_DIR" "$COMPOSE_CMD" "$@" || true)"
+        fi
+        if [ "$verdict" = "skip" ]; then
+            echo "[compose.sh] sibling floor + import preflight not needed: no service built from the application image is started" >&2
+        else
+            echo "[compose.sh] running the sibling floor + import preflight before 'up'" >&2
+            "$SCRIPT_DIR/preflight_sibling_floors.sh" "$ENV"
+        fi
         break
     fi
 done

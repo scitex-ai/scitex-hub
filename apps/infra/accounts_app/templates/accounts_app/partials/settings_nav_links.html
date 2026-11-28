@@ -86,6 +86,12 @@
         <i class="fas fa-credit-card"></i>
         <span>{% trans "Payment method" %}</span>
     </a>
+    <a href="{% url 'spend_app:settings' %}"
+       class="settings-nav-item {% if active == 'spend' %}active{% endif %}"
+       data-settings-nav="spend">
+        <i class="fas fa-gauge-high"></i>
+        <span>{% trans "Spend controls" %}</span>
+    </a>
 </div>
 <!-- Projects (Advanced). User-visible label is "Projects"; the URL name
      repository_health is kept so existing links do not break. -->

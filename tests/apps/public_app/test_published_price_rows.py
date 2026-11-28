@@ -164,12 +164,15 @@ def test_every_catalogue_unit_is_one_the_formatter_renders() -> None:
     never ships without its 月額 / 1件 / 1時間 prefix. The date gate skips
     future rows before formatting, so this walks the catalogue directly."""
     for row in _catalogue():
-        rendered = format_amount(row["amount"], row.get("unit", "once"))
+        # A quote has no numeric amount. Probe its unit with a nonzero sample;
+        # the quote schema and displayed value have separate regression tests.
+        amount = 1 if row.get("price_status") == "on-request" else row["amount"]
+        rendered = format_amount(amount, row.get("unit", "once"))
         # A bare number must never ship: the rendered string carries more than
         # the raw figure (a unit prefix in EN, or the currency suffix in JA).
-        assert rendered.strip() != f"{row['amount']:,}", (row["id"], rendered)
-        # A free row (the AGPL / Academic self-hosted licenses) renders "Free".
-        assert row["amount"] == 0 or any(ch.isdigit() for ch in rendered), (row["id"], rendered)
+        assert rendered.strip() != f"{amount:,}", (row["id"], rendered)
+        # A free row (the AGPL self-hosted license) renders "Free".
+        assert amount == 0 or any(ch.isdigit() for ch in rendered), (row["id"], rendered)
 
 
 def test_a_withheld_row_is_not_published_whatever_its_date_says() -> None:
@@ -230,13 +233,13 @@ def test_every_catalogue_attribute_renders_as_one_phrase() -> None:
     """The 特商法 page states サービスの内容 from each row's attributes. An
     attribute name or value the renderer does not know raises here — at CI,
     when the catalogue is committed — rather than on the legal page."""
-    from apps.infra.public_app.pricing import included_items
+    from apps.infra.public_app.pricing import displayed_attributes, included_items
 
     seen = 0
     for row in _catalogue():
         attributes = row.get("attributes", {})
         items = included_items(attributes)
-        assert len(items) == len(attributes), (row["id"], items)
+        assert len(items) == len(displayed_attributes(attributes)), (row["id"], items)
         assert all(item.strip() for item in items), (row["id"], items)
         seen += len(items)
     assert seen, "Control: no row carries attributes, so nothing was rendered."
@@ -402,7 +405,9 @@ def test_metered_rates_and_api_rows_come_from_the_ssot() -> None:
     assert hosted_spans[0] == (4, 4)
     assert all(r.get("skip2") and r.get("skip3") for r in storage_rows[1:])
     agents = by_label["Agents"]
-    assert "model API × 110%" in agents[0]
+    # The factor is data (SSOT v1.0 -> pricing.json), never a literal here.
+    factor = 100 + load_pricing()["rate_card"]["api"]["agents_fee_percent"]
+    assert f"model API × {factor}%" in agents[0]
     assert agents[2] == "—"
     model_api = by_label["Model API"]
     assert "metered compute rates" in model_api[0]

@@ -19,18 +19,26 @@ concurrency:
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
+  runner-admission:
+    uses: scitex-ai/.github/.github/workflows/runner-admission.yml@main
+    permissions: {}
+    with:
+      runs_on: '["self-hosted","Linux","X64","scitex-org-cpu"]'
+
   sphinx:
+    timeout-minutes: 15
     # Skip when HEAD is the bot's own previous docs auto-commit — breaks
     # the infinite loop without using `[skip ci]`, which would also
     # suppress the tag-push and release workflows when the auto-commit
     # is the most recent commit on develop at release time.
     if: "!contains(github.event.head_commit.message, 'docs(sphinx_html): refresh from CI build')"
-    # scitex-local-cpu (scitex-compute-01..04) for trusted runs; fork PRs stay
-    # on ephemeral hosted VMs. Same predicate as scitex-ai/.github import-smoke.
+    # Shared admission keeps fork and unknown-author work hosted; trusted work
+    # targets the registered organization CPU pool.
+    needs: runner-admission
     runs-on: >-
-      ${{ (github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name != github.repository)
-          && fromJSON('["ubuntu-latest"]')
-          || fromJSON('["self-hosted","Linux","X64","scitex-local-cpu"]') }}
+      ${{ needs.runner-admission.outputs.native_authorized == 'true'
+          && fromJSON('{"group":"Organization","labels":["self-hosted","Linux","X64","scitex-org-cpu"]}')
+          || fromJSON('["ubuntu-latest"]') }}
     permissions:
       contents: write
     steps:
@@ -43,6 +51,11 @@ jobs:
         run: |
           echo "::error::Fork-authored code is not run on self-hosted runners."
           exit 1
+
+      # Job-owned HOME/XDG/SCITEX_DIR under runner.temp; fails if HOME is the
+      # runner account's real home. Never read or write the host's ~/.scitex.
+      - name: Use a job-owned HOME, never the runner account's
+        uses: scitex-ai/.github/.github/actions/job-home@main
 
       - uses: actions/checkout@v4
         with:

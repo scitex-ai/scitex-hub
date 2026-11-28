@@ -73,6 +73,10 @@ services:
       # Singularity/Apptainer container for secure user code execution
       - ../../../deployment/singularity:/app/singularity:ro
 
+      # OpenID Connect id_token signing key (RSA PEM). Default /dev/null =
+      # no key = OIDC off. See docs/ops/oidc-signing-key.md.
+      - ${SCITEX_HUB_OIDC_RSA_KEY_HOST_FILE:-/dev/null}:/run/secrets/scitex-hub-oidc-rsa-key:ro
+
       # Docker socket REMOVED 2026-08-25 (security).
       # It was mounted for the server-status page's container list. But this
       # container is internet-facing and runs as root: holding the socket makes
@@ -129,6 +133,7 @@ services:
       - SCITEX_OROCHI_AGENTS_DIR=/app/agents-orochi
       - SCITEX_HUB_DJANGO_SETTINGS_MODULE=config.settings.settings_prod
       - SCITEX_HUB_ENV=prod
+      - SCITEX_HUB_OIDC_RSA_PRIVATE_KEY_FILE=/run/secrets/scitex-hub-oidc-rsa-key
       - PYTHONPATH=/home/scitex/.local/lib/python3.11/site-packages:/app
       - CROSSREF_LOCAL_DB=/data/crossref/crossref.db
       - CROSSREF_LOCAL_MODE=db
@@ -574,7 +579,15 @@ services:
       - gitea_data:/data
       - /etc/timezone:/etc/timezone:ro
       - /etc/localtime:/etc/localtime:ro
+      # Tracked copy of the robots.txt that was hand-placed in the volume on
+      # 2026-07-12 (CUSTOM_PATH=/data/gitea). Polite crawlers honour it; the
+      # 2026-11 crawler does not (see gitea_front below).
+      - ../common/gitea/public/robots.txt:/data/gitea/public/robots.txt:ro
     ports:
+      # Published by this container but answered by gitea_front, which shares
+      # its network namespace and listens on :3000 (gitea itself is on
+      # 127.0.0.1:3001). The tunnel route gitea:3000 and Django's gitea URL
+      # therefore pass through gitea_front without any change of their own.
       - "${SCITEX_HUB_GITEA_HTTP_PORT_PROD:-3000}:3000"  # HTTP (configurable via .env)
       - "${SCITEX_HUB_GITEA_SSH_PORT_PROD:?required — pass --env-file ../envs/.env.prod}:22"
     env_file:
@@ -582,6 +595,41 @@ services:
     environment:
       - USER_UID=1000
       - USER_GID=1000
+      # Crawler load, measured 2026-11-26 (1 h of router log): 204,834
+      # requests, 151,452 of them /compare/ from 82,117 distinct IPs (<=29 per
+      # IP: a distributed crawler that ignores robots.txt); compare p50 19 s,
+      # 126,626 x 500; 49,619 "pq: sorry, too many clients" errors on the
+      # postgres gitea shares with the hub; 120 MB of log per hour.
+      #
+      # Sign-in for the heavy pages (compare, blame, commit history, archives)
+      # is enforced by gitea_front, not by REQUIRE_SIGNIN_VIEW=expensive: in
+      # gitea 1.25.2 "expensive" does not cover /compare/ and does close src,
+      # raw, issues, pulls and wiki, which stay public by the author's decision.
+      - GITEA__service__REQUIRE_SIGNIN_VIEW=false
+      # Only gitea_front (same network namespace) reaches gitea directly.
+      - GITEA__server__HTTP_ADDR=127.0.0.1
+      - GITEA__server__HTTP_PORT=3001
+      # Gitea's own overload protection: past MAX_INFLIGHT (default 4 x CPUs)
+      # concurrent requests it queues, serving signed-in users first and
+      # shedding anonymous ones with 503.
+      - GITEA__qos__ENABLED=true
+      # Browsers only ever reach gitea over https (Cloudflare), so its
+      # session, CSRF and "remember me" cookies are marked Secure. Set
+      # explicitly: the app.ini ROOT_URL is empty, so gitea's own default
+      # (Secure only when ROOT_URL is https) leaves them unmarked.
+      - GITEA__session__COOKIE_SECURE=true
+      # No version / "Powered by" / page-render timing in the footer.
+      - GITEA__other__SHOW_FOOTER_VERSION=false
+      - GITEA__other__SHOW_FOOTER_POWERED_BY=false
+      - GITEA__other__SHOW_FOOTER_TEMPLATE_LOAD_TIME=false
+      # The pool was unbounded (MAX_OPEN_CONNS=0): gitea held 145 of the 151
+      # client connections of a max_connections=200 postgres it shares with
+      # the hub. Cap it so the hub keeps its share.
+      - GITEA__database__MAX_OPEN_CONNS=50
+      - GITEA__database__MAX_IDLE_CONNS=10
+      # Info logs one "router: completed" line per request; keep warnings
+      # (slow requests) and errors only.
+      - GITEA__log__LEVEL=${SCITEX_HUB_GITEA_LOG_LEVEL:-Warn}
       - GITEA__database__DB_TYPE=postgres
       - GITEA__database__HOST=postgres:5432
       - GITEA__database__NAME=${SCITEX_HUB_POSTGRES_DB:?required — pass --env-file ../envs/.env.prod}
@@ -591,14 +639,50 @@ services:
       postgres:
         condition: service_healthy
     restart: always
+    # Same cap as the one applied by hand on 2026-11-26 (the uncapped json log
+    # had reached 55.9 GB).
+    logging:
+      driver: json-file
+      options:
+        max-size: "100m"
+        max-file: "5"
     networks:
       - scitex-network
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:3000/"]
+      test: ["CMD", "curl", "-f", "http://127.0.0.1:3001/"]
       interval: 10s
       timeout: 3s
       retries: 5
       start_period: 30s
+
+  # Reverse proxy in front of gitea, inside gitea's network namespace: sign-in
+  # for compare / blame / commit history / archives, per-client rate limit on
+  # web pages. Policy and reasons: ../common/gitea/front/nginx.conf.
+  # Recreate it together with gitea (a container that shares a namespace
+  # cannot outlive it):  up -d --no-deps --force-recreate gitea gitea_front
+  gitea_front:
+    image: nginx:alpine
+    network_mode: "service:gitea"
+    volumes:
+      - ../common/gitea/front/nginx.conf:/etc/nginx/nginx.conf:ro
+    depends_on:
+      - gitea
+    restart: always
+    labels:
+      # If gitea restarts, this container keeps the old (dead) namespace and
+      # the health check fails; autoheal restarts it into the new one.
+      - autoheal=true
+    logging:
+      driver: json-file
+      options:
+        max-size: "20m"
+        max-file: "3"
+    healthcheck:
+      test: ["CMD", "curl", "-sf", "-o", "/dev/null", "http://127.0.0.1:3000/-/front-health"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+      start_period: 60s
 
   # Internal Nginx (not exposed to internet - Cloudflare Tunnel handles that)
   nginx:
@@ -645,6 +729,9 @@ services:
     restart: always
     networks:
       - scitex-network
+      # Prod tunnel -> staging django (stag.scitex.ai), on a network that
+      # holds only these two containers. Declared so a recreate keeps it.
+      - scitex-hub-stag-ingress
     depends_on:
       - nginx
     healthcheck:
@@ -753,3 +840,7 @@ volumes:
 networks:
   scitex-network:
     driver: bridge
+  # Created once by hand (internal bridge, label purpose=prod-tunnel-to-staging-django);
+  # shared with the staging stack, so external here and there.
+  scitex-hub-stag-ingress:
+    external: true

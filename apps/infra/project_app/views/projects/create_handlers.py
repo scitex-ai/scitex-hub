@@ -21,7 +21,7 @@ def handle_gitea_creation(request, project):
         # Signal already created Gitea repo, just verify it worked
         if not project.gitea_enabled or not project.gitea_repo_id:
             # If signal failed, try manual creation
-            repo = project.create_gitea_repository()
+            project.create_gitea_repository()
 
         # Refresh from DB to get latest signal updates
         project.refresh_from_db()
@@ -107,12 +107,30 @@ def handle_template_creation(request, project, manager, template_type):
         project, use_template=True, template_type=template_type
     )
     if success:
+        if getattr(project, "_research_template_pending", False):
+            from apps.infra.project_app.services.git_service import git_commit_and_push
+
+            published, detail = git_commit_and_push(
+                path,
+                "Initialize research template",
+                branch="HEAD",
+            )
+            if not published:
+                logger.error("Research scaffold publication failed: %s", detail)
+                messages.error(
+                    request,
+                    "Research template was created locally but could not be published. "
+                    "The local project has been retained.",
+                )
+                return False
         if template_type == "minimal":
             from apps.infra.project_app.services.first_project_samples import (
                 try_seed_first_project_samples,
             )
 
-            try_seed_first_project_samples(manager.get_project_root_path(project) or path)
+            try_seed_first_project_samples(
+                manager.get_project_root_path(project) or path
+            )
         messages.success(
             request,
             f'Project "{project.name}" created with {template_type} template',
@@ -240,9 +258,7 @@ def handle_scitex_initialization(request, project, manager):
     """Initialize SciTeX Writer template if requested."""
     success, writer_path = manager.initialize_scitex_writer_template(project)
     if success:
-        messages.success(
-            request, "SciTeX Writer template initialized at scitex/writer/"
-        )
+        messages.success(request, "SciTeX Writer workspace is ready")
     else:
         messages.warning(
             request,

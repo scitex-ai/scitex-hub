@@ -13,7 +13,6 @@ import logging
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import redirect, render
-from django.utils.safestring import mark_safe
 
 from ...models import Project, RemoteCredential
 from .create_handlers import (
@@ -40,6 +39,18 @@ logger = logging.getLogger(__name__)
 def project_create(request):
     """Create new project — unified tabbed page."""
     if request.method == "POST":
+        # The max_projects quota (config/settings/quotas.py + UserQuota) and
+        # spend controls: a new project is a storage write, refused when the
+        # account's storage is read-only (cap reached or restricted).
+        from apps.infra.spend_app.decorators import refusal_response
+        from apps.infra.spend_app.services import gate
+
+        try:
+            gate.check_project_quota(request.user)
+            gate.require(request.user, gate.Action.WRITE_STORAGE)
+        except gate.Refused as exc:
+            return refusal_response(request, exc)
+
         name = request.POST.get("name", "").strip()
         description = request.POST.get("description", "").strip()
         init_type = request.POST.get("init_type", "empty")
@@ -117,7 +128,7 @@ def project_create(request):
             request, request.user, unique_slug
         )
         if not is_available:
-            messages.error(request, mark_safe(gitea_msg))
+            messages.error(request, gitea_msg)
             remote_credentials = RemoteCredential.objects.filter(
                 user=request.user, is_active=True
             ).order_by("name")
@@ -135,7 +146,7 @@ def project_create(request):
             messages.warning(request, gitea_msg)
 
         try:
-            project = Project.objects.create(
+            project = Project(
                 name=name,
                 slug=unique_slug,
                 description=description,
@@ -143,6 +154,12 @@ def project_create(request):
                 # Set at create time: the post_save Gitea signal reads it.
                 visibility=visibility,
             )
+            # Gitea must create the repository, but its generic Writer seed
+            # must not occupy the path selected for the research scaffold.
+            project._research_template_pending = (
+                init_type == "template" and template_type == "research"
+            )
+            project.save()
         except Exception as e:
             logger.error(f"Failed to create project: {e}")
             messages.error(request, f"Failed to create project: {str(e)}")

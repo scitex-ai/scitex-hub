@@ -13,9 +13,7 @@ from django.contrib.auth.models import User
 
 from ...models import Project
 
-VCS_METADATA_COMPONENTS = frozenset(
-    {".git", ".hg", ".svn", ".bzr", "_darcs", "cvs"}
-)
+VCS_METADATA_COMPONENTS = frozenset({".git", ".hg", ".svn", ".bzr", "_darcs", "cvs"})
 
 
 def canonical_repository_relative_path(value: str) -> PurePosixPath | None:
@@ -62,6 +60,25 @@ def resolve_repository_path(project_path: Path, value: str) -> Path | None:
     ):
         return None
     return target
+
+
+def is_hidden_repository_path(relative: PurePosixPath | str) -> bool:
+    """True when any component of a repository-relative path starts with '.'.
+
+    Hidden files (``.mcp.json``, ``.agents/``, ``.claude/``, ``.envrc`` ...)
+    hold per-user tool configuration that is not part of what a project
+    publishes, even when the project itself is public.
+    """
+    return any(part.startswith(".") for part in PurePosixPath(relative).parts)
+
+
+def is_project_member(user, project: Project) -> bool:
+    """Owner or collaborator: the readers allowed to see hidden paths."""
+    if not getattr(user, "is_authenticated", False):
+        return False
+    if project.owner_id == user.pk:
+        return True
+    return project.collaborators.filter(pk=user.pk).exists()
 
 
 def get_user_data_root(user: User) -> Path:

@@ -4,7 +4,7 @@
     <link rel="stylesheet" href="{% static 'shared/css/components/site-dock.css' %}?v={{ build_id }}" />
     <link rel="stylesheet" href="{% static 'shared/css/components/site-dock-grip.css' %}?v={{ build_id }}" />
     <link rel="stylesheet" href="{% static 'shared/css/components/site-dock-chat.css' %}?v={{ build_id }}" />
-    <nav class="site-dock" id="site-dock" data-site-dock data-dock-capacity="{{ site_dock_capacity }}" aria-label="{% trans 'Dock' %}">
+    <nav class="site-dock site-dock--minimized" id="site-dock" data-site-dock data-dock-capacity="{{ site_dock_capacity }}" aria-label="{% trans 'Dock' %}">
         <!-- Order: Back, grip, apps, Forward. On a phone the apps take row 1 and row 2 reads [<] [grip] [>]. -->
         <button type="button"
                 class="site-dock-item site-dock-history"
@@ -20,8 +20,8 @@
                 data-label-move="{% trans 'Tap to minimize, drag to move' %}"
                 data-title-move="{% trans 'Tap to minimize, drag to move' %}"
                 data-label-show="{% trans 'Tap to show dock, drag to move' %}"
-                aria-label="{% trans 'Tap to minimize, drag to move' %}"
-                title="{% trans 'Tap to minimize, drag to move' %}">
+                aria-label="{% trans 'Tap to show dock, drag to move' %}"
+                title="{% trans 'Tap to show dock, drag to move' %}">
             <i class="fas fa-grip-vertical" aria-hidden="true"></i>
             <span class="site-dock-grabber-blocks" aria-hidden="true"></span>
         </button>

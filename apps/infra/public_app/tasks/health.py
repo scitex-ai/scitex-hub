@@ -29,13 +29,19 @@ FLOOD_DETECTION_PREFIX = "flood_detection:"
 FLOOD_ALERT_LAST_SENT_KEY = "flood_alert_last_sent"
 
 
-def _get_health_config() -> tuple[str, str, str | None, str]:
+def _get_health_config() -> tuple[str, str, str, str]:
     """Get health check configuration from settings/env."""
     site_url = getattr(
         settings, "SITE_URL", os.getenv("SCITEX_HUB_SITE_URL", "https://scitex.ai")
     )
     health_check_url = f"{site_url}/"
-    notification_recipient = os.getenv("SCITEX_HUB_HEALTH_NOTIFICATION_RECIPIENT")
+    # Site-down / recovery / flood alarms are ops alerts: they go to the ops
+    # address (dev@) unless a deployment overrides it -- never, by default, to
+    # nobody (the pre-2026-11-27 behaviour) or to the operator's own inbox.
+    notification_recipient = (
+        os.getenv("SCITEX_HUB_HEALTH_NOTIFICATION_RECIPIENT")
+        or branding.OPS_ALERT_EMAIL
+    )
     # The default sender is the SSoT's noreply address (config/branding.py), not
     # a literal: this module is plain Python, so there is no reason for it to
     # carry its own copy of an address the rest of the site single-sources.
@@ -164,19 +170,9 @@ def check_site_health(self):
     failure_threshold = 3
 
     try:
+        # The recipient always resolves (env override or the ops address), so
+        # there is no "armed but reaching nobody" state left to warn about.
         url, _, recipient, sender = _get_health_config()
-
-        if not recipient:
-            # WARNING, not DEBUG. This is the difference between "the alarm is
-            # armed" and "the alarm is running but can reach nobody", and at
-            # DEBUG that distinction was invisible in production -- emitted
-            # once a minute into a level nothing collects. An alarm that cannot
-            # notify must say so at a level someone sees.
-            logger.warning(
-                "[HealthCheck] SCITEX_HUB_HEALTH_NOTIFICATION_RECIPIENT is not "
-                "set, so site-down and recovery alerts will reach NOBODY. "
-                "Set it in deployment/docker/envs/.env.<env>."
-            )
 
         # Perform check
         is_healthy, error_message, response_time, status_code = _perform_health_check(

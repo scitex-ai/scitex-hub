@@ -1,0 +1,7 @@
+{% comment %}
+    The console-log sink exists only when developer tools are enabled, and only
+    staff may use it (apps/workspace/dev_app/access.py).
+{% endcomment %}
+{% if DEV_TOOLS_ENABLED %}{% if user.is_staff or user.is_superuser %}
+    <meta name="scitex-console-log-endpoint" content="{% url 'dev_app:console_log' %}" />
+{% endif %}{% endif %}

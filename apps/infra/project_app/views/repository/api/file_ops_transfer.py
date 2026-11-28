@@ -23,6 +23,7 @@ from .file_ops_utils import (
     git_auto_commit,
     validate_path,
 )
+from apps.infra.spend_app.decorators import storage_write
 
 logger = logging.getLogger(__name__)
 
@@ -99,6 +100,7 @@ def _move_symlink(source_full, dest_full, source_path, dest_path):
 
 
 @require_http_methods(["POST"])
+@storage_write
 def api_file_upload(request, username, slug):
     """Upload a file to the project."""
     try:
@@ -142,6 +144,7 @@ def api_file_upload(request, username, slug):
 
 
 @require_http_methods(["POST"])
+@storage_write
 def api_file_upload_url(request, username, slug):
     """Download a file from URL and save to project."""
     try:

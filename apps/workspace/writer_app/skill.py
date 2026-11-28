@@ -18,7 +18,7 @@ register(
             "Export to various formats (PDF, Overleaf)",
             "Manage claims and cross-references",
         ],
-        url_route="writer-leaf:editor",
+        url_route="writer:editor",
         module_description=(
             "Scientific manuscript editor: LaTeX editing with live preview, "
             "figure/table management, bibliography, PDF compilation."

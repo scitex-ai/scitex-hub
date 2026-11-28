@@ -5,6 +5,7 @@
 from __future__ import annotations
 
 import os
+from urllib.parse import urlparse
 
 __FILE__ = "./config/settings/settings_prod.py"
 __DIR__ = os.path.dirname(__FILE__)
@@ -65,9 +66,18 @@ def _require_production_credential(name):
     return value
 
 
-# Allow DEBUG override via environment variable for troubleshooting
-# WARNING: Set DEBUG=False in production after debugging!
-DEBUG = os.getenv("DEBUG", "False").lower() in ("true", "1", "yes")
+# Never on in production. It used to read a generic DEBUG env var, so any
+# stray DEBUG=1 in a shared env file would have exposed tracebacks and
+# settings to the public; troubleshoot from logs instead.
+DEBUG = False
+
+# Developer endpoints (/dev/) are never mounted in production. Refuse to start
+# rather than silently ignore an environment that asks for them.
+if DEV_TOOLS_ENABLED:
+    raise ImproperlyConfigured(
+        "SCITEX_HUB_DEV_TOOLS_ENABLED must not be set in production settings"
+    )
+DEV_TOOLS_ENABLED = False
 
 # ---------------------------------------
 # SciTeX Settings
@@ -86,6 +96,15 @@ ALLOWED_HOSTS = _getenv_alias("SCITEX_HUB_ALLOWED_HOSTS", "127.0.0.1,localhost")
 )
 # Allow internal Docker container-to-container OAuth2 requests
 ALLOWED_HOSTS += ["scitex-hub-prod-django-1"]
+# The A2A protocol surface (apps/infra/a2a_app) is served on a2a.<site domain>:
+# nginx_prod.conf routes that subdomain to this Django. Derived from the site
+# URL so no host .env has to repeat it -- prod's env listed only the apex, and
+# every request to https://a2a.scitex.ai/ was a 400 DisallowedHost
+# (2026-11-27). A deployment without SCITEX_HUB_SITE_URL gets no A2A host.
+_SITE_HOST = urlparse(_getenv_alias("SCITEX_HUB_SITE_URL", "")).hostname or ""
+if _SITE_HOST and _SITE_HOST not in ("localhost", "127.0.0.1"):
+    A2A_HOST = f"a2a.{_SITE_HOST.removeprefix('www.')}"
+    ALLOWED_HOSTS.append(A2A_HOST)
 
 SECURE_BROWSER_XSS_FILTER = True
 SECURE_CONTENT_TYPE_NOSNIFF = True
@@ -94,10 +113,14 @@ SECURE_HSTS_SECONDS = 31536000
 SECURE_HSTS_PRELOAD = True
 SECURE_REDIRECT_EXEMPT = []
 
-# SSL handled by Cloudflare Tunnel
-SECURE_SSL_REDIRECT = (
-    _getenv_alias("SCITEX_HUB_ENABLE_SSL_REDIRECT", "false").lower() == "true"
-)
+# TLS ends at Cloudflare; the tunnel reaches nginx/Django over plain HTTP.
+# Django's SECURE_SSL_REDIRECT stays OFF on purpose: it would redirect every
+# request not proven https, including internal callers (http://django:8000
+# from gitea webhooks, health checks, container-to-container OAuth). The
+# visitor-facing redirect is EdgeHttpsRedirectMiddleware (edge scheme "http"
+# only) plus the same rule in nginx_prod.conf. See settings_security_headers.
+SECURE_SSL_REDIRECT = False
+EDGE_HTTPS_REDIRECT = True
 SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
 X_FRAME_OPTIONS = "SAMEORIGIN"  # Allow same-site iframes (needed for PDF viewer)
 SECURE_REFERRER_POLICY = "strict-origin-when-cross-origin"
@@ -227,7 +250,8 @@ else:
         }
     }
 
-# ADMINS / MANAGERS moved to settings_shared on 2026-08-15 so that every
+# ADMINS / MANAGERS moved to settings_shared (now settings_email, which it
+# star-imports) on 2026-08-15 so that every
 # non-dev environment inherits the same recipients. Defining them only here
 # left staging with the empty default, i.e. an error-mail handler wired to
 # nobody.

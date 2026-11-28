@@ -101,9 +101,11 @@ graph and imports, and checks source identity again before cleanup. No serving
 user/database mounts enter this preparation container. The install needs
 dependency-index access; the import probe runs without a network.
 
-Development can select owned SDK and FigRecipe checkouts with
-`SCITEX_SDK_SOURCE_DIR` and `SCITEX_FIGRECIPE_SOURCE_DIR`, respectively;
-otherwise all three Python roles keep the conventional sibling sources. Use
+Development can select owned umbrella, SDK and FigRecipe checkouts with
+`SCITEX_PYTHON_SOURCE_DIR`, `SCITEX_SDK_SOURCE_DIR` and
+`SCITEX_FIGRECIPE_SOURCE_DIR`, respectively. Otherwise all three Python roles
+keep the conventional sibling sources. The umbrella remains part of the full
+`[all]` editable request whenever the selected path is a package checkout. Use
 a committed compatible revision and run the complete prospective-profile gate
 below. Selecting a path does not waive declared peer pins or qualify the source.
 Keep this selection consistent between preflight and recreation.
@@ -122,6 +124,12 @@ host and run its canonical wrapper there. Changing the development mode to
 controls for this path are in `tests/deployment/test_preflight_direct_bind.py`
 and `test_preflight_lock_snapshots.py`; passing them alone does not qualify a
 particular host's prospective package graph or frontend.
+
+If a container-create outcome is still unknown, the gate refuses and retains
+its owned workspace and labeled volume. The printed private
+`pending-creation.json` records their identity for later inspection and cleanup;
+an absent Docker inspection response does not establish that creation stopped.
+The creation and installation deadlines and ownership checks still apply.
 
 For a recreate, `compose.sh <env> up ...` keeps the sanctioned mapping.
 Configuration-changing global options before `up` (for example a different

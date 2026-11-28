@@ -20,10 +20,13 @@ from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
 from django.views.decorators.http import require_http_methods
 
+from apps.infra.spend_app.services import gate
 from apps.security import safe_log_field
 
+from .models import WorkloadSession
 from .services import SlurmManager
 from .services.job_ownership import job_belongs_to_user
+from .services.workload_sessions import close_workloads
 
 logger = logging.getLogger(__name__)
 
@@ -67,6 +70,29 @@ def api_submit_job(request):
     try:
         data = json.loads(request.body)
 
+        partition = data.get("partition", "compute")
+        cpus = int(data.get("cpus", 1))
+        memory_gb = int(data.get("memory_gb", 4))
+        time_limit = data.get("time_limit", "01:00:00")
+
+        # Spend controls + the per-user SLURM quotas (config/settings/quotas.py
+        # overridden by UserQuota), checked BEFORE anything reaches sbatch.
+        from apps.workspace.console_app.views.terminal.config import (
+            parse_time_limit_seconds,
+        )
+
+        time_limit_seconds = parse_time_limit_seconds(str(time_limit))
+        try:
+            gate.require_job(
+                request.user,
+                cpus=cpus,
+                memory_gb=memory_gb,
+                time_limit_seconds=time_limit_seconds,
+                partition=partition,
+            )
+        except gate.Refused as exc:
+            return gate.refusal_json(exc)
+
         # Get user workspace
         user_workspace = get_user_workspace(request.user)
 
@@ -88,6 +114,18 @@ def api_submit_job(request):
         safe_label = re.sub(r"[^A-Za-z0-9._-]", "_", str(raw_label))[:64] or "job"
         job_name = f"scitex_{request.user.username}_{safe_label}"
 
+        # Attribution: the job is tagged and recorded for this project. The
+        # batch API runs in the user's workspace, so omitting the field
+        # explicitly means "no project" (tagged project:none).
+        try:
+            project_id = resolve_job_project(request.user, data)
+        except ValueError:
+            return JsonResponse(
+                {"success": False, "message": "Invalid project_id."}, status=400
+            )
+        except LookupError:
+            return JsonResponse({"success": False, "message": "Not found"}, status=404)
+
         # Submit job
         result = get_slurm_manager().submit_job(
             user_id=str(request.user.id),
@@ -95,14 +133,17 @@ def api_submit_job(request):
             container_path=container_path,
             workspace=user_workspace,
             job_name=job_name,
-            partition=data.get("partition", "compute"),
-            cpus=data.get("cpus", 1),
-            memory_gb=data.get("memory_gb", 4),
-            time_limit=data.get("time_limit", "01:00:00"),
+            partition=partition,
+            cpus=cpus,
+            memory_gb=memory_gb,
+            time_limit=time_limit,
             env_vars=data.get("env_vars", {}),
+            project_id=project_id,
         )
 
         if result["success"]:
+            # submit_job recorded the launch (with its allocation, which
+            # spend controls bill by) as one WorkloadSession row.
             logger.info(
                 f"Job {result['job_id']} submitted for user {request.user.username}"
             )
@@ -153,6 +194,14 @@ def api_job_status(request, job_id):
         if not job_belongs_to_user(get_slurm_manager(), job_id, request.user.username):
             return JsonResponse({"success": False, "message": "Not found"}, status=404)
         status = get_slurm_manager().get_job_status(job_id)
+        if status.get("is_completed"):
+            # The job has ended: stop its allocation clock (provisional source).
+            close_workloads(
+                request.user,
+                workload=WorkloadSession.WORKLOAD_JOB,
+                reason=WorkloadSession.StopReason.COMPLETED,
+                scheduler_job_id=str(job_id),
+            )
         return JsonResponse(status)
     except Exception:
         logger.exception("Error getting job %s status", safe_log_field(job_id))
@@ -182,6 +231,7 @@ def api_cancel_job(request, job_id):
         # by someone else is indistinguishable from a nonexistent one.
         if not job_belongs_to_user(get_slurm_manager(), job_id, request.user.username):
             return JsonResponse({"success": False, "message": "Not found"}, status=404)
+        # A successful cancel closes the job's row as a user stop.
         result = get_slurm_manager().cancel_job(job_id)
         if result["success"]:
             logger.info(
@@ -353,6 +403,27 @@ def api_user_jobs(request):
             },
             status=500,
         )
+
+
+def resolve_job_project(user, data: dict):
+    """Return the project a submitted job is attributed to.
+
+    ``project_id`` absent or null -> ``NO_PROJECT``. Otherwise it must be a
+    positive JSON integer (ValueError) naming a project the user owns or
+    collaborates on (LookupError; reported as 404, no existence disclosure).
+    """
+    from apps.infra.project_app.services.project_scope import accessible_projects
+
+    from .services.slurm import NO_PROJECT
+
+    raw = data.get("project_id")
+    if raw is None:
+        return NO_PROJECT
+    if type(raw) is not int or raw < 1:
+        raise ValueError("project_id must be a positive integer")
+    if not accessible_projects(user).filter(pk=raw).exists():
+        raise LookupError("project not accessible")
+    return raw
 
 
 def get_user_workspace(user):

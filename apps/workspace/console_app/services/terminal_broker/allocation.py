@@ -13,6 +13,8 @@ import uuid
 from pathlib import Path
 from typing import Optional
 
+from . import _alloc_workload as workload
+
 logger = logging.getLogger(__name__)
 
 # How long to wait for sbatch job to start running
@@ -74,8 +76,10 @@ class Allocation:
         time_limit_seconds: int = 14400,
         uid: Optional[int] = None,
         gid: Optional[int] = None,
+        script_dir: Path = _DOCKER_SCRIPT_DIR,
     ):
         self.allocation_id = str(uuid.uuid4())
+        self.script_dir = script_dir  # Docker-side dir sbatch reads scripts from
         self.uid = uid
         self.gid = gid
         self.scratch_dir: Optional[Path] = None
@@ -94,6 +98,7 @@ class Allocation:
         self._script_path: Optional[str] = None
         self.started_at: Optional[float] = None
         self.last_error: str = ""
+        self.workload_row = None  # WorkloadSession (see _alloc_workload)
 
     @staticmethod
     def cleanup_stale_jobs() -> int:
@@ -124,6 +129,7 @@ class Allocation:
             self.last_error = f"Compute identity unavailable: {e}"
             self.state = AllocationState.DEAD
             return False
+        workload.adopt_existing(self)
         logger.info(
             f"Allocation {self.allocation_id[:8]}: attaching to "
             f"existing job {job_id} for {self.username}"
@@ -219,14 +225,15 @@ class Allocation:
             # 2. Write script to shared volume (accessible by both Docker and host)
             # Docker writes here; sbatch reads from here (Docker path).
             # Script CONTENT uses host paths (for apptainer on compute node).
-            _DOCKER_SCRIPT_DIR.mkdir(parents=True, exist_ok=True)
+            self.script_dir.mkdir(parents=True, exist_ok=True)
             script_name = f"scitex-alloc-{self.allocation_id[:8]}.sh"
-            docker_script_path = _DOCKER_SCRIPT_DIR / script_name
+            docker_script_path = self.script_dir / script_name
             docker_script_path.write_text(script_content)
             docker_script_path.chmod(0o755)
             self._script_path = str(docker_script_path)
 
-            # 3. Submit via sbatch with Docker path (sbatch reads file locally)
+            # 3. Record the launch, then sbatch the Docker path with its tags
+            tags = workload.begin(self)
             sbatch_cmd = build_sbatch_cmd(
                 instance_name=self.instance_name,
                 script_path=str(docker_script_path),
@@ -234,6 +241,7 @@ class Allocation:
                 project_slug=self.project_slug,
                 uid=self.uid,
                 gid=self.gid,
+                tags=tags,
             )
             logger.info(
                 f"Allocation {self.allocation_id[:8]}: submitting sbatch "
@@ -252,10 +260,12 @@ class Allocation:
                     f"{result.stderr.strip() or result.stdout.strip()}"
                 )
                 logger.error(f"Allocation {self.allocation_id[:8]}: {self.last_error}")
+                workload.abandon(self)
                 self.state = AllocationState.DEAD
                 return False
 
             self.job_id = result.stdout.strip()
+            workload.bind_job(self)
             logger.info(
                 f"Allocation {self.allocation_id[:8]}: sbatch submitted, "
                 f"job_id={self.job_id}"
@@ -299,6 +309,8 @@ class Allocation:
                 f"Allocation {self.allocation_id[:8]}: {self.last_error}",
                 exc_info=True,
             )
+            # A job submitted before the failure must not keep running.
+            self._cancel_job()
             self.state = AllocationState.DEAD
             return False
 
@@ -473,7 +485,7 @@ class Allocation:
         return False
 
     def _cancel_job(self):
-        """Cancel the SLURM job."""
+        """Cancel the SLURM job and close its WorkloadSession row."""
         if self.job_id:
             try:
                 subprocess.run(
@@ -483,6 +495,7 @@ class Allocation:
                 )
             except Exception:
                 pass
+        workload.record_ended(self)
 
     def _cleanup_script(self):
         """Remove the temporary script file."""

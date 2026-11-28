@@ -5,10 +5,15 @@
  * Reads initial state from data-active-doc attribute on .docs-workspace.
  */
 
-import createDOMPurify from "dompurify";
-
-// Printing has its own sanitizer instance, independent of other app hooks.
-const printSanitizer = createDOMPurify(window);
+import { openPrintWindow } from "./docs-print";
+import { printAllDocs } from "./docs-batch-print";
+import { PRINT_CSS } from "./docs-export-style";
+import { initDocsHtmlExport } from "./docs-html-export";
+import { initDocsColumns, syncDocsColumns } from "./docs-navigation";
+import { initDocsFilter } from "./docs-filter";
+import { initDocsCopy } from "./docs-copy";
+import { initMobileCascade, syncMobileCascade } from "./docs-mobile-nav";
+import { renderSphinxDiagrams } from "./sphinx-diagrams";
 
 // ── Types & Constants ────────────────────────────────────────
 
@@ -20,16 +25,11 @@ interface SectionInfo {
 }
 
 const SCROLLSPY_ROOT_MARGIN = "-10% 0px -70% 0px";
-const PRINT_CSS =
-  "body{font-family:sans-serif;max-width:800px;margin:2rem auto;padding:0 1rem;color:#222}" +
-  "pre{background:#f5f5f5;padding:1rem;overflow-x:auto;border-radius:4px}" +
-  "code{font-family:monospace}h1,h2,h3{margin-top:1.5rem}" +
-  "table{border-collapse:collapse;width:100%}" +
-  "th,td{border:1px solid #ddd;padding:8px;text-align:left}";
 
 // ── Module State ─────────────────────────────────────────────
 
 let currentSlug = "";
+let loadRequest = 0;
 let currentSections: SectionInfo[] = [];
 let scrollspyObserver: IntersectionObserver | null = null;
 const selectedSlugs = new Set<string>();
@@ -38,6 +38,8 @@ const selectedSlugs = new Set<string>();
 
 function clearSectionNav(sidebar: Element): void {
   sidebar.querySelectorAll(".docs-section-item").forEach((el) => el.remove());
+  const sectionNav = sidebar.querySelector<HTMLElement>(".docs-section-nav");
+  if (sectionNav) sectionNav.hidden = true;
   teardownScrollspy();
   currentSections = [];
 }
@@ -49,7 +51,8 @@ function buildSectionNav(contentArea: HTMLElement, sidebar: Element): void {
   const activePageItem = sidebar.querySelector(".docs-nav-item.active");
   if (!activePageItem || !sections.length) return;
 
-  let insertionPoint: Element = activePageItem;
+  const sectionNav = sidebar.querySelector<HTMLElement>(".docs-section-nav");
+  if (!sectionNav) return;
 
   sections.forEach((section) => {
     const h2 = section.querySelector("h2");
@@ -85,9 +88,8 @@ function buildSectionNav(contentArea: HTMLElement, sidebar: Element): void {
       history.replaceState(null, "", "#" + currentSlug + "--" + anchorId);
     });
 
-    // Insert after the previous insertion point (maintains document order)
-    insertionPoint.after(navItem);
-    insertionPoint = navItem;
+    sectionNav.appendChild(navItem);
+    sectionNav.hidden = false;
 
     currentSections.push({ id: anchorId, title, element: section, navItem });
   });
@@ -129,155 +131,7 @@ function teardownScrollspy(): void {
   }
 }
 
-// ── Mobile Cascade Nav (section → page dropdowns) ─────────
-// Two labeled <select>s rendered server-side from docs_sections (same
-// DOCS_PAGES source as the sidebar). Level 1 picks the section, level 2
-// lists pages within it. Desktop keeps the sidebar; CSS shows this nav
-// ≤767px only.
-
-interface CascadePage {
-  value: string;
-  label: string;
-}
-
-const cascadePagesBySection = new Map<string, CascadePage[]>();
-const cascadeSectionBySlug = new Map<string, string>();
-
-function snapshotCascadeOptions(pageSelect: HTMLSelectElement): void {
-  cascadePagesBySection.clear();
-  cascadeSectionBySlug.clear();
-  pageSelect.querySelectorAll("optgroup").forEach((group) => {
-    const key = group.getAttribute("data-section") ?? "";
-    if (!key) return;
-    const pages: CascadePage[] = [];
-    group.querySelectorAll("option").forEach((opt) => {
-      pages.push({
-        value: opt.value,
-        label: opt.textContent?.trim() ?? opt.value,
-      });
-      cascadeSectionBySlug.set(opt.value, key);
-    });
-    cascadePagesBySection.set(key, pages);
-  });
-}
-
-function populateCascadePages(
-  sectionSelect: HTMLSelectElement,
-  pageSelect: HTMLSelectElement,
-  sectionKey: string,
-): void {
-  const pages = cascadePagesBySection.get(sectionKey) ?? [];
-  pageSelect.textContent = "";
-  pages.forEach((page) => {
-    const opt = document.createElement("option");
-    opt.value = page.value;
-    opt.textContent = page.label;
-    pageSelect.appendChild(opt);
-  });
-  pageSelect.disabled = pages.length === 0;
-}
-
-/** Keep both dropdowns in sync with the currently displayed doc page. */
-function syncMobileCascade(slug: string): void {
-  const sectionSelect = document.getElementById(
-    "docs-mobile-section",
-  ) as HTMLSelectElement | null;
-  const pageSelect = document.getElementById(
-    "docs-mobile-page",
-  ) as HTMLSelectElement | null;
-  if (!sectionSelect || !pageSelect || !cascadePagesBySection.size) return;
-  const sectionKey = cascadeSectionBySlug.get(slug);
-  if (!sectionKey) return;
-  if (sectionSelect.value !== sectionKey) {
-    sectionSelect.value = sectionKey;
-    populateCascadePages(sectionSelect, pageSelect, sectionKey);
-  }
-  if (pageSelect.value !== slug) pageSelect.value = slug;
-}
-
-function initMobileCascade(
-  contentArea: HTMLElement,
-  sidebar: Element,
-  navItems: NodeListOf<HTMLAnchorElement>,
-): void {
-  const sectionSelect = document.getElementById(
-    "docs-mobile-section",
-  ) as HTMLSelectElement | null;
-  const pageSelect = document.getElementById(
-    "docs-mobile-page",
-  ) as HTMLSelectElement | null;
-  if (!sectionSelect || !pageSelect) return;
-
-  snapshotCascadeOptions(pageSelect);
-  // Flatten to the active section's pages on init (optgroups are only the
-  // no-JS fallback carrying the full section → page map).
-  const initialSection =
-    sectionSelect.value || sectionSelect.options[0]?.value || "";
-  if (initialSection) {
-    populateCascadePages(sectionSelect, pageSelect, initialSection);
-    if (currentSlug) pageSelect.value = currentSlug;
-  }
-
-  sectionSelect.addEventListener("change", () => {
-    const key = sectionSelect.value;
-    populateCascadePages(sectionSelect, pageSelect, key);
-    // Cascade: selecting a section navigates to its first page.
-    const first = cascadePagesBySection.get(key)?.[0];
-    if (first) {
-      loadDocPage(first.value, undefined, contentArea, sidebar, navItems);
-    }
-  });
-
-  pageSelect.addEventListener("change", () => {
-    if (pageSelect.value) {
-      loadDocPage(pageSelect.value, undefined, contentArea, sidebar, navItems);
-    }
-  });
-}
-
 // ── Export Helpers ────────────────────────────────────────────
-
-function openPrintWindow(html: string): void {
-  const win = window.open("", "_blank");
-  if (!win) return;
-  const doc = win.document;
-  doc.open();
-  doc.write(
-    "<!DOCTYPE html><html><head><title>SciTeX Docs</title></head><body></body></html>",
-  );
-  doc.close();
-  const s = doc.createElement("style");
-  s.textContent = PRINT_CSS;
-  doc.head.appendChild(s);
-  doc.body.innerHTML = printSanitizer.sanitize(html, { USE_PROFILES: { html: true } });
-  win.print();
-}
-
-function injectSectionExportButtons(
-  slug: string,
-  contentArea: HTMLElement,
-): void {
-  if (contentArea.querySelector(".docs-section-export")) return;
-  const bar = document.createElement("div");
-  bar.className = "docs-section-export";
-  bar.innerHTML =
-    '<div class="docs-dropdown">' +
-    '<button class="docs-export-btn docs-dropdown-toggle">' +
-    '<i class="fas fa-download"></i> Download</button>' +
-    '<div class="docs-dropdown-menu">' +
-    '<a class="docs-dropdown-item">' +
-    '<i class="fas fa-file-alt"></i> .md</a>' +
-    '<button class="docs-dropdown-item docs-section-pdf-btn">' +
-    '<i class="fas fa-file-pdf"></i> .pdf</button>' +
-    "</div></div>";
-  bar.querySelector<HTMLAnchorElement>("a.docs-dropdown-item")!.href =
-    "/apps/docs/export/" + encodeURIComponent(slug) + "/";
-  const pdfBtn = bar.querySelector<HTMLButtonElement>(".docs-section-pdf-btn");
-  if (pdfBtn) {
-    pdfBtn.onclick = () => openPrintWindow(contentArea.innerHTML);
-  }
-  contentArea.insertBefore(bar, contentArea.firstChild);
-}
 
 // ── AJAX Page Loading ────────────────────────────────────────
 
@@ -291,6 +145,8 @@ function loadDocPage(
 ): void {
   if (!slug) return;
   currentSlug = slug;
+  const request = ++loadRequest;
+  syncDocsColumns(slug);
 
   // Update URL hash
   const hashValue = anchorId ? slug + "--" + anchorId : slug;
@@ -299,7 +155,10 @@ function loadDocPage(
   // Update active state in sidebar (clear section items first)
   clearSectionNav(sidebar);
   navItems.forEach((item) => {
-    item.classList.toggle("active", item.dataset.docSlug === slug);
+    const active = item.dataset.docSlug === slug;
+    item.classList.toggle("active", active);
+    if (active) item.setAttribute("aria-current", "page");
+    else item.removeAttribute("aria-current");
   });
 
   // Keep the mobile cascade dropdowns (section → page) in sync
@@ -319,6 +178,7 @@ function loadDocPage(
       return response.text();
     })
     .then((html) => {
+      if (request !== loadRequest || !contentArea.isConnected) return;
       contentArea.innerHTML = html;
       contentArea.style.opacity = "1";
       contentArea.scrollTop = 0;
@@ -351,9 +211,8 @@ function loadDocPage(
 
       // Build section nav + scrollspy (replaces foldSections)
       buildSectionNav(contentArea, sidebar);
-
-      // Inject export buttons
-      injectSectionExportButtons(slug, contentArea);
+      document.dispatchEvent(new Event("docs:content-loaded"));
+      void renderSphinxDiagrams(contentArea);
 
       // Scroll to anchor if specified
       if (anchorId) {
@@ -375,6 +234,7 @@ function loadDocPage(
       }
     })
     .catch((err: Error) => {
+      if (request !== loadRequest || !contentArea.isConnected) return;
       const error = document.createElement("div");
       error.className = "docs-error";
       const icon = document.createElement("i");
@@ -387,6 +247,11 @@ function loadDocPage(
 
 // ── Dropdown Toggle ──────────────────────────────────────────
 
+function closeDropdown(dropdown: Element): void {
+  dropdown.classList.remove("open");
+  dropdown.querySelector(".docs-dropdown-toggle")?.setAttribute("aria-expanded", "false");
+}
+
 function initDropdowns(): void {
   document.addEventListener("click", (e) => {
     const toggle = (e.target as Element).closest(".docs-dropdown-toggle");
@@ -398,14 +263,17 @@ function initDropdowns(): void {
       // Close other dropdowns
       document
         .querySelectorAll(".docs-dropdown.open")
-        .forEach((d) => d !== dropdown && d.classList.remove("open"));
-      dropdown.classList.toggle("open");
+        .forEach((d) => {
+          if (d !== dropdown) closeDropdown(d);
+        });
+      const open = dropdown.classList.toggle("open");
+      toggle.setAttribute("aria-expanded", String(open));
       return;
     }
     // Close all dropdowns on outside click
     document
       .querySelectorAll(".docs-dropdown.open")
-      .forEach((d) => d.classList.remove("open"));
+      .forEach(closeDropdown);
   });
 }
 
@@ -441,7 +309,8 @@ function updateSelectionBar(
   sidebar: Element,
   navItems: NodeListOf<HTMLAnchorElement>,
 ): void {
-  let bar = sidebar.querySelector<HTMLElement>(".docs-selection-bar");
+  const toolbar = document.querySelector(".docs-toolbar");
+  let bar = toolbar?.querySelector<HTMLElement>(".docs-selection-bar");
   if (selectedSlugs.size === 0) {
     bar?.remove();
     return;
@@ -472,9 +341,7 @@ function updateSelectionBar(
       .addEventListener("click", () => {
         clearSelection(navItems, sidebar);
       });
-    const footer = sidebar.querySelector(".docs-nav-footer");
-    if (footer) footer.before(bar);
-    else sidebar.querySelector(".docs-nav")?.appendChild(bar);
+    toolbar?.appendChild(bar);
   }
   bar.querySelector(".docs-selection-count")!.textContent =
     selectedSlugs.size + " selected";
@@ -523,6 +390,7 @@ function downloadSelectedPdf(navItems: NodeListOf<HTMLAnchorElement>): void {
 // ── Initialization ───────────────────────────────────────────
 
 function initDocsWorkspace(): void {
+  initDocsHtmlExport(PRINT_CSS);
   const workspace = document.querySelector<HTMLElement>(".docs-workspace");
   const sidebar = document.querySelector(".docs-sidebar");
   const contentArea = document.getElementById("docs-content-area");
@@ -532,28 +400,28 @@ function initDocsWorkspace(): void {
     sidebar.querySelectorAll<HTMLAnchorElement>(".docs-nav-item");
   currentSlug = workspace.dataset.activeDoc ?? "";
 
-  // Dropdown toggles
+  // Dropdown toggles and local document tools.
   initDropdowns();
+  initDocsFilter(workspace);
+  initDocsCopy(workspace);
+
+  initDocsColumns(workspace, (slug) => {
+    if (selectedSlugs.size > 0) clearSelection(navItems, sidebar);
+    loadDocPage(slug, undefined, contentArea, sidebar, navItems);
+  });
+  document.getElementById("docs-export-page-pdf")?.addEventListener("click", () => {
+    openPrintWindow(contentArea.innerHTML);
+  });
 
   // Mobile cascade nav (section → page selects)
-  initMobileCascade(contentArea, sidebar, navItems);
+  initMobileCascade((slug) => loadDocPage(slug, undefined, contentArea, sidebar, navItems));
 
   // Global "All PDF" button
   const allPdfBtn = document.getElementById("docs-export-all-pdf");
   if (allPdfBtn) {
     allPdfBtn.onclick = () => {
       const slugs = Array.from(navItems).map((i) => i.dataset.docSlug ?? "");
-      const fetches = slugs.map((s) =>
-        fetch("/apps/docs/content/" + encodeURIComponent(s) + "/", {
-          headers: { "X-Requested-With": "XMLHttpRequest" },
-        }).then((r) => r.text()),
-      );
-      Promise.all(fetches).then((pages) => {
-        const combined = pages
-          .map((html, i) => "<h1>" + slugs[i] + "</h1>" + html)
-          .join('<hr class="docs-print-page-break" />');
-        openPrintWindow(combined);
-      });
+      void printAllDocs(slugs);
     };
   }
 
@@ -576,19 +444,7 @@ function initDocsWorkspace(): void {
       } else {
         if (selectedSlugs.size > 0) clearSelection(navItems, sidebar);
         const slug = item.dataset.docSlug ?? "";
-        // Toggle sections if clicking the already-active page
-        if (slug === currentSlug) {
-          item.classList.toggle("sections-collapsed");
-          sidebar
-            .querySelectorAll<HTMLElement>(".docs-section-item")
-            .forEach((el) => {
-              el.style.display = item.classList.contains("sections-collapsed")
-                ? "none"
-                : "";
-            });
-        } else {
-          // Remove collapsed state from previous active item
-          navItems.forEach((i) => i.classList.remove("sections-collapsed"));
+        if (slug !== currentSlug) {
           loadDocPage(slug, undefined, contentArea, sidebar, navItems);
         }
       }

@@ -12,6 +12,7 @@ Fields that land in #SBATCH directives / arithmetic (job_name, partition,
 time_limit, cpus, memory_gb) cannot be shell-quoted (SLURM parses them), so they
 are validated and REJECTED; env-var values that land in bash are shlex-quoted.
 """
+
 from __future__ import annotations
 
 from pathlib import Path
@@ -21,6 +22,7 @@ import pytest
 from apps.workspace.console_app.services.slurm.script_generator import (
     create_batch_script,
 )
+from apps.workspace.console_app.services.slurm.tags import SlurmTags
 
 pytestmark = pytest.mark.security
 
@@ -39,6 +41,7 @@ def _script(tmp_path, **overrides):
         memory_gb=4,
         time_limit="01:00:00",
         env_vars={},
+        tags=SlurmTags.for_project(7),
     )
     kwargs.update(overrides)
     return create_batch_script(**kwargs)
@@ -68,7 +71,7 @@ def test_env_value_injection_is_shell_quoted_not_executable(tmp_path):
     # Act
     script = _script(tmp_path, env_vars={"X": payload})
     # Assert
-    assert "export X='$(touch /tmp/pwned)'" in script
+    assert "export APPTAINERENV_X='$(touch /tmp/pwned)'" in script
 
 
 def test_env_name_that_is_not_a_shell_identifier_is_rejected(tmp_path):
@@ -96,3 +99,76 @@ def test_partition_with_newline_injection_is_rejected(tmp_path):
     # Assert
     with pytest.raises(ValueError):
         _script(tmp_path, partition=payload)
+
+
+@pytest.mark.parametrize("name", ["PATH", "LD_PRELOAD", "BASH_ENV", "IFS"])
+def test_requested_env_never_reaches_the_host_side_script_shell(tmp_path, name):
+    # Arrange
+    env = {name: str(tmp_path / "tenant-controlled")}
+    # Act
+    script = _script(tmp_path, env_vars=env)
+    # Assert
+    assert f"export {name}=" not in script
+
+
+@pytest.mark.parametrize("name", ["PATH", "LD_PRELOAD", "DEBUG"])
+def test_requested_env_is_handed_to_the_container(tmp_path, name):
+    # Arrange
+    env = {name: "value"}
+    # Act
+    script = _script(tmp_path, env_vars=env)
+    # Assert
+    assert f"export APPTAINERENV_{name}=value" in script
+
+
+@pytest.fixture
+def run_script(tmp_path):
+    """Run a generated script with real bash. tenant/ holds binaries a tenant
+    could have uploaded; host-bin/ holds a stand-in apptainer that records
+    what it was handed."""
+    import subprocess
+
+    tenant = tmp_path / "tenant"
+    tenant.mkdir()
+    marker = tmp_path / "TENANT_BINARY_RAN"
+    for tool in ("date", "hostname", "apptainer"):
+        fake = tenant / tool
+        # Shell builtins only: under the tenant PATH no other tool resolves.
+        fake.write_text(f"#!/bin/sh\n: > {marker}\n")
+        fake.chmod(0o755)
+    host_bin = tmp_path / "host-bin"
+    host_bin.mkdir()
+    handoff = tmp_path / "handoff.txt"
+    stand_in = host_bin / "apptainer"
+    stand_in.write_text(f'#!/bin/sh\nprintf "%s" "$APPTAINERENV_PATH" > {handoff}\n')
+    stand_in.chmod(0o755)
+
+    def _run(script: str):
+        path = tmp_path / "job.sh"
+        path.write_text(script)
+        env = {"PATH": f"{host_bin}:/usr/bin:/bin", "HOME": str(tmp_path)}
+        subprocess.run(
+            ["bash", str(path)], env=env, capture_output=True, text=True, check=False
+        )
+        return marker, handoff
+
+    return _run
+
+
+def test_tenant_path_does_not_choose_host_binaries(tmp_path, run_script):
+    # Arrange
+    script = _script(tmp_path, env_vars={"PATH": str(tmp_path / "tenant")})
+    # Act
+    marker, _handoff = run_script(script)
+    # Assert
+    assert not marker.exists()
+
+
+def test_tenant_path_is_delivered_to_apptainer(tmp_path, run_script):
+    # Arrange
+    tenant = str(tmp_path / "tenant")
+    script = _script(tmp_path, env_vars={"PATH": tenant})
+    # Act
+    _marker, handoff = run_script(script)
+    # Assert
+    assert handoff.read_text() == tenant

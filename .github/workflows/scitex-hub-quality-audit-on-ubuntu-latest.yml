@@ -47,6 +47,12 @@ concurrency:
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
+  runner-admission:
+    uses: scitex-ai/.github/.github/workflows/runner-admission.yml@main
+    permissions: {}
+    with:
+      runs_on: '["self-hosted","Linux","X64","scitex-org-cpu"]'
+
   audit:
     # MIGRATED BACK to GitHub-hosted, 2026-08-10. This comment used to
     # describe the OPPOSITE migration (ubuntu-latest -> spartan, card
@@ -88,12 +94,13 @@ jobs:
     # API, not assumed), and GitHub-hosted runners are free for public
     # repositories. So the cost that justified moving here is not being
     # re-incurred by moving back.
-    # scitex-local-cpu (scitex-compute-01..04) for trusted runs; fork PRs stay
-    # on ephemeral hosted VMs. Same predicate as scitex-ai/.github import-smoke.
+    # Shared admission keeps fork and unknown-author work hosted; trusted work
+    # targets the registered organization CPU pool.
+    needs: runner-admission
     runs-on: >-
-      ${{ (github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name != github.repository)
-          && fromJSON('["ubuntu-latest"]')
-          || fromJSON('["self-hosted","Linux","X64","scitex-local-cpu"]') }}
+      ${{ needs.runner-admission.outputs.native_authorized == 'true'
+          && fromJSON('{"group":"Organization","labels":["self-hosted","Linux","X64","scitex-org-cpu"]}')
+          || fromJSON('["ubuntu-latest"]') }}
     timeout-minutes: 20
     steps:
       # Backstop for the runs-on predicate: never check out fork code on our hardware.
@@ -105,6 +112,11 @@ jobs:
         run: |
           echo "::error::Fork-authored code is not run on self-hosted runners."
           exit 1
+
+      # Job-owned HOME/XDG/SCITEX_DIR under runner.temp; fails if HOME is the
+      # runner account's real home. Never read or write the host's ~/.scitex.
+      - name: Use a job-owned HOME, never the runner account's
+        uses: scitex-ai/.github/.github/actions/job-home@main
 
       - uses: actions/checkout@v4
 
@@ -126,11 +138,10 @@ jobs:
         run: |
           set -euo pipefail
           uv venv --python 3.12 .venv
-          # Resolve the package and reviewed audit corpus together. A second
-          # install of Dev 0.62.20 downgraded the already compatible graph
-          # below Agent Container's declared Dev >=0.62.24 requirement.
+          # Resolve the package and reviewed audit corpus together. A separate
+          # Dev downgrade can violate the declared dependencies of mounted peers.
           # Keep corpus changes reviewable; do not suppress new findings.
-          uv pip install --python .venv/bin/python -e ".[dev]" "scitex-dev==0.65.0"
+          uv pip install --python .venv/bin/python -e ".[dev]" "scitex-dev==0.67.0"
           uv pip check --python .venv/bin/python
 
       # Use the pytest wrapper so the documented `skip_rules` deferrals in

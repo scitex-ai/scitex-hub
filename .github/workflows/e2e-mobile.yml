@@ -120,6 +120,7 @@ jobs:
           SCITEX_HUB_VITE_USE_BUILD: "1"
           # This server uses --noreload and baked assets. Keep DEBUG asset
           # validation while omitting the unused development reload worker.
+          SCITEX_HUB_FRONTEND_MODE: "baked"
           SCITEX_HUB_BROWSER_RELOAD_ENABLED: "0"
           DEBUG: "1"
         run: |

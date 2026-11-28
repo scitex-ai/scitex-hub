@@ -9,6 +9,8 @@ import shlex
 from pathlib import Path
 from typing import Dict
 
+from .tags import SlurmTags
+
 # Tenant-controlled fields are interpolated into a bash script that SLURM
 # executes, so any shell metacharacter is a command-injection vector (CWE-78).
 # Fields that land in #SBATCH directives (job_name/partition/time_limit) or in
@@ -19,6 +21,7 @@ _JOB_NAME_RE = re.compile(r"^[A-Za-z0-9._-]{1,64}$")
 _PARTITION_RE = re.compile(r"^[A-Za-z0-9_-]{1,64}$")
 _TIME_LIMIT_RE = re.compile(r"^[0-9][0-9:.\-]{0,19}$")
 _ENV_KEY_RE = re.compile(r"^[A-Za-z_][A-Za-z0-9_]*$")
+_USER_ID_RE = re.compile(r"\A[1-9][0-9]{0,18}\Z")
 
 
 def create_batch_script(
@@ -32,11 +35,15 @@ def create_batch_script(
     memory_gb: int,
     time_limit: str,
     env_vars: Dict[str, str],
+    *,
+    tags: SlurmTags,
 ) -> str:
     """
     Generate SLURM batch script content.
 
     Creates a bash script with SBATCH directives and Apptainer execution.
+    ``tags`` (required) puts the project and workload session on the job
+    as ``--comment``/``--wckey`` (see ``tags.py``).
 
     Raises:
         ValueError: if any tenant-controlled field contains shell/SLURM
@@ -59,14 +66,27 @@ def create_batch_script(
         raise ValueError("cpus and memory_gb must be integers")
     if cpus < 1 or memory_gb < 1:
         raise ValueError("cpus and memory_gb must be >= 1")
+    # user_id lands in the --account directive: digits only.
+    if not isinstance(user_id, str) or not _USER_ID_RE.match(user_id):
+        raise ValueError("Invalid user_id (expected a numeric id)")
+    # Tag values are validated when SlurmTags is built; refuse anything else.
+    if not isinstance(tags, SlurmTags):
+        raise ValueError("tags must be a validated SlurmTags")
 
     # Environment variable NAMES must be valid shell identifiers; VALUES are
     # shell-quoted so no metacharacter can break out of the `export`.
+    # The requested variables are meant for the job's code inside Apptainer,
+    # not for the batch script itself, which runs on the compute node outside
+    # the container: exporting PATH, LD_PRELOAD or BASH_ENV there would let a
+    # tenant choose which host binaries the script runs. They are therefore
+    # exported only under Apptainer's APPTAINERENV_ prefix, which no host
+    # program reads and which Apptainer injects into the container (also
+    # under --cleanenv) with the prefix removed.
     env_lines = []
     for k, v in (env_vars or {}).items():
         if not isinstance(k, str) or not _ENV_KEY_RE.match(k):
             raise ValueError(f"Invalid environment variable name: {k!r}")
-        env_lines.append(f"export {k}={shlex.quote(str(v))}")
+        env_lines.append(f"export APPTAINERENV_{k}={shlex.quote(str(v))}")
     env_exports = "\n".join(env_lines)
 
     # Ensure output directory exists
@@ -89,6 +109,7 @@ def create_batch_script(
 #SBATCH --output={output_dir}/slurm-%j.out
 #SBATCH --error={output_dir}/slurm-%j.err
 #SBATCH --account=user_{user_id}
+{tags.directives()}
 
 # Environment variables
 {env_exports}

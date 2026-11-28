@@ -95,8 +95,8 @@ def test_verifier_exists_and_cards_floor_is_release_target():
         cards = [req for req in requirements if req.name == "scitex-cards"]
         assert len(cards) == 1
         assert "web" in cards[0].extras
-        assert cards[0].specifier.contains("0.56.22")
-        assert not cards[0].specifier.contains("0.56.21")
+        assert cards[0].specifier.contains("0.56.23")
+        assert not cards[0].specifier.contains("0.56.22")
 
 
 def test_verifier_applies_requirements_for_activated_distribution_extras():

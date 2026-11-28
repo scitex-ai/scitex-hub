@@ -4,6 +4,7 @@ from hashlib import sha256
 from urllib.parse import urlencode
 
 from .interface_catalog import _distribution_name
+from .skill_summary import skill_description_summary
 
 
 def installed_skill_guides(package):
@@ -35,6 +36,7 @@ def installed_skill_guides(package):
                         "namespace": namespace,
                         "name": name,
                         "description": row.get("description", ""),
+                        "summary": skill_description_summary(row.get("description", "")),
                         "version": row.get("version", "unknown"),
                         "url": "/docs/web-api/skill/?"
                         + urlencode(

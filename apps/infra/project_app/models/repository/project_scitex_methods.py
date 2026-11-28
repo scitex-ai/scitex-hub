@@ -6,7 +6,6 @@ Contains: SciTeX-specific methods for Project model
 import logging
 from pathlib import Path
 
-
 logger = logging.getLogger(__name__)
 
 
@@ -18,10 +17,19 @@ class ProjectSciTeXMethodsMixin:
         Get Path object for local project directory.
 
         Returns:
-            Path to project directory (e.g., data/users/ywatanabe/neural-decoding/)
+            Path to project directory (e.g., data/users/ywatanabe/neural-decoding/,
+            or data/organizations/<org>/proj/<slug>/ for an org-owned project)
         """
         if not self.local_path:
-            # Default location
+            # Default location: the same base the filesystem manager creates
+            # and serves the project from (the organization's base for an
+            # org-owned project, the owner's otherwise).
+            if self.is_org_owned:
+                from apps.infra.project_app.services.filesystem.paths import (
+                    get_org_base_path,
+                )
+
+                return get_org_base_path(self.org_owner) / self.slug
             from apps.infra.project_app.services.project_filesystem import (
                 get_project_filesystem_manager,
             )

@@ -18,6 +18,10 @@ from ..models import CODE_VALIDITY, PendingSignup, UserProfile
 #: what just happened. Deriving it means the two can never disagree again.
 _CODE_VALIDITY_MINUTES = int(CODE_VALIDITY.total_seconds() // 60)
 
+#: Cookie of the retired multi-account switcher. Nothing reads it any more;
+#: sign-in and sign-out expire it so old browsers drop it.
+LEGACY_DEVICE_COOKIE = "device_id"
+
 #: THE ONE response for a signup attempt, used by EVERY outcome: a fresh
 #: account, a resumed pending signup, a resend, an already-ACTIVE account and
 #: the collision cases. Deliberately conditional — "if that address can be
@@ -31,6 +35,21 @@ _SIGNUP_RESPONSE_MESSAGE = (
     f"valid for {_CODE_VALIDITY_MINUTES} minutes. If you already have an "
     "account, sign in instead, or reset your password if you've forgotten it."
 )
+
+
+def _verify_page(email: str) -> str:
+    """The verification page for ``email``, with the address URL-ENCODED.
+
+    scitex-hub#1234, found on dev: the redirect used to interpolate the raw
+    address, so ``+`` arrived as a space ("a+b@x" became "a b@x"). The page
+    then submitted the mangled address, no pending signup matched it, and
+    every plus-addressed sign-up (common with Gmail) could never verify.
+    """
+    from urllib.parse import urlencode
+
+    from django.urls import reverse
+
+    return f"{reverse('auth_app:verify_email')}?{urlencode({'email': email})}"
 
 
 def _send_pending_signup_code(request, user, email, logger) -> bool:
@@ -146,10 +165,7 @@ def signup(request):
                 if consume_resend_budget(email):
                     _send_pending_signup_code(request, existing_user, email, logger)
                 messages.success(request, _SIGNUP_RESPONSE_MESSAGE)
-                from django.urls import reverse
-
-                verify_url = reverse("auth_app:verify_email")
-                return redirect(f"{verify_url}?email={email}")
+                return redirect(_verify_page(email))
 
             elif collision is SignupCollision.PENDING_LIVE:
                 # I2/I5: inside the window the account stands; the only useful
@@ -169,10 +185,7 @@ def signup(request):
                 if consume_resend_budget(email):
                     _send_pending_signup_code(request, existing_user, email, logger)
                 messages.success(request, _SIGNUP_RESPONSE_MESSAGE)
-                from django.urls import reverse
-
-                verify_url = reverse("auth_app:verify_email")
-                return redirect(f"{verify_url}?email={email}")
+                return redirect(_verify_page(email))
 
             elif collision in (
                 SignupCollision.ACTIVE,
@@ -194,10 +207,7 @@ def signup(request):
                 # enumeration oracle AND what stops it being a takeover.
                 logger.info("Signup attempt matched an existing account; generic reply")
                 messages.success(request, _SIGNUP_RESPONSE_MESSAGE)
-                from django.urls import reverse
-
-                verify_url = reverse("auth_app:verify_email")
-                return redirect(f"{verify_url}?email={email}")
+                return redirect(_verify_page(email))
 
             # Create inactive user (cannot log in until email verified)
             #
@@ -217,10 +227,7 @@ def signup(request):
             except IntegrityError:
                 logger.info("Signup insert lost a race; generic reply")
                 messages.success(request, _SIGNUP_RESPONSE_MESSAGE)
-                from django.urls import reverse
-
-                verify_url = reverse("auth_app:verify_email")
-                return redirect(f"{verify_url}?email={email}")
+                return redirect(_verify_page(email))
 
             # Create user profile (should be auto-created by signal, but ensure it exists)
             UserProfile.objects.get_or_create(user=user)
@@ -233,7 +240,9 @@ def signup(request):
             # what stops a suspended account acquiring signup authority.
             # The fleet store requires plan NOT NULL: an allowlisted ?plan=
             # wins, otherwise the newcomer default subscription-free.
-            requested_plan = (request.POST.get("plan") or request.GET.get("plan") or "").strip()
+            requested_plan = (
+                request.POST.get("plan") or request.GET.get("plan") or ""
+            ).strip()
             signup_plan = "subscription-free"
             if requested_plan:
                 try:
@@ -247,20 +256,9 @@ def signup(request):
                     pass
             PendingSignup.objects.create(user=user, email=email, plan=signup_plan)
 
-            # Create Gitea user account (sync with Gitea)
-            try:
-                from apps.infra.gitea_app.services.gitea_sync_service import (
-                    sync_user_to_gitea,
-                )
-
-                sync_success = sync_user_to_gitea(user, password)
-                if sync_success:
-                    logger.info(f"Gitea user created for {username}")
-                else:
-                    logger.warning(f"Failed to create Gitea user for {username}")
-            except Exception as e:
-                logger.warning(f"Gitea sync failed for {username}: {e}")
-                # Don't fail signup if Gitea sync fails
+            # No Gitea or Linux account yet: those are created when the
+            # address is verified and the account becomes active
+            # (accounts_app.signals.create_user_profile).
 
             # Create email verification record
 
@@ -283,10 +281,7 @@ def signup(request):
                     # for create/resend/resume/already-active is the point.
                     messages.success(request, _SIGNUP_RESPONSE_MESSAGE)
                     # Redirect to email verification page
-                    from django.urls import reverse
-
-                    verify_url = reverse("auth_app:verify_email")
-                    return redirect(f"{verify_url}?email={email}")
+                    return redirect(_verify_page(email))
                 else:
                     logger.error(
                         f"Failed to send verification email to {email}: {message}"
@@ -298,19 +293,13 @@ def signup(request):
                     # NOT already registered. That is the same enumeration oracle
                     # the collision paths were unified to close.
                     messages.success(request, _SIGNUP_RESPONSE_MESSAGE)
-                    from django.urls import reverse
-
-                    verify_url = reverse("auth_app:verify_email")
-                    return redirect(f"{verify_url}?email={email}")
+                    return redirect(_verify_page(email))
             except Exception as e:
                 logger.error(f"Error during signup for {email}: {str(e)}")
                 # Don't delete user - keep the account
                 # GENERIC for the same reason as the branch above.
                 messages.success(request, _SIGNUP_RESPONSE_MESSAGE)
-                from django.urls import reverse
-
-                verify_url = reverse("auth_app:verify_email")
-                return redirect(f"{verify_url}?email={email}")
+                return redirect(_verify_page(email))
     else:
         form = SignupForm()
 
@@ -357,9 +346,47 @@ def _continue_app_name(next_value):
     return None
 
 
+def _resume_pending_signup_on_signin(request, username, password):
+    """Send an unverified account back to verification instead of a dead end.
+
+    scitex-hub#1234. ``authenticate()`` returns None for an inactive user. So
+    someone who signed up, never received or entered their code, and came back
+    later to sign in was told "Invalid username or password". Their password
+    was right, and nothing on the page said what to do next.
+
+    This path runs ONLY after the submitter has proven the password of a
+    PENDING signup (inactive AND carrying the typed PendingSignup marker), so it
+    reveals nothing to anyone who does not already hold the credentials. An
+    administrator-disabled account has no marker and still gets the generic
+    error. A fresh code is sent within the same per-address budget as every
+    other resend.
+
+    Returns a redirect to the verification page, or None to fall through to the
+    generic error.
+    """
+    import logging
+
+    from ..pending_signup import consume_resend_budget, has_pending_evidence
+
+    logger = logging.getLogger(__name__)
+    user = User.objects.filter(username=username, is_active=False).first()
+    if user is None or not user.check_password(password):
+        return None
+    if not has_pending_evidence(user, user.email):
+        return None
+    if consume_resend_budget(user.email):
+        _send_pending_signup_code(request, user, user.email, logger)
+    messages.info(
+        request,
+        "Your email address is not verified yet. If that address can receive "
+        f"mail, a new verification code is on its way. It is valid for "
+        f"{_CODE_VALIDITY_MINUTES} minutes. Check your inbox and spam folder.",
+    )
+    return redirect(_verify_page(user.email))
+
+
 def login_view(request):
     """User login view with authentication."""
-    from .account_switching import add_authenticated_account
     from ..onboarding import resolve_post_login_url
 
     # The login gate carries its return in ?next= (e.g. /apps/stats/). The
@@ -397,12 +424,16 @@ def login_view(request):
 
                 messages.success(request, f"Welcome back, @{user.username}!")
 
-                # Create response and register account for switching
                 response = redirect(next_page)
-                add_authenticated_account(request, response)
+                response.delete_cookie(LEGACY_DEVICE_COOKIE, samesite="Lax")
                 return response
-            else:
-                messages.error(request, "Invalid username or password.")
+
+            pending_redirect = _resume_pending_signup_on_signin(
+                request, username, password
+            )
+            if pending_redirect is not None:
+                return pending_redirect
+            messages.error(request, "Invalid username or password.")
     else:
         form = LoginForm()
 
@@ -424,7 +455,12 @@ def logout_view(request):
     logout(request)
 
     # Redirect immediately without message (cleaner UX)
-    return redirect("/")
+    response = redirect("/")
+    # Browsers may still hold the retired multi-account ``device_id`` cookie
+    # (one-year lifetime). It no longer grants anything; expire it anyway so
+    # a shared machine keeps no trace of who signed in on it.
+    response.delete_cookie(LEGACY_DEVICE_COOKIE, samesite="Lax")
+    return response
 
 
 # EOF

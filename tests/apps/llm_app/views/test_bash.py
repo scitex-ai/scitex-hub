@@ -2,15 +2,11 @@
 # -*- coding: utf-8 -*-
 """Tests for apps/infra/llm_app/views/bash.py
 
-Security-critical: verify that the bash exec endpoint:
-- Requires authentication
-- Validates CWD stays within user's filesystem jail
-- Falls back to the jail root when a project slug cannot be resolved
+The bash exec endpoint is retired (410). The user-jail predicates it used
+are still exercised here because other features rely on them.
 
 No-mock policy (STX-NM00x): the jail predicates only read ``user.username``,
 so an unsaved real ``User`` instance is a sufficient, honest collaborator.
-The project-lookup fallback is exercised against the real ORM with a slug
-that does not exist, so ``Project.DoesNotExist`` fires for real.
 """
 
 import json
@@ -120,14 +116,25 @@ class TestValidatePathInUserJail(TestCase):
         assert result is False
 
 
-class TestBashExecAuthentication(TestCase):
-    """api_bash_exec requires login"""
+class TestBashExecRetired(TestCase):
+    """api_bash_exec is retired: 410 for everyone, body never read"""
 
     def _login(self, username):
         User.objects.create_user(username, password=_TEST_PW)
         self.client.login(username=username, password=_TEST_PW)
 
-    def test_unauthenticated_request_redirects(self):
+    def test_signed_in_post_is_gone(self):
+        # Arrange
+        self._login("bash_test_alice")
+        body = json.dumps({"command": "ls"})
+        # Act
+        response = self.client.post(
+            _BASH_URL, data=body, content_type="application/json"
+        )
+        # Assert
+        assert response.status_code == 410
+
+    def test_anonymous_post_is_gone(self):
         # Arrange
         body = json.dumps({"command": "ls"})
         # Act
@@ -135,38 +142,9 @@ class TestBashExecAuthentication(TestCase):
             _BASH_URL, data=body, content_type="application/json"
         )
         # Assert
-        # login_required redirects to login page
-        assert response.status_code in (302, 403)
+        assert response.status_code == 410
 
-    def test_get_method_not_allowed(self):
-        # Arrange
-        self._login("bash_test_alice")
-        # Act
-        response = self.client.get(_BASH_URL)
-        # Assert
-        assert response.status_code == 405
-
-    def test_missing_command_returns_400(self):
-        # Arrange
-        self._login("bash_test_alice2")
-        # Act
-        response = self.client.post(
-            _BASH_URL, data=json.dumps({}), content_type="application/json"
-        )
-        # Assert
-        assert response.status_code == 400
-
-    def test_missing_command_error_mentions_command(self):
-        # Arrange
-        self._login("bash_test_alice2b")
-        # Act
-        response = self.client.post(
-            _BASH_URL, data=json.dumps({}), content_type="application/json"
-        )
-        # Assert
-        assert "command" in json.loads(response.content).get("error", "").lower()
-
-    def test_invalid_json_returns_400(self):
+    def test_invalid_json_is_not_parsed(self):
         # Arrange
         self._login("bash_test_alice3")
         # Act
@@ -174,38 +152,7 @@ class TestBashExecAuthentication(TestCase):
             _BASH_URL, data="not-json", content_type="application/json"
         )
         # Assert
-        assert response.status_code == 400
-
-
-class TestGetProjectCwd(TestCase):
-    """_get_project_cwd: always returns a path within the user's jail"""
-
-    def test_no_slug_returns_jail_root(self):
-        # Arrange
-        from apps.infra.llm_app.views.bash import _get_project_cwd
-        from apps.infra.project_app.services.filesystem.permissions import (
-            get_user_data_root,
-        )
-
-        user = User.objects.create_user("cwd_user_noslug", password=_TEST_PW)
-        # Act
-        result = _get_project_cwd(user, "")
-        # Assert
-        assert result == get_user_data_root(user)
-
-    def test_bad_slug_falls_back_to_jail(self):
-        """If project lookup fails, fall back to jail root (never raise)."""
-        # Arrange
-        from apps.infra.llm_app.views.bash import _get_project_cwd
-        from apps.infra.project_app.services.filesystem.permissions import (
-            get_user_data_root,
-        )
-
-        user = User.objects.create_user("cwd_user_badslug", password=_TEST_PW)
-        # Act
-        result = _get_project_cwd(user, "nonexistent-slug")
-        # Assert
-        assert result == get_user_data_root(user)
+        assert response.status_code == 410
 
 
 if __name__ == "__main__":

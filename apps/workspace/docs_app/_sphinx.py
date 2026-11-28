@@ -29,6 +29,7 @@ _REPO_TO_PIP = {
 _STATIC_CONTENT_TYPES = {
     ".css": "text/css",
     ".js": "application/javascript",
+    ".mjs": "application/javascript",
     ".png": "image/png",
     ".jpg": "image/jpeg",
     ".jpeg": "image/jpeg",

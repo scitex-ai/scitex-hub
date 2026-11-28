@@ -84,6 +84,11 @@ _CONVERTER_VALUES = {
 #: audit must not call them dead when they are simply absent.
 _DEBUG_ONLY_MOUNTS = frozenset({"static", "__reload__"})
 
+#: Mounts only an explicitly opted-in deployment adds (``config/urls.py``:
+#: ``/dev/`` exists only when ``DEV_TOOLS_ENABLED``). Declared on the gated
+#: side for when they are mounted; absent from the test URLconf otherwise.
+_OPT_IN_MOUNTS = frozenset({"dev"})
+
 
 def _segment(route: str) -> str:
     """The classification key: the FIRST path segment of a route pattern.
@@ -598,7 +603,12 @@ class TestTheGateIsAuditedAgainstTheRealResolverTree:
             "the mounts only a DEBUG URLconf adds must still be declared: "
             f"{sorted(_DEBUG_ONLY_MOUNTS - (EXEMPT_MOUNTS | GATED_MOUNTS))}"
         )
-        dead = (EXEMPT_MOUNTS | GATED_MOUNTS) - realized - _DEBUG_ONLY_MOUNTS
+        dead = (
+            (EXEMPT_MOUNTS | GATED_MOUNTS)
+            - realized
+            - _DEBUG_ONLY_MOUNTS
+            - _OPT_IN_MOUNTS
+        )
         assert not dead, (
             "these mounts are declared on one side of the product gate but no "
             f"route in the URLconf realizes them: {sorted(dead)}"

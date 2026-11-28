@@ -93,6 +93,10 @@ class ProjectOpsManager(ProjectFilesystemManager):
                 project.save()
                 return True, project_path
 
+            if use_template:
+                # A failed scaffold must not become a successful empty project.
+                return False, None
+
             if not self._ensure_directory(project_path):
                 return False, None
 

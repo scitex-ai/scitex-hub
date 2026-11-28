@@ -4,7 +4,7 @@
 Vite integration for Django — dual-Vite architecture.
 
 Host Vite (port 5173): Platform files — runs on host with native FS watching (dev only).
-Container Vite (port 5174): Dev app files only — runs in container on-demand (dev + prod).
+Container Vite (port 5174): Dev app files only — runs in container on-demand (dev only).
 Production platform files: Uses built files from staticfiles/vite manifest.
 
 Usage in templates:
@@ -13,7 +13,7 @@ Usage in templates:
 
 Note: In development, host Vite must be running (npm run dev on host).
       Container Vite starts automatically when dev apps have TypeScript files.
-      In production, container Vite handles dev app TS; platform uses manifest.
+      In production, only the built manifest is served; there is no Vite server.
 """
 
 import json
@@ -153,7 +153,7 @@ def vite_hmr_client():
     Include Vite HMR client(s).
 
     Dev: Host Vite (5173) + Container Vite (5174) HMR clients.
-    Prod: Container Vite (5174) HMR client only (for dev apps).
+    Prod: none. No Vite dev server runs in production.
     Browser silently ignores clients for servers that aren't running.
     """
     scripts = ""
@@ -173,9 +173,6 @@ def vite_hmr_client():
             f"document.head.appendChild(s2);"
             f"</script>"
         )
-    elif getattr(settings, "VITE_DEV_APP_ENABLED", False):
-        # Production with dev apps: HMR through nginx proxy (only when explicitly enabled)
-        scripts += '<script type="module" src="/_vite_dev_app/@vite/client" onerror=""></script>'
 
     return mark_safe(scripts) if scripts else ""
 
@@ -209,7 +206,7 @@ def vite_script(entry_name: str):
     """
     Load a Vite entry point script.
 
-    Dev app entries → container Vite (port 5174) in BOTH dev and prod.
+    Dev app entries → container Vite (port 5174) in development only.
     Platform entries:
       - DEBUG=True → host Vite (port 5173)
       - DEBUG=False → Vite-built manifest
@@ -217,7 +214,7 @@ def vite_script(entry_name: str):
     Args:
         entry_name: Entry name like 'console_app/workspace'
     """
-    # Dev app entries use container Vite — works in dev and prod
+    # Dev app entries use container Vite, which runs in development only
     if _is_dev_app_entry(entry_name):
         if settings.DEBUG:
             port = getattr(settings, "VITE_DEV_APP_PORT", 5174)
@@ -226,12 +223,13 @@ def vite_script(entry_name: str):
                 f's.src=window.location.protocol+"//"+window.location.hostname+":{port}/{entry_name}.ts";'
                 f"document.head.appendChild(s);}}</script>"
             )
-        else:
-            # Production: through nginx proxy
-            ts_path = _entry_to_ts_path(entry_name)
-            return mark_safe(
-                f'<script type="module" src="/_vite_dev_app/{ts_path}"></script>'
-            )
+        # Production serves built assets only: no Vite dev server runs there
+        # to compile a developmentally-installed app's TypeScript on demand.
+        return _manifest_miss(
+            f"Dev app entry '{entry_name}' has no production build; "
+            "dev app TypeScript is served only in development",
+            entry_name,
+        )
 
     # Platform entries
     # VITE_USE_BUILD=True: use built manifest even in dev (no Vite dev server needed)

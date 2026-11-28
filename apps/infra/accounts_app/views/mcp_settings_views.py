@@ -220,9 +220,15 @@ def _regenerate_claude_config(user):
     if proj_dir.exists():
         for project_dir in proj_dir.iterdir():
             if project_dir.is_dir() and project_dir.name != "dotfiles":
-                ensure_agents_config(project_dir, mcp_env=mcp_env, force=True)
+                ensure_agents_config(
+                    project_dir, mcp_env=mcp_env, force=True, username=username
+                )
                 ensure_claude_config(
-                    user_data_dir, project_dir, mcp_env=mcp_env, force=True
+                    user_data_dir,
+                    project_dir,
+                    mcp_env=mcp_env,
+                    force=True,
+                    username=username,
                 )
                 regenerated = True
     return regenerated

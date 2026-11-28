@@ -8,6 +8,10 @@
 
 Host runs SLURM. Docker connects to it.
 
+The SciTeX compute cluster (scitex-compute-01..04, slurmctld + slurmdbd accounting) has its
+canonical config and runbook in [`cluster/`](cluster/README.md). This page covers the older
+single-host (NAS) setup.
+
 ## Install (once)
 
 ```bash

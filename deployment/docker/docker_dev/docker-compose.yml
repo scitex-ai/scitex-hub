@@ -29,7 +29,7 @@ services:
       - ../../..:/app:cached
 
       # SciTeX ecosystem packages (editable mode) - must exist in ~/proj/
-      - ../../../../scitex-python:/scitex-python:cached
+      - ${SCITEX_PYTHON_SOURCE_DIR:-../../../../scitex-python}:/scitex-python:cached
       - ../../../../scitex-core:/scitex-core:cached
       - ../../../../scitex-io:/scitex-io:cached
       - ../../../../scitex-stats:/scitex-stats:cached
@@ -46,6 +46,9 @@ services:
       - ${SCITEX_CARDS_SOURCE_DIR:-../../../../scitex-cards}:/scitex-cards:cached
       # Optional DM writer is mounted only into Django; no credential in shared env_file.
       - ${SCITEX_HUB_CARDS_DM_SECRET_FILE:-/dev/null}:/run/secrets/scitex-cards-dm-store:ro
+      # OpenID Connect id_token signing key (RSA PEM), Django only. Default
+      # /dev/null = no key = OIDC off. See docs/ops/oidc-signing-key.md.
+      - ${SCITEX_HUB_OIDC_RSA_KEY_HOST_FILE:-/dev/null}:/run/secrets/scitex-hub-oidc-rsa-key:ro
       - ../../../../scitex-agentic-journal:/scitex-agentic-journal:cached
       - ${SCITEX_LIVE_PAPER_SOURCE_DIR:-../../../../scitex-live-paper}:/scitex-live-paper:cached
       - ${CROSSREF_LOCAL_SOURCE_DIR:-../../../../crossref-local}:/crossref-local:cached
@@ -157,6 +160,7 @@ services:
     environment:
       - SCITEX_APPS_PYTHON_MODE=editable
       - SCITEX_HUB_CARDS_DM_STORE_FILE=/run/secrets/scitex-cards-dm-store
+      - SCITEX_HUB_OIDC_RSA_PRIVATE_KEY_FILE=/run/secrets/scitex-hub-oidc-rsa-key
       - SCITEX_HUB_DJANGO_SETTINGS_MODULE=config.settings.settings_dev
       - DEBUG=True
       - DJANGO_DEBUG=True
@@ -327,7 +331,7 @@ services:
 
     volumes:
       - ../../..:/app:cached
-      - ../../../../scitex-python:/scitex-python:cached
+      - ${SCITEX_PYTHON_SOURCE_DIR:-../../../../scitex-python}:/scitex-python:cached
       - ../../../../scitex-core:/scitex-core:cached
       - ../../../../scitex-io:/scitex-io:cached
       - ../../../../scitex-stats:/scitex-stats:cached
@@ -459,7 +463,7 @@ services:
 
     volumes:
       - ../../..:/app:cached
-      - ../../../../scitex-python:/scitex-python:cached
+      - ${SCITEX_PYTHON_SOURCE_DIR:-../../../../scitex-python}:/scitex-python:cached
       - ../../../../scitex-core:/scitex-core:cached
       - ../../../../scitex-io:/scitex-io:cached
       - ../../../../scitex-stats:/scitex-stats:cached
