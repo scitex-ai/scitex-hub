@@ -21,6 +21,15 @@ from config import security_views
 rf = RequestFactory()
 
 
+def _raised_type(call):
+    """The exception type ``call()`` raises, or None."""
+    try:
+        call()
+    except Exception as exc:  # noqa: BLE001 - the type is the result
+        return type(exc)
+    return None
+
+
 def test_security_txt_expires_is_more_than_30_days_away():
     # Arrange
     now = dt.datetime.now(dt.timezone.utc)
@@ -65,6 +74,19 @@ def test_security_txt_is_routed(client):
     response = client.get("/.well-known/security.txt")
     # Assert
     assert response.status_code == 200
+
+
+def test_security_txt_can_be_switched_off():
+    # Arrange
+    from django.http import Http404
+    from django.test import override_settings
+
+    request = rf.get("/.well-known/security.txt")
+    # Act
+    with override_settings(SECURITY_TXT_ENABLED=False):
+        raised = _raised_type(lambda: security_views.security_txt(request))
+    # Assert
+    assert raised is Http404
 
 
 def test_sitemap_lists_public_pages_over_https(client):

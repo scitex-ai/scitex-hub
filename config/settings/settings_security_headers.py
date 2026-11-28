@@ -140,6 +140,11 @@ ADMIN_ALLOWED_NETWORKS = [
 # Expires must be renewed before it lapses: tests/config/test_security_txt.py
 # fails once it is within 30 days, so the renewal is a red CI leg rather than
 # a silent expiry.
+# SCITEX_HUB_SECURITY_TXT_ENABLED=false serves 404 instead, for a deployment
+# whose security contact mailbox is not yet confirmed as monitored.
+SECURITY_TXT_ENABLED = (
+    _getenv_alias("SCITEX_HUB_SECURITY_TXT_ENABLED", "true").lower() == "true"
+)
 SECURITY_TXT_CONTACT = "mailto:security@scitex.ai"
 SECURITY_TXT_EXPIRES = _dt.datetime(2027, 11, 27, tzinfo=_dt.timezone.utc)
 SECURITY_TXT_PREFERRED_LANGUAGES = "en, ja"

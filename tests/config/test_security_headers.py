@@ -27,6 +27,15 @@ from config.security_headers import (
 rf = RequestFactory()
 
 
+def _raised_type(call):
+    """The exception type ``call()`` raises, or None."""
+    try:
+        call()
+    except Exception as exc:  # noqa: BLE001 - the type is the result
+        return type(exc)
+    return None
+
+
 def _ok(_request):
     return HttpResponse("ok")
 
@@ -121,10 +130,9 @@ def test_redirect_never_targets_a_foreign_host():
 
     request = rf.get("/", HTTP_HOST="evil.example", HTTP_X_FORWARDED_PROTO="http")
     # Act
-    with pytest.raises(DisallowedHost) as raised:
-        EdgeHttpsRedirectMiddleware(_ok)(request)
+    raised = _raised_type(lambda: EdgeHttpsRedirectMiddleware(_ok)(request))
     # Assert
-    assert raised.type is DisallowedHost
+    assert raised is DisallowedHost
 
 
 # ── CSP / Permissions-Policy ────────────────────────────────────────────
@@ -190,10 +198,9 @@ def test_off_mode_sends_no_csp_but_keeps_permissions_policy():
 def test_unknown_csp_mode_fails_loud_at_startup():
     # Arrange: nothing beyond the fixtures/settings
     # Act
-    with pytest.raises(ValueError) as raised:
-        SecurityHeadersMiddleware(_ok)
+    raised = _raised_type(lambda: SecurityHeadersMiddleware(_ok))
     # Assert
-    assert raised.type is ValueError
+    assert raised is ValueError
 
 
 def test_a_view_that_sets_its_own_csp_keeps_it():
@@ -274,20 +281,18 @@ def test_anonymous_visitor_gets_404_not_the_admin_login_form():
 
     request = _admin_request(AnonymousUser())
     # Act
-    with pytest.raises(Http404) as raised:
-        AdminAccessMiddleware(_ok)(request)
+    raised = _raised_type(lambda: AdminAccessMiddleware(_ok)(request))
     # Assert
-    assert raised.type is Http404
+    assert raised is Http404
 
 
 def test_signed_in_non_staff_user_gets_404():
     # Arrange
     request = _admin_request(_user(is_staff=False))
     # Act
-    with pytest.raises(Http404) as raised:
-        AdminAccessMiddleware(_ok)(request)
+    raised = _raised_type(lambda: AdminAccessMiddleware(_ok)(request))
     # Assert
-    assert raised.type is Http404
+    assert raised is Http404
 
 
 def test_active_staff_reaches_the_admin():
@@ -304,10 +309,9 @@ def test_staff_outside_the_allowed_networks_gets_404():
     # Arrange
     request = _admin_request(_user(is_staff=True), HTTP_CF_CONNECTING_IP="198.51.100.7")
     # Act
-    with pytest.raises(Http404) as raised:
-        AdminAccessMiddleware(_ok)(request)
+    raised = _raised_type(lambda: AdminAccessMiddleware(_ok)(request))
     # Assert
-    assert raised.type is Http404
+    assert raised is Http404
 
 
 @override_settings(ADMIN_ALLOWED_NETWORKS=["192.0.2.0/24"])
@@ -324,10 +328,9 @@ def test_staff_inside_the_allowed_networks_reaches_the_admin():
 def test_a_malformed_network_fails_loud_at_startup():
     # Arrange: nothing beyond the fixtures/settings
     # Act
-    with pytest.raises(ValueError) as raised:
-        AdminAccessMiddleware(_ok)
+    raised = _raised_type(lambda: AdminAccessMiddleware(_ok))
     # Assert
-    assert raised.type is ValueError
+    assert raised is ValueError
 
 
 def test_non_admin_paths_are_untouched():

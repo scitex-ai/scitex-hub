@@ -14,7 +14,7 @@ import logging
 from xml.sax.saxutils import escape
 
 from django.conf import settings
-from django.http import HttpResponse, HttpResponseNotAllowed
+from django.http import Http404, HttpResponse, HttpResponseNotAllowed
 from django.urls import NoReverseMatch, reverse
 from django.views.decorators.csrf import csrf_exempt
 
@@ -67,6 +67,8 @@ def csp_report(request):
 
 
 def security_txt(request):
+    if not getattr(settings, "SECURITY_TXT_ENABLED", True):
+        raise Http404()
     expires = settings.SECURITY_TXT_EXPIRES.strftime("%Y-%m-%dT%H:%M:%SZ")
     lines = [
         f"Contact: {settings.SECURITY_TXT_CONTACT}",
