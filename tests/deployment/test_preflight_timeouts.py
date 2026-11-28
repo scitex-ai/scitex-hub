@@ -82,3 +82,39 @@ def test_no_docker_call_in_the_direct_bind_target_keeps_a_literal_deadline():
     literals = _literal_timeouts(target)
     # Assert
     assert literals == []
+
+
+target_module = importlib.import_module("_direct_bind.target")
+
+
+def test_no_cache_directory_means_no_cache_mount():
+    # Arrange
+    environ = {}
+    # Act
+    args = target_module.uv_cache_args(environ)
+    # Assert
+    assert args == []
+
+
+def test_a_cache_directory_is_bind_mounted_for_the_install(tmp_path):
+    # Arrange
+    environ = {"SCITEX_HUB_PREFLIGHT_UV_CACHE": str(tmp_path)}
+    # Act
+    args = target_module.uv_cache_args(environ)
+    # Assert
+    assert args == [
+        "--mount",
+        "type=bind,src={0},dst=/preflight-uv-cache".format(tmp_path),
+        "--env",
+        "SCITEX_PREFLIGHT_UV_CACHE_DIR=/preflight-uv-cache",
+    ]
+
+
+def test_a_missing_cache_directory_refuses(tmp_path):
+    # Arrange
+    environ = {"SCITEX_HUB_PREFLIGHT_UV_CACHE": str(tmp_path / "absent")}
+    # Act
+    attempt = lambda: target_module.uv_cache_args(environ)  # noqa: E731
+    # Assert
+    with pytest.raises(target_module.TargetUnreachable):
+        attempt()

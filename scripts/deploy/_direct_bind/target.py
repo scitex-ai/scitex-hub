@@ -14,6 +14,35 @@ from . import snapshot
 from .installation import private_exception_log, run_install
 
 
+UV_CACHE_ENV = "SCITEX_HUB_PREFLIGHT_UV_CACHE"
+UV_CACHE_TARGET = "/preflight-uv-cache"
+
+
+def uv_cache_args(environ):
+    """docker-create arguments that give the install a persistent uv cache.
+
+    Without one, every preflight downloads the cohort's wheels again (torch
+    and CUDA wheels are several GB), which is what pushed the install past its
+    deadline. ``SCITEX_HUB_PREFLIGHT_UV_CACHE`` names an absolute host
+    directory; unset means no cache, exactly as before. The cache holds only
+    downloaded distributions, never an installed environment, so a stale entry
+    cannot change what the check verifies.
+    """
+    path = (environ.get(UV_CACHE_ENV) or "").strip()
+    if not path:
+        return []
+    if not os.path.isabs(path) or not os.path.isdir(path):
+        raise TargetUnreachable(
+            "{0} must name an existing absolute directory".format(UV_CACHE_ENV)
+        )
+    return [
+        "--mount",
+        "type=bind,src={0},dst={1}".format(path, UV_CACHE_TARGET),
+        "--env",
+        "SCITEX_PREFLIGHT_UV_CACHE_DIR=" + UV_CACHE_TARGET,
+    ]
+
+
 class DirectBindTarget(Target):
     def __init__(self, context, timeout, docker_timeout=60):
         self.token = uuid.uuid4().hex
@@ -95,6 +124,7 @@ class DirectBindTarget(Target):
         for path in objects:
             mounts += ["--mount", "type=bind,src={0},dst={0},readonly".format(path)]
         mounts += ["--mount", "type=volume,src={0},dst=/preflight".format(self.volume)]
+        mounts += uv_cache_args(os.environ)
         driver = Path(__file__).with_name("profile.py").resolve()
         create = [
             "docker",

@@ -10,7 +10,11 @@ from pathlib import Path
 def run(spec):
     environment = dict(os.environ)
     environment.pop("UV_SYSTEM_PYTHON", None)
-    environment["UV_CACHE_DIR"] = "/preflight/cache"
+    # A persistent cache, when the deployer mounted one (target.uv_cache_args),
+    # holds downloaded wheels only; --link-mode=copy keeps installs independent.
+    environment["UV_CACHE_DIR"] = (
+        environment.get("SCITEX_PREFLIGHT_UV_CACHE_DIR") or "/preflight/cache"
+    )
     # SCM backends sanitize GIT_* configuration variables. Only these NEW
     # owned clones are aligned with the build identity; serving roots stay RO.
     # Target.close restores ownership after both installation and probing.
