@@ -16,7 +16,8 @@ tags: [scitex-hub-env-vars]
 | `SCITEX_HUB_ROOT` | Root directory of the scitex-hub repo (dev). | repo-root | path |
 | `SCITEX_HUB_WORKSPACE` / `SCITEX_WORKSPACE` | Active workspace name. | `default` | string |
 | `SCITEX_HUB_IS_ON_SITE` | Mark the deployment as on-site (enables on-site tools only). | `false` | bool |
-| `SCITEX_HUB_ONSITE_SECRET` | Shared secret the on-site MCP client signs requests with (HMAC-SHA256 over `username:timestamp`) and Django's `OnSiteAuthMiddleware` verifies (as setting `ONSITE_AUTH_SECRET`). **Unset = on-site auth is disabled** — the middleware fails closed and the client raises rather than sending a forgeable plaintext header. | unset | string |
+| `SCITEX_HUB_ONSITE_SECRET` | Server-only master secret for on-site MCP auth (Django setting `ONSITE_AUTH_SECRET`). Never given to agents or written to user files; it is removed from user terminal environments. **Unset = on-site auth is disabled** (fail closed). | unset | string |
+| `SCITEX_HUB_ONSITE_KEY` / `SCITEX_HUB_ONSITE_KEY_EPOCH` | Per-user key derived from the master (`HMAC(master, audience\|username\|epoch)`) and its issue day, set in each new terminal session. The on-site MCP client signs requests with it; `OnSiteAuthMiddleware` re-derives the claimed user's key, so it cannot sign for another user, and refuses keys older than 14 days. Without it the client falls back to the user's own token. | per session | string / int |
 | `SCITEX_HUB_COMPLETE` | Internal sentinel: standalone importable. | unset | bool (presence) |
 
 ## URLs / hosts

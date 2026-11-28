@@ -21,7 +21,7 @@
             {% for msg in chat_messages %}
                 <div class="shared-chat-msg shared-chat-msg--{{ msg.role }}">
                     {% if msg.role == "assistant" %}<div class="shared-chat-avatar"></div>{% endif %}
-                    <div class="shared-chat-msg__text">{{ msg.text_html|safe }}</div>
+                    <div class="shared-chat-msg__text">{{ msg.text_html }}</div>
                 </div>
             {% empty %}
                 <p class="shared-chat-empty">No messages in this conversation.</p>

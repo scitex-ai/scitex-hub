@@ -39,9 +39,20 @@
       const content = editorTextarea.value;
 
       // Access marked library from window object (defined in global.d.ts)
-      if (window.marked && typeof window.marked.parse === "function") {
+      // The file may have been written by another collaborator: the preview
+      // only ever receives sanitised markup (DOMPurify is loaded globally by
+      // global_body_scripts.html). Without the sanitiser, show text only.
+      const purify = (window as any).DOMPurify;
+      if (
+        window.marked &&
+        typeof window.marked.parse === "function" &&
+        purify &&
+        typeof purify.sanitize === "function"
+      ) {
         const html = window.marked.parse(content);
-        previewContainer.innerHTML = html;
+        previewContainer.innerHTML = purify.sanitize(html);
+      } else if (window.marked && typeof window.marked.parse === "function") {
+        previewContainer.textContent = content;
       } else {
         console.error("marked library not found");
         previewContainer.innerHTML =
