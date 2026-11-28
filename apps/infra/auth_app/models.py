@@ -537,12 +537,11 @@ class LoginHistory(models.Model):
         Usage:
             LoginHistory.log_login(user, request, method='email')
         """
-        # Get IP address (handle proxies)
-        x_forwarded_for = request.META.get("HTTP_X_FORWARDED_FOR")
-        if x_forwarded_for:
-            ip_address = x_forwarded_for.split(",")[0].strip()
-        else:
-            ip_address = request.META.get("REMOTE_ADDR")
+        from apps.client_ip import UNKNOWN_IP, get_client_ip
+
+        ip_address = get_client_ip(request)
+        if ip_address == UNKNOWN_IP:
+            ip_address = None
 
         # Get user agent
         user_agent = request.META.get("HTTP_USER_AGENT", "")[:500]  # Limit length
