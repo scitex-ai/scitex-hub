@@ -19,15 +19,25 @@ on:
   pull_request_target:
     types: [opened, closed, synchronize]
 
-permissions:
-  actions: write
-  contents: write
-  pull-requests: write
-  statuses: write
+# Nothing at workflow level: each job states what it needs.
+permissions: {}
 
 jobs:
   call:
-    uses: scitex-ai/.github/.github/workflows/cla.yml@main
+    # The callee's jobs get these scopes and no more. They match what the
+    # pinned callee declares; a caller grant below the callee's request
+    # fails the run at startup, so narrowing contents to read has to start
+    # in the org workflow (its signature ledger is in another repository,
+    # written with the dedicated token below).
+    permissions:
+      actions: write
+      contents: write
+      pull-requests: write
+      statuses: write
+    # Pinned to a reviewed commit of the org workflow, not a moving branch:
+    # this job runs on outsider-triggerable events with a write token, so an
+    # unreviewed change upstream must not reach it. Bump deliberately.
+    uses: scitex-ai/.github/.github/workflows/cla.yml@3a2a98852c3636c8c24ccffe1808fb8045a22acf  # main @ 2026-11-26
     with:
       # PIN THE DESTINATION EXPLICITLY. Measured 2026-08-09 by reading the
       # callee: `runs_on` defaults to
