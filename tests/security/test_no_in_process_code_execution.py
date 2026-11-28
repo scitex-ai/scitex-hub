@@ -22,6 +22,8 @@ NB = "00000000-0000-0000-0000-000000000001"
 
 ROUTES = [
     "/apps/console/execute/",
+    "/apps/console/api/execute/",
+    "/apps/console/api/command/",
     "/apps/console/analysis/run/",
     f"/apps/console/notebooks/{NB}/execute/",
     f"/apps/console/api/notebooks/{NB}/execute/",

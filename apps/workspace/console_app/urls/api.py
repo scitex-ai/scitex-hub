@@ -37,12 +37,12 @@ urlpatterns = [
     path("api/save/", workspace_api_views.api_save_file, name="api_save_file"),
     path(
         "api/execute/",
-        workspace_api_views.api_execute_script,
+        retired_execution,
         name="api_execute_script",
     ),
     path(
         "api/command/",
-        workspace_api_views.api_execute_command,
+        retired_execution,
         name="api_execute_command",
     ),
     path(
