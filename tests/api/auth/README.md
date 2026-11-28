@@ -8,7 +8,6 @@
 - Get theme (unauthenticated)
 - Save theme (authenticated)
 - Save invalid theme
-- Get authenticated accounts
 - Login with valid credentials
 - Login with invalid credentials
 - Login without CSRF

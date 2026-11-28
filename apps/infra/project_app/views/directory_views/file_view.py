@@ -212,9 +212,9 @@ def _read_and_render_file(full_file_path, file_ext, file_name, file_size):
         language = detect_language(file_ext, file_name)
 
         if file_ext == ".md":
-            import markdown
+            from apps.user_content import render_user_markdown
 
-            file_html = markdown.markdown(
+            file_html = render_user_markdown(
                 file_content,
                 extensions=["fenced_code", "tables", "nl2br", "codehilite"],
             )

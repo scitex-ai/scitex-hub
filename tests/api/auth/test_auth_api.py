@@ -118,20 +118,6 @@ class TestThemeAPI:
         assert response.status_code in (200, 400, 401, 403, 405)
 
 
-class TestAuthenticatedAccountsAPI:
-    """Tests for multi-account API."""
-
-    def test_get_authenticated_accounts(self, authenticated_client, api_base_url):
-        """Get list of authenticated accounts for device."""
-        response = authenticated_client.get(
-            f"{api_base_url}/auth/api/authenticated-accounts/"
-        )
-
-        assert response.status_code == 200
-        data = response.json()
-        assert isinstance(data, (list, dict))
-
-
 class TestLoginAPI:
     """Tests for login API endpoint."""
 

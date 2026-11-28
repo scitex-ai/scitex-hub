@@ -6,13 +6,20 @@ Auth app views - modular structure.
 This __init__.py re-exports all views to maintain backward compatibility
 with existing code that imports from apps.infra.auth_app.views.
 """
+
 from __future__ import annotations
+
+# Account management views
+from .account import (
+    delete_account,
+    verify_email,
+)
 
 # Authentication views
 from .authentication import (
-    signup,
     login_view,
     logout_view,
+    signup,
 )
 
 # Password reset views
@@ -21,24 +28,10 @@ from .password_reset import (
     reset_password,
 )
 
-# Account management views
-from .account import (
-    verify_email,
-    delete_account,
-)
-
 # Theme preference API views
 from .theme import (
-    api_save_theme_preference,
     api_get_theme_preference,
-)
-
-# Account switching views
-from .account_switching import (
-    get_or_create_device_id,
-    add_authenticated_account,
-    switch_account,
-    get_authenticated_accounts,
+    api_save_theme_preference,
 )
 
 __all__ = [
@@ -55,11 +48,6 @@ __all__ = [
     # Theme preferences
     "api_save_theme_preference",
     "api_get_theme_preference",
-    # Account switching
-    "get_or_create_device_id",
-    "add_authenticated_account",
-    "switch_account",
-    "get_authenticated_accounts",
 ]
 
 # EOF
