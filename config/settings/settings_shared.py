@@ -292,6 +292,20 @@ SCITEX_HUB_INTERNAL_APPS_RELEASED = (
     _getenv_alias("SCITEX_HUB_INTERNAL_APPS_RELEASED", "false") or "false"
 ).lower() in ("1", "true", "yes", "on")
 
+# ── Client IP behind the proxy chain ──────────────────────────────────
+# apps.client_ip.get_client_ip honours CF-Connecting-IP / X-Real-IP only when
+# the direct peer is in one of these networks: the Docker bridges nginx and
+# cloudflared connect from. Comma-separated CIDRs; set it to a single
+# unroutable entry (e.g. "0.0.0.0/32") to trust no proxy at all.
+CLIENT_IP_TRUSTED_PROXIES = tuple(
+    cidr.strip()
+    for cidr in os.environ.get(
+        "SCITEX_HUB_TRUSTED_PROXY_CIDRS",
+        "127.0.0.0/8,::1/128,10.0.0.0/8,172.16.0.0/12,192.168.0.0/16,fc00::/7",
+    ).split(",")
+    if cidr.strip()
+)
+
 # ── On-site agent auth (HMAC master secret, server-only) ───────────────
 # Never handed to agents. Each terminal session receives only a per-user
 # key derived from it (scitex_hub._mcp_tools.api.issue_onsite_credentials);

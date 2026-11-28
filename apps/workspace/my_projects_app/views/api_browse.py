@@ -206,11 +206,10 @@ def _read_file_for_hub(full_path, file_ext, file_name, file_size):
         language = detect_language(file_ext, file_name)
 
         if file_ext == ".md":
-            import markdown
+            from apps.user_content import render_user_markdown
 
-            html = markdown.markdown(
-                content,
-                extensions=["fenced_code", "tables", "nl2br", "codehilite"],
+            html = render_user_markdown(
+                content, extensions=["fenced_code", "tables", "nl2br", "codehilite"]
             )
             return "markdown", content, html, language
 

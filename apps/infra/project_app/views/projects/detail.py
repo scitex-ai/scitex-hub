@@ -361,9 +361,9 @@ def _get_trip_contents(project):
             try:
                 content = backend.read_file(readme_name)
                 readme_content = content
-                import markdown
+                from apps.user_content import render_user_markdown
 
-                readme_html = markdown.markdown(
+                readme_html = render_user_markdown(
                     content, extensions=["fenced_code", "tables"]
                 )
                 break
