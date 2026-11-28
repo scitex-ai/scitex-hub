@@ -94,14 +94,17 @@ class TestDisabledByDefault:
         # Assert
         assert response.status_code == 404
 
-    @pytest.mark.parametrize("path", DEV_PATHS)
-    def test_404_even_with_debug_on(self, client, settings, path):
+    def test_debug_on_does_not_mount_dev_routes(self, settings):
         # Arrange
+        # (Checked at the mount itself: a full DEBUG 404 page needs dev-only
+        # URLs that the test URLconf, built with DEBUG off, does not have.)
+        import config.urls as root
+
         settings.DEBUG = True
         # Act
-        response = client.get(path)
+        patterns = root._dev_tools_patterns()
         # Assert
-        assert response.status_code == 404
+        assert patterns == []
 
     def test_gate_refuses_staff_when_disabled(self, rf, staff_user, settings):
         # Arrange
