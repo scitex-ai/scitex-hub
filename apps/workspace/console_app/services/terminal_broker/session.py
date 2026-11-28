@@ -28,22 +28,15 @@ MAX_RESPAWNS = 15
 def session_base_env(server_env, username: str) -> dict:
     """Environment a user's terminal starts from.
 
-    The broker runs with the server's environment. The on-site MASTER
-    secret must never reach a user process, so it is removed here, and the
-    session instead receives that user's own derived on-site key (set both
-    plain and ``APPTAINERENV_``-prefixed, like ``provider_env``, so it
-    survives either exec path). The derived key can only sign for this user
-    and expires (``scitex_hub._mcp_tools.api.verify_onsite``).
+    Never the broker's own environment: an allowlist of runtime variables
+    plus this user's derived on-site key (``user_process_env``). Callers add
+    the session's own variables (HOME, USER, project, provider) on top.
     """
-    from scitex_hub._mcp_tools.api import ONSITE_SECRET_ENV, issue_onsite_credentials
+    from apps.workspace.console_app.services.user_process_env import (
+        user_process_env,
+    )
 
-    env = dict(server_env)
-    master = env.pop(ONSITE_SECRET_ENV, "")
-    env.pop(f"APPTAINERENV_{ONSITE_SECRET_ENV}", None)
-    for key, value in issue_onsite_credentials(username, master=master).items():
-        env[key] = value
-        env[f"APPTAINERENV_{key}"] = value
-    return env
+    return user_process_env(server_env, username=username)
 
 
 class SessionState(enum.Enum):
