@@ -263,3 +263,32 @@ def test_organization_cpu_jobs_depend_on_exact_shared_authorization(filename, ke
     admitted = _shared_admission_routes_forks(filename, candidate)
     # Assert
     assert admitted, f"{filename}::{key} bypasses shared authorization"
+
+
+JOB_HOME_ACTION = "scitex-ai/.github/.github/actions/job-home@main"
+NATIVE_PR_JOBS = [p for p in SELF_HOSTED_PR_JOBS if "container" not in p.values[2]]
+
+
+def test_the_native_scan_found_the_host_jobs():
+    # Arrange
+    jobs = NATIVE_PR_JOBS
+    # Act
+    count = len(jobs)
+    # Assert
+    assert count >= 5, f"only {count} native self-hosted PR jobs found"
+
+
+@pytest.mark.parametrize("filename,key,job", NATIVE_PR_JOBS)
+def test_native_jobs_use_a_job_owned_home_before_checkout(filename, key, job):
+    """Jobs on the host (no job container) must not run with the runner
+    account's real HOME: it holds the operator's live ~/.scitex state."""
+    # Arrange
+    uses = [str(step.get("uses", "")) for step in job["steps"]]
+    checkout = next(i for i, u in enumerate(uses) if u.startswith("actions/checkout"))
+    # Act
+    position = uses.index(JOB_HOME_ACTION) if JOB_HOME_ACTION in uses else None
+    # Assert
+    assert position is not None and 0 < position < checkout, (
+        f"{filename}::{key} must use {JOB_HOME_ACTION} after the fork guard "
+        "and before checkout."
+    )

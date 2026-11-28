@@ -58,6 +58,11 @@ jobs:
           echo "::error::Fork-authored code is not run on self-hosted runners."
           exit 1
 
+      # Job-owned HOME/XDG/SCITEX_DIR under runner.temp; fails if HOME is the
+      # runner account's real home. Never read or write the host's ~/.scitex.
+      - name: Use a job-owned HOME, never the runner account's
+        uses: scitex-ai/.github/.github/actions/job-home@main
+
       - name: Checkout code
         uses: actions/checkout@v4
 
