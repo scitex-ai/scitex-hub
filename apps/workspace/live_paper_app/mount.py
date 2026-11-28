@@ -27,7 +27,8 @@ def hub_resolver(request, **url_kwargs) -> BundleContext:
 
     Explicit deep links carry a bundle directory in ``working_dir``.
     Otherwise use the current authorized project, consistently for the
-    viewer and its API calls. Both paths remain inside the caller's jail.
+    viewer and its API calls. Named projects are scoped to their authorized
+    storage root. Explicit directories stay inside the caller's jail.
     """
     from scitex_live_paper import BundleAccessDenied
     from scitex_sdk.ui.project_scope import ProjectSelection
@@ -60,7 +61,23 @@ def hub_resolver(request, **url_kwargs) -> BundleContext:
         raise BundleNotFound(f"paper path does not resolve: {raw!r}") from exc
     if not resolved.is_dir():
         raise BundleNotFound(f"paper bundle directory not found: {raw!r}")
-    if not _inside_user_jail(request, resolved):
+    if view_selection is not None:
+        from apps.infra.project_app.services.filesystem.permissions import (
+            validate_path_in_project,
+        )
+
+        # The provider authorizes collaborators as well as the owner. A
+        # named project nevertheless cannot redirect through a symlink.
+        if candidate != resolved:
+            raise BundleAccessDenied("paper is outside the selected project")
+
+        def inside_scope(path):
+            return candidate.resolve() == resolved and validate_path_in_project(resolved, path)
+    else:
+        def inside_scope(path):
+            return _inside_user_jail(request, path)
+
+    if not inside_scope(resolved):
         raise BundleAccessDenied("paper is outside your workspace")
     # Presentation follows this authorized resource, not a different tab's
     # globally remembered project. Keep it even when the bundle is absent.
@@ -72,7 +89,7 @@ def hub_resolver(request, **url_kwargs) -> BundleContext:
         # Bundle members are opened by the leaf after resolution. Refuse
         # symlink-bearing bundles so a nested manuscript/claims/figz link
         # cannot cross the user's jail through an otherwise safe directory.
-        if not _inside_user_jail(request, resolved):
+        if not inside_scope(resolved):
             raise BundleAccessDenied("paper is outside your workspace")
         # A project may also contain unrelated source/runtime links. Check
         # only members the renderer reads, not the entire project tree.
@@ -86,9 +103,7 @@ def hub_resolver(request, **url_kwargs) -> BundleContext:
             "figz",
         ):
             member = resolved / name
-            if (member.exists() or member.is_symlink()) and not _inside_user_jail(
-                request, member
-            ):
+            if (member.exists() or member.is_symlink()) and not inside_scope(member):
                 raise BundleAccessDenied(
                     "paper bundle member is outside your workspace"
                 )
@@ -114,12 +129,30 @@ def hub_resolver(request, **url_kwargs) -> BundleContext:
         ) from exc
     except BundleError as exc:
         raise BundleResolverError(f"Invalid LivePaper bundle: {exc}") from exc
-    if view_selection is not None and not url_kwargs:
+    if view_selection is not None:
         owner, _, slug = view_selection.id.rpartition("/")
-        request.live_paper_project_tools_url = reverse(
-            "project_app:detail",
-            kwargs={"username": owner or request.user.username, "slug": slug},
-        )
+        project = {"username": owner or request.user.username, "slug": slug}
+        if not url_kwargs:
+            request.live_paper_project_tools_url = reverse("project_app:detail", kwargs=project)
+
+        def evidence_links(file_path: Path) -> dict[str, str]:
+            folder = file_path.parent
+            return {
+                "file": reverse(
+                    "project_app:file_view",
+                    kwargs={**project, "file_path": file_path.as_posix()},
+                ),
+                "folder": (
+                    reverse(
+                        "project_app:directory_browse",
+                        kwargs={**project, "directory_path": folder.as_posix()},
+                    )
+                    if folder.parts
+                    else reverse("project_app:detail", kwargs=project)
+                ),
+            }
+
+        request.live_paper_evidence_links = evidence_links
     return BundleContext(
         source=BundleSource.from_bundle(bundle),
         paper_state=PaperState(),
