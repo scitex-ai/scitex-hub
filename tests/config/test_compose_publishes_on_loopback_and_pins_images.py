@@ -57,6 +57,16 @@ _PUBLIC_ON_PURPOSE = {
         "gitea",
         "22",
     ): "dormant copy of the prod file; kept identical to it",
+    (
+        "deployment/docker/docker_prod/docker-compose.yml",
+        "django",
+        "2200",
+    ): "workspace SSH for users (HPC-style access); gateway accepts keys only",
+    (
+        "deployment/docker/docker-compose.prod.yml",
+        "django",
+        "2200",
+    ): "dormant copy of the prod file; kept identical to it",
 }
 
 _FLOATING_TAGS = re.compile(r"(^|-)latest$")

@@ -80,7 +80,7 @@ services:
       # Live-editable announcement banner
       - ../../apps/infra/public_app/templates/public_app/landing_partials/landing_announcement.html:/app/apps/infra/public_app/templates/public_app/landing_partials/landing_announcement.html:ro
     ports:
-      - "127.0.0.1:${SCITEX_HUB_SSH_PORT:-2200}:2200"
+      - "0.0.0.0:${SCITEX_HUB_SSH_PORT:-2200}:2200"
     expose:
       - "8000"
     env_file:

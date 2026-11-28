@@ -118,9 +118,11 @@ services:
       - /home/ywatanabe/.scitex/orochi/shared/agents:/app/agents-orochi:ro
 
     ports:
-      # Loopback only. The web route reaches the gateway as django:2200 over the
-      # compose network (ws_ssh_proxy), which a host publish is not needed for.
-      - "127.0.0.1:${SCITEX_HUB_SSH_PORT_PROD:-2200}:2200"  # SSH gateway for user workspaces
+      # Public on purpose: users reach their workspaces over SSH directly
+      # (HPC-style), so this port is part of the product. The gateway accepts
+      # keys only. The web route reaches it as django:2200 over the compose
+      # network (ws_ssh_proxy).
+      - "0.0.0.0:${SCITEX_HUB_SSH_PORT_PROD:-2200}:2200"  # SSH gateway for user workspaces
 
     expose:
       - "8000"
