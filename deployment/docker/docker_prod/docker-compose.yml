@@ -608,6 +608,15 @@ services:
       # concurrent requests it queues, serving signed-in users first and
       # shedding anonymous ones with 503.
       - GITEA__qos__ENABLED=true
+      # Browsers only ever reach gitea over https (Cloudflare), so its
+      # session, CSRF and "remember me" cookies are marked Secure. Set
+      # explicitly: the app.ini ROOT_URL is empty, so gitea's own default
+      # (Secure only when ROOT_URL is https) leaves them unmarked.
+      - GITEA__session__COOKIE_SECURE=true
+      # No version / "Powered by" / page-render timing in the footer.
+      - GITEA__other__SHOW_FOOTER_VERSION=false
+      - GITEA__other__SHOW_FOOTER_POWERED_BY=false
+      - GITEA__other__SHOW_FOOTER_TEMPLATE_LOAD_TIME=false
       # The pool was unbounded (MAX_OPEN_CONNS=0): gitea held 145 of the 151
       # client connections of a max_connections=200 postgres it shares with
       # the hub. Cap it so the hub keeps its share.

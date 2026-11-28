@@ -66,9 +66,10 @@ def _require_production_credential(name):
     return value
 
 
-# Allow DEBUG override via environment variable for troubleshooting
-# WARNING: Set DEBUG=False in production after debugging!
-DEBUG = os.getenv("DEBUG", "False").lower() in ("true", "1", "yes")
+# Never on in production. It used to read a generic DEBUG env var, so any
+# stray DEBUG=1 in a shared env file would have exposed tracebacks and
+# settings to the public; troubleshoot from logs instead.
+DEBUG = False
 
 # ---------------------------------------
 # SciTeX Settings
@@ -104,10 +105,14 @@ SECURE_HSTS_SECONDS = 31536000
 SECURE_HSTS_PRELOAD = True
 SECURE_REDIRECT_EXEMPT = []
 
-# SSL handled by Cloudflare Tunnel
-SECURE_SSL_REDIRECT = (
-    _getenv_alias("SCITEX_HUB_ENABLE_SSL_REDIRECT", "false").lower() == "true"
-)
+# TLS ends at Cloudflare; the tunnel reaches nginx/Django over plain HTTP.
+# Django's SECURE_SSL_REDIRECT stays OFF on purpose: it would redirect every
+# request not proven https, including internal callers (http://django:8000
+# from gitea webhooks, health checks, container-to-container OAuth). The
+# visitor-facing redirect is EdgeHttpsRedirectMiddleware (edge scheme "http"
+# only) plus the same rule in nginx_prod.conf. See settings_security_headers.
+SECURE_SSL_REDIRECT = False
+EDGE_HTTPS_REDIRECT = True
 SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
 X_FRAME_OPTIONS = "SAMEORIGIN"  # Allow same-site iframes (needed for PDF viewer)
 SECURE_REFERRER_POLICY = "strict-origin-when-cross-origin"

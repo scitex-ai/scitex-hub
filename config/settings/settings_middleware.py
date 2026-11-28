@@ -8,7 +8,12 @@ comments on each entry.
 """
 
 MIDDLEWARE = [
+    # Plain-HTTP visitors (edge scheme "http") are redirected to https before
+    # anything else runs. Internal callers carry no edge header and pass.
+    "config.security_headers.EdgeHttpsRedirectMiddleware",
     "django.middleware.security.SecurityMiddleware",
+    # CSP (report-only by default) + Permissions-Policy on every response.
+    "config.security_headers.SecurityHeadersMiddleware",
     "whitenoise.middleware.WhiteNoiseMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     # i18n rails (F: tokushoho/commerce pages). Locale resolution must sit
@@ -35,6 +40,9 @@ MIDDLEWARE = [
     # apps/infra/accounts_app/middleware.OnboardingGateMiddleware.
     "apps.infra.accounts_app.middleware.OnboardingGateMiddleware",
     "allauth.account.middleware.AccountMiddleware",
+    # Admin URLs answer 404 unless request.user is active staff (and inside
+    # ADMIN_ALLOWED_NETWORKS when set). After every authentication source.
+    "config.security_headers.AdminAccessMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
     "apps.infra.project_app.middleware.AuthenticatedProjectSessionMiddleware",
