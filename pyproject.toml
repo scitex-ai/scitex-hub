@@ -91,7 +91,7 @@ dependencies = [
     # alone (the hub-side wrapper is retired); this floor is also enforced at
     # mount time (plugin_apps._version_incompatibility), and 2.45.2 declares
     # mount_policy.requires_project for the project-less redirect.
-    "scitex-writer>=2.45.2",
+    "scitex-writer>=2.46.0",
     # >=1.9.0 is a MOUNT requirement, not a feature preference. Below it the
     # leaf's client JS builds API urls from the SITE ROOT
     # (static/scholar/js/graph/citation-graph.js: fetch("/api/graph/health")),
@@ -366,7 +366,7 @@ all = [
     # SAC uses the platform-owned SDK GUI dependency; its standalone [gui]
     # extra pins an older SDK and is not this host's GUI dependency contract.
     "scitex-sdk[gui]>=0.3.26",
-    "scitex-clew[gui]>=0.36.4",
+    "scitex-clew[gui]>=0.38.0",
     "scitex-agent-container>=0.42.1",
     "scitex-cards[web]>=0.56.23",
     "scitex-storage[gui]>=0.6.20",
@@ -667,7 +667,7 @@ dev = [
     # SAC uses the platform-owned SDK GUI dependency; its standalone [gui]
     # extra pins an older SDK and is not this host's GUI dependency contract.
     "scitex-sdk[gui]>=0.3.26",
-    "scitex-clew[gui]>=0.36.4",
+    "scitex-clew[gui]>=0.38.0",
     "scitex-agent-container>=0.42.1",
     "scitex-cards[web]>=0.56.23",
     "scitex-storage[gui]>=0.6.20",
