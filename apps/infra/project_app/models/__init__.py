@@ -51,6 +51,10 @@ from .repository import (
     Project,
     ProjectMembership,
 )
+from .store_tenant import (
+    ProjectStoreScope,
+    ProjectStoreTenant,
+)
 
 # Workflow models (CI/CD workflows)
 from .workflows import (
@@ -68,6 +72,9 @@ __all__ = [
     "Project",
     "ProjectMembership",
     "ProjectPermission",
+    # Clew store provisioning
+    "ProjectStoreScope",
+    "ProjectStoreTenant",
     # Remote project models
     "RemoteCredential",
     "RemoteProjectConfig",

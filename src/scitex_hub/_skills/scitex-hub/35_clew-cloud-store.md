@@ -25,11 +25,20 @@ NOLOGIN owner (default `scitex_cloud_owner`). Django's internal setting includes
 `SECRET` so its settings reporter redacts the complete credential mapping.
 Credentials and owner identity never come from request parameters.
 
-Provision a new tenant namespace explicitly through Dev 0.66.0 or later and the
-owning leaf's schemas. Provisioning must use a separate administration connection;
-request processes use only the restricted tenant LOGIN. Read requests do not
-provision schemas, migrate historical records or select a fleet default DSN.
-Historical data and persisted project scopes require a separately reviewed import.
+Projects not mapped there get a Hub-provisioned store (scitex-hub#1231). Set
+`SCITEX_HUB_STORE_PROVISIONER_DSN` to a separate administration connection (CREATEROLE,
+CREATE on the store database, member of the owner role). The first authorized Clew
+request for a project without a store then creates, under a per-owner advisory lock:
+one unprivileged tenant LOGIN per owner (random UUID and password; its DSN is stored
+encrypted in `ProjectStoreTenant` with the field-encryption keys), the stores Clew
+declares in `scitex_clew.tenant.tenant_schemas()` via `provision_tenant`, and one
+`ProjectStoreScope` per project equal to the project's own `.scitex/clew/project-id`
+(`project_scope_for`, minted once), so runs inside the project and Hub reads share
+a scope. Later requests use only the tenant LOGIN. `manage.py provision_project_stores
+--all|--project PK` does the same ahead of time and prints outcomes only. Without the
+provisioner setting, unmapped projects stay 503. Hand-configured entries win for the
+projects they map. Provisioning never migrates historical records or selects a fleet
+default DSN; historical data still requires a separately reviewed import.
 
 Access follows Hub's project permission model. Whoever can open the project in
 Hub (its owner and every project member, any permission level) reads that
