@@ -191,3 +191,25 @@ def test_failed_template_does_not_report_empty_project_as_success(tmp_path):
         manager.template_ops.create_minimal_readme.call_count,
         project.save.call_count,
     ) == ((False, None), 0, 0)
+
+
+def test_existing_incomplete_workspace_is_not_reported_ready(repository):
+    from apps.infra.project_app.services.project_filesystem.template_ops import (
+        TemplateOperationsManager,
+    )
+    from scitex_writer.workspace_layout import workspace_dir
+
+    # Arrange
+    path = workspace_dir(repository)
+    path.mkdir(parents=True)
+    marker = path / "author-notes.txt"
+    marker.write_text("unfinished")
+    manager = TemplateOperationsManager(
+        SimpleNamespace(get_project_root_path=lambda project: repository)
+    )
+    # Act
+    result = manager.initialize_scitex_writer_template(
+        SimpleNamespace(pk=1, slug=repository.name)
+    )
+    # Assert
+    assert (result, marker.read_text()) == ((False, None), "unfinished")

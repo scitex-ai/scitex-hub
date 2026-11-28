@@ -143,22 +143,31 @@ class TemplateOperationsManager:
     ) -> Tuple[bool, Optional[Path]]:
         """Initialize SciTeX Writer template structure for a project."""
         try:
-            try:
-                from apps.workspace.writer_app.services import WriterService
-            except ImportError:
-                logger.warning("WriterService not available - writer_app not installed")
+            from django.conf import settings
+            from scitex_writer import ensure_workspace
+            from scitex_writer.workspace_layout import workspace_dir
+
+            root = self.manager.get_project_root_path(project)
+            if root is None:
                 return False, None
-
-            writer_service = WriterService(project.id, project.owner.id)
-            writer_path = writer_service.writer_dir
-
-            if writer_path and writer_path.exists():
-                logger.info(f"Writer template initialized at: {writer_path}")
+            writer_path = workspace_dir(root)
+            if not writer_path.resolve().is_relative_to(root.resolve()):
+                logger.warning("Writer workspace is outside project %s", project.pk)
+                return False, None
+            if not writer_path.exists():
+                # The resolver only computes a path. Creation is an explicit
+                # operation in Writer and takes the project root.
+                ensure_workspace(
+                    root,
+                    git_strategy="parent",
+                    branch=getattr(settings, "SCITEX_WRITER_TEMPLATE_BRANCH", None),
+                    tag=getattr(settings, "SCITEX_WRITER_TEMPLATE_TAG", None),
+                )
+            if all(
+                (writer_path / name).is_dir() for name in ("00_shared", "01_manuscript")
+            ):
                 return True, writer_path
-
-            logger.warning(
-                f"Writer initialization returned path but directory doesn't exist: {writer_path}"
-            )
+            logger.warning("Incomplete Writer workspace for project %s", project.pk)
             return False, None
 
         except Exception as e:
