@@ -106,42 +106,24 @@ def workspace_status_api(request):
         )
 
 
-@login_required
-def exec_command(request):
-    """Execute command in user's workspace container"""
-    if request.method == "POST":
-        command = request.POST.get("command", "").strip()
+def exec_command(request, *args, **kwargs):
+    """Retired: answer 410 Gone without reading the request body.
 
-        if not command:
-            return JsonResponse({"error": "No command provided"}, status=400)
-
-        manager = UserContainerManager()
-
-        try:
-            # Parse command into list
-            import shlex
-
-            cmd_list = shlex.split(command)
-
-            exit_code, output = manager.exec_command(request.user, cmd_list)
-
-            return JsonResponse(
-                {
-                    "success": True,
-                    "exit_code": exit_code,
-                    "output": output,
-                }
-            )
-        except Exception as e:
-            return JsonResponse(
-                {
-                    "success": False,
-                    "error": str(e),
-                },
-                status=500,
-            )
-
-    return JsonResponse({"error": "Only POST allowed"}, status=405)
+    This endpoint used to run the posted command through ``docker exec`` in a
+    per-user workspace container driven from the web application. User
+    commands now run only in the project terminal and SLURM jobs. The route
+    stays mounted so old clients get a clear answer instead of a 404.
+    """
+    return JsonResponse(
+        {
+            "success": False,
+            "error": (
+                "Running commands from the workspace dashboard has been "
+                "retired. Use the project terminal."
+            ),
+        },
+        status=410,
+    )
 
 
 def workspace_shell(request, module="chat"):
@@ -201,9 +183,8 @@ def workspace_module_content(request, module):
         get_current_project(request) if request.user.is_authenticated else None
     )
 
-    from .content import render_module_content
-
     from ._api_docs_metadata import stamp_module_docs_response
+    from .content import render_module_content
 
     return stamp_module_docs_response(
         render_module_content(request, mod_config, current_project), mod_config
