@@ -256,20 +256,9 @@ def signup(request):
                     pass
             PendingSignup.objects.create(user=user, email=email, plan=signup_plan)
 
-            # Create Gitea user account (sync with Gitea)
-            try:
-                from apps.infra.gitea_app.services.gitea_sync_service import (
-                    sync_user_to_gitea,
-                )
-
-                sync_success = sync_user_to_gitea(user, password)
-                if sync_success:
-                    logger.info(f"Gitea user created for {username}")
-                else:
-                    logger.warning(f"Failed to create Gitea user for {username}")
-            except Exception as e:
-                logger.warning(f"Gitea sync failed for {username}: {e}")
-                # Don't fail signup if Gitea sync fails
+            # No Gitea or Linux account yet: those are created when the
+            # address is verified and the account becomes active
+            # (accounts_app.signals.create_user_profile).
 
             # Create email verification record
 
