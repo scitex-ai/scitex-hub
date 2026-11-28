@@ -70,6 +70,14 @@ def _require_production_credential(name):
 # WARNING: Set DEBUG=False in production after debugging!
 DEBUG = os.getenv("DEBUG", "False").lower() in ("true", "1", "yes")
 
+# Developer endpoints (/dev/) are never mounted in production. Refuse to start
+# rather than silently ignore an environment that asks for them.
+if DEV_TOOLS_ENABLED:
+    raise ImproperlyConfigured(
+        "SCITEX_HUB_DEV_TOOLS_ENABLED must not be set in production settings"
+    )
+DEV_TOOLS_ENABLED = False
+
 # ---------------------------------------
 # SciTeX Settings
 # ---------------------------------------
