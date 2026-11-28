@@ -329,6 +329,9 @@ DEV_TOOLS_ENABLED = (
 # module; imported under the same name so env modules can extend it.
 from .settings_middleware import MIDDLEWARE  # noqa: E402, F401
 
+# HTTPS redirect, CSP, Permissions-Policy, admin access, security.txt.
+from .settings_security_headers import *  # noqa: E402, F401, F403
+
 AUTHENTICATION_BACKENDS = [
     "django.contrib.auth.backends.ModelBackend",
     "allauth.account.auth_backends.AuthenticationBackend",

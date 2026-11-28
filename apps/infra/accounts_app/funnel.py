@@ -132,6 +132,7 @@ EXEMPT_MOUNTS = frozenset(
         "sw.js",
         "favicon.ico",
         "robots.txt",
+        "sitemap.xml",  # public page list referenced by robots.txt
         # --- public/reference/trust pages and the EN disclosure companion:
         # --- corrected after the independent review of f06cabea found these
         # --- public routes classified product.

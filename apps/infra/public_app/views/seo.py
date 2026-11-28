@@ -43,7 +43,9 @@ def robots_txt(request):
         "Crawl-delay: 1",
         "",
         "# Sitemap location",
-        f"Sitemap: {request.build_absolute_uri('/sitemap.xml')}",
+        # Served by config.security_views.sitemap_xml; always https (the
+        # origin sees plain HTTP from the tunnel, the public URL is https).
+        f"Sitemap: https://{request.get_host()}/sitemap.xml",
     ]
     return HttpResponse("\n".join(lines), content_type="text/plain")
 
