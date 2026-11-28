@@ -26,6 +26,7 @@ matching (same technique as test_no_prefix_path_containment): only LIVE code can
 satisfy the gate. The non-vacuity self-tests below prove that stripping works,
 i.e. removing the live check while leaving the comment DOES flip this red.
 """
+
 from __future__ import annotations
 
 import io
@@ -57,9 +58,7 @@ def _code_text(source: str) -> str:
     except (tokenize.TokenError, IndentationError, SyntaxError):
         return source
     return "".join(
-        t.string
-        for t in toks
-        if t.type not in (tokenize.COMMENT, tokenize.STRING)
+        t.string for t in toks if t.type not in (tokenize.COMMENT, tokenize.STRING)
     )
 
 
@@ -86,7 +85,12 @@ def test_file_content_read_endpoint_keeps_owner_collaborator_guard():
     # Arrange
     code = _code_text(FILE_CONTENT.read_text(encoding="utf-8"))
     # Act
-    guard_present = "project.collaborators.all()" in code
+    # Either the inline check or the shared owner/collaborator helper (whose
+    # behaviour is covered by tests/security/test_onsite_key_distribution.py).
+    guard_present = (
+        "project.collaborators.all()" in code
+        or "is_project_member(request.user, project)" in code
+    )
     # Assert
     assert guard_present, (
         "IDOR regression: apps/infra/workspace_api/views/file_content.py fetches "
