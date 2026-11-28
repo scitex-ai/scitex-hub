@@ -75,8 +75,12 @@ def build_csp(directives: dict[str, list[str]], report_path: str) -> str:
     parts = [
         f"{name} {' '.join(sources)}".strip() for name, sources in directives.items()
     ]
+    # report-uri only, on purpose: when a policy also names report-to, Chrome
+    # ignores report-uri and queues reports in the Reporting API, which did
+    # not deliver at all in the dev browser check (2026-11-28) while
+    # report-uri delivered immediately. Add report-to back only together
+    # with a check that its reports actually arrive.
     parts.append(f"report-uri {report_path}")
-    parts.append("report-to csp-endpoint")
     return "; ".join(parts)
 
 
@@ -128,7 +132,6 @@ class SecurityHeadersMiddleware:
             ),
             settings.CSP_REPORT_PATH,
         )
-        self.reporting_endpoints = f'csp-endpoint="{settings.CSP_REPORT_PATH}"'
         self.permissions_policy = build_permissions_policy(settings.PERMISSIONS_POLICY)
 
     def __call__(self, request):
@@ -138,7 +141,6 @@ class SecurityHeadersMiddleware:
             or response.has_header("Content-Security-Policy-Report-Only")
         ):
             response[self.csp_header] = self.csp_value
-            response.setdefault("Reporting-Endpoints", self.reporting_endpoints)
         response.setdefault("Permissions-Policy", self.permissions_policy)
         return response
 

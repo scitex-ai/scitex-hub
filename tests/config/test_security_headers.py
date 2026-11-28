@@ -148,8 +148,9 @@ def test_csp_is_report_only_by_default_and_names_the_report_endpoint():
         "Content-Security-Policy" not in response,
         "report-uri /api/csp-report/"
         in response["Content-Security-Policy-Report-Only"],
-        response["Reporting-Endpoints"],
-    ) == (True, True, 'csp-endpoint="/api/csp-report/"')
+        # no report-to: with it, Chrome ignores report-uri (see build_csp)
+        "report-to" in response["Content-Security-Policy-Report-Only"],
+    ) == (True, True, False)
 
 
 def test_csp_restricts_framing_objects_and_base():
@@ -256,7 +257,7 @@ def test_build_csp_joins_directives():
     # Act
     value = build_csp({"default-src": ["'self'"]}, "/r/")
     # Assert
-    assert value == "default-src 'self'; report-uri /r/; report-to csp-endpoint"
+    assert value == "default-src 'self'; report-uri /r/"
 
 
 # ── admin access ────────────────────────────────────────────────────────
