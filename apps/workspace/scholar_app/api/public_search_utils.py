@@ -13,6 +13,8 @@ from typing import Callable
 from django.core.cache import cache
 from django.http import HttpRequest, HttpResponse, JsonResponse
 
+from apps.client_ip import get_client_ip
+
 from ..services.network_jail import jailed_get
 
 logger = logging.getLogger(__name__)
@@ -22,14 +24,6 @@ RATE_LIMIT_ANONYMOUS = 10  # requests per minute
 RATE_LIMIT_CAMPAIGN = 50  # requests per minute (shared key)
 RATE_LIMIT_USER = 100  # requests per minute (per-user key)
 RATE_LIMIT_WINDOW = 60  # seconds
-
-
-def get_client_ip(request: HttpRequest) -> str:
-    """Get client IP address from request."""
-    x_forwarded_for = request.META.get("HTTP_X_FORWARDED_FOR")
-    if x_forwarded_for:
-        return x_forwarded_for.split(",")[0].strip()
-    return request.META.get("REMOTE_ADDR", "unknown")
 
 
 def get_api_key(request: HttpRequest) -> str | None:
