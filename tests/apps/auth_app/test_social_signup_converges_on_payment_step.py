@@ -435,7 +435,7 @@ class TestBothPathsReadOneSource:
         # The email path's publisher (auth_app/api_views.py) and this hook must
         # be the same function object: one source, two callers.
         # Arrange
-        from apps.infra.auth_app import api_views
+        from apps.infra.auth_app import otp_api_views as api_views
 
         # Act
         from_email_path = api_views.post_signup_redirect_url
