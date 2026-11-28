@@ -28,8 +28,15 @@ def _publish(request, project_dir, message, label):
     A scaffold that exists only on the Hub's disk is not a created project:
     the repository (what clones, the Gitea UI and backups see) would still be
     Gitea's bare README.
+
+    A project with no clone -- Gitea unavailable, the degraded mode the
+    post_save signal already allows -- has no repository to publish to.
     """
     from apps.infra.project_app.services.git_service import git_commit_and_push
+
+    if not (Path(project_dir) / ".git").is_dir():
+        logger.warning("No repository to publish the %s scaffold to", label)
+        return True
 
     published, detail = git_commit_and_push(project_dir, message, branch="HEAD")
     if not published:
