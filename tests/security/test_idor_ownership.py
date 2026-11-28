@@ -89,7 +89,7 @@ def test_file_content_read_endpoint_keeps_owner_collaborator_guard():
     # behaviour is covered by tests/security/test_onsite_key_distribution.py).
     guard_present = (
         "project.collaborators.all()" in code
-        or "is_project_member(request.user, project)" in code
+        or "is_project_member(request.user,project)" in code
     )
     # Assert
     assert guard_present, (
