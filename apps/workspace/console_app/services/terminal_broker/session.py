@@ -25,6 +25,27 @@ logger = logging.getLogger(__name__)
 MAX_RESPAWNS = 15
 
 
+def session_base_env(server_env, username: str) -> dict:
+    """Environment a user's terminal starts from.
+
+    The broker runs with the server's environment. The on-site MASTER
+    secret must never reach a user process, so it is removed here, and the
+    session instead receives that user's own derived on-site key (set both
+    plain and ``APPTAINERENV_``-prefixed, like ``provider_env``, so it
+    survives either exec path). The derived key can only sign for this user
+    and expires (``scitex_hub._mcp_tools.api.verify_onsite``).
+    """
+    from scitex_hub._mcp_tools.api import ONSITE_SECRET_ENV, issue_onsite_credentials
+
+    env = dict(server_env)
+    master = env.pop(ONSITE_SECRET_ENV, "")
+    env.pop(f"APPTAINERENV_{ONSITE_SECRET_ENV}", None)
+    for key, value in issue_onsite_credentials(username, master=master).items():
+        env[key] = value
+        env[f"APPTAINERENV_{key}"] = value
+    return env
+
+
 class SessionState(enum.Enum):
     SPAWNING = "spawning"
     RUNNING = "running"
@@ -161,7 +182,7 @@ class BasePTY:
                 signal.signal(sig, signal.SIG_DFL)
             except (ValueError, OSError):
                 pass
-        env = os.environ.copy()
+        env = session_base_env(os.environ, self.username)
         env["HOME"] = f"/home/{self.username}"
         env["USER"] = self.username
         env["LOGNAME"] = self.username

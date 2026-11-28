@@ -26,35 +26,73 @@ from typing import Optional
 # ``X-Forwarded-For.split(",")[0]`` — the leftmost element, which is
 # exactly the part the CLIENT writes (nginx *appends* the real peer via
 # ``$proxy_add_x_forwarded_for``), so a public request carrying
-# ``X-Forwarded-For: 127.0.0.1`` passed it. Possession of the shared
-# secret is now the only trust signal.
+# ``X-Forwarded-For: 127.0.0.1`` passed it. A signature made with the
+# claimed user's own derived key (``derive_onsite_key``) is now the only
+# trust signal; the master secret itself is never handed to agents.
 ONSITE_USER_HEADER = "X-SciTeX-OnSite"
 ONSITE_SIG_HEADER = "X-SciTeX-OnSite-Sig"
 ONSITE_TS_HEADER = "X-SciTeX-OnSite-Ts"
+ONSITE_EPOCH_HEADER = "X-SciTeX-OnSite-Key-Epoch"
 
-# Env var carrying the shared secret on both sides (injected into the
-# agent container by ``get_on_site_env``; read into Django settings as
-# ``ONSITE_AUTH_SECRET``).
+# Env var carrying the server's MASTER on-site secret (read into Django
+# settings as ``ONSITE_AUTH_SECRET``). The master never leaves the server:
+# it is not written into any user-visible file and is stripped from the
+# environment of user shells. Agents receive only a per-user key derived
+# from it (``derive_onsite_key``), which cannot sign for anyone else.
 ONSITE_SECRET_ENV = "SCITEX_HUB_ONSITE_SECRET"
 
-# Replay window, seconds. A captured signature is useless outside it.
+# Env vars carrying the per-user derived key and its issue epoch inside a
+# user's terminal session (see ``issue_onsite_credentials``).
+ONSITE_KEY_ENV = "SCITEX_HUB_ONSITE_KEY"
+ONSITE_KEY_EPOCH_ENV = "SCITEX_HUB_ONSITE_KEY_EPOCH"
+
+# Audience / version tag bound into both the key derivation and every
+# signed request, so these keys cannot be replayed into another HMAC use
+# of the same master.
+ONSITE_AUDIENCE = "scitex-hub-onsite-v2"
+
+# Replay window for a single request, seconds.
 ONSITE_MAX_SKEW_SECONDS = 300
 
+# Key lifetime: a derived key is bound to the day it was issued and is
+# refused once it is older than ``ONSITE_KEY_MAX_AGE_DAYS``. Every new
+# terminal session is issued a fresh key.
+ONSITE_KEY_PERIOD_SECONDS = 86400
+ONSITE_KEY_MAX_AGE_DAYS = 14
 
-def onsite_message(username: str, timestamp: str) -> str:
+
+def current_key_epoch(now: Optional[float] = None) -> int:
+    """Issue epoch (whole days since the Unix epoch) for a new key."""
+    return int((time.time() if now is None else now) // ONSITE_KEY_PERIOD_SECONDS)
+
+
+def derive_onsite_key(master: str, username: str, epoch: int) -> str:
+    """Per-user on-site key: ``HMAC(master, audience|username|epoch)``.
+
+    Holding this key lets an agent sign requests for ``username`` only,
+    and only until the key ages out; it reveals nothing about the master.
+    """
+    message = f"{ONSITE_AUDIENCE}|key|{username}|{int(epoch)}"
+    return hmac.new(
+        master.encode("utf-8"), message.encode("utf-8"), hashlib.sha256
+    ).hexdigest()
+
+
+def onsite_message(username: str, epoch: int, timestamp: str) -> str:
     """Canonical signing payload for an on-site request."""
-    return f"{username}:{timestamp}"
+    return f"{ONSITE_AUDIENCE}|req|{username}|{int(epoch)}|{timestamp}"
 
 
-def sign_onsite(username: str, timestamp: str, secret: str) -> str:
-    """HMAC-SHA256 hex digest binding an on-site request to (username, ts).
+def sign_onsite(username: str, epoch: int, timestamp: str, key: str) -> str:
+    """HMAC-SHA256 hex digest binding a request to (username, epoch, ts).
 
-    ``timestamp`` is signed as the exact string transmitted on the wire so
-    the verifier can recompute it without any normalization ambiguity.
+    ``key`` is the PER-USER derived key, never the master. ``timestamp``
+    is signed as the exact string transmitted on the wire so the verifier
+    can recompute it without any normalization ambiguity.
     """
     return hmac.new(
-        secret.encode("utf-8"),
-        onsite_message(username, timestamp).encode("utf-8"),
+        key.encode("utf-8"),
+        onsite_message(username, epoch, timestamp).encode("utf-8"),
         hashlib.sha256,
     ).hexdigest()
 
@@ -70,43 +108,67 @@ def wsgi_meta_key(header: str) -> str:
 
 def verify_onsite(
     meta,
-    secret: str,
+    master: str,
     now: Optional[float] = None,
     max_skew: int = ONSITE_MAX_SKEW_SECONDS,
+    max_key_age_days: int = ONSITE_KEY_MAX_AGE_DAYS,
 ) -> Optional[str]:
     """Verify on-site auth headers; return the username, or ``None``.
 
-    ``meta`` is a WSGI/Django ``request.META``-style mapping. Returns the
-    authenticated username ONLY when the request carries a fresh,
-    correctly signed triple. Every failure path returns ``None`` — the
-    caller must treat that as "not authenticated" (fail closed).
-
-    Fails closed when ``secret`` is empty: without a shared secret there
-    is nothing to verify, so no request may be trusted.
+    The verifier re-derives the key for the CLAIMED username from the
+    master, so a key issued to one user can never authenticate another.
+    Returns the username ONLY when the request carries a fresh, correctly
+    signed header set with a key that has not aged out. Every failure path
+    returns ``None`` (fail closed), including an empty ``master``.
     """
-    if not secret:
+    if not master:
         return None
 
     username = meta.get(wsgi_meta_key(ONSITE_USER_HEADER))
     signature = meta.get(wsgi_meta_key(ONSITE_SIG_HEADER))
     timestamp = meta.get(wsgi_meta_key(ONSITE_TS_HEADER))
-    if not username or not signature or not timestamp:
+    epoch_raw = meta.get(wsgi_meta_key(ONSITE_EPOCH_HEADER))
+    if not username or not signature or not timestamp or not epoch_raw:
         return None
 
     try:
         issued_at = float(timestamp)
+        epoch = int(epoch_raw)
     except (TypeError, ValueError):
         return None
 
     reference = time.time() if now is None else now
     if abs(reference - issued_at) > max_skew:
         return None
+    age_days = current_key_epoch(reference) - epoch
+    if age_days < 0 or age_days > max_key_age_days:
+        return None
 
-    expected = sign_onsite(username, timestamp, secret)
+    key = derive_onsite_key(master, username, epoch)
+    expected = sign_onsite(username, epoch, timestamp, key)
     if not hmac.compare_digest(expected, signature):
         return None
 
     return username
+
+
+def issue_onsite_credentials(
+    username: str, master: Optional[str] = None, now: Optional[float] = None
+) -> dict[str, str]:
+    """Per-user on-site credentials for ONE terminal session's environment.
+
+    Returns ``{}`` when no master is configured (on-site auth disabled) or
+    no username is given. The result is meant for a process environment,
+    never for a file in the user's project or home directory.
+    """
+    master = os.environ.get(ONSITE_SECRET_ENV, "") if master is None else master
+    if not master or not username:
+        return {}
+    epoch = current_key_epoch(now)
+    return {
+        ONSITE_KEY_ENV: derive_onsite_key(master, username, epoch),
+        ONSITE_KEY_EPOCH_ENV: str(epoch),
+    }
 
 
 def _json(data: dict) -> str:
@@ -151,27 +213,22 @@ def _resolve_user_token() -> Optional[str]:
     return None
 
 
-def get_on_site_env(
-    username: str = "", site_url: str = "", secret: str = ""
-) -> dict[str, str]:
-    """Build env vars for on-site MCP auth (injected into .mcp.json).
+def get_on_site_env(username: str = "", site_url: str = "") -> dict[str, str]:
+    """Build the NON-SECRET env vars for on-site MCP (written to .mcp.json).
 
     Args:
         username: The container user's Django username.
         site_url: Django server URL. Falls back to SCITEX_HUB_SITE_URL env
                   var, then to http://web:8000 (Docker internal).
-        secret: Shared on-site HMAC secret. Falls back to the server's own
-                ``SCITEX_HUB_ONSITE_SECRET`` env var. This is the
-                key-distribution half of the signed-header scheme: without
-                it the agent cannot sign, and the middleware rejects it.
+
+    No credential is ever included: these values end up in files inside
+    the user's project. The per-user signing key reaches the agent through
+    the terminal session's environment (``issue_onsite_credentials``).
     """
     url = site_url or os.environ.get("SCITEX_HUB_SITE_URL", "http://web:8000")
     env = {"SCITEX_HUB_IS_ON_SITE": "1", "SCITEX_HUB_URL": url}
     if username:
         env["SCITEX_HUB_USERNAME"] = username
-    shared = secret or os.environ.get(ONSITE_SECRET_ENV, "")
-    if shared:
-        env[ONSITE_SECRET_ENV] = shared
     return env
 
 
@@ -186,17 +243,21 @@ def _get_config() -> dict:
         ),
         "is_on_site": is_on_site,
         "username": os.environ.get("SCITEX_HUB_USERNAME", ""),
-        "onsite_secret": os.environ.get(ONSITE_SECRET_ENV, ""),
+        "onsite_key": os.environ.get(ONSITE_KEY_ENV, ""),
+        "onsite_key_epoch": os.environ.get(ONSITE_KEY_EPOCH_ENV, ""),
     }
 
 
-def onsite_headers(username: str, secret: str, now: Optional[float] = None) -> dict:
+def onsite_headers(
+    username: str, key: str, epoch: int, now: Optional[float] = None
+) -> dict:
     """Signed on-site auth headers for one outbound request."""
     timestamp = str(int(time.time() if now is None else now))
     return {
         ONSITE_USER_HEADER: username,
         ONSITE_TS_HEADER: timestamp,
-        ONSITE_SIG_HEADER: sign_onsite(username, timestamp, secret),
+        ONSITE_EPOCH_HEADER: str(int(epoch)),
+        ONSITE_SIG_HEADER: sign_onsite(username, epoch, timestamp, key),
     }
 
 
@@ -208,10 +269,9 @@ def _build_auth_headers(config: dict, auth_required: bool) -> dict[str, str]:
     asserts the chosen ``Authorization`` value, not the network call.
 
     Auth precedence (card #5):
-      1. On-site HMAC-signed headers (dev/cluster path). Requires the
-         shared secret — an unsigned on-site header is no longer an
-         authenticator, so a missing secret raises instead of silently
-         sending a forgeable plaintext username.
+      1. On-site HMAC-signed headers (dev/cluster path), signed with the
+         session's PER-USER derived key. Without that key no on-site header
+         is sent at all (an unsigned one is not an authenticator).
       2. User PAT — SCITEX_HUB_TOKEN env, then ~/.scitex/cloud/runtime/token.json.
       3. Back-compat: server-side TOOL_TOKEN exposed as SCITEX_HUB_API_KEY.
     If none of the above resolve, raise — never send anonymous when
@@ -221,16 +281,13 @@ def _build_auth_headers(config: dict, auth_required: bool) -> dict[str, str]:
     if not auth_required:
         return headers
     if config["is_on_site"] and config["username"]:
-        secret = config.get("onsite_secret") or ""
-        if not secret:
-            raise RuntimeError(
-                f"on-site auth requires {ONSITE_SECRET_ENV}; the plaintext "
-                f"{ONSITE_USER_HEADER} header is no longer accepted by the "
-                "server (it was forgeable). Set the same secret on the Django "
-                "side (ONSITE_AUTH_SECRET) and in this container."
-            )
-        headers.update(onsite_headers(config["username"], secret))
-        return headers
+        key = config.get("onsite_key") or ""
+        epoch = config.get("onsite_key_epoch") or ""
+        if key and epoch.isdigit():
+            headers.update(onsite_headers(config["username"], key, int(epoch)))
+            return headers
+        # No per-user on-site key in this session: fall through to the
+        # user's own token rather than sending a forgeable plaintext header.
     user_token = _resolve_user_token()
     if user_token:
         headers["Authorization"] = f"Bearer {user_token}"

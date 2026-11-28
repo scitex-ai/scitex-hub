@@ -42,7 +42,19 @@ def get_file_context(request, username, slug, file_path):
     if not project_path or not project_path.exists():
         return None
 
-    from ...services.filesystem.permissions import resolve_repository_path
+    from ...services.filesystem.permissions import (
+        canonical_repository_relative_path,
+        is_hidden_repository_path,
+        is_project_member,
+        resolve_repository_path,
+    )
+
+    # Hidden paths (per-user tool config) are for the owner and
+    # collaborators only, even in a public project.
+    relative = canonical_repository_relative_path(file_path)
+    if relative is not None and is_hidden_repository_path(relative):
+        if not is_project_member(request.user, project):
+            return None
 
     full_file_path = resolve_repository_path(project_path, file_path)
     if full_file_path is None:

@@ -292,11 +292,11 @@ SCITEX_HUB_INTERNAL_APPS_RELEASED = (
     _getenv_alias("SCITEX_HUB_INTERNAL_APPS_RELEASED", "false") or "false"
 ).lower() in ("1", "true", "yes", "on")
 
-# ── On-site agent auth (HMAC shared secret) ────────────────────────────
-# Shared with the MCP client running inside the user's agent container
-# (scitex_hub._mcp_tools.api.get_on_site_env injects the same value as
-# SCITEX_HUB_ONSITE_SECRET). OnSiteAuthMiddleware verifies an HMAC over
-# (username, timestamp) against it. Empty => on-site auth is DISABLED
+# ── On-site agent auth (HMAC master secret, server-only) ───────────────
+# Never handed to agents. Each terminal session receives only a per-user
+# key derived from it (scitex_hub._mcp_tools.api.issue_onsite_credentials);
+# OnSiteAuthMiddleware re-derives the claimed user's key and verifies the
+# request signature and key age against it. Empty => on-site auth is DISABLED
 # (fail closed); it is never a "trusted network" fallback, because the
 # previous IP-based signal was client-forgeable (X-Forwarded-For).
 ONSITE_AUTH_SECRET = os.environ.get("SCITEX_HUB_ONSITE_SECRET", "")
