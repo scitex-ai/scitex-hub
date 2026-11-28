@@ -15,9 +15,9 @@ from django.conf.urls.static import static
 from django.contrib import admin
 from django.urls import include, path, re_path
 from django.views.generic import RedirectView
-from django.views.static import serve
 
 from apps.infra.auth_app.oauth_views import userinfo as oauth_userinfo  # noqa: E402
+from apps.infra.platform_app.views.media import serve_media
 from apps.infra.project_app.views import (
     accept_invitation,
     decline_invitation,
@@ -213,6 +213,8 @@ urlpatterns = [
     ),
     # --- Health ---
     path("healthz/", healthz, name="healthz"),
+    # --- Uploaded media: authorised per file (public assets included) ---
+    re_path(r"^media/(?P<path>.+)$", serve_media, name="media"),
     # --- Root + Core Panes ---
     path("", root_dispatch, name="root"),
     path("chat/", root_dispatch, name="pane-chat", kwargs={"pane": "chat"}),
@@ -503,16 +505,5 @@ if settings.DEBUG:
             path("__reload__/", include("django_browser_reload.urls")),
         )
     urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
-    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
-
-# --- Production media fallback ---
-if not settings.DEBUG:
-    urlpatterns += [
-        re_path(
-            r"^media/(?P<path>.*)$",
-            serve,
-            {"document_root": settings.MEDIA_ROOT},
-        ),
-    ]
 
 # EOF
