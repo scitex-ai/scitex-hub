@@ -27,6 +27,7 @@ from apps.infra.platform_app.services.media_access import (
     may_read_media,
     normalise_media_path,
 )
+from apps.infra.platform_app.services.paths import resolve_within
 
 #: Must match the ``internal`` location in the nginx configs.
 ACCEL_PREFIX = "/_protected_media/"
@@ -36,9 +37,10 @@ _SCRIPTABLE = {"image/svg+xml", "text/html", "application/xhtml+xml"}
 
 
 def _resolve(path: str) -> Path:
-    root = Path(settings.MEDIA_ROOT).resolve()
-    target = (root / path).resolve()
-    if not target.is_relative_to(root) or not target.is_file():
+    # resolve_within is the project's containment check (symlinks resolved,
+    # component-wise), recognised as a path sanitiser by the CodeQL model.
+    target = resolve_within(Path(settings.MEDIA_ROOT), path)
+    if target is None or not target.is_file():
         raise Http404
     return target
 
