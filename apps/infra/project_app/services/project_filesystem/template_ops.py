@@ -93,6 +93,18 @@ class TemplateOperationsManager:
 
             git_strategy = "child" if template_type in ("minimal", "research") else None
 
+            writer_options = {}
+            if getattr(project, "_initialize_research_writer", False):
+                from django.conf import settings
+
+                writer_options = {
+                    "initialize_writer": True,
+                    "writer_branch": getattr(
+                        settings, "SCITEX_WRITER_TEMPLATE_BRANCH", None
+                    ),
+                    "writer_tag": getattr(settings, "SCITEX_WRITER_TEMPLATE_TAG", None),
+                }
+
             if project_path.exists():
                 from .new_repository_template import populate_new_repository
 
@@ -102,6 +114,7 @@ class TemplateOperationsManager:
                         template_id=template_type,
                         project_dir=str(target),
                         git_strategy=None,
+                        **writer_options,
                     ),
                 )
             else:
@@ -109,6 +122,7 @@ class TemplateOperationsManager:
                     template_id=template_type,
                     project_dir=str(project_path),
                     git_strategy=git_strategy,
+                    **writer_options,
                 )
 
             if success:
@@ -143,22 +157,30 @@ class TemplateOperationsManager:
     ) -> Tuple[bool, Optional[Path]]:
         """Initialize SciTeX Writer template structure for a project."""
         try:
-            try:
-                from apps.workspace.writer_app.services import WriterService
-            except ImportError:
-                logger.warning("WriterService not available - writer_app not installed")
+            from django.conf import settings
+            from scitex_writer import Writer
+
+            from ..writer_workspace_layout import get_writer_workspace_path
+
+            root = self.manager.get_project_root_path(project)
+            if root is None:
                 return False, None
-
-            writer_service = WriterService(project.id, project.owner.id)
-            writer_path = writer_service.writer_dir
-
-            if writer_path and writer_path.exists():
-                logger.info(f"Writer template initialized at: {writer_path}")
+            writer_path = get_writer_workspace_path(root)
+            if not writer_path.resolve().is_relative_to(root.resolve()):
+                logger.warning("Writer workspace is outside project %s", project.pk)
+                return False, None
+            if not writer_path.exists():
+                Writer(
+                    writer_path,
+                    git_strategy="parent",
+                    branch=getattr(settings, "SCITEX_WRITER_TEMPLATE_BRANCH", None),
+                    tag=getattr(settings, "SCITEX_WRITER_TEMPLATE_TAG", None),
+                )
+            if all(
+                (writer_path / name).is_dir() for name in ("00_shared", "01_manuscript")
+            ):
                 return True, writer_path
-
-            logger.warning(
-                f"Writer initialization returned path but directory doesn't exist: {writer_path}"
-            )
+            logger.warning("Incomplete Writer workspace for project %s", project.pk)
             return False, None
 
         except Exception as e:

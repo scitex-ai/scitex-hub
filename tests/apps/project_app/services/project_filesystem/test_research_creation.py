@@ -65,7 +65,9 @@ def test_new_project_gets_research_scaffold(repository, monkeypatch):
     monkeypatch.setattr(scitex_template, "clone_template", clone)
     manager = TemplateOperationsManager(None)
     manager._customize_after_clone = Mock()
-    project = SimpleNamespace(_research_template_pending=True)
+    project = SimpleNamespace(
+        _research_template_pending=True, _initialize_research_writer=True
+    )
     initial_commit = git(repository, "rev-parse", "HEAD")
 
     # Act
@@ -74,6 +76,7 @@ def test_new_project_gets_research_scaffold(repository, monkeypatch):
     assert (
         success,
         observed[0]["template_id"] if observed else None,
+        observed[0]["initialize_writer"] if observed else None,
         (repository / "scripts/mnist/01_fetch_mnist.py").is_file(),
         (repository / ".scitex/template/MANIFEST.yaml").is_file(),
         (repository / "pipeline.py").is_symlink(),
@@ -82,6 +85,7 @@ def test_new_project_gets_research_scaffold(repository, monkeypatch):
     ) == (
         True,
         "research",
+        True,
         True,
         True,
         True,
@@ -191,3 +195,25 @@ def test_failed_template_does_not_report_empty_project_as_success(tmp_path):
         manager.template_ops.create_minimal_readme.call_count,
         project.save.call_count,
     ) == ((False, None), 0, 0)
+
+
+def test_existing_incomplete_workspace_is_not_reported_ready(repository):
+    from apps.infra.project_app.services.project_filesystem.template_ops import (
+        TemplateOperationsManager,
+    )
+    from scitex_writer.workspace_layout import workspace_dir
+
+    # Arrange
+    path = workspace_dir(repository)
+    path.mkdir(parents=True)
+    marker = path / "author-notes.txt"
+    marker.write_text("unfinished")
+    manager = TemplateOperationsManager(
+        SimpleNamespace(get_project_root_path=lambda project: repository)
+    )
+    # Act
+    result = manager.initialize_scitex_writer_template(
+        SimpleNamespace(pk=1, slug=repository.name)
+    )
+    # Assert
+    assert (result, marker.read_text()) == ((False, None), "unfinished")

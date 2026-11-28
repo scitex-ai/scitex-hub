@@ -160,6 +160,9 @@ def project_create(request):
             project._research_template_pending = (
                 init_type == "template" and template_type == "research"
             )
+            project._initialize_research_writer = (
+                project._research_template_pending and init_scitex
+            )
             project.save()
         except Exception as e:
             logger.error(f"Failed to create project: {e}")
