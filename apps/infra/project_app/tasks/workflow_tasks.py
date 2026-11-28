@@ -332,8 +332,12 @@ def execute_workflow_step(self, step_id):
             working_dir = project_path
 
         # Prepare environment variables
-        env = os.environ.copy()
-        env.update(step.environment_vars)
+        # Never the worker's own environment (it holds platform secrets).
+        from apps.workspace.console_app.services.user_process_env import (
+            user_process_env,
+        )
+
+        env = user_process_env(extra=step.environment_vars)
 
         # Add common environment variables
         env.update(

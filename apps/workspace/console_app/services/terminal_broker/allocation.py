@@ -13,6 +13,8 @@ import uuid
 from pathlib import Path
 from typing import Optional
 
+from apps.workspace.console_app.services.user_process_env import user_process_env
+
 from . import _alloc_workload as workload
 
 logger = logging.getLogger(__name__)
@@ -142,6 +144,7 @@ class Allocation:
                 capture_output=True,
                 text=True,
                 timeout=5,
+                env=user_process_env(),
             )
             state = result.stdout.strip()
             if state == "PENDING":
@@ -253,6 +256,7 @@ class Allocation:
                 capture_output=True,
                 text=True,
                 timeout=10,
+                env=user_process_env(username=self.username),
             )
             if result.returncode != 0 or not result.stdout.strip():
                 self.last_error = (
@@ -353,6 +357,7 @@ class Allocation:
                 capture_output=True,
                 text=True,
                 timeout=5,
+                env=user_process_env(),
             )
             state = result.stdout.strip()
             return state in ("RUNNING", "PENDING")
@@ -415,6 +420,7 @@ class Allocation:
                     ),
                     capture_output=True,
                     text=True,
+                    env=user_process_env(username=self.username),
                     timeout=10,
                 )
                 if result.stderr.strip():
@@ -460,6 +466,7 @@ class Allocation:
                     ],
                     capture_output=True,
                     text=True,
+                    env=user_process_env(username=self.username),
                     timeout=5,
                 )
                 state = result.stdout.strip()

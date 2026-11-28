@@ -11,6 +11,7 @@ from typing import Dict, Optional
 
 from apps.infra.platform_app.services.paths import resolve_within
 from apps.security import safe_log_field
+from apps.workspace.console_app.services.user_process_env import user_process_env
 
 from .script_generator import create_batch_script
 from .tags import ProjectRef, SlurmTags
@@ -120,7 +121,15 @@ def submit_job(
     cmd = ["sbatch", str(batch_file)]
 
     try:
-        result = subprocess.run(cmd, capture_output=True, text=True, check=True)
+        # sbatch exports the caller's environment into the job: hand it
+        # the allowlisted user environment, never the server's.
+        result = subprocess.run(
+            cmd,
+            capture_output=True,
+            text=True,
+            check=True,
+            env=user_process_env(),
+        )
         # Parse output: "Submitted batch job 12345"
         job_id = int(result.stdout.strip().split()[-1])
     except (subprocess.CalledProcessError, ValueError, IndexError):

@@ -21,6 +21,16 @@ from typing import Any
 ALLOWED_DATA_ROOT = os.environ.get("SCITEX_PROJECT_DATA_ROOT", "/app/data/users")
 
 
+def _code_env() -> dict:
+    """Environment for user code run by this tool: an allowlist, never the
+    server's own environment (which carries platform credentials)."""
+    keep = ("PATH", "LANG", "LC_ALL", "LC_CTYPE", "TZ", "TMPDIR")
+    env = {k: os.environ[k] for k in keep if k in os.environ}
+    env.setdefault("PATH", "/usr/local/bin:/usr/bin:/bin")
+    env["PYTHONDONTWRITEBYTECODE"] = "1"
+    return env
+
+
 def _is_within(root: Path, target: Path) -> bool:
     """
     True iff `target` is contained within `root` (component-wise).
@@ -294,7 +304,7 @@ async def exec_python_handler(
             cwd=str(root),
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
-            env={**os.environ, "PYTHONDONTWRITEBYTECODE": "1"},
+            env=_code_env(),
         )
         stdout_bytes, stderr_bytes = await asyncio.wait_for(
             proc.communicate(), timeout=timeout

@@ -15,6 +15,7 @@ from django.core.exceptions import PermissionDenied, ValidationError
 from django.utils import timezone
 
 from apps.workspace.console_app.models import ProjectService, WorkloadSession
+from apps.workspace.console_app.services.user_process_env import user_process_env
 
 logger = logging.getLogger(__name__)
 
@@ -338,6 +339,7 @@ class ProjectServiceManager:
                 stdout=subprocess.PIPE,
                 stderr=subprocess.PIPE,
                 start_new_session=True,
+                env=user_process_env(),
             )
             return process
         except Exception as e:

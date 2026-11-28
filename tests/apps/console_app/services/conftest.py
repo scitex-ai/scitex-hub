@@ -21,11 +21,18 @@ import json, os, sys
 name = os.path.basename(sys.argv[0])
 argv = sys.argv[1:]
 stdin = "" if sys.stdin is None or sys.stdin.isatty() else sys.stdin.read()
-with open(os.environ["FAKE_SLURM_LOG"], "a") as log:
-    log.write(json.dumps({{"cmd": name, "argv": argv, "stdin": stdin}}) + "\n")
-job_id = os.environ.get("FAKE_SLURM_JOB_ID", "4242")
+# Configuration lives in a file next to the fake binaries, not in the
+# environment: launchers hand SLURM an allowlisted environment, so the
+# test's own variables never reach these processes.
+root = os.path.dirname(os.path.dirname(os.path.abspath(sys.argv[0])))
+with open(os.path.join(root, "fake-slurm-config.json")) as fh:
+    cfg = json.load(fh)
+with open(cfg["FAKE_SLURM_LOG"], "a") as log:
+    log.write(json.dumps({{"cmd": name, "argv": argv, "stdin": stdin,
+                          "env_names": sorted(os.environ)}}) + "\n")
+job_id = cfg.get("FAKE_SLURM_JOB_ID", "4242")
 if name == "sbatch":
-    if os.environ.get("FAKE_SBATCH_FAIL"):
+    if cfg.get("FAKE_SBATCH_FAIL"):
         sys.stderr.write("sbatch: error: Batch job submission failed\n")
         sys.exit(1)
     print(job_id if "--parsable" in argv else f"Submitted batch job {{job_id}}")
@@ -34,7 +41,7 @@ elif name == "squeue":
 elif name == "sinfo":
     print("node01 idle")
 elif name == "srun":
-    print(os.environ.get("FAKE_SRUN_STDOUT", ""))
+    print(cfg.get("FAKE_SRUN_STDOUT", ""))
 """
 
 _NAMES = ("sbatch", "squeue", "srun", "scancel", "sinfo")
@@ -52,12 +59,23 @@ class FakeSlurm:
             exe.write_text(body)
             exe.chmod(exe.stat().st_mode | stat.S_IXUSR)
         self._saved: dict[str, str | None] = {}
+        self._config_path = root / "fake-slurm-config.json"
+        self._config: dict[str, str] = {}
+        self._write_config()
+
+    def _write_config(self) -> None:
+        self._config_path.write_text(json.dumps(self._config))
 
     def set(self, **env: str) -> None:
-        """Set environment variables until the fixture tears down."""
+        """Configure the fake (``FAKE_*`` keys, kept in a config file) or set
+        real environment variables (anything else) until teardown."""
         for key, value in env.items():
+            if key.startswith("FAKE_"):
+                self._config[key] = value
+                continue
             self._saved.setdefault(key, os.environ.get(key))
             os.environ[key] = value
+        self._write_config()
 
     def restore(self) -> None:
         for key, value in self._saved.items():

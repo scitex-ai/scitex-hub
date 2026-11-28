@@ -18,6 +18,8 @@ import time
 from pathlib import Path
 from typing import Any, Callable, Dict, List, Optional
 
+from apps.workspace.console_app.services.user_process_env import user_process_env
+
 logger = logging.getLogger(__name__)
 
 
@@ -70,6 +72,7 @@ def _run_streaming_cmd(
             text=True,
             bufsize=1,
             cwd=str(cwd),
+            env=user_process_env(),
         )
 
         for raw_line in proc.stdout:
