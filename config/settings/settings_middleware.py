@@ -36,6 +36,9 @@ MIDDLEWARE = [
     "apps.infra.accounts_app.middleware.OnboardingGateMiddleware",
     "allauth.account.middleware.AccountMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
+    # Staff cookie sessions need a second factor (after Messages: it flashes
+    # the reason it redirected).
+    "apps.infra.auth_app.mfa_enforcement.StaffMFAMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
     "apps.infra.project_app.middleware.AuthenticatedProjectSessionMiddleware",
     # Desktop 90% content frame for leaf apps that render scitex-ui's own shell.

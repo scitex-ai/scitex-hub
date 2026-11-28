@@ -69,9 +69,7 @@ def _login_claiming(email, *, verified):
     )
     return SocialLogin(
         account=account,
-        email_addresses=[
-            EmailAddress(email=email, verified=verified, primary=True)
-        ],
+        email_addresses=[EmailAddress(email=email, verified=verified, primary=True)],
     )
 
 
@@ -99,11 +97,30 @@ def test_unverified_address_does_not_connect_to_the_victim(google_app):
 
 
 @pytest.mark.django_db
+def test_unverified_local_account_is_not_connected(google_app):
+    """Pre-registration hijack: an attacker signs up first with the victim's
+    address (never proving it) and waits. A provider-verified login by the
+    real owner must not attach to that account."""
+    # Arrange
+    squatter = User.objects.create_user(
+        username="squatter", email=VICTIM_EMAIL, password="attacker-password"
+    )
+    sociallogin = _login_claiming(VICTIM_EMAIL, verified=True)
+    # Act
+    SciTexSocialAccountAdapter().pre_social_login(_request(), sociallogin)
+    # Assert
+    assert sociallogin.user != squatter
+
+
+@pytest.mark.django_db
 def test_verified_address_still_connects_to_the_existing_account(google_app):
     """The fix must not be 'turn the feature off'."""
     # Arrange
     victim = User.objects.create_user(
         username="victim", email=VICTIM_EMAIL, password="victim-password"
+    )
+    EmailAddress.objects.create(
+        user=victim, email=VICTIM_EMAIL, verified=True, primary=True
     )
     sociallogin = _login_claiming(VICTIM_EMAIL, verified=True)
     # Act

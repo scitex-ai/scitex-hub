@@ -500,7 +500,7 @@ def test_the_resend_retires_the_old_code_only_after_delivery():
     # Arrange
     import pathlib
 
-    from apps.infra.auth_app import api_views
+    from apps.infra.auth_app import otp_api_views as api_views
 
     source = pathlib.Path(api_views.__file__).read_text(encoding="utf-8")
     start = source.index("def resend_otp_api")

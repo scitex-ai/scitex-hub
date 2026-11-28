@@ -4,8 +4,8 @@
 
 import os
 import socket
-from urllib.parse import urlparse
 from datetime import timedelta
+from urllib.parse import urlparse
 
 from config.social_apps import orcid_base_domain, with_credential_apps
 
@@ -31,6 +31,36 @@ GOOGLE_CLIENT_ID = os.getenv("SCITEX_HUB_GOOGLE_CLIENT_ID") or os.getenv(
 GOOGLE_CLIENT_SECRET = os.getenv("SCITEX_HUB_GOOGLE_CLIENT_SECRET") or os.getenv(
     "SCITEX_GOOGLE_CLIENT_SECRET", ""
 )
+
+# ---------------------------------------
+# Credential checks
+# ---------------------------------------
+AUTHENTICATION_BACKENDS = [
+    # First: refuses a credential check while its failure buckets are full
+    # (auth_app.login_throttle); it never signs anyone in itself.
+    "apps.infra.auth_app.login_throttle.LoginThrottleBackend",
+    "django.contrib.auth.backends.ModelBackend",
+    "allauth.account.auth_backends.AuthenticationBackend",
+]
+
+#: Failed sign-in buckets (auth_app.login_throttle.DEFAULTS documents them).
+LOGIN_THROTTLE = {
+    "window_seconds": int(os.getenv("SCITEX_HUB_LOGIN_THROTTLE_WINDOW_SECONDS", "900")),
+    "pair_limit": int(os.getenv("SCITEX_HUB_LOGIN_THROTTLE_PAIR_LIMIT", "5")),
+    "account_limit": int(os.getenv("SCITEX_HUB_LOGIN_THROTTLE_ACCOUNT_LIMIT", "50")),
+    "ip_limit": int(os.getenv("SCITEX_HUB_LOGIN_THROTTLE_IP_LIMIT", "30")),
+}
+
+# ---------------------------------------
+# Two-factor authentication (allauth.mfa)
+# ---------------------------------------
+MFA_SUPPORTED_TYPES = ["totp", "recovery_codes"]
+MFA_TOTP_ISSUER = "SciTeX"
+#: Staff and superuser cookie sessions must pass a second factor
+#: (auth_app.mfa_enforcement.StaffMFAMiddleware).
+MFA_REQUIRED_FOR_STAFF = os.getenv(
+    "SCITEX_HUB_MFA_REQUIRED_FOR_STAFF", "true"
+).strip().lower() in ("1", "true", "yes", "on")
 
 # ---------------------------------------
 # Django-Allauth Settings (Social Login)
@@ -61,29 +91,35 @@ SITE_ID = 1
 #: `SITE_URL` here resolves in this module's own namespace and would be a
 #: NameError, and importing it back would be a circular import into a
 #: half-initialised module. The env var is the same single source either way.
-_SITE_URL = (
-    os.getenv("SCITEX_HUB_SITE_URL", "") or os.getenv("SITE_URL", "")
-).strip()
+_SITE_URL = (os.getenv("SCITEX_HUB_SITE_URL", "") or os.getenv("SITE_URL", "")).strip()
 SITE_DOMAIN = urlparse(_SITE_URL).netloc.strip() if _SITE_URL else ""
 
 #: Human-readable label for the same Site row. Cosmetic, unlike SITE_DOMAIN.
 SITE_NAME = os.getenv("SCITEX_HUB_SITE_NAME", "SciTeX").strip()
 
 ACCOUNT_LOGIN_ON_EMAIL_CONFIRMATION = True
-ACCOUNT_LOGOUT_ON_GET = True
+# State changes are POST-only: a GET (an <img>, a prefetch, a link in mail)
+# must never sign anyone out or in.
+ACCOUNT_LOGOUT_ON_GET = False
 ACCOUNT_UNIQUE_EMAIL = True
 ACCOUNT_LOGIN_METHODS = {"email", "username"}
 ACCOUNT_SIGNUP_FIELDS = ["email*", "username*", "password1*", "password2*"]
-ACCOUNT_EMAIL_VERIFICATION = "optional"
+# An address is proven before allauth signs the account in. The hub's own
+# code-based signup records its proof as a verified EmailAddress
+# (auth_app.email_addresses), so its users already satisfy this.
+ACCOUNT_EMAIL_VERIFICATION = "mandatory"
 ACCOUNT_SIGNUP_REDIRECT_URL = "/"
 ACCOUNT_LOGOUT_REDIRECT_URL = "/"
 ACCOUNT_AUTHENTICATED_LOGIN_REDIRECTS = False
 
 # Social account settings
 SOCIALACCOUNT_AUTO_SIGNUP = True
-SOCIALACCOUNT_EMAIL_AUTHENTICATION = True
-SOCIALACCOUNT_EMAIL_AUTHENTICATION_AUTO_CONNECT = True
-SOCIALACCOUNT_LOGIN_ON_GET = True
+# No implicit sign-in to an existing account by e-mail match. The only path
+# that links a social identity to an existing account is the adapter's
+# pre_social_login, which requires the address to be verified on BOTH sides.
+SOCIALACCOUNT_EMAIL_AUTHENTICATION = False
+SOCIALACCOUNT_EMAIL_AUTHENTICATION_AUTO_CONNECT = False
+SOCIALACCOUNT_LOGIN_ON_GET = False
 SOCIALACCOUNT_QUERY_EMAIL = True
 
 # Provider configuration, plus the app that makes each provider clickable.
@@ -159,8 +195,18 @@ OAUTH2_PROVIDER = {
     "OAUTH2_VALIDATOR_CLASS": "apps.infra.auth_app.oauth_validator.SciTexOAuth2Validator",
     "ACCESS_TOKEN_EXPIRE_SECONDS": 3600,
     "REFRESH_TOKEN_EXPIRE_SECONDS": 86400 * 30,
-    "PKCE_REQUIRED": False,
+    # Every client sends a PKCE code_challenge (OAuth 2.1). A confidential
+    # client still migrating may be listed in
+    # SCITEX_HUB_OAUTH_PKCE_EXEMPT_CLIENT_IDS; public clients never are
+    # (SciTexOAuth2Validator.is_pkce_required).
+    "PKCE_REQUIRED": True,
 }
+
+OAUTH_PKCE_EXEMPT_CLIENT_IDS = frozenset(
+    client_id.strip()
+    for client_id in os.getenv("SCITEX_HUB_OAUTH_PKCE_EXEMPT_CLIENT_IDS", "").split(",")
+    if client_id.strip()
+)
 
 
 # ---------------------------------------

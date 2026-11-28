@@ -22,6 +22,12 @@ class SciTexAccountAdapter(DefaultAccountAdapter):
     Handles standard account operations with SciTeX-specific logic.
     """
 
+    def get_client_ip(self, request):
+        """allauth's own rate limits key on the same client address as ours."""
+        from apps.client_ip import get_client_ip
+
+        return get_client_ip(request)
+
     def save_user(self, request, user, form, commit=True):
         """
         Save user with additional SciTeX-specific fields.
@@ -155,7 +161,9 @@ class SciTexSocialAccountAdapter(DefaultSocialAccountAdapter):
         from_settings = {app.provider for app in apps if app.pk is None}
         if not from_settings:
             return apps
-        return [app for app in apps if app.pk is None or app.provider not in from_settings]
+        return [
+            app for app in apps if app.pk is None or app.provider not in from_settings
+        ]
 
     def populate_user(self, request, sociallogin, data):
         """
@@ -291,10 +299,26 @@ class SciTexSocialAccountAdapter(DefaultSocialAccountAdapter):
             )
             return
 
+        # BOTH SIDES must have proven the address. A provider-verified claim
+        # says nothing about who created the LOCAL account: anyone can sign
+        # up with someone else's address and wait, and connecting would hand
+        # that account (and its password) the victim's identity. An
+        # unverified local account is left alone; allauth then refuses the
+        # duplicate address and the owner signs in and connects explicitly.
+        from apps.infra.auth_app.email_addresses import is_verified
+
+        if not is_verified(existing_user, email):
+            logger.warning(
+                "Refusing to auto-connect %s account to user %s: the local "
+                "address is not verified.",
+                sociallogin.account.provider,
+                existing_user.username,
+            )
+            return
+
         sociallogin.connect(request, existing_user)
         logger.info(
-            "Connected %s account to existing user %s on a provider-VERIFIED "
-            "address",
+            "Connected %s account to existing user %s on a provider-VERIFIED address",
             sociallogin.account.provider,
             existing_user.username,
         )
