@@ -158,21 +158,20 @@ class TemplateOperationsManager:
         """Initialize SciTeX Writer template structure for a project."""
         try:
             from django.conf import settings
-            from scitex_writer import ensure_workspace
-            from scitex_writer.workspace_layout import workspace_dir
+            from scitex_writer import Writer
+
+            from ..writer_workspace_layout import get_writer_workspace_path
 
             root = self.manager.get_project_root_path(project)
             if root is None:
                 return False, None
-            writer_path = workspace_dir(root)
+            writer_path = get_writer_workspace_path(root)
             if not writer_path.resolve().is_relative_to(root.resolve()):
                 logger.warning("Writer workspace is outside project %s", project.pk)
                 return False, None
             if not writer_path.exists():
-                # The resolver only computes a path. Creation is an explicit
-                # operation in Writer and takes the project root.
-                ensure_workspace(
-                    root,
+                Writer(
+                    writer_path,
                     git_strategy="parent",
                     branch=getattr(settings, "SCITEX_WRITER_TEMPLATE_BRANCH", None),
                     tag=getattr(settings, "SCITEX_WRITER_TEMPLATE_TAG", None),
