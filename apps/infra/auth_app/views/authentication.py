@@ -424,6 +424,11 @@ def login_view(request):
 
             if user is not None:
                 login(request, user)
+                # Accounts from before verification was mandatory are not
+                # refused; they are asked to confirm their address.
+                from ..email_addresses import prompt_verification
+
+                prompt_verification(request, user)
 
                 # Handle remember me
                 if not form.cleaned_data.get("remember_me"):

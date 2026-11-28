@@ -16,6 +16,8 @@ def _get_user_type(user):
 @protected_resource(scopes=["profile", "email"])
 def userinfo(request):
     """GET /oauth/userinfo/ — return user profile for OAuth2 token."""
+    from .email_addresses import is_verified
+
     user = request.resource_owner
     return JsonResponse(
         {
@@ -23,7 +25,7 @@ def userinfo(request):
             "username": user.username,
             "email": user.email,
             "name": user.get_full_name() or user.username,
-            "email_verified": True,
+            "email_verified": is_verified(user),
             "user_type": _get_user_type(user),
         }
     )
