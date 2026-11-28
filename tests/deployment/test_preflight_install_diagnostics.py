@@ -36,7 +36,9 @@ def test_failed_install_keeps_private_output_and_runs_owned_cleanup(
     child = (
         "import sys,time; sys.stdin.buffer.read(); "
         "sys.stdout.buffer.write(" + repr(stdout_marker) + "); sys.stdout.flush(); "
-        "sys.stderr.buffer.write(" + repr(stderr_marker) + "); sys.stderr.flush(); "
+        "sys.stderr.buffer.write("
+        + repr(stderr_marker)
+        + "); sys.stderr.flush(); "
         + ("time.sleep(10)" if expires else "sys.exit(2)")
     )
 
@@ -83,3 +85,42 @@ def test_failed_install_keeps_private_output_and_runs_owned_cleanup(
     assert calls[0]["timeout"] == deadline
     assert set(json.loads(calls[0]["input"])) == {"sources", "uid", "gid"}
     assert len(cleaned) == 1
+
+
+@pytest.mark.guards(
+    defect="An owned cleanup failure hid the original prospective preparation failure."
+)
+def test_cleanup_failure_retains_both_causes_privately(tmp_path, monkeypatch):
+    workspace = tmp_path / "owned-workspace"
+    workspace.mkdir()
+    monkeypatch.setattr(target.tempfile, "mkdtemp", lambda **kwargs: str(workspace))
+    monkeypatch.setattr(target.tempfile, "tempdir", str(tmp_path))
+
+    def fail_preparation(self, context):
+        raise subprocess.CalledProcessError(
+            2,
+            ["docker", "create", "owned-fixture"],
+            output=b"private-preparation-stdout",
+            stderr=b"private-preparation-stderr",
+        )
+
+    def fail_cleanup(self):
+        raise RuntimeError("private-cleanup-cause")
+
+    monkeypatch.setattr(target.DirectBindTarget, "_prepare", fail_preparation)
+    monkeypatch.setattr(target.DirectBindTarget, "_close", fail_cleanup)
+    with pytest.raises(TargetUnreachable) as error:
+        target.prepare(SimpleNamespace(), 300)
+
+    logs = list(tmp_path.glob("scitex-hub-preflight-*.private.log"))
+    assert len(logs) == 1
+    payload = logs[0].read_bytes()
+    for marker in (
+        b"private-preparation-stdout",
+        b"private-preparation-stderr",
+        b"private-cleanup-cause",
+    ):
+        assert marker in payload
+        assert marker.decode() not in str(error.value)
+    assert stat.S_IMODE(logs[0].stat().st_mode) == 0o600
+    assert str(logs[0]) in str(error.value)

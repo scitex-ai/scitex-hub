@@ -40,6 +40,18 @@ logger = logging.getLogger(__name__)
 def project_create(request):
     """Create new project — unified tabbed page."""
     if request.method == "POST":
+        # The max_projects quota (config/settings/quotas.py + UserQuota) and
+        # spend controls: a new project is a storage write, refused when the
+        # account's storage is read-only (cap reached or restricted).
+        from apps.infra.spend_app.decorators import refusal_response
+        from apps.infra.spend_app.services import gate
+
+        try:
+            gate.check_project_quota(request.user)
+            gate.require(request.user, gate.Action.WRITE_STORAGE)
+        except gate.Refused as exc:
+            return refusal_response(request, exc)
+
         name = request.POST.get("name", "").strip()
         description = request.POST.get("description", "").strip()
         init_type = request.POST.get("init_type", "empty")

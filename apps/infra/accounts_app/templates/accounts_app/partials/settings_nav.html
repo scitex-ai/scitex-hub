@@ -31,7 +31,7 @@ falls back to the sidebar list via CSS.
             <option value="integrations" {% if active == 'git_integrations' or active == 'ai_providers' or active == 'ai_usage' or active == 'mcp_tools' %}selected{% endif %}>{% trans "Integrations" %}</option>
             <option value="authentication" {% if active == 'ssh_keys' or active == 'api_keys' %}selected{% endif %}>{% trans "Authentication" %}</option>
             <option value="privacy" {% if active == 'privacy' %}selected{% endif %}>{% trans "Privacy" %}</option>
-            <option value="billing" {% if active == 'billing' %}selected{% endif %}>{% trans "Billing" %}</option>
+            <option value="billing" {% if active == 'billing' or active == 'spend' %}selected{% endif %}>{% trans "Billing" %}</option>
             <option value="projects" {% if active == 'repository_health' %}selected{% endif %}>{% trans "Projects" %}</option>
         </select>
     </div>
@@ -53,6 +53,7 @@ falls back to the sidebar list via CSS.
             <option value="{% url 'accounts_app:api_keys' %}" data-group="authentication" {% if active == 'api_keys' %}selected{% endif %}>{% trans "API keys" %}</option>
             <option value="{% url 'accounts_app:privacy_settings' %}" data-group="privacy" {% if active == 'privacy' %}selected{% endif %}>{% trans "Privacy & Analytics" %}</option>
             <option value="{% url 'accounts_app:billing' %}" data-group="billing" {% if active == 'billing' %}selected{% endif %}>{% trans "Payment method" %}</option>
+            <option value="{% url 'spend_app:settings' %}" data-group="billing" {% if active == 'spend' %}selected{% endif %}>{% trans "Spend controls" %}</option>
             <option value="{% url 'accounts_app:repository_health' %}" data-group="projects" {% if active == 'repository_health' %}selected{% endif %}>{% trans "Project Health" %}</option>
         </select>
     </div>

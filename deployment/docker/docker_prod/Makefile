@@ -150,11 +150,13 @@ cache-purge: cache-purge-static
 
 cache-purge-static:
 	@echo -e "$(CYAN)☁️  Purging Cloudflare static cache...$(NC)"
-	@bash "$(SCRIPTS_DIR)/cloudflare_cache_purge.sh" static || echo -e "$(YELLOW)⚠️  Cache purge skipped (credentials not configured)$(NC)"
+	@rc=0; bash "$(SCRIPTS_DIR)/cloudflare_cache_purge.sh" static || rc=$$?; \
+	if [ $$rc = 2 ]; then echo -e "$(YELLOW)⚠️  Cache purge skipped (credentials not configured)$(NC)"; else exit $$rc; fi
 
 cache-purge-all:
 	@echo -e "$(CYAN)☁️  Purging ALL Cloudflare cache...$(NC)"
-	@bash "$(SCRIPTS_DIR)/cloudflare_cache_purge.sh" all || echo -e "$(YELLOW)⚠️  Cache purge skipped (credentials not configured)$(NC)"
+	@rc=0; bash "$(SCRIPTS_DIR)/cloudflare_cache_purge.sh" all || rc=$$?; \
+	if [ $$rc = 2 ]; then echo -e "$(YELLOW)⚠️  Cache purge skipped (credentials not configured)$(NC)"; else exit $$rc; fi
 
 # ============================================
 # Django Management

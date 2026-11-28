@@ -181,9 +181,14 @@ class UserQuota(models.Model):
         Returns:
             dict: Effective quotas (user overrides take precedence)
         """
+        import copy
+
         from config.settings.quotas import DEFAULT_USER_QUOTAS
 
-        quotas = DEFAULT_USER_QUOTAS.copy()
+        # Deep copy: the overrides below write into the NESTED dicts, which a
+        # shallow copy shares with the module-level defaults (every later
+        # user would inherit this user's override).
+        quotas = copy.deepcopy(DEFAULT_USER_QUOTAS)
 
         # Override with user-specific values (only if set)
         if self.slurm_max_concurrent_jobs is not None:

@@ -40,7 +40,7 @@ def _grid_apps(response) -> list[str]:
 
 def _rendered_dock_apps(response) -> list[str]:
     html = response.content.decode("utf-8")
-    start = html.index('<nav class="site-dock"')
+    start = html.index('<nav class="site-dock ')
     dock = html[start : html.index("</nav>", start)]
     return re.findall(r'data-dock-item="([^"]+)"', dock)
 

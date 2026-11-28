@@ -19,6 +19,7 @@ from django.views.decorators.clickjacking import xframe_options_sameorigin
 from django.views.decorators.http import require_GET, require_POST
 
 from .services import workspace_fs as fs
+from apps.infra.spend_app.decorators import storage_write
 
 # Served inline for the preview pane; anything else downloads as a file.
 _INLINE_TYPES = ("image/", "video/", "audio/", "application/pdf")
@@ -172,6 +173,7 @@ def raw(request, root):
 
 @require_POST
 @_api
+@storage_write
 def api_upload(request, root):
     folder = request.POST.get("path", "")
     files = request.FILES.getlist("files")
@@ -183,6 +185,7 @@ def api_upload(request, root):
 
 @require_POST
 @_api
+@storage_write
 def api_mkdir(request, root):
     data = _body(request)
     created = fs.make_dir(root, data.get("path", ""), data.get("name", ""))
@@ -191,6 +194,7 @@ def api_mkdir(request, root):
 
 @require_POST
 @_api
+@storage_write
 def api_rename(request, root):
     data = _body(request)
     renamed = fs.rename(root, data.get("path", ""), data.get("name", ""))
@@ -199,6 +203,7 @@ def api_rename(request, root):
 
 @require_POST
 @_api
+@storage_write
 def api_move(request, root):
     data = _body(request)
     moved = fs.move(root, data.get("path", ""), data.get("dest", ""))

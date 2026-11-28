@@ -4,7 +4,7 @@
 Django settings for SciTeX Hub project.
 Base settings shared across all environments.
 Sub-modules: settings_celery, settings_logging, settings_auth,
-settings_integrations, settings_commerce
+settings_integrations, settings_commerce, settings_email, settings_chat
 """
 
 import os
@@ -99,7 +99,9 @@ SCITEX_ENV = branding.normalize_env(os.environ.get("SCITEX_HUB_ENV", "developmen
 SCITEX_APP_MODE = branding.MODE_HUB
 
 # A plugin leaf asks the hub which directories belong to the requester.
-SCITEX_STORAGE_VOLUMES_PROVIDER = "apps.workspace.apps_app.services.plugin_volumes.user_volumes"
+SCITEX_STORAGE_VOLUMES_PROVIDER = (
+    "apps.workspace.apps_app.services.plugin_volumes.user_volumes"
+)
 SCITEX_USER_HOME_PROVIDER = "apps.workspace.apps_app.services.plugin_volumes.user_home"
 
 # Usernames admitted to restricted-audience plugin mounts (staff and
@@ -124,6 +126,21 @@ SCITEX_HUB_PLUGIN_OPERATORS = [
 SCITEX_PROJECT_STORAGE = (
     "apps.infra.project_app.services.project_scope.HubProjectStorage"
 )
+SCITEX_PROJECT_STORE = "apps.infra.project_app.services.project_store.HubProjectStore"
+SCITEX_API_AUTHENTICATOR = "apps.infra.project_app.services.project_store.api_key_user"
+# Leaf REST APIs at /api/v1/<package>/ (scitex_sdk.app.api_serve). The hub
+# mounts every scitex.apis plugin from a SciTeX distribution GENERICALLY — no
+# leaf-specific code here — and answers the SDK's host hooks: who is calling
+# (API key scopes or the session), and where idempotency keys live. Rate
+# limiting and metering hooks (SCITEX_API_RATE_LIMITER / SCITEX_API_METER)
+# plug in here when the usage ledger (#1232) lands.
+SCITEX_API_CALLER = "apps.infra.accounts_app.services.api_caller.api_caller"
+SCITEX_API_TRUSTED_DISTRIBUTIONS = ("scitex-*", "figrecipe")
+SCITEX_API_IDEMPOTENCY_STORE = "scitex_sdk.app.api_serve.CacheIdempotencyStore"
+# Operator-only credentials. An absent mapping leaves private stores unavailable;
+# no managed-store fallback or schema/data migration is performed here.
+SCITEX_STORE_TENANT_SECRETS = os.environ.get("SCITEX_HUB_STORE_TENANT_SECRETS", "")
+SCITEX_STORE_OWNER = os.environ.get("SCITEX_HUB_STORE_OWNER_ROLE", "scitex_cloud_owner")
 
 # ---------------------------------------
 # Paths
@@ -228,9 +245,7 @@ THIRD_PARTY_APPS.extend(optional_upstream_apps())
 PLUGIN_STORE_ROUTE_SECRET_BINDINGS = plugin_store_route_bindings()
 # Existing host apps keep their labels and ordering when plugins are discovered.
 LOCAL_APPS = discover_local_apps()
-THIRD_PARTY_APPS = _with_host_plugin_apps(
-    THIRD_PARTY_APPS, DJANGO_APPS + LOCAL_APPS
-)
+THIRD_PARTY_APPS = _with_host_plugin_apps(THIRD_PARTY_APPS, DJANGO_APPS + LOCAL_APPS)
 
 INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + LOCAL_APPS
 
@@ -313,6 +328,7 @@ TEMPLATES = [
                 "apps.infra.project_app.context_processors.version_context",
                 "apps.infra.project_app.context_processors.project_context",
                 "config.context_processors.cache_buster",
+                "apps.infra.spend_app.context_processors.spend_banner",
                 "config.context_processors.debug_mode",
                 "config.context_processors.scitex_version",
                 "config.context_processors.umami_analytics",
@@ -453,95 +469,18 @@ LOCALE_PATHS = [BASE_DIR / "locale"]
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
-EMAIL_BACKEND = _getenv_alias("SCITEX_HUB_EMAIL_BACKEND")
-EMAIL_HOST = _getenv_alias("SCITEX_HUB_EMAIL_HOST")
-EMAIL_PORT = int(_getenv_alias("SCITEX_HUB_EMAIL_PORT", "587") or "587")
-EMAIL_USE_TLS = (
-    _getenv_alias("SCITEX_HUB_EMAIL_USE_TLS", "True") or "True"
-).lower() == "true"
-EMAIL_HOST_USER = _getenv_alias("SCITEX_HUB_EMAIL_HOST_USER")
-EMAIL_HOST_PASSWORD = _getenv_alias("SCITEX_HUB_EMAIL_HOST_PASSWORD")
-# Fail fast, never hang the request: without this Django SMTP blocks
-# indefinitely on a stalled mail server (observed: signup POST never
-# returned). The signup view already handles send failure gracefully.
-EMAIL_TIMEOUT = int(_getenv_alias("SCITEX_HUB_EMAIL_TIMEOUT", "10") or "10")
-DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
-SERVER_EMAIL = EMAIL_HOST_USER
+# Outgoing mail (transport, senders, ops-alert recipients).
+from .settings_email import *  # noqa: E402, F401, F403
 
-# Recipients of the mail_admins logging handler (settings_logging). Defined
-# HERE, once, rather than per environment: it lived only in settings_prod
-# until 2026-08-15, which meant staging constructed the handler, passed every
-# check a grep could make, and delivered to nobody because ADMINS was the
-# empty default. require_debug_false already keeps this off dev machines, so
-# the environment gate does not need a second, silent one.
-ADMINS = [
-    ("Admin", "admin@scitex.ai"),
-    ("Yusuke Watanabe", "ywatanabe@scitex.ai"),
-]
-MANAGERS = ADMINS
 SITE_URL = _getenv_alias("SCITEX_HUB_SITE_URL", "http://127.0.0.1:8000")
 
-# Campaign Chat Mode
-SCITEX_HUB_CAMPAIGN_ANTHROPIC_API_KEY = _getenv_alias(
-    "SCITEX_HUB_CAMPAIGN_ANTHROPIC_API_KEY", ""
-)
-SCITEX_HUB_CAMPAIGN_MODEL = _getenv_alias(
-    "SCITEX_HUB_CAMPAIGN_MODEL", "claude-haiku-4-5-20251001"
-)
-SCITEX_HUB_CAMPAIGN_DAILY_LIMIT = _getenv_alias("SCITEX_HUB_CAMPAIGN_DAILY_LIMIT", "10")
-
-# SciTeX-funded Chat. Enabled is the operator kill switch: when false, the
-# funded path cannot reserve quota or contact a provider. Provider/model/caps
-# intentionally have no useful defaults; enabling an incomplete configuration
-# fails closed in funded_chat.config rather than silently selecting a model.
-SCITEX_FUNDED_CHAT_ENABLED = (
-    _getenv_alias("SCITEX_FUNDED_CHAT_ENABLED", "false") or "false"
-).lower() in ("1", "true", "yes", "on")
-SCITEX_FUNDED_CHAT_PROVIDER = _getenv_alias("SCITEX_FUNDED_CHAT_PROVIDER", "")
-SCITEX_FUNDED_CHAT_MODEL = _getenv_alias("SCITEX_FUNDED_CHAT_MODEL", "")
-SCITEX_FUNDED_CHAT_API_KEY = _getenv_alias("SCITEX_FUNDED_CHAT_API_KEY", "")
-SCITEX_FUNDED_CHAT_GLOBAL_DAILY_CAP_USD = _getenv_alias(
-    "SCITEX_FUNDED_CHAT_GLOBAL_DAILY_CAP_USD", "0"
-)
-SCITEX_FUNDED_CHAT_PROVIDER_DAILY_CAP_USD = _getenv_alias(
-    "SCITEX_FUNDED_CHAT_PROVIDER_DAILY_CAP_USD", "0"
-)
-SCITEX_FUNDED_CHAT_MAX_REQUEST_COST_USD = _getenv_alias(
-    "SCITEX_FUNDED_CHAT_MAX_REQUEST_COST_USD", "0"
-)
-SCITEX_FUNDED_CHAT_REQUESTS_PER_MINUTE = int(
-    _getenv_alias("SCITEX_FUNDED_CHAT_REQUESTS_PER_MINUTE", "3") or "3"
-)
-SCITEX_FUNDED_CHAT_DAILY_LIMIT = int(
-    _getenv_alias("SCITEX_FUNDED_CHAT_DAILY_LIMIT", "10") or "10"
-)
-SCITEX_FUNDED_CHAT_MAX_TOKENS = int(
-    _getenv_alias(
-        "SCITEX_FUNDED_CHAT_MAX_TOKENS", "2048"
-    )  # pragma: allowlist secret -- output-token count, not a credential
-    or "2048"
-)
-SCITEX_FUNDED_CHAT_TIMEOUT_SECONDS = int(
-    _getenv_alias("SCITEX_FUNDED_CHAT_TIMEOUT_SECONDS", "30") or "30"
-)
-SCITEX_FUNDED_CHAT_RESERVATION_LEASE_SECONDS = int(
-    _getenv_alias("SCITEX_FUNDED_CHAT_RESERVATION_LEASE_SECONDS", "120") or "120"
-)
-SCITEX_FUNDED_CHAT_MAX_REQUEST_BYTES = int(
-    _getenv_alias("SCITEX_FUNDED_CHAT_MAX_REQUEST_BYTES", "65536") or "65536"
-)
-SCITEX_FUNDED_CHAT_MAX_MESSAGES = int(
-    _getenv_alias("SCITEX_FUNDED_CHAT_MAX_MESSAGES", "64") or "64"
-)
-SCITEX_FUNDED_CHAT_MAX_MESSAGE_CHARS = int(
-    _getenv_alias("SCITEX_FUNDED_CHAT_MAX_MESSAGE_CHARS", "32768") or "32768"
-)
-
+# Campaign chat + SciTeX-funded chat.
 # ---------------------------------------
 # Sub-module imports (celery, logging, auth, integrations)
 # ---------------------------------------
 from .settings_auth import *  # noqa: E402, F401, F403
 from .settings_celery import *  # noqa: E402, F401, F403
+from .settings_chat import *  # noqa: E402, F401, F403
 from .settings_commerce import *  # noqa: E402, F401, F403
 from .settings_integrations import *  # noqa: E402, F401, F403
 from .settings_logging import *  # noqa: E402, F401, F403

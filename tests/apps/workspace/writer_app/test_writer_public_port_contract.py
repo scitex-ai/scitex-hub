@@ -8,7 +8,6 @@ import pytest
 # Existing wrapper migration debt only. New consumers get no filename exemption.
 GRANDFATHERED_SCITEX_WRITER_IMPORTERS = frozenset(
     {
-        "apps/workspace/writer_app/urls/writer_django.py",
         "apps/workspace/writer_app/views/editor/api/compilation_full_job.py",
         "apps/workspace/writer_app/views/overleaf/api.py",
         "apps/workspace/writer_app/services/compiler.py",

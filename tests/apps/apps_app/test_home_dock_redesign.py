@@ -81,7 +81,7 @@ def _site_css(name: str) -> str:
 
 def _dock_html(content: bytes) -> str:
     text = content.decode("utf-8")
-    start = text.index('<nav class="site-dock"')
+    start = text.index('<nav class="site-dock ')
     return text[start : text.index("</nav>", start)]
 
 
@@ -142,7 +142,7 @@ class SiteDockOnEveryPageTest(TestCase):
         # Act
         response = self.client.get(url)
         # Assert
-        assert response.content.count(b"<nav class=\"site-dock\"") == 1
+        assert response.content.count(b"<nav class=\"site-dock ") == 1
 
     def test_middleware_injects_the_dock_into_a_leaf_page(self):
         # Arrange — a leaf app serves its OWN document, no hub template.
@@ -196,13 +196,24 @@ class SiteDockOnEveryPageTest(TestCase):
         )
 
     def test_dock_has_a_grip_labelled_tap_and_drag(self):
-        # Operator 2026-09-14/15: a recognisable grip; one tap minimizes, drag moves.
+        # Operator 2026-09-14/15: a recognisable grip; one tap toggles, drag moves.
+        # The dock renders collapsed (2026-11-26), so the grip first offers "show".
         # Arrange
         dock = _dock_html(self.client.get("/apps/").content)
         # Act
         grip = re.search(r'<button[^>]*data-dock-grabber[^>]*aria-label="([^"]+)"[^>]*>\s*<i class="([^"]+)"', dock)
         # Assert
-        assert (grip.group(1), "fa-grip" in grip.group(2)) == ("Tap to minimize, drag to move", True)
+        assert (grip.group(1), "fa-grip" in grip.group(2)) == ("Tap to show dock, drag to move", True)
+
+    def test_dock_renders_collapsed_so_it_never_covers_content(self):
+        # Live Paper QA 2026-11-26: the open dock sat over the middle of every page.
+        # Arrange
+        url = "/apps/"
+        # Act
+        dock = _dock_html(self.client.get(url).content)
+        nav = re.search(r'<nav class="([^"]+)"[^>]*data-site-dock', dock)
+        # Assert
+        assert "site-dock--minimized" in nav.group(1).split()
 
     def test_dock_has_no_minimize_button(self):
         # Operator 2026-09-15 04:07: the grip tap minimizes; no "_" button.

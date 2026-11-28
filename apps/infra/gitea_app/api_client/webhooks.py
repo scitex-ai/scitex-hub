@@ -65,6 +65,25 @@ class WebhookOperationsMixin:
         response = self._request("POST", f"/orgs/{path_segment(org)}/hooks", json=data)
         return response.json()
 
+    def edit_org_webhook(self, org: str, hook_id: int, config: Dict) -> Dict:
+        """
+        Update the config (url, content_type, secret) of an organization webhook.
+
+        Args:
+            org: Organization name
+            hook_id: Webhook ID
+            config: Full webhook config; Gitea replaces the stored config
+
+        Returns:
+            Updated webhook object
+        """
+        response = self._request(
+            "PATCH",
+            f"/orgs/{path_segment(org)}/hooks/{path_segment(hook_id)}",
+            json={"config": config},
+        )
+        return response.json()
+
     def delete_org_webhook(self, org: str, hook_id: int) -> None:
         """
         Delete an organization webhook.
@@ -73,7 +92,9 @@ class WebhookOperationsMixin:
             org: Organization name
             hook_id: Webhook ID
         """
-        self._request("DELETE", f"/orgs/{path_segment(org)}/hooks/{path_segment(hook_id)}")
+        self._request(
+            "DELETE", f"/orgs/{path_segment(org)}/hooks/{path_segment(hook_id)}"
+        )
 
     def list_repo_webhooks(self, owner: str, repo: str) -> List[Dict]:
         """
@@ -86,7 +107,9 @@ class WebhookOperationsMixin:
         Returns:
             List of webhook objects
         """
-        response = self._request("GET", f"/repos/{path_segment(owner)}/{path_segment(repo)}/hooks")
+        response = self._request(
+            "GET", f"/repos/{path_segment(owner)}/{path_segment(repo)}/hooks"
+        )
         return response.json()
 
     def create_repo_webhook(
@@ -126,7 +149,11 @@ class WebhookOperationsMixin:
         if secret:
             data["config"]["secret"] = secret
 
-        response = self._request("POST", f"/repos/{path_segment(owner)}/{path_segment(repo)}/hooks", json=data)
+        response = self._request(
+            "POST",
+            f"/repos/{path_segment(owner)}/{path_segment(repo)}/hooks",
+            json=data,
+        )
         return response.json()
 
 

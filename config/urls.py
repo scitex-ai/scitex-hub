@@ -85,6 +85,8 @@ def _scholar_old_direct_patterns():
     """
     from apps.workspace.scholar_app.urls.legacy import (
         old_direct_enabled,
+    )
+    from apps.workspace.scholar_app.urls.legacy import (
         urlpatterns as legacy_patterns,
     )
 
@@ -120,6 +122,8 @@ def _figrecipe_old_direct_patterns():
     """
     from apps.workspace.figrecipe_app.urls.legacy import (
         old_direct_enabled,
+    )
+    from apps.workspace.figrecipe_app.urls.legacy import (
         urlpatterns as legacy_patterns,
     )
 
@@ -148,14 +152,15 @@ def _writer_old_direct_patterns():
     no launcher tile or link can render it. Scholar #1074 / FigRecipe #1075
     template.
 
-    ORDER MATTERS (writer, like figrecipe): this list is spliced BEFORE the
-    default mount below. The leaf urlconf carries a ``<path:endpoint>``
-    catch-all, so a default-first order would swallow every old-direct URL
-    into the leaf dispatcher (scholar's leaf has no catch-all, which is why
-    scholar can list the default first).
+    ORDER MATTERS: the leaf urlconf carries a ``<path:endpoint>`` catch-all,
+    so the generic plugin mount (``plugin_urlpatterns``) hoists this hub
+    sub-route AHEAD of the leaf mount at apps/writer/; mounted after it,
+    every old-direct URL would be swallowed by the leaf dispatcher.
     """
     from apps.workspace.writer_app.urls.legacy import (
         old_direct_enabled,
+    )
+    from apps.workspace.writer_app.urls.legacy import (
         urlpatterns as legacy_patterns,
     )
 
@@ -280,6 +285,10 @@ urlpatterns = [
     # --- AI Setup (AI agent configuration hub) ---
     path("ai-setup/", include("apps.infra.accounts_app.urls_ai_setup")),
     # --- Auth ---
+    path(
+        "accounts/settings/spend/",
+        include(("apps.infra.spend_app.urls", "spend_app")),
+    ),
     path("accounts/", include(("apps.infra.accounts_app.urls", "accounts_app"))),
     path("auth/", include(("apps.infra.auth_app.urls", "auth_app"))),
     path("auth/social/", include("allauth.urls")),
@@ -353,36 +362,22 @@ urlpatterns = [
     # it), so the leaf urlconf is never double-mounted.
     *_figrecipe_old_direct_patterns(),
     path("apps/figrecipe/", include("apps.workspace.figrecipe_app.urls")),
-    # Writer cutover (Scholar #1074 / FigRecipe #1075 template) + RED START
-    # (CCT 2806, binding): /apps/writer/ serves the LEAF ONLY (SITE-3
-    # wrapper in writer_app/urls/writer_django.py — the working_dir
-    # injection stays on the default path, see that module for why). The
-    # plain hub-side routes went dark first (404) and the plain route is
-    # relit ONLY by the working leaf plugin. The pre-cutover hub-native
-    # routes (feature pages + v2 SITE-3 paths) are NOT on the user path
-    # anymore: they live ONLY at /apps/writer/old-direct/ in dev.
-    # Old-direct is spliced FIRST on purpose (see
-    # _writer_old_direct_patterns: the leaf's <path:endpoint> catch-all
-    # would otherwise swallow it). Plain include (no app_name tuple) ON
-    # PURPOSE: the leaf carries its own namespace and Django only
-    # propagates it to reverse() through a namespace-transparent outer
-    # mount (see writer_app/urls/__init__.py). No alias mount is added
-    # (CCT 2795 lesson). The generic plugin mount keeps skipping this route
-    # via _route_taken (the bespoke default still takes it), so the leaf
-    # urlconf is never double-mounted.
+    # Writer: /apps/writer/ is served by the GENERIC plugin mount
+    # (plugin_urlpatterns at the bottom of this file) — whatever routes the
+    # writer leaf's own urlconf declares, login-gated by its manifest
+    # mount_policy, below the hub's scitex-writer floor never mounted. The
+    # hub names no writer route: the leaf authorizes every request itself
+    # through scitex_sdk.host (project identity, storage root, write grant,
+    # CSRF), so the old hub-side SITE-3 wrapper and its route-name allowlist
+    # are gone. Only the dev-only old-direct reference stays hub-native; the
+    # generic mount hoists it ahead of the leaf (whose <path:endpoint>
+    # catch-all would otherwise swallow it).
     *_writer_old_direct_patterns(),
-    path("apps/writer/", include("apps.workspace.writer_app.urls")),
-    # NOTE: the raw ``path("writer/", include("scitex_writer._django.urls"))``
-    # mount (card hub-mount-writer-django-app-20260707) was REMOVED as a P0
-    # security fix (card sec-working-dir-passthrough-family, SITE 3). It
-    # exposed the upstream writer handler set with NO login_required and a
-    # @csrf_exempt POST/write dispatcher, reading a caller-supplied
-    # ?working_dir= against ANY host directory — unauthenticated
-    # cross-tenant read AND write. The SAME app is already served, gated
-    # (login_required + server-side working_dir override), via the wrapper
-    # at /apps/writer/{editor-v2,viewer-v2,v2/<endpoint>} above. With the
-    # raw mount gone, /writer/ now falls through to the legacy 301 redirect
-    # to /apps/writer/ (config/urls_legacy_redirects.py).
+    # NOTE: the old raw ``path("writer/", include("scitex_writer._django.urls"))``
+    # mount (card sec-working-dir-passthrough-family, SITE 3) served a leaf
+    # that honoured a caller-supplied ?working_dir= with no login. /writer/
+    # now falls through to the legacy 301 redirect to /apps/writer/
+    # (config/urls_legacy_redirects.py).
     # Upstream plugin apps live under /apps/<name>/, exactly like every other
     # app on the launcher (operator, 2026-07-13: "他のアプリと同じようにして
     # ください"). They used to be mounted at the bare root (/todo/, /storage/)
@@ -418,7 +413,6 @@ urlpatterns = [
         "apps/workspace/", include(("apps.infra.workspace_app.urls", "workspace_app"))
     ),
     path("apps/llm/", include(("apps.infra.llm_app.urls", "llm_app"))),
-    path("apps/clew/", include(("apps.workspace.clew_app.urls", "clew_app"))),
     path("apps/store/", include(("apps.workspace.apps_app.urls", "apps_app"))),
     path("apps/comms/", include(("apps.workspace.comms_app.urls", "comms_app"))),
     path("apps/files/", include(("apps.workspace.files_app.urls", "files_app"))),
@@ -462,7 +456,9 @@ urlpatterns = [
     path(
         "favicon.ico",
         # Non-permanent so a later icon change is not pinned by a cached 301.
-        RedirectView.as_view(url="/static/shared/images/favicons/favicon.png?v=7", permanent=False),
+        RedirectView.as_view(
+            url="/static/shared/images/favicons/favicon.png?v=7", permanent=False
+        ),
     ),
     # --- GitHub-like operations ---
     path("new/", project_create, name="project_create"),
@@ -487,6 +483,17 @@ urlpatterns = [
 from apps.workspace.apps_app.services.plugin_apps import plugin_urlpatterns  # noqa: E402
 
 urlpatterns[:0] = plugin_urlpatterns(urlpatterns)
+
+# --- Leaf REST APIs (scitex.apis entry point) at /api/v1/<package>/ ---
+# Generic: scitex-sdk admits every trusted plugin and serves its declared
+# operations (scopes, problem+json, pagination, idempotency) through the host
+# hooks in settings. First, so no hub route shadows a leaf operation; the
+# problem+json 404 for other api/v1 paths goes just before the username
+# catch-all, after the hub's own legacy api/v1 routes in config.urls_api.
+from scitex_sdk.app.api_serve import api_not_found_pattern, api_urlpatterns  # noqa: E402
+
+urlpatterns[:0] = api_urlpatterns(catch_all=False)
+urlpatterns.insert(len(urlpatterns) - 1, api_not_found_pattern())
 
 # --- Debug-only ---
 if settings.DEBUG:

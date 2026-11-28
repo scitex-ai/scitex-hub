@@ -44,6 +44,11 @@ dependencies = [
     # and an unguarded runtime import must resolve from
     # `[project.dependencies]` — not from an extra a minimal install skips.
     "scitex-logging>=0.2.5",
+    # Operator notification of new inquiries (scitex-hub#1235) goes through
+    # scitex_notification.send_email, the fleet's agent -> operator rail. It was
+    # already in every image transitively; an unguarded runtime import must
+    # still be declared here. 0.2.9 is the version prod and dev run.
+    "scitex-notification>=0.3.1",
     # App-contract surface (formerly `scitex-app`, archived 2026-10-09,
     # read-only) is sourced from scitex-sdk (card
     # hub-sdk-import-switch-20261015). Verified against the published
@@ -82,7 +87,11 @@ dependencies = [
     # must resolve; see Dockerfile.prod's own convention). Do NOT lower this
     # floor to re-green an env that has not published yet: below 2.43.9 the
     # generic plugin mount cannot enforce tenancy for this leaf.
-    "scitex-writer>=2.43.9",
+    # 2.45.2 (2026-11-27): /apps/writer/ is served by the generic plugin mount
+    # alone (the hub-side wrapper is retired); this floor is also enforced at
+    # mount time (plugin_apps._version_incompatibility), and 2.45.2 declares
+    # mount_policy.requires_project for the project-less redirect.
+    "scitex-writer>=2.45.2",
     # >=1.9.0 is a MOUNT requirement, not a feature preference. Below it the
     # leaf's client JS builds API urls from the SITE ROOT
     # (static/scholar/js/graph/citation-graph.js: fetch("/api/graph/health")),
@@ -101,7 +110,7 @@ dependencies = [
     # 1.12.0 supplies the optional graph capability report consumed by Hub.
     # 1.13.0 supplies storage.master_* (leaf owns MASTER writes; hub thin).
     # 1.29.1 uses SDK branding without a missing production static-manifest asset.
-    "scitex-scholar>=1.29.2",
+    "scitex-scholar>=1.29.4",
     # 0.2.16 supplies the shared SDK header/viewer integration in the
     # currently supported application cohort.
     # Live-paper mount (hub #1108): apps/workspace/live_paper_app/mount.py
@@ -109,7 +118,7 @@ dependencies = [
     # bottom border (no accent separator under the global header, operator
     # rule). Without this floor the fresh image fails the sibling-floor
     # preflight and the rebuild is refused.
-    "scitex-live-paper>=0.2.20",
+    "scitex-live-paper>=0.5.4",
     # THE FOUR SIBLINGS HUB IMPORTS BUT NEVER DECLARED — measured 2026-09-03/04
     # inside the dev image built from `.[all]` (sha256:70be677c04bf): hub's
     # `all` extra pulls the umbrella BARE (`scitex>=2.29.3`, below), whose base
@@ -131,7 +140,7 @@ dependencies = [
     "scitex-container>=0.4.2",
     "scitex-decorators>=0.1.12",
     "scitex-sh>=0.2.0",
-    "scitex-template>=0.7.0",
+    "scitex-template>=0.7.4",
     # 0.16.1 is the first release where `audit_all_for_package`
     # honours the HYPHENATED rule-id format that tests/develop/
     # test_audit.py uses (`[PA-307 …]` <- skip_rules=("PA-307",)).
@@ -271,7 +280,7 @@ dependencies = [
     # configures nothing is exactly the caller that DOES reach it.
     # 0.56.8 is the version measured good here, not proven to be the minimum.
     # 0.62.11 preserves explicit skill ownership through metadata reads.
-    "scitex-dev>=0.62.26",
+    "scitex-dev>=0.67.0",
     # `scitex-audio` owns the whisper.cpp transcription pipeline that
     # llm_app/views/stt.py delegates to (`scitex_audio.transcribe`).
     # Declared DIRECTLY rather than relied on transitively: llm_app/views/chat.py
@@ -303,7 +312,7 @@ dependencies = [
     # 0.3.19 binds generated CSS to genuine Vite source inputs; older SDK
     # project audits misclassify canonical bundled component CSS as local forks.
     # 0.3.20 supplies API-docs header lifecycle and inert wheel declarations.
-    "scitex-sdk>=0.3.24",
+    "scitex-sdk>=0.3.26",
     "gitpython>=3.1.51",
 ]
 
@@ -356,14 +365,18 @@ all = [
     # Explicit plugin closure: these apps are not installed by the umbrella.
     # SAC uses the platform-owned SDK GUI dependency; its standalone [gui]
     # extra pins an older SDK and is not this host's GUI dependency contract.
-    "scitex-sdk[gui]>=0.3.24",
-    "scitex-agent-container>=0.38.4",
+    "scitex-sdk[gui]>=0.3.26",
+    "scitex-clew[gui]>=0.36.4",
+    "scitex-agent-container>=0.42.1",
     "scitex-cards[web]>=0.56.23",
-    "scitex-storage[gui]>=0.6.11",
+    "scitex-storage[gui]>=0.6.20",
+    # Dataset app at /apps/dataset/ (hub #1226): generic plugin mount from the
+    # leaf's scitex.apps entry point; 0.15.0 first ships scitex_dataset._django.
+    "scitex-dataset[server]>=0.16.0",
     "scitex-agentic-journal>=0.1.0a4",
     # 0.44.1 first publishes the scope capability declarations required by
     # the SDK's fail-closed project-jail admission.
-    "figrecipe[app,editor]>=0.44.7",
+    "figrecipe[app,editor]>=0.45.1",
     # --- Django stack (web framework + DRF + auth + ORM + ASGI) ---
     "Django>=5.2.11",
     "djangorestframework>=3.16",
@@ -435,7 +448,11 @@ all = [
     # `scitex-config==0.3.3` exact-pin on 2.29.0/2.29.1 was the original
     # ResolutionImpossible — see scitex-python#282, resolved). Floor at
     # 2.29.3 to skip the broken 2.29.0/2.29.1 entirely.
-    "scitex>=2.29.3",
+    # Raised to 2.30.11 (scitex-hub#1225): 2.29.3's `scitex.clew` re-exports
+    # `set_db`, which scitex-clew removed, so `import scitex.clew` fails
+    # against the clew floor below. A stale resolution must fail the install
+    # instead of serving the broken umbrella.
+    "scitex>=2.30.11",
     # >=0.8.0, and the floor is about what hub MOUNTS, not only what hub calls.
     #
     # 0.8.0 is where `shell_context()` grew its `panes` parameter (verified by
@@ -570,10 +587,15 @@ all = [
     "sphinx-autodoc-typehints>=1.25",
 ]
 dev = [
+    # tests/apps/integrations_app/test_field_encryption.py imports it (PS-210).
+    "cryptography>=48.0.1",
     "black>=23.0",
     "ruff>=0.1.0",
     "pytest>=7.0",
     "pytest-cov>=4.0",
+    # tests/apps/public_app/_smtp_server.py mints a throwaway TLS certificate
+    # for its STARTTLS test server (scitex-hub#1235).
+    "cryptography>=48.0.1",
     # Floor moved 0.13.0 -> 0.34.5 -> 0.34.6 (both 2026-08-16). Below 0.34.5
     # the FigRecipe Template Gallery is empty in any INSTALLED deployment —
     # the asset dir resolved outside the package, so nothing shipped in the
@@ -605,7 +627,7 @@ dev = [
     "celery[redis]>=5.4,<5.6",
     "fastmcp>=2.14.5",
     "paramiko>=3.4",
-    "scitex>=2.29.3",
+    "scitex>=2.30.11",
     # django-celery-beat is in INSTALLED_APPS (settings_shared.py), so
     # Django cannot even start without it — every Django test fails at
     # setup, not at some optional import. Matching [all]'s spec.
@@ -625,7 +647,7 @@ dev = [
     # decides the three required checks; the audit workflow's own pin cannot
     # substitute for it. Keep the two identical — if they drift, the matrix
     # and the audit test different versions and one of them is lying.
-    "scitex-dev>=0.62.26",
+    "scitex-dev>=0.67.0",
     # The board-tenancy suite is guarded by `_TODO_INSTALLED`
     # (middleware.py:115, find_spec("scitex_cards")). Without this package
     # installed, every one of those tests SKIPS and the job exits 0 — a
@@ -638,14 +660,18 @@ dev = [
     # Explicit plugin closure: these apps are not installed by the umbrella.
     # SAC uses the platform-owned SDK GUI dependency; its standalone [gui]
     # extra pins an older SDK and is not this host's GUI dependency contract.
-    "scitex-sdk[gui]>=0.3.24",
-    "scitex-agent-container>=0.38.4",
+    "scitex-sdk[gui]>=0.3.26",
+    "scitex-clew[gui]>=0.36.4",
+    "scitex-agent-container>=0.42.1",
     "scitex-cards[web]>=0.56.23",
-    "scitex-storage[gui]>=0.6.11",
+    "scitex-storage[gui]>=0.6.20",
+    # Dataset app at /apps/dataset/ (hub #1226): generic plugin mount from the
+    # leaf's scitex.apps entry point; 0.15.0 first ships scitex_dataset._django.
+    "scitex-dataset[server]>=0.16.0",
     "scitex-agentic-journal>=0.1.0a4",
     # 0.44.1 first publishes the scope capability declarations required by
     # the SDK's fail-closed project-jail admission.
-    "figrecipe[app,editor]>=0.44.7",
+    "figrecipe[app,editor]>=0.45.1",
     # Same floor as [all], and it must STAY the same — the two are swept
     # together by tests/config/test_shell_pane_contract_floor.py, which reads
     # every dependency group rather than one, precisely so the copies cannot

@@ -3,7 +3,8 @@
 # File: apps/workspace/scholar_app/urls/scholar_django.py
 """Mount `scitex_scholar._django` as the canonical scholar UI, BEHIND HUB'S AUTH.
 
-Companion to `writer_app/urls/writer_django.py`, and deliberately narrower.
+Written alongside the (since retired) hub-side writer wrapper; writer is now
+mounted by the generic plugin mount.
 
 WHY THE GATE IS THE WHOLE POINT
 -------------------------------

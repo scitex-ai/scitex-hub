@@ -55,6 +55,9 @@ EXPECTED_TILE_ORDER = [
     "Stats",
     "FigRecipe",
     "Writer",
+    # The Dataset leaf's tile comes from its plugin manifest, not a tracked
+    # hub manifest, so this list names it by its launcher id.
+    "dataset",
     "Chat",
     "Clew",
     "SDK",
@@ -84,6 +87,7 @@ _PLUGIN_LABEL_PINS = {
     "agent-container": "Agent Container",  # scitex-agent-container manifest
     "scitex-cards": "Cards",  # scitex-cards manifest
     "storage": "Storage",  # scitex-storage manifest
+    "clew": "Clew",  # scitex-clew manifest (leaf owns clew_app since #1211)
 }
 
 

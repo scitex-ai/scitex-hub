@@ -180,8 +180,7 @@ class HomePagesTest(TestCase):
         # Act
         names = [c.get("name") for c in groups[0]["cells"] if not c.get("is_planned")]
         # Assert
-        assert names == _curated_present(names)
-        assert "my_projects" in names
+        assert (names == _curated_present(names), "my_projects" in names) == (True, True)
 
     def test_files_is_an_internal_service_not_a_launcher_app(self):
         # Arrange
@@ -224,6 +223,7 @@ class HomePagesTest(TestCase):
             ("stats", not stats_is_real),
             ("figrecipe", False),
             ("writer", False),
+            ("dataset", False),
             ("chat", False),
             ("create-app", False),
         ]
@@ -243,7 +243,7 @@ class HomePagesTest(TestCase):
         # Act
         names = [c.get("name") for c in groups[1]["cells"]]
         # Assert
-        assert names[:4] == ["scholar", "stats", "figrecipe", "writer"]
+        assert names[:5] == ["scholar", "stats", "figrecipe", "writer", "dataset"]
 
     def test_publication_group_holds_public_projects_and_hides_slides(self):
         # Arrange
@@ -262,8 +262,7 @@ class HomePagesTest(TestCase):
         # Assert — live-paper and agentic-journal ship real tiles, so they
         # must not linger as coming-soon placeholders (whatever else is
         # still planned is that test's business, not this mount's).
-        assert "live-paper" not in planned
-        assert "agentic-journal" not in planned
+        assert {"live-paper", "agentic-journal"}.isdisjoint(planned)
 
     def test_system_group_holds_settings_docs_and_app_store(self):
         # Arrange
