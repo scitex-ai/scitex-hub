@@ -81,4 +81,7 @@ jobs:
           .venv/bin/python -m pytest tests/apps/project_app/views/projects/test_create.py -p no:randomly
       - name: Gitea log on failure
         if: failure()
-        run: tail -n 200 "$RUNNER_TEMP/gitea/web.log" "$RUNNER_TEMP/gitea/log/"*.log 2>/dev/null || true
+        run: |
+          for f in "$RUNNER_TEMP/gitea/web.log" "$RUNNER_TEMP"/gitea/log/*.log; do
+            if [ -f "$f" ]; then echo "== $f"; tail -n 200 "$f"; fi
+          done

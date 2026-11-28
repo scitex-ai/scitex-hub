@@ -78,10 +78,12 @@ gitea() {
 }
 
 gitea migrate >/dev/null
-gitea admin user create \
-    --admin --username hubtestadmin --email hubtestadmin@example.invalid \
-    --password "hub-test-admin-$(date +%s)" --must-change-password=false \
-    >/dev/null 2>&1 || true  # already present on a re-run
+if ! gitea admin user list --admin | grep -qw hubtestadmin; then
+    gitea admin user create \
+        --admin --username hubtestadmin --email hubtestadmin@example.invalid \
+        --password "hub-test-admin-$(date +%s)" --must-change-password=false \
+        >/dev/null
+fi
 
 # Not through gitea(): $! must be the server's pid (env execs the binary).
 env -i HOME="$work_dir/home" PATH="/usr/local/bin:/usr/bin:/bin" \

@@ -10239,3 +10239,19 @@ msgstr "解約を完了できませんでした（%(err)s）。何も変更さ�
 #, python-format
 msgid "Your plan is cancelled. You are billed only for actual usage ($%(usd)s). Your data is kept."
 msgstr "プランを解約しました。請求は実際の利用分（$%(usd)s）のみです。データは保持されます。"
+
+#: apps/infra/project_app/templates/project_app/projects/create.html
+msgid "This is taking longer than usual. Please keep waiting: if creation fails, nothing is kept and you will be brought back here with your entries."
+msgstr "通常より時間がかかっています。このままお待ちください。作成に失敗した場合は何も残らず、入力内容を保ったままこの画面に戻ります。"
+
+#: apps/infra/project_app/templates/project_app/projects/create.html
+msgid "Creating your project…"
+msgstr "プロジェクトを作成しています…"
+
+#: apps/infra/project_app/templates/project_app/projects/create.html
+msgid "Setting up its repository, manuscript workspace and examples. This usually takes 20 to 40 seconds; please keep this page open."
+msgstr "リポジトリ、原稿ワークスペース、サンプルを準備しています。通常 20〜40 秒かかります。このページを開いたままお待ちください。"
+
+#: apps/infra/project_app/templates/project_app/projects/create.html
+msgid "seconds"
+msgstr "秒"
