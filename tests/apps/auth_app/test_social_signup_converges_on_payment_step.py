@@ -66,6 +66,13 @@ ALLAUTH_DEFAULT_SIGNUP_TARGET = "/allauth-default-signup-target/"
 _PASSWORD = "Gx7-quiet-harbour-42"
 
 
+def _verified_address(user):
+    """The provider vouched for the address; verification is mandatory."""
+    from allauth.account.models import EmailAddress
+
+    EmailAddress.objects.create(user=user, email=user.email, verified=True, primary=True)
+
+
 def _request(path="/"):
     """A request with the middleware a real signup/login response goes through."""
     request = RequestFactory().get(path)
@@ -86,6 +93,7 @@ def fresh_social_signup(db):
             email=f"{provider}_newcomer@example.com",
             password=None,
         )
+        _verified_address(user)
         sociallogin = SocialLogin(
             user=user,
             account=SocialAccount(provider=provider, uid=f"{provider}-uid-new"),
@@ -113,6 +121,7 @@ def existing_social_account(db):
         email="google_returning@example.com",
         password=None,
     )
+    _verified_address(user)
     account = SocialAccount.objects.create(user=user, provider="google", uid="google-uid-existing")
     sociallogin = SocialLogin(user=user, account=account)
     sociallogin.state = {}

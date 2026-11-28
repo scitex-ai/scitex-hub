@@ -11,6 +11,7 @@ from django.views.decorators.http import require_http_methods
 from apps.infra.project_app.services.email_service import EmailService
 from apps.infra.public_app.services.billing_provider import post_signup_redirect_url
 
+from .email_addresses import record_verified
 from .models import EmailVerification
 
 logger = logging.getLogger(__name__)
@@ -178,6 +179,7 @@ def verify_email_api(request):
                 old_email = user.email
                 user.email = email
                 user.save()
+                record_verified(user, email)
 
                 # Clear session
                 del request.session["pending_email_change"]
@@ -198,6 +200,7 @@ def verify_email_api(request):
             user = verification.user
             user.is_active = True
             user.save()
+            record_verified(user, user.email)
 
             # Log the user in
             login(request, user, backend="django.contrib.auth.backends.ModelBackend")

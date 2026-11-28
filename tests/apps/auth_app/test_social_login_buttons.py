@@ -49,7 +49,9 @@ DEFECT = (
     "anonymous visitor was two clicks from an HTTP 500."
 )
 
-_SOCIAL_HREF = re.compile(r'href="(/auth/social/[^"]*)"')
+# A provider button is a POST form (``action=``); an anchor (``href=``) is
+# still matched so a regression back to a GET link is caught as "offered".
+_SOCIAL_HREF = re.compile(r'(?:href|action)="(/auth/social/[^"]*)"')
 
 
 def _social_links(response):
@@ -107,7 +109,7 @@ def google_only_body(google_only_response):
 def followed_google_link(client, google_app):
     """Follow the link the sign-in page actually offers, as a visitor would."""
     offered = _social_links(client.get(SIGNIN_URL))
-    return client.get(offered[0])
+    return client.post(offered[0])
 
 
 @pytest.mark.auth

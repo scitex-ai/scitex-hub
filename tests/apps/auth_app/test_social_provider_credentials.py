@@ -53,7 +53,9 @@ CANARY_SECRET = "canary-social-secret-that-must-never-be-rendered"
 #: The credential stubs operators leave behind. None of these is a credential.
 STUB_VALUES = ("", "   ", "CHANGEME", "change-me", "your-client-id", "<client-id>", "TODO", "xxx")
 
-_SOCIAL_HREF = re.compile(r'href="(/auth/social/[^"]*)"')
+# A provider button is a POST form (``action=``); an anchor (``href=``) is
+# still matched so a regression back to a GET link is caught as "offered".
+_SOCIAL_HREF = re.compile(r'(?:href|action)="(/auth/social/[^"]*)"')
 
 
 def _social_links(body):
@@ -251,7 +253,7 @@ class TestTheOfferedButtonStillWorks:
         credential_settings({"google": ("1234.apps.googleusercontent.com", CANARY_SECRET)})
         offered = _social_links(client.get(SIGNIN_URL).content.decode("utf-8"))
         # Act
-        response = client.get(offered[0])
+        response = client.post(offered[0])
         # Assert
         assert response.status_code != 500
 
@@ -261,7 +263,7 @@ class TestTheOfferedButtonStillWorks:
         credential_settings({"google": ("1234.apps.googleusercontent.com", CANARY_SECRET)})
         offered = _social_links(client.get(SIGNIN_URL).content.decode("utf-8"))
         # Act
-        response = client.get(offered[0])
+        response = client.post(offered[0])
         # Assert
         assert response.status_code in (301, 302)
 
@@ -271,7 +273,7 @@ class TestTheOfferedButtonStillWorks:
         credential_settings({"orcid": ("APP-ORCID-ID", CANARY_SECRET)})
         offered = _social_links(client.get(SIGNIN_URL).content.decode("utf-8"))
         # Act
-        response = client.get(offered[0])
+        response = client.post(offered[0])
         # Assert
         assert response.status_code != 500
 
@@ -384,7 +386,7 @@ class TestALeftoverDatabaseRowDoesNotBreakTheButton:
         credential_settings({"google": ("1234.apps.googleusercontent.com", CANARY_SECRET)})
         offered = _social_links(client.get(SIGNIN_URL).content.decode("utf-8"))
         # Act
-        response = client.get(offered[0])
+        response = client.post(offered[0])
         # Assert
         assert response.status_code == 302
 
@@ -405,7 +407,7 @@ class TestALeftoverDatabaseRowDoesNotBreakTheButton:
         credential_settings({})
         offered = _social_links(client.get(SIGNIN_URL).content.decode("utf-8"))
         # Act
-        response = client.get(offered[0])
+        response = client.post(offered[0])
         # Assert
         assert response.status_code == 302
 
