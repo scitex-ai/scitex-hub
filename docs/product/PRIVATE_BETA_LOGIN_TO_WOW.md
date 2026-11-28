@@ -5,6 +5,26 @@ Owner: scitex-hub product lead
 Source: operator-led desktop walkthrough on 2026-09-17  
 Scope: desktop first; 390 px mobile follows after the desktop journey is coherent
 
+## Private beta release decision
+
+**Working draft for operator review, 2026-11-28.** Record the candidate commit,
+package versions, test identity and evidence reference for each gate. A passing
+result on an established project covers only that project. Retain credentials,
+private data and detailed operator receipts in the private evidence store.
+
+| Journey | Acceptance evidence for the release candidate | Current state |
+|---|---|---|
+| Account and project | An invited researcher verifies email, creates a private Full project and opens Writer and Clew without operator intervention. | **Blocked.** The unmodified dev flow returned Writer 404 and Clew claims 503. With the [Hub](https://github.com/scitex-ai/scitex-hub/pull/1270) and [Template](https://github.com/scitex-ai/scitex-template/pull/87) candidates, a new non-staff project opened its tracked research manuscript. Clew still returned 503. [Template issue](https://github.com/scitex-ai/scitex-template/issues/84), [Hub store provisioning](https://github.com/scitex-ai/scitex-hub/issues/1231). |
+| Scientific workflow | Save a citation and a versioned, licensed public input. Produce a statistic or figure with input, executable and output hashes. | Full journey unverified on a fresh candidate. |
+| Writing and publication | Edit the manuscript in the hosted workspace, compile successfully and publish source, PDF, claims and evidence from the same revision. | The dev Writer API saved the paper abstract in a disposable project. A new session read identical bytes, and the project Git API staged, committed and pushed the edit. The remote HEAD matched the local commit. Desktop and 390 px mobile browsers displayed the edited section. The hosted section-preview API produced a downloadable PDF when the request supplied the claim definitions. The normal editor preview reported an undefined command. Automatic claim-aware preview and a hosted full-manuscript build remain open. |
+| Claim verification | An invited viewer opens a marked value, inspects its minimal graph and replays the computation. A changed input identifies the affected claim. | A hosted E2 value and its claim-scoped graph were checked on the paper project. A private receipt records clean-checkout claim regeneration, value-drift checks, and the manuscript’s slice, fault and restoration checks. Fresh-project hosted replay remains open. |
+| Programmatic access | With a scoped, revocable token, submit a job, read status, compile and retrieve verified outputs. Retry the documented example without duplicating work. | Candidate run pending. |
+| Permissions and limits | Check owner, viewer, unrelated user and revoked access on the same files and evidence. Verify job isolation, quota enforcement and usage attribution. | Awaiting private security review evidence. |
+| Operations | Pin the candidate, restore a private project with its permissions, rehearse rollback, and publish support contacts and known limitations. | Candidate rehearsal pending. |
+
+The operator should decide the initial invitation policy, billing and compute allowance,
+supported compute backend, and whether preprint intake is required for beta.
+
 ## North star
 
 A first-time researcher reaches `scitex.ai`, understands the value, creates an
