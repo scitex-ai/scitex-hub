@@ -98,20 +98,28 @@ SITE_DOMAIN = urlparse(_SITE_URL).netloc.strip() if _SITE_URL else ""
 SITE_NAME = os.getenv("SCITEX_HUB_SITE_NAME", "SciTeX").strip()
 
 ACCOUNT_LOGIN_ON_EMAIL_CONFIRMATION = True
-ACCOUNT_LOGOUT_ON_GET = True
+# State changes are POST-only: a GET (an <img>, a prefetch, a link in mail)
+# must never sign anyone out or in.
+ACCOUNT_LOGOUT_ON_GET = False
 ACCOUNT_UNIQUE_EMAIL = True
 ACCOUNT_LOGIN_METHODS = {"email", "username"}
 ACCOUNT_SIGNUP_FIELDS = ["email*", "username*", "password1*", "password2*"]
-ACCOUNT_EMAIL_VERIFICATION = "optional"
+# An address is proven before allauth signs the account in. The hub's own
+# code-based signup records its proof as a verified EmailAddress
+# (auth_app.email_addresses), so its users already satisfy this.
+ACCOUNT_EMAIL_VERIFICATION = "mandatory"
 ACCOUNT_SIGNUP_REDIRECT_URL = "/"
 ACCOUNT_LOGOUT_REDIRECT_URL = "/"
 ACCOUNT_AUTHENTICATED_LOGIN_REDIRECTS = False
 
 # Social account settings
 SOCIALACCOUNT_AUTO_SIGNUP = True
-SOCIALACCOUNT_EMAIL_AUTHENTICATION = True
-SOCIALACCOUNT_EMAIL_AUTHENTICATION_AUTO_CONNECT = True
-SOCIALACCOUNT_LOGIN_ON_GET = True
+# No implicit sign-in to an existing account by e-mail match. The only path
+# that links a social identity to an existing account is the adapter's
+# pre_social_login, which requires the address to be verified on BOTH sides.
+SOCIALACCOUNT_EMAIL_AUTHENTICATION = False
+SOCIALACCOUNT_EMAIL_AUTHENTICATION_AUTO_CONNECT = False
+SOCIALACCOUNT_LOGIN_ON_GET = False
 SOCIALACCOUNT_QUERY_EMAIL = True
 
 # Provider configuration, plus the app that makes each provider clickable.
@@ -187,8 +195,18 @@ OAUTH2_PROVIDER = {
     "OAUTH2_VALIDATOR_CLASS": "apps.infra.auth_app.oauth_validator.SciTexOAuth2Validator",
     "ACCESS_TOKEN_EXPIRE_SECONDS": 3600,
     "REFRESH_TOKEN_EXPIRE_SECONDS": 86400 * 30,
-    "PKCE_REQUIRED": False,
+    # Every client sends a PKCE code_challenge (OAuth 2.1). A confidential
+    # client still migrating may be listed in
+    # SCITEX_HUB_OAUTH_PKCE_EXEMPT_CLIENT_IDS; public clients never are
+    # (SciTexOAuth2Validator.is_pkce_required).
+    "PKCE_REQUIRED": True,
 }
+
+OAUTH_PKCE_EXEMPT_CLIENT_IDS = frozenset(
+    client_id.strip()
+    for client_id in os.getenv("SCITEX_HUB_OAUTH_PKCE_EXEMPT_CLIENT_IDS", "").split(",")
+    if client_id.strip()
+)
 
 
 # ---------------------------------------

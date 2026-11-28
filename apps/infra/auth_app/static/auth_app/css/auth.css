@@ -249,6 +249,17 @@
   color: var(--color-text-primary);
 }
 
+/* Each provider button is a POST form (allauth refuses login-on-GET); the
+   form must not become a layout box of its own. */
+.social-login-buttons > form {
+  display: contents;
+}
+
+button.btn-social {
+  font: inherit;
+  cursor: pointer;
+}
+
 .btn-social:hover {
   background-color: var(--color-canvas-subtle);
   border-color: var(--color-border-emphasis);

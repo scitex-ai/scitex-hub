@@ -18,6 +18,10 @@ from ..models import CODE_VALIDITY, PendingSignup, UserProfile
 #: what just happened. Deriving it means the two can never disagree again.
 _CODE_VALIDITY_MINUTES = int(CODE_VALIDITY.total_seconds() // 60)
 
+#: Cookie of the retired multi-account switcher. Nothing reads it any more;
+#: sign-in and sign-out expire it so old browsers drop it.
+LEGACY_DEVICE_COOKIE = "device_id"
+
 #: THE ONE response for a signup attempt, used by EVERY outcome: a fresh
 #: account, a resumed pending signup, a resend, an already-ACTIVE account and
 #: the collision cases. Deliberately conditional — "if that address can be
@@ -395,7 +399,6 @@ def _resume_pending_signup_on_signin(request, username, password):
 def login_view(request):
     """User login view with authentication."""
     from ..onboarding import resolve_post_login_url
-    from .account_switching import add_authenticated_account
 
     # The login gate carries its return in ?next= (e.g. /apps/stats/). The
     # signin form re-posts it as a hidden field, so read POST first (B2).
@@ -421,6 +424,11 @@ def login_view(request):
 
             if user is not None:
                 login(request, user)
+                # Accounts from before verification was mandatory are not
+                # refused; they are asked to confirm their address.
+                from ..email_addresses import prompt_verification
+
+                prompt_verification(request, user)
 
                 # Handle remember me
                 if not form.cleaned_data.get("remember_me"):
@@ -432,9 +440,8 @@ def login_view(request):
 
                 messages.success(request, f"Welcome back, @{user.username}!")
 
-                # Create response and register account for switching
                 response = redirect(next_page)
-                add_authenticated_account(request, response)
+                response.delete_cookie(LEGACY_DEVICE_COOKIE, samesite="Lax")
                 return response
 
             pending_redirect = _resume_pending_signup_on_signin(
@@ -464,7 +471,12 @@ def logout_view(request):
     logout(request)
 
     # Redirect immediately without message (cleaner UX)
-    return redirect("/")
+    response = redirect("/")
+    # Browsers may still hold the retired multi-account ``device_id`` cookie
+    # (one-year lifetime). It no longer grants anything; expire it anyway so
+    # a shared machine keeps no trace of who signed in on it.
+    response.delete_cookie(LEGACY_DEVICE_COOKIE, samesite="Lax")
+    return response
 
 
 # EOF

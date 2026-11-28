@@ -69,13 +69,6 @@ urlpatterns = [
         name="api_save_theme",
     ),
     path("api/get-theme/", views.api_get_theme_preference, name="api_get_theme"),
-    # Account switcher (multi-account support)
-    path("switch/<int:user_id>/", views.switch_account, name="switch_account"),
-    path(
-        "api/authenticated-accounts/",
-        views.get_authenticated_accounts,
-        name="api_authenticated_accounts",
-    ),
 ]
 
 # EOF
