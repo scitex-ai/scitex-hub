@@ -4,8 +4,8 @@
 
 import os
 import socket
-from urllib.parse import urlparse
 from datetime import timedelta
+from urllib.parse import urlparse
 
 from config.social_apps import orcid_base_domain, with_credential_apps
 
@@ -31,6 +31,36 @@ GOOGLE_CLIENT_ID = os.getenv("SCITEX_HUB_GOOGLE_CLIENT_ID") or os.getenv(
 GOOGLE_CLIENT_SECRET = os.getenv("SCITEX_HUB_GOOGLE_CLIENT_SECRET") or os.getenv(
     "SCITEX_GOOGLE_CLIENT_SECRET", ""
 )
+
+# ---------------------------------------
+# Credential checks
+# ---------------------------------------
+AUTHENTICATION_BACKENDS = [
+    # First: refuses a credential check while its failure buckets are full
+    # (auth_app.login_throttle); it never signs anyone in itself.
+    "apps.infra.auth_app.login_throttle.LoginThrottleBackend",
+    "django.contrib.auth.backends.ModelBackend",
+    "allauth.account.auth_backends.AuthenticationBackend",
+]
+
+#: Failed sign-in buckets (auth_app.login_throttle.DEFAULTS documents them).
+LOGIN_THROTTLE = {
+    "window_seconds": int(os.getenv("SCITEX_HUB_LOGIN_THROTTLE_WINDOW_SECONDS", "900")),
+    "pair_limit": int(os.getenv("SCITEX_HUB_LOGIN_THROTTLE_PAIR_LIMIT", "5")),
+    "account_limit": int(os.getenv("SCITEX_HUB_LOGIN_THROTTLE_ACCOUNT_LIMIT", "50")),
+    "ip_limit": int(os.getenv("SCITEX_HUB_LOGIN_THROTTLE_IP_LIMIT", "30")),
+}
+
+# ---------------------------------------
+# Two-factor authentication (allauth.mfa)
+# ---------------------------------------
+MFA_SUPPORTED_TYPES = ["totp", "recovery_codes"]
+MFA_TOTP_ISSUER = "SciTeX"
+#: Staff and superuser cookie sessions must pass a second factor
+#: (auth_app.mfa_enforcement.StaffMFAMiddleware).
+MFA_REQUIRED_FOR_STAFF = os.getenv(
+    "SCITEX_HUB_MFA_REQUIRED_FOR_STAFF", "true"
+).strip().lower() in ("1", "true", "yes", "on")
 
 # ---------------------------------------
 # Django-Allauth Settings (Social Login)
@@ -61,9 +91,7 @@ SITE_ID = 1
 #: `SITE_URL` here resolves in this module's own namespace and would be a
 #: NameError, and importing it back would be a circular import into a
 #: half-initialised module. The env var is the same single source either way.
-_SITE_URL = (
-    os.getenv("SCITEX_HUB_SITE_URL", "") or os.getenv("SITE_URL", "")
-).strip()
+_SITE_URL = (os.getenv("SCITEX_HUB_SITE_URL", "") or os.getenv("SITE_URL", "")).strip()
 SITE_DOMAIN = urlparse(_SITE_URL).netloc.strip() if _SITE_URL else ""
 
 #: Human-readable label for the same Site row. Cosmetic, unlike SITE_DOMAIN.

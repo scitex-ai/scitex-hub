@@ -204,6 +204,35 @@ def django_user_model():
     return get_user_model()
 
 
+@pytest.fixture(autouse=True)
+def _auth_guards_per_test(request):
+    """Per-test state for the sign-in guards.
+
+    - Failed sign-in counters get a namespace per test, so failures in one
+      test never lock out a sign-in in another (the throttle stays active).
+    - Staff second-factor enforcement is opt-in (``@pytest.mark.staff_mfa``):
+      many suites sign in a staff user with ``force_login`` to test something
+      else, and the gate would send them all to TOTP setup. The gate itself is
+      covered by tests/security/test_login_throttle_and_mfa.py.
+    """
+    if not DJANGO_AVAILABLE:
+        yield
+        return
+    from django.conf import settings
+    from django.test import override_settings
+
+    overrides = {
+        "LOGIN_THROTTLE": {
+            **getattr(settings, "LOGIN_THROTTLE", {}),
+            "namespace": request.node.nodeid,
+        }
+    }
+    if not request.node.get_closest_marker("staff_mfa"):
+        overrides["MFA_REQUIRED_FOR_STAFF"] = False
+    with override_settings(**overrides):
+        yield
+
+
 @pytest.fixture
 def create_test_user(django_user_model, new_user_data):
     """Create a test user in the database."""

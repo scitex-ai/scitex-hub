@@ -385,7 +385,8 @@ all = [
     "django-extensions>=4.1",
     "django-browser-reload>=1.12",
     "django-axes>=6.3",
-    "django-allauth[socialaccount]>=65.14.1",
+    # [mfa]: TOTP two-factor sign-in (qrcode renders the setup QR code).
+    "django-allauth[socialaccount,mfa]>=65.14.1",
     "django-oauth-toolkit>=3.0",
     "django-widget-tweaks>=1.5",
     "django-celery-results>=2.5",
@@ -811,6 +812,9 @@ markers = [
     # without pytest-xdist installed still run with --strict-markers.
     "xdist_group(name): pytest-xdist scheduling group (--dist loadgroup)",
     "security: Exploit-regression tests for confirmed security findings",
+    # The staff second-factor gate is off in tests unless a test opts in, so
+    # suites that sign in staff with force_login exercise their own subject.
+    "staff_mfa: Run with MFA_REQUIRED_FOR_STAFF enabled",
     # A guard exists to stop ONE named defect coming back. Declaring which defect is
     # not documentation: a guard whose author cannot state the defect in a sentence
     # usually has not tested it either, and the declaration is what a mutation check
