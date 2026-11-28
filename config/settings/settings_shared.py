@@ -137,6 +137,13 @@ SCITEX_API_AUTHENTICATOR = "apps.infra.project_app.services.project_store.api_ke
 SCITEX_API_CALLER = "apps.infra.accounts_app.services.api_caller.api_caller"
 SCITEX_API_TRUSTED_DISTRIBUTIONS = ("scitex-*", "figrecipe")
 SCITEX_API_IDEMPOTENCY_STORE = "scitex_sdk.app.api_serve.CacheIdempotencyStore"
+# Legacy public API families and their v1 successors (API-H003). Sunset is the
+# beta launch date + 6 months (scholar search: 12), operator decision 3. The
+# beta launch date is NOT decided yet: while it is unset no Sunset header is
+# sent (a guessed removal date would be a promise nobody made).
+from config.api_surface import LEGACY_DEPRECATIONS as SCITEX_API_DEPRECATIONS  # noqa: E402
+
+SCITEX_API_BETA_LAUNCH_DATE = os.environ.get("SCITEX_API_BETA_LAUNCH_DATE") or None
 # Operator-only credentials. An absent mapping leaves private stores unavailable;
 # no managed-store fallback or schema/data migration is performed here.
 SCITEX_STORE_TENANT_SECRETS = os.environ.get("SCITEX_HUB_STORE_TENANT_SECRETS", "")

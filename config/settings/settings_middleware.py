@@ -54,4 +54,8 @@ MIDDLEWARE = [
     # SCITEX_UI_ELEMENT_INSPECTOR is on (see settings_shared.py).
     # Async-capable as of scitex-ui 0.6.1 — do not downgrade below that pin.
     "scitex_ui.middleware.ElementInspectorMiddleware",
+    # API contract v1, API-H003: legacy public API routes answer as before and
+    # also carry Deprecation / Sunset / Link headers pointing at their v1
+    # successor (families in config/api_surface.py LEGACY_DEPRECATIONS).
+    "scitex_sdk.app.api_deprecation.LegacyApiDeprecationMiddleware",
 ]
