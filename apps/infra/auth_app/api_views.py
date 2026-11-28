@@ -12,7 +12,6 @@ import logging
 
 from django.contrib.auth.models import User
 from django.http import JsonResponse
-from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_http_methods
 
 from .otp_api_views import resend_otp_api, verify_email_api  # noqa: F401
@@ -107,55 +106,6 @@ def check_username_availability(request):
         )
 
 
-@csrf_exempt
-@require_http_methods(["POST"])
-def verify_credentials_api(request):
-    """API endpoint for remote credential verification (orochi SSO fallback).
-
-    Verifies username/password without creating a session.
-    Returns user info on success for the remote app to create a local account.
-    """
-    from django.contrib.auth import authenticate as django_authenticate
-
-    try:
-        data = json.loads(request.body)
-        username = data.get("username", "").strip()
-        password = data.get("password", "")
-
-        if not username or not password:
-            return JsonResponse(
-                {"success": False, "error": "Credentials required."}, status=400
-            )
-
-        # Allow login with email
-        if "@" in username:
-            try:
-                user_obj = User.objects.get(email=username)
-                username = user_obj.username
-            except User.DoesNotExist:
-                return JsonResponse(
-                    {"success": False, "error": "Invalid credentials."}, status=401
-                )
-
-        user = django_authenticate(username=username, password=password)
-        if user is None or not user.is_active:
-            return JsonResponse(
-                {"success": False, "error": "Invalid credentials."}, status=401
-            )
-
-        return JsonResponse(
-            {
-                "success": True,
-                "user": {
-                    "username": user.username,
-                    "email": user.email,
-                    "name": user.get_full_name() or user.username,
-                },
-            }
-        )
-
-    except json.JSONDecodeError:
-        return JsonResponse({"success": False, "error": "Invalid JSON."}, status=400)
 
 
 @require_http_methods(["POST"])

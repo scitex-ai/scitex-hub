@@ -396,6 +396,51 @@ def _resume_pending_signup_on_signin(request, username, password):
     return redirect(_verify_page(user.email))
 
 
+def _complete_sign_in(request, form, user, username, raw_next):
+    """Finish a password sign-in through allauth's login stages.
+
+    allauth runs the second-factor step when the account has one (and the
+    login completes on the code page), otherwise it signs in at once.
+    """
+    from allauth.account.internal.flows.login import perform_password_login
+    from allauth.account.models import Login
+    from allauth.account.app_settings import EmailVerificationMethod
+    from django.conf import settings
+
+    from ..email_addresses import prompt_verification
+    from ..mfa_enforcement import has_second_factor
+    from ..onboarding import resolve_post_login_url
+
+    # Accounts from before verification was mandatory are not refused;
+    # they are asked to confirm their address.
+    prompt_verification(request, user)
+
+    # Remember me: set before the login so it survives the code step.
+    if form.cleaned_data.get("remember_me"):
+        request.session.set_expiry(settings.SESSION_COOKIE_AGE)
+    else:
+        request.session.set_expiry(0)
+
+    # Funnel is the authority (payment gate wins); otherwise honor the
+    # login gate's safe same-origin return (B2).
+    next_page = resolve_post_login_url(user, raw_next, request)
+    if not has_second_factor(user):
+        messages.success(request, f"Welcome back, @{user.username}!")
+
+    response = perform_password_login(
+        request,
+        {"username": username},
+        Login(
+            user=user,
+            redirect_url=next_page,
+            # The confirmation prompt above replaces allauth's hard stop.
+            email_verification=EmailVerificationMethod.OPTIONAL,
+        ),
+    )
+    response.delete_cookie(LEGACY_DEVICE_COOKIE, samesite="Lax")
+    return response
+
+
 def login_view(request):
     """User login view with authentication."""
     from ..onboarding import resolve_post_login_url
@@ -423,33 +468,26 @@ def login_view(request):
             user = authenticate(request, username=username, password=password)
 
             if user is not None:
-                login(request, user)
-                # Accounts from before verification was mandatory are not
-                # refused; they are asked to confirm their address.
-                from ..email_addresses import prompt_verification
-
-                prompt_verification(request, user)
-
-                # Handle remember me
-                if not form.cleaned_data.get("remember_me"):
-                    request.session.set_expiry(0)
-
-                # Funnel is the authority (payment gate wins); otherwise honor
-                # the login gate's safe same-origin return (B2).
-                next_page = resolve_post_login_url(user, raw_next, request)
-
-                messages.success(request, f"Welcome back, @{user.username}!")
-
-                response = redirect(next_page)
-                response.delete_cookie(LEGACY_DEVICE_COOKIE, samesite="Lax")
-                return response
+                return _complete_sign_in(request, form, user, username, raw_next)
 
             pending_redirect = _resume_pending_signup_on_signin(
                 request, username, password
             )
             if pending_redirect is not None:
                 return pending_redirect
-            messages.error(request, "Invalid username or password.")
+            from ..login_throttle import client_ip, retry_after
+
+            wait = retry_after(username, client_ip(request))
+            if wait:
+                # Same text whether or not the account exists.
+                minutes = max(1, (wait + 59) // 60)
+                messages.error(
+                    request,
+                    "Too many failed sign-in attempts. Try again in "
+                    f"{minutes} minute{'s' if minutes != 1 else ''}.",
+                )
+            else:
+                messages.error(request, "Invalid username or password.")
     else:
         form = LoginForm()
 

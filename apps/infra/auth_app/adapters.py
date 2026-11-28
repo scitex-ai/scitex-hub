@@ -22,6 +22,12 @@ class SciTexAccountAdapter(DefaultAccountAdapter):
     Handles standard account operations with SciTeX-specific logic.
     """
 
+    def get_client_ip(self, request):
+        """allauth's own rate limits key on the same client address as ours."""
+        from apps.client_ip import get_client_ip
+
+        return get_client_ip(request)
+
     def save_user(self, request, user, form, commit=True):
         """
         Save user with additional SciTeX-specific fields.

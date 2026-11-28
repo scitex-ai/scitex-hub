@@ -216,7 +216,7 @@ def test_staff_without_totp_is_sent_to_setup(staff):
     client = Client()
     client.force_login(staff)
     # Act
-    response = client.get("/accounts/settings/account/")
+    response = client.get("/accounts/settings/profile/")
     # Assert
     assert response["Location"] == "/auth/social/2fa/totp/activate/"
 
@@ -228,7 +228,7 @@ def test_staff_session_that_skipped_the_code_is_signed_out(staff):
     client = Client()
     client.force_login(staff)
     # Act
-    client.get("/accounts/settings/account/")
+    client.get("/accounts/settings/profile/")
     # Assert
     assert not _signed_in_as(client, staff)
 
@@ -241,7 +241,7 @@ def test_staff_that_passed_the_code_is_let_through(staff):
     _sign_in(client, staff.username, PASSWORD)
     client.post("/auth/social/2fa/authenticate/", {"code": _current_code(secret)})
     # Act
-    response = client.get("/accounts/settings/account/")
+    response = client.get("/accounts/settings/profile/")
     # Assert
     assert response.status_code == 200
 
@@ -252,6 +252,6 @@ def test_member_without_totp_is_not_held(member):
     client = Client()
     client.force_login(member)
     # Act
-    response = client.get("/accounts/settings/account/")
+    response = client.get("/accounts/settings/profile/")
     # Assert
     assert response.status_code == 200

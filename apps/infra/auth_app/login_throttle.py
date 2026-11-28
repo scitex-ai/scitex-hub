@@ -56,7 +56,7 @@ def _account(identity: str | None) -> str | None:
     return identity or None
 
 
-def _client_ip(request) -> str | None:
+def client_ip(request) -> str | None:
     if request is None:
         return None
     ip = get_client_ip(request)
@@ -140,7 +140,7 @@ class LoginThrottleBackend(ModelBackend):
 
     def authenticate(self, request, username=None, password=None, **kwargs):
         identity = username or kwargs.get("email") or kwargs.get("login")
-        if is_locked(identity, _client_ip(request)):
+        if is_locked(identity, client_ip(request)):
             if request is not None:
                 setattr(request, _REFUSED_ATTR, True)
             raise PermissionDenied("Too many failed sign-in attempts.")
@@ -166,12 +166,12 @@ class LoginThrottleBackend(ModelBackend):
 def _count_failure(sender, credentials, request=None, **kwargs):
     if request is not None and getattr(request, _REFUSED_ATTR, False):
         return
-    record_failure(identity_of(credentials), _client_ip(request))
+    record_failure(identity_of(credentials), client_ip(request))
 
 
 @receiver(user_logged_in, dispatch_uid="auth_app.login_throttle.success")
 def _clear_on_success(sender, request, user, **kwargs):
-    ip = _client_ip(request)
+    ip = client_ip(request)
     clear_success(user.get_username(), ip)
     if getattr(user, "email", ""):
         clear_success(user.email, ip)
