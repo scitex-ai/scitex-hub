@@ -1,5 +1,10 @@
 """
 Console Logger View - Captures browser console logs to server file
+
+Both views sit behind the /dev/ gate (``dev_app.access.dev_admin_only``):
+developer tools must be explicitly enabled and the caller must be staff.
+Every stored line is tagged with the uploader's user id, and a reader only
+ever gets back its own lines -- never another account's.
 """
 
 import json
@@ -9,7 +14,6 @@ from pathlib import Path
 
 from django.conf import settings
 from django.http import JsonResponse
-from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_http_methods
 
 # Setup dedicated console logger with rotation. Use settings.LOG_DIR
@@ -60,98 +64,93 @@ console_logger.addHandler(error_handler)
 # Prevent propagation to root logger
 console_logger.propagate = False
 
+# Each stored entry is one line tagged with the uploader's user id, so a
+# reader only ever gets back the lines its own browser sent.
+_OWNER_TAG = "uid={user_id} "
+_DEFAULT_LINES = 500
+_MAX_LINES = 5000
+_LEVELS = {
+    "log": logging.INFO,
+    "info": logging.INFO,
+    "warn": logging.WARNING,
+    "warning": logging.WARNING,
+    "error": logging.ERROR,
+    "debug": logging.DEBUG,
+}
+
+
+def _owner_tag(user) -> str:
+    return _OWNER_TAG.format(user_id=user.pk)
+
+
+def _one_line(text) -> str:
+    """Keep one entry per line so ownership filtering stays line-based."""
+    return str(text).replace("\r", "\\r").replace("\n", "\\n")
+
+
+def _is_owned_by(line: str, tag: str) -> bool:
+    # Line format: "[timestamp] LEVEL: uid=<id> message"
+    return line.partition(": ")[2].startswith(tag)
+
 
 @require_http_methods(["GET"])
 def get_console_logs(request):
-    """
-    Return the console logs file content for debug snapshots.
-    Only available in DEBUG mode.
-    """
-    if not settings.DEBUG:
-        return JsonResponse({"error": "Only available in DEBUG mode"}, status=403)
-
+    """Return the requesting user's own recent browser-console log lines."""
     try:
-        if console_log_file.exists():
-            # Read last N lines (default 500)
-            max_lines = int(request.GET.get("lines", 500))
-            with open(console_log_file, "r") as f:
-                lines = f.readlines()
-                # Get last N lines
-                recent_lines = lines[-max_lines:]
-                content = "".join(recent_lines)
-                return JsonResponse(
-                    {
-                        "success": True,
-                        "logs": content,
-                        "total_lines": len(lines),
-                        "returned_lines": len(recent_lines),
-                    }
-                )
-        else:
-            return JsonResponse(
-                {
-                    "success": True,
-                    "logs": "No console logs file found.",
-                    "total_lines": 0,
-                    "returned_lines": 0,
-                }
-            )
-    except Exception as e:
-        return JsonResponse({"success": False, "error": str(e)}, status=500)
+        max_lines = int(request.GET.get("lines", _DEFAULT_LINES))
+    except ValueError:
+        return JsonResponse(
+            {"success": False, "error": "lines must be an integer"}, status=400
+        )
+    max_lines = max(1, min(max_lines, _MAX_LINES))
+
+    own = []
+    if console_log_file.exists():
+        tag = _owner_tag(request.user)
+        with open(console_log_file, "r", errors="replace") as f:
+            own = [line for line in f if _is_owned_by(line, tag)]
+    recent = own[-max_lines:]
+    return JsonResponse(
+        {
+            "success": True,
+            "logs": "".join(recent),
+            "total_lines": len(own),
+            "returned_lines": len(recent),
+        }
+    )
 
 
-@csrf_exempt  # Allow from dev frontend without CSRF
 @require_http_methods(["POST"])
 def log_console(request):
-    """
-    Receive browser console logs and write to ./logs/console.log
+    """Store the requesting user's browser console logs.
 
-    Expected payload:
-    {
-        "logs": [
-            {
-                "level": "log|info|warn|error",
-                "message": "Console message",
-                "source": "file.js:123:45",
-                "timestamp": 1234567890.123,
-                "url": "http://localhost:8000/writer/"
-            },
-            ...
-        ]
-    }
+    Expected payload::
+
+        {"logs": [{"level": "log|info|warn|error", "message": "...",
+                   "source": "file.js:123:45", "url": "https://..."}]}
     """
     try:
         data = json.loads(request.body)
-        logs = data.get("logs", [])
+    except (ValueError, UnicodeDecodeError):
+        return JsonResponse({"status": "error", "message": "invalid JSON"}, status=400)
+    logs = data.get("logs") if isinstance(data, dict) else None
+    if not isinstance(logs, list):
+        return JsonResponse(
+            {"status": "error", "message": "logs must be a list"}, status=400
+        )
 
-        # Map console levels to logging levels
-        level_map = {
-            "log": logging.INFO,
-            "info": logging.INFO,
-            "warn": logging.WARNING,
-            "warning": logging.WARNING,
-            "error": logging.ERROR,
-            "debug": logging.DEBUG,
-        }
+    tag = _owner_tag(request.user)
+    logged = 0
+    for entry in logs:
+        if not isinstance(entry, dict):
+            continue
+        message = tag + _one_line(entry.get("message", ""))
+        if entry.get("source"):
+            message += f" ({_one_line(entry['source'])})"
+        if entry.get("url"):
+            message += f" | {_one_line(entry['url'])}"
+        level = _LEVELS.get(str(entry.get("level", "log")).lower(), logging.INFO)
+        console_logger.log(level, message)
+        logged += 1
 
-        for log_entry in logs:
-            level = log_entry.get("level", "log").lower()
-            message = log_entry.get("message", "")
-            source = log_entry.get("source", "")
-            url = log_entry.get("url", "")
-
-            # Format log message
-            log_msg = f"{message}"
-            if source:
-                log_msg += f" ({source})"
-            if url:
-                log_msg += f" | {url}"
-
-            log_level = level_map.get(level, logging.INFO)
-            console_logger.log(log_level, log_msg)
-
-        return JsonResponse({"status": "ok", "logged": len(logs)})
-
-    except Exception as e:
-        console_logger.error(f"Failed to process console logs: {e}")
-        return JsonResponse({"status": "error", "message": str(e)}, status=500)
+    return JsonResponse({"status": "ok", "logged": logged})

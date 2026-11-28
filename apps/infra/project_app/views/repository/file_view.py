@@ -16,7 +16,7 @@ import subprocess
 
 from django.contrib import messages
 from django.contrib.auth.models import User
-from django.http import Http404, HttpResponse
+from django.http import Http404
 from django.shortcuts import get_object_or_404, redirect, render
 
 from apps.infra.project_app.models import Project
@@ -200,12 +200,14 @@ def project_file_view(request, username, slug, file_path):
         elif file_ext in [".gif"]:
             content_type = "image/gif"
 
-        with open(full_file_path, "rb") as f:
-            response = HttpResponse(f.read(), content_type=content_type)
-            # For download mode, force download instead of inline display
-            disposition = "attachment" if mode == "download" else "inline"
-            response["Content-Disposition"] = f'{disposition}; filename="{file_name}"'
-            return response
+        from apps.user_content import user_file_response
+
+        return user_file_response(
+            open(full_file_path, "rb"),
+            file_name,
+            content_type=content_type,
+            download=mode == "download",
+        )
 
     # Handle edit mode - redirect to file_edit view
     if mode == "edit":
@@ -271,83 +273,11 @@ def project_file_view(request, username, slug, file_path):
 
                     # Render based on file type
                     if file_ext == ".md":
-                        import bleach
-                        import markdown
-                        from bleach.css_sanitizer import CSSSanitizer
+                        from apps.user_content import render_user_markdown
 
-                        # Render markdown to HTML
-                        # Note: The 'tables' extension is enabled to render legitimate markdown tables
-                        # Tables appearing inside fenced code blocks with pipe syntax are also converted
-                        # to HTML tables by the markdown processor. This is expected behavior.
-                        # The XSS warnings from highlight.js about unescaped HTML in code blocks are
-                        # false positives - these tables are properly escaped by bleach during sanitization.
-                        raw_html = markdown.markdown(
+                        file_html = render_user_markdown(
                             file_content,
-                            extensions=[
-                                "fenced_code",
-                                "tables",
-                                "nl2br",
-                                "codehilite",
-                            ],
-                        )
-
-                        # Sanitize HTML to prevent XSS
-                        # Allow common safe tags and attributes
-                        allowed_tags = bleach.ALLOWED_TAGS | {
-                            "h1",
-                            "h2",
-                            "h3",
-                            "h4",
-                            "h5",
-                            "h6",
-                            "p",
-                            "br",
-                            "hr",
-                            "pre",
-                            "code",
-                            "span",
-                            "div",
-                            "table",
-                            "thead",
-                            "tbody",
-                            "tr",
-                            "th",
-                            "td",
-                            "ul",
-                            "ol",
-                            "li",
-                            "dl",
-                            "dt",
-                            "dd",
-                            "img",
-                            "a",
-                            "strong",
-                            "em",
-                            "del",
-                            "ins",
-                            "blockquote",
-                            "details",
-                            "summary",
-                        }
-                        allowed_attributes = {
-                            "*": ["class", "id"],
-                            "a": ["href", "title", "rel"],
-                            "img": ["src", "alt", "title", "width", "height"],
-                            "code": ["class"],
-                            "pre": ["class"],
-                            "span": ["class", "style"],
-                            "div": ["class", "style"],
-                        }
-                        css_sanitizer = CSSSanitizer(
-                            allowed_css_properties=["color", "background-color"]
-                        )
-
-                        file_html = bleach.clean(
-                            raw_html,
-                            tags=allowed_tags,
-                            attributes=allowed_attributes,
-                            css_sanitizer=css_sanitizer,
-                            strip=False,
+                            extensions=["fenced_code", "tables", "nl2br", "codehilite"],
                         )
                         render_type = "markdown"
                     elif language:

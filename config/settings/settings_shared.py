@@ -173,8 +173,7 @@ globals().update(_configure_static(BASE_DIR))
 # Vite dev server port for dev app TypeScript (container Vite)
 VITE_DEV_APP_PORT = 5174
 
-# Allow larger request bodies for base64 image attachments in AI chat (default 2.5MB)
-DATA_UPLOAD_MAX_MEMORY_SIZE = 100 * 1024 * 1024  # 100 MB
+from .settings_uploads import *  # noqa: F401,F403,E402 (request-body limits)
 
 LOGIN_URL = "/auth/login/"
 LOGIN_REDIRECT_URL = "/"
@@ -292,14 +291,39 @@ SCITEX_HUB_INTERNAL_APPS_RELEASED = (
     _getenv_alias("SCITEX_HUB_INTERNAL_APPS_RELEASED", "false") or "false"
 ).lower() in ("1", "true", "yes", "on")
 
-# ── On-site agent auth (HMAC shared secret) ────────────────────────────
-# Shared with the MCP client running inside the user's agent container
-# (scitex_hub._mcp_tools.api.get_on_site_env injects the same value as
-# SCITEX_HUB_ONSITE_SECRET). OnSiteAuthMiddleware verifies an HMAC over
-# (username, timestamp) against it. Empty => on-site auth is DISABLED
+# ── Client IP behind the proxy chain ──────────────────────────────────
+# apps.client_ip.get_client_ip honours CF-Connecting-IP / X-Real-IP only when
+# the direct peer is in one of these networks: the Docker bridges nginx and
+# cloudflared connect from. Comma-separated CIDRs; set it to a single
+# unroutable entry (e.g. "0.0.0.0/32") to trust no proxy at all.
+CLIENT_IP_TRUSTED_PROXIES = tuple(
+    cidr.strip()
+    for cidr in os.environ.get(
+        "SCITEX_HUB_TRUSTED_PROXY_CIDRS",
+        "127.0.0.0/8,::1/128,10.0.0.0/8,172.16.0.0/12,192.168.0.0/16,fc00::/7",
+    ).split(",")
+    if cidr.strip()
+)
+
+# ── On-site agent auth (HMAC master secret, server-only) ───────────────
+# Never handed to agents. Each terminal session receives only a per-user
+# key derived from it (scitex_hub._mcp_tools.api.issue_onsite_credentials);
+# OnSiteAuthMiddleware re-derives the claimed user's key and verifies the
+# request signature and key age against it. Empty => on-site auth is DISABLED
 # (fail closed); it is never a "trusted network" fallback, because the
 # previous IP-based signal was client-forgeable (X-Forwarded-For).
 ONSITE_AUTH_SECRET = os.environ.get("SCITEX_HUB_ONSITE_SECRET", "")
+
+# ── Developer endpoints (/dev/) ────────────────────────────────────────
+# The /dev/ toolbox (design-system catalogue, API test runner, browser-console
+# log sink, job canceller) is mounted ONLY when this is explicitly enabled.
+# Off by default on every deployment, DEBUG included: DEBUG says how errors
+# render, not who may use developer tools. Even when on, every /dev/ route is
+# restricted to staff (apps.workspace.dev_app.access). settings_prod forces it
+# off and refuses to start if the environment asks for it.
+DEV_TOOLS_ENABLED = (
+    os.environ.get("SCITEX_HUB_DEV_TOOLS_ENABLED", "false") or "false"
+).lower() in ("1", "true", "yes", "on")
 
 # The MIDDLEWARE stack (order-sensitive, commented per entry) lives in its own
 # module; imported under the same name so env modules can extend it.

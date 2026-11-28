@@ -21,7 +21,6 @@ from pathlib import Path
 
 import paramiko
 from django.conf import settings
-from django.contrib.auth import authenticate
 from django.core.management.base import BaseCommand
 
 from apps.infra.workspace_app.services.container_manager import UserContainerManager
@@ -46,28 +45,17 @@ class SSHGateway(paramiko.ServerInterface):
         self.event = threading.Event()
 
     def check_auth_password(self, username: str, password: str) -> int:
+        """Refuse password authentication; public keys only.
+
+        paramiko dispatches every ``password`` userauth request to this
+        method whatever ``get_allowed_auths`` advertises, so the refusal has
+        to live here. Accepting passwords made the gateway an unthrottled
+        check of account passwords, outside the web sign-in.
         """
-        Authenticate user against Django authentication system.
+        return paramiko.AUTH_FAILED
 
-        Args:
-            username: Username to authenticate
-            password: Password to check
-
-        Returns:
-            paramiko.AUTH_SUCCESSFUL if authenticated, paramiko.AUTH_FAILED otherwise
-        """
-        logger.info(f"Password authentication attempt for user: {username}")
-        try:
-            user = authenticate(username=username, password=password)
-            if user and user.is_active:
-                self.user = user
-                self.username = username
-                logger.info(f"Password authentication successful for user: {username}")
-                return paramiko.AUTH_SUCCESSFUL
-        except Exception as e:
-            logger.error(f"Password authentication error for user {username}: {e}")
-
-        logger.warning(f"Password authentication failed for user: {username}")
+    def check_auth_interactive(self, username: str, submethods: str) -> int:
+        """Refuse keyboard-interactive authentication; public keys only."""
         return paramiko.AUTH_FAILED
 
     def check_auth_publickey(self, username: str, key: paramiko.PKey) -> int:
@@ -83,10 +71,12 @@ class SSHGateway(paramiko.ServerInterface):
         """
         logger.info(f"Public key authentication attempt for user: {username}")
         try:
+            import base64
+
             from django.contrib.auth import get_user_model
+
             from apps.infra.accounts_app.models import WorkspaceSSHKey
             from apps.infra.accounts_app.utils.ssh_key_validator import SSHKeyValidator
-            import base64
 
             User = get_user_model()
 

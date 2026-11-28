@@ -24,9 +24,11 @@ takeover. The REMOTE_ADDR fallback was no better — behind the nginx
 container every proxied request arrives with a 172.16/12 bridge address,
 which the old trusted-prefix list accepted.
 
-The fix makes possession of the shared HMAC secret the only trust signal
-(``scitex_hub._mcp_tools.api.verify_onsite``, which also enforces a
-replay window and uses a constant-time comparison).
+The fix makes a signature under the CLAIMED user's own derived key the
+only trust signal (``scitex_hub._mcp_tools.api.verify_onsite`` re-derives
+``HMAC(master, audience|username|epoch)``, enforces a replay window and a
+key age limit, and uses a constant-time comparison). The master secret is
+never handed to agents, so one user's key cannot sign for another user.
 
 These tests drive the real middleware with attacker-controlled META and
 assert the dangerous sink — the user lookup that yields ``request.user``
@@ -44,9 +46,13 @@ from django.test import RequestFactory, override_settings
 
 from apps.infra.project_app.middleware import OnSiteAuthMiddleware
 from scitex_hub._mcp_tools.api import (
+    ONSITE_EPOCH_HEADER,
+    ONSITE_KEY_MAX_AGE_DAYS,
     ONSITE_SIG_HEADER,
     ONSITE_TS_HEADER,
     ONSITE_USER_HEADER,
+    current_key_epoch,
+    derive_onsite_key,
     sign_onsite,
     wsgi_meta_key,
 )
@@ -125,12 +131,22 @@ def forged_xff_request():
     )
 
 
-def signed_meta(username, secret, issued_at=None):
-    ts = str(int(time.time() if issued_at is None else issued_at))
+def signed_meta(username, master, issued_at=None, *, key=None, epoch=None):
+    """Headers an on-site agent sends, signed with ``username``'s own key.
+
+    ``key`` overrides the signing key (another user's key, or the master
+    itself); ``epoch`` overrides the key's issue day.
+    """
+    now = time.time() if issued_at is None else issued_at
+    ts = str(int(now))
+    epoch = current_key_epoch(now) if epoch is None else epoch
+    if key is None:
+        key = derive_onsite_key(master, username, epoch)
     return {
         wsgi_meta_key(ONSITE_USER_HEADER): username,
         wsgi_meta_key(ONSITE_TS_HEADER): ts,
-        wsgi_meta_key(ONSITE_SIG_HEADER): sign_onsite(username, ts, secret),
+        wsgi_meta_key(ONSITE_EPOCH_HEADER): str(epoch),
+        wsgi_meta_key(ONSITE_SIG_HEADER): sign_onsite(username, epoch, ts, key),
     }
 
 
@@ -250,6 +266,70 @@ def test_signature_under_an_attacker_secret_is_rejected(middleware, onsite_secre
     assert not request.user.is_authenticated, (
         "AUTH BYPASS: a signature made with the wrong secret was accepted"
     )
+
+
+def test_another_users_key_cannot_sign_for_the_victim(middleware, onsite_secret):
+    """bob holds his own derived key; it must not authenticate as admin."""
+    # Arrange
+    bob_key = derive_onsite_key(SECRET, "bob", current_key_epoch())
+    request = anonymous_request(
+        REMOTE_ADDR="127.0.0.1", **signed_meta(VICTIM, SECRET, key=bob_key)
+    )
+    # Act
+    middleware(request)
+    # Assert
+    assert not request.user.is_authenticated, (
+        "AUTH BYPASS: a per-user key signed a request for a different user"
+    )
+
+
+def test_master_secret_used_directly_is_rejected(middleware, onsite_secret):
+    """Only derived keys sign requests; the master is not a signing key."""
+    # Arrange
+    request = anonymous_request(
+        REMOTE_ADDR="127.0.0.1", **signed_meta(VICTIM, SECRET, key=SECRET)
+    )
+    # Act
+    middleware(request)
+    # Assert
+    assert not request.user.is_authenticated
+
+
+def test_aged_out_key_is_rejected(middleware, onsite_secret):
+    # Arrange
+    old_epoch = current_key_epoch() - ONSITE_KEY_MAX_AGE_DAYS - 1
+    request = anonymous_request(
+        REMOTE_ADDR="127.0.0.1", **signed_meta(VICTIM, SECRET, epoch=old_epoch)
+    )
+    # Act
+    middleware(request)
+    # Assert
+    assert not request.user.is_authenticated, (
+        "AUTH BYPASS: an expired on-site key was still accepted"
+    )
+
+
+def test_future_dated_key_is_rejected(middleware, onsite_secret):
+    # Arrange
+    request = anonymous_request(
+        REMOTE_ADDR="127.0.0.1",
+        **signed_meta(VICTIM, SECRET, epoch=current_key_epoch() + 30),
+    )
+    # Act
+    middleware(request)
+    # Assert
+    assert not request.user.is_authenticated
+
+
+def test_request_without_key_epoch_is_rejected(middleware, onsite_secret):
+    # Arrange
+    meta = signed_meta(VICTIM, SECRET)
+    del meta[wsgi_meta_key(ONSITE_EPOCH_HEADER)]
+    request = anonymous_request(REMOTE_ADDR="127.0.0.1", **meta)
+    # Act
+    middleware(request)
+    # Assert
+    assert not request.user.is_authenticated
 
 
 def test_unconfigured_secret_fails_closed(middleware, no_onsite_secret):

@@ -96,8 +96,14 @@ def debug_mode(request):
     """
     Always expose DEBUG setting to templates.
     Unlike django.template.context_processors.debug, this doesn't check INTERNAL_IPS.
+
+    Also exposes DEV_TOOLS_ENABLED: templates may link to or advertise /dev/
+    routes only when that toolbox is mounted (config.urls._dev_tools_patterns).
     """
-    return {"DEBUG": settings.DEBUG}
+    return {
+        "DEBUG": settings.DEBUG,
+        "DEV_TOOLS_ENABLED": bool(getattr(settings, "DEV_TOOLS_ENABLED", False)),
+    }
 
 
 def scitex_version(request):
@@ -405,4 +411,3 @@ def header_logo(request):
     if path.startswith("/landing"):
         return {"header_logo_href": "/", "header_logo_title": "Go to Apps Home"}
     return {"header_logo_href": "/landing/", "header_logo_title": "Go to Landing Page"}
-

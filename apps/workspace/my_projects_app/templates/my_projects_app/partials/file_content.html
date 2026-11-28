@@ -33,7 +33,7 @@ Displays file content within the Hub pane without navigating away.
                         class="hub-file-pdf"></iframe>
             </div>
         {% elif render_type == "markdown" and file_html %}
-            <div class="markdown-body hub-file-markdown">{{ file_html|safe }}</div>
+            <div class="markdown-body hub-file-markdown">{{ file_html }}</div>
         {% elif render_type == "code" or render_type == "text" %}
             <div class="hub-file-code-wrap">
                 <pre><code {% if language %}class="language-{{ language }}"{% endif %}>{{ file_content }}</code></pre>

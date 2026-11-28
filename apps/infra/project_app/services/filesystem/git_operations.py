@@ -6,10 +6,10 @@ This module handles Git-related operations like cloning repositories.
 
 import os
 import shutil
-import subprocess
 import tempfile
 from pathlib import Path
 from typing import Tuple, Optional
+from ...git_source_safety import clone_tenant_source
 from ...models import Project
 from .paths import get_project_root_path
 
@@ -54,17 +54,9 @@ def clone_from_git(
         with tempfile.TemporaryDirectory() as temp_dir:
             temp_clone_path = Path(temp_dir) / "repo"
 
-            # Clone the repository into the temporary directory
-            result = subprocess.run(
-                ["git", "clone", git_url, str(temp_clone_path)],
-                capture_output=True,
-                text=True,
-                timeout=300,  # 5 minute timeout
-                env=env,
-            )
-
-            if result.returncode != 0:
-                error_msg = result.stderr or result.stdout or "Unknown error"
+            # Validate the source and clone it into the temporary directory
+            ok, error_msg = clone_tenant_source(git_url, temp_clone_path, env=env)
+            if not ok:
                 return False, error_msg
 
             # Remove any existing files in the project directory (created during initialization)
@@ -91,8 +83,6 @@ def clone_from_git(
 
         return True, None
 
-    except subprocess.TimeoutExpired:
-        return False, "Git clone operation timed out (max 5 minutes)"
     except FileNotFoundError:
         return False, "Git command not found. Please ensure Git is installed."
     except Exception as e:

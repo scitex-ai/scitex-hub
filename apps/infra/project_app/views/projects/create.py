@@ -17,7 +17,6 @@ import logging
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import redirect, render
-from django.utils.safestring import mark_safe
 
 from ...models import Project, RemoteCredential
 from ...services.project_creation import (
@@ -198,7 +197,7 @@ def project_create(request):
             request, request.user, unique_slug
         )
         if not is_available:
-            messages.error(request, mark_safe(gitea_msg))
+            messages.error(request, gitea_msg)
             return _render_form(request, form_values)
         elif gitea_msg:  # Warning case
             messages.warning(request, gitea_msg)
