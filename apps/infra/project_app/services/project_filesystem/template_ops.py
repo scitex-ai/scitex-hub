@@ -9,6 +9,8 @@ import logging
 from pathlib import Path
 from typing import Optional, Tuple
 
+from django.conf import settings
+
 from ...models import Project
 
 logger = logging.getLogger(__name__)
@@ -141,31 +143,64 @@ class TemplateOperationsManager:
     def initialize_scitex_writer_template(
         self, project: Project
     ) -> Tuple[bool, Optional[Path]]:
-        """Initialize SciTeX Writer template structure for a project."""
-        try:
-            try:
-                from apps.workspace.writer_app.services import WriterService
-            except ImportError:
-                logger.warning("WriterService not available - writer_app not installed")
-                return False, None
+        """Make the project's Writer workspace ready to open and compile.
 
-            writer_service = WriterService(project.id, project.owner.id)
-            writer_path = writer_service.writer_dir
-
-            if writer_path and writer_path.exists():
-                logger.info(f"Writer template initialized at: {writer_path}")
-                return True, writer_path
-
-            logger.warning(
-                f"Writer initialization returned path but directory doesn't exist: {writer_path}"
-            )
-            return False, None
-
-        except Exception as e:
+        Delegates to ``scitex_writer.ensure_workspace`` on the project root.
+        That creates a workspace when there is none, and — the research
+        template's case — installs the writer engine around a manuscript the
+        template shipped in ``.scitex/writer``, adding only what is missing so
+        a repeat call never touches the author's text. This used to compute
+        the workspace path and only test that it existed, so a project whose
+        template shipped no workspace reported "initialization failed" and
+        opened as a 404 in Writer (scitex-template#84).
+        """
+        project_root = self.manager.get_project_root_path(project)
+        if project_root is None:
             logger.error(
-                f"Error initializing SciTeX Writer template: {e}", exc_info=True
+                "Writer initialization: no directory for project %s", project.pk
             )
             return False, None
+        workspace = ensure_writer_workspace(project_root)
+        if workspace is None:
+            logger.error("Writer workspace not ready for project %s", project.pk)
+            return False, None
+        return True, workspace
+
+
+def ensure_writer_workspace(project_root: Path) -> Optional[Path]:
+    """Ready the Writer workspace under ``project_root``; ``None`` if it is not.
+
+    ``scitex_writer.ensure_workspace`` creates a missing workspace, or installs
+    the engine around a template-shipped manuscript (additive only). The
+    template version follows ``SCITEX_WRITER_TEMPLATE_BRANCH`` /
+    ``SCITEX_WRITER_TEMPLATE_TAG`` like ``WriterService``. Ready means the
+    manuscript directory the Writer opens exists afterwards.
+    """
+    from apps.infra.project_app.services.writer_workspace_layout import (
+        get_manuscript_path,
+    )
+
+    def _setting(name):
+        value = getattr(settings, name, None)
+        return None if value in (None, "", "null") else value
+
+    try:
+        from scitex_writer import ensure_workspace
+
+        workspace = Path(
+            ensure_workspace(
+                project_root,
+                git_strategy="parent",
+                branch=_setting("SCITEX_WRITER_TEMPLATE_BRANCH"),
+                tag=_setting("SCITEX_WRITER_TEMPLATE_TAG"),
+            )
+        )
+    except Exception:
+        logger.exception("Writer workspace initialization failed")
+        return None
+    if not get_manuscript_path(project_root).is_dir():
+        return None
+    return workspace
 
 
 # EOF

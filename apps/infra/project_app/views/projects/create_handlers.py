@@ -128,7 +128,9 @@ def handle_template_creation(request, project, manager, template_type):
                 try_seed_first_project_samples,
             )
 
-            try_seed_first_project_samples(manager.get_project_root_path(project) or path)
+            try_seed_first_project_samples(
+                manager.get_project_root_path(project) or path
+            )
         messages.success(
             request,
             f'Project "{project.name}" created with {template_type} template',
@@ -256,9 +258,7 @@ def handle_scitex_initialization(request, project, manager):
     """Initialize SciTeX Writer template if requested."""
     success, writer_path = manager.initialize_scitex_writer_template(project)
     if success:
-        messages.success(
-            request, "SciTeX Writer template initialized at scitex/writer/"
-        )
+        messages.success(request, "SciTeX Writer workspace is ready")
     else:
         messages.warning(
             request,

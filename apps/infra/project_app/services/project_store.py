@@ -13,10 +13,13 @@ Access follows the Hub's project permission model:
   only selects the store.
 
 The store belongs to the project, not to whoever is asking: credentials are the
-project owner's configured tenant entry, and the project must be explicitly
-mapped to a Clew project scope there. A collaborator therefore reads the
-project's records and nothing else of the owner's, and never their own
-same-named project. Credentials never leave the server process.
+project owner's tenant, and the project maps to one Clew project scope in it.
+An operator may still configure an owner by hand
+(``SCITEX_STORE_TENANT_SECRETS``, which wins for the projects it maps); every
+other project gets a Hub-provisioned tenant and scope on its first use
+(``project_store_provisioning``). A collaborator therefore reads the project's
+records and nothing else of the owner's, and never their own same-named
+project. Credentials never leave the server process.
 """
 
 from __future__ import annotations
@@ -56,11 +59,18 @@ class HubProjectStore:
                 ) from None
         if not isinstance(configuration, Mapping):
             raise CapabilityUnavailable("Private store configuration is invalid")
+        owner_role = getattr(settings, "SCITEX_STORE_OWNER", "scitex_cloud_owner")
         entry = configuration.get(str(project.owner_id))
-        if entry is None:
-            raise CapabilityUnavailable(
-                "Clew records are not configured for this project yet"
-            )
+        if entry is not None:
+            configured = self._configured_access(entry, project, owner_role)
+            if configured is not None:
+                return configured
+        return self._provisioned_access(project, owner_role)
+
+    @staticmethod
+    @sensitive_variables()
+    def _configured_access(entry, project, owner_role):
+        """The operator's hand-configured entry for this project, if it maps it."""
         try:
             if not isinstance(entry, Mapping):
                 raise ValueError
@@ -70,10 +80,7 @@ class HubProjectStore:
             tenant_id = UUID(str(entry["tenant_id"]))
             scope, dsn = projects.get(str(project.pk)), entry.get("dsn")
             if scope is None:
-                raise CapabilityUnavailable(
-                    "Clew records are not configured for this project yet"
-                )
-            owner_role = getattr(settings, "SCITEX_STORE_OWNER", "scitex_cloud_owner")
+                return None
             if not tenant_id.int or any(
                 not isinstance(value, str) or not value.strip()
                 for value in (scope, dsn, owner_role)
@@ -85,6 +92,52 @@ class HubProjectStore:
             ) from None
         return StoreAccess(
             tenant_id=tenant_id, dsn=dsn, project_scope=scope, owner_role=owner_role
+        )
+
+    @staticmethod
+    @sensitive_variables()
+    def _provisioned_access(project, owner_role):
+        """The Hub-provisioned store; provisioned now if this is its first use.
+
+        This is what makes Clew work for an owner nobody configured by hand
+        (scitex-hub#1231): the first authorized request for a project without
+        a store provisions the owner's tenant and the project's scope through
+        the separate administration connection, then reads with the tenant
+        login like every later request.
+        """
+        from cryptography.fernet import InvalidToken
+
+        from apps.infra.project_app.models import ProjectStoreScope, ProjectStoreTenant
+
+        from .project_store_provisioning import (
+            ProvisioningUnavailable,
+            provision_project_store,
+            provisioning_configured,
+        )
+
+        not_yet = "Clew records are not configured for this project yet"
+        scope = ProjectStoreScope.objects.filter(project=project).first()
+        tenant = ProjectStoreTenant.objects.filter(owner_id=project.owner_id).first()
+        try:
+            dsn = tenant.get_dsn() if tenant is not None else ""
+        except InvalidToken:
+            raise CapabilityUnavailable(
+                "Private store configuration is invalid"
+            ) from None
+        if scope is None or not dsn:
+            if not provisioning_configured():
+                raise CapabilityUnavailable(not_yet)
+            try:
+                scope = provision_project_store(project)
+            except ProvisioningUnavailable:
+                raise CapabilityUnavailable(not_yet) from None
+            tenant = ProjectStoreTenant.objects.get(owner_id=project.owner_id)
+            dsn = tenant.get_dsn()
+        return StoreAccess(
+            tenant_id=tenant.tenant_id,
+            dsn=dsn,
+            project_scope=scope.scope,
+            owner_role=owner_role,
         )
 
 

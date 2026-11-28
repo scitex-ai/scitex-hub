@@ -141,6 +141,12 @@ SCITEX_API_IDEMPOTENCY_STORE = "scitex_sdk.app.api_serve.CacheIdempotencyStore"
 # no managed-store fallback or schema/data migration is performed here.
 SCITEX_STORE_TENANT_SECRETS = os.environ.get("SCITEX_HUB_STORE_TENANT_SECRETS", "")
 SCITEX_STORE_OWNER = os.environ.get("SCITEX_HUB_STORE_OWNER_ROLE", "scitex_cloud_owner")
+# Administration connection that provisions each project owner's tenant and
+# each project's Clew scope on first use (scitex-hub#1231). Needs CREATEROLE
+# and CREATE on the store database plus membership in the owner role; it is
+# used only by services.project_store_provisioning. SECRET in the name makes
+# Django's error reporter redact it. Unset: only hand-configured tenants work.
+SCITEX_STORE_PROVISIONER_SECRET = os.environ.get("SCITEX_HUB_STORE_PROVISIONER_DSN", "")
 
 # ---------------------------------------
 # Paths
