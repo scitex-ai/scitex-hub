@@ -152,7 +152,7 @@
                     {% if message.tags != 'success' %}
                         <div class="django-alert alert alert-{% if message.tags == 'error' %}danger{% else %}{{ message.tags }}{% endif %}"
                              role="alert">
-                            {{ message|safe }}
+                            {{ message }}
                             <button type="button" class="alert-close-btn" aria-label="Close">&times;</button>
                         </div>
                     {% endif %}

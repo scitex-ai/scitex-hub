@@ -13,7 +13,7 @@ import paramiko
 from django.contrib import messages
 from django.shortcuts import redirect
 from django.utils import timezone
-from django.utils.safestring import mark_safe
+from django.utils.html import format_html
 
 from ...models import Project, RemoteCredential
 from ...ssh_safety import validate_remote_path
@@ -124,9 +124,10 @@ def _test_trip_connection(request, credential, remote_path):
         if result == "NOT_FOUND":
             messages.warning(
                 request,
-                mark_safe(
-                    f"Remote directory not found: <code>{remote_path}</code><br>"
-                    f"It will be accessible once created on the remote system."
+                format_html(
+                    "Remote directory not found: <code>{}</code><br>"
+                    "It will be accessible once created on the remote system.",
+                    remote_path,
                 ),
             )
 
@@ -195,9 +196,12 @@ def _create_trip_project_db(request, name, description, credential, remote_path,
 
         messages.success(
             request,
-            mark_safe(
-                f'TRIP project "{name}" created!<br>'
-                f"SSH: {credential.ssh_username}@{credential.ssh_host}:{remote_path}"
+            format_html(
+                'TRIP project "{}" created!<br>SSH: {}@{}:{}',
+                name,
+                credential.ssh_username,
+                credential.ssh_host,
+                remote_path,
             ),
         )
 
