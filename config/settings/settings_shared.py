@@ -315,6 +315,17 @@ CLIENT_IP_TRUSTED_PROXIES = tuple(
 # previous IP-based signal was client-forgeable (X-Forwarded-For).
 ONSITE_AUTH_SECRET = os.environ.get("SCITEX_HUB_ONSITE_SECRET", "")
 
+# ── Developer endpoints (/dev/) ────────────────────────────────────────
+# The /dev/ toolbox (design-system catalogue, API test runner, browser-console
+# log sink, job canceller) is mounted ONLY when this is explicitly enabled.
+# Off by default on every deployment, DEBUG included: DEBUG says how errors
+# render, not who may use developer tools. Even when on, every /dev/ route is
+# restricted to staff (apps.workspace.dev_app.access). settings_prod forces it
+# off and refuses to start if the environment asks for it.
+DEV_TOOLS_ENABLED = (
+    os.environ.get("SCITEX_HUB_DEV_TOOLS_ENABLED", "false") or "false"
+).lower() in ("1", "true", "yes", "on")
+
 # The MIDDLEWARE stack (order-sensitive, commented per entry) lives in its own
 # module; imported under the same name so env modules can extend it.
 from .settings_middleware import MIDDLEWARE  # noqa: E402, F401

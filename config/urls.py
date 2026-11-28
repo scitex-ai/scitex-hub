@@ -32,6 +32,18 @@ from config.pwa import serve_root_static
 from config.urls_helpers import RESERVED_PATHS, dev_module_view  # noqa: F401
 
 
+def _dev_tools_patterns():
+    """The /dev/ developer toolbox, mounted only when explicitly enabled.
+
+    ``settings.DEV_TOOLS_ENABLED`` is off by default (DEBUG does not turn it
+    on) and production settings refuse it. When mounted, every route is still
+    staff-only (apps.workspace.dev_app.access). Unmounted, /dev/... is a 404.
+    """
+    if not getattr(settings, "DEV_TOOLS_ENABLED", False):
+        return []
+    return [path("dev/", include(("apps.workspace.dev_app.urls", "dev_app")))]
+
+
 def _sdk_creator_patterns():
     """URL patterns for the SDK App Creator wizard, login-gated.
 
@@ -431,7 +443,7 @@ urlpatterns = [
     # --- Legacy redirects (/<app>/ → /apps/<app>/) ---
     path("", include("config.urls_legacy_redirects")),
     # --- Other apps ---
-    path("dev/", include(("apps.workspace.dev_app.urls", "dev_app"))),
+    *_dev_tools_patterns(),
     path("apps/docs/", include(("apps.workspace.docs_app.urls", "docs_app"))),
     path(
         "integrations/",
