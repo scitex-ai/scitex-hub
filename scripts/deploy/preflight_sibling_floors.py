@@ -252,6 +252,31 @@ def _render_findings(title, findings, stream):
         stream.write("      {0:<14}: {1}\n".format("remedy", finding.remedy))
 
 
+
+def _positive_seconds(value):
+    """argparse type: a whole number of seconds greater than zero."""
+    seconds = int(value)
+    if seconds <= 0:
+        raise argparse.ArgumentTypeError("must be a positive number of seconds")
+    return seconds
+
+
+def _env_seconds(name, default):
+    """A positive deadline from the environment, else ``default``.
+
+    compose.sh runs this check before every ``up`` with only the environment
+    name, so the environment is how an operator lengthens the deadlines on a
+    busy host without editing the deploy script. An invalid value refuses
+    loudly rather than falling back to the default.
+    """
+    raw = os.environ.get(name, "").strip()
+    if not raw:
+        return default
+    try:
+        return _positive_seconds(raw)
+    except (ValueError, argparse.ArgumentTypeError):
+        raise SystemExit("preflight: {0}={1!r} is not a positive number of seconds".format(name, raw))
+
 def main(argv=None):
     parser = argparse.ArgumentParser(
         description="Refuse a container recreate whose target cannot satisfy hub's declared floors.",
@@ -267,7 +292,16 @@ def main(argv=None):
     parser.add_argument("--extra", action="append", default=None,
                         help="pyproject optional-dependency group to include (default: the contract's)")
     parser.add_argument("--via-ssh", help="run the docker command on this host over ssh")
-    parser.add_argument("--timeout", type=int, default=300)
+    parser.add_argument(
+        "--timeout", type=_positive_seconds,
+        default=_env_seconds("SCITEX_HUB_PREFLIGHT_TIMEOUT", 300),
+        help="deadline for the prospective install and probe "
+             "(env SCITEX_HUB_PREFLIGHT_TIMEOUT, default 300)")
+    parser.add_argument(
+        "--docker-timeout", type=_positive_seconds,
+        default=_env_seconds("SCITEX_HUB_PREFLIGHT_DOCKER_TIMEOUT", 60),
+        help="deadline for each docker management call -- inspect, create, run, rm, "
+             "volume (env SCITEX_HUB_PREFLIGHT_DOCKER_TIMEOUT, default 60)")
     parser.add_argument("--verbose", action="store_true", help="also list every satisfied floor")
     parser.add_argument("--json", dest="as_json", action="store_true", help="emit the raw target report")
     args = parser.parse_args(argv)
@@ -323,7 +357,7 @@ def main(argv=None):
     try:
         if deployment_context is not None and deployment_context.mode == "direct-bind":
             from _direct_bind.target import prepare
-            target = prepare(deployment_context, args.timeout)
+            target = prepare(deployment_context, args.timeout, args.docker_timeout)
         else:
             target = targets.resolve(target_spec, apps_volume, args.apps_manifest, args.via_ssh)
         spec = {

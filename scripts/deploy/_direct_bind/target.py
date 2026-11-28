@@ -15,7 +15,7 @@ from .installation import private_exception_log, run_install
 
 
 class DirectBindTarget(Target):
-    def __init__(self, context, timeout):
+    def __init__(self, context, timeout, docker_timeout=60):
         self.token = uuid.uuid4().hex
         self.workspace = Path(tempfile.mkdtemp(prefix="scitex-hub-preflight-"))
         self.workspace.chmod(0o700)
@@ -31,6 +31,9 @@ class DirectBindTarget(Target):
         self.pending_create = False
         self.stage = "inspect image"
         self.timeout = timeout
+        # Deadline for each docker management call (inspect/create/run/rm/volume):
+        # under host IO contention these take far longer than their idle cost.
+        self.docker_timeout = docker_timeout
         super().__init__(
             "direct-bind", "prospective image and normal editable cohort", [], True
         )
@@ -80,7 +83,7 @@ class DirectBindTarget(Target):
             check=True,
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
-            timeout=30,
+            timeout=self.docker_timeout,
         )
         self.created_volume = True
         mounts = []
@@ -128,7 +131,7 @@ class DirectBindTarget(Target):
             check=True,
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
-            timeout=30,
+            timeout=self.docker_timeout,
         )
         self.pending_create = False
         self.stage = "start owned preparation container"
@@ -137,7 +140,7 @@ class DirectBindTarget(Target):
             check=True,
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
-            timeout=30,
+            timeout=self.docker_timeout,
         )
         install = [
             "docker",
@@ -160,14 +163,14 @@ class DirectBindTarget(Target):
             check=True,
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
-            timeout=30,
+            timeout=self.docker_timeout,
         )
         self.stage = "verify owned network"
         document = json.loads(
             subprocess.check_output(
                 ["docker", "inspect", self.install_name],
                 stderr=subprocess.PIPE,
-                timeout=30,
+                timeout=self.docker_timeout,
             )
         )[0]
         if document["NetworkSettings"]["Networks"]:
@@ -209,7 +212,7 @@ class DirectBindTarget(Target):
                 ["docker", "inspect", name],
                 stdout=subprocess.PIPE,
                 stderr=subprocess.PIPE,
-                timeout=30,
+                timeout=self.docker_timeout,
             )
             if value.returncode and name == self.install_name and self.pending_create:
                 from .pending_creation import preserve_pending_creation
@@ -229,14 +232,14 @@ class DirectBindTarget(Target):
                     check=True,
                     stdout=subprocess.PIPE,
                     stderr=subprocess.PIPE,
-                    timeout=60,
+                    timeout=self.docker_timeout,
                 )
         if self.created_volume:
             volume = json.loads(
                 subprocess.check_output(
                     ["docker", "volume", "inspect", self.volume],
                     stderr=subprocess.PIPE,
-                    timeout=30,
+                    timeout=self.docker_timeout,
                 )
             )[0]
             if volume.get("Labels", {}).get("scitex.hub.preflight") != self.token:
@@ -246,7 +249,7 @@ class DirectBindTarget(Target):
                 check=True,
                 stdout=subprocess.PIPE,
                 stderr=subprocess.PIPE,
-                timeout=60,
+                timeout=self.docker_timeout,
             )
             self.created_volume = False
         if self.image is not None:
@@ -286,14 +289,14 @@ for directory,names,files in os.walk(root,followlinks=False):
                 check=True,
                 stdout=subprocess.PIPE,
                 stderr=subprocess.PIPE,
-                timeout=60,
+                timeout=self.docker_timeout,
             )
         shutil.rmtree(self.workspace)
 
 
-def prepare(context, timeout):
+def prepare(context, timeout, docker_timeout=60):
     try:
-        return DirectBindTarget(context, timeout)
+        return DirectBindTarget(context, timeout, docker_timeout)
     except TargetUnreachable:
         raise
     except Exception as exc:
