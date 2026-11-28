@@ -91,6 +91,15 @@ def published_on_public_interface(entry):
     for host in LOOPBACK_HOSTS:
         if text.startswith(host + ":"):
             return False
+    # An interface taken from a variable whose DEFAULT is loopback:
+    # "${SCITEX_HUB_X_BIND:-127.0.0.1}:2222:22". Loopback unless the operator
+    # deliberately sets the variable to another address (e.g. an overlay IP).
+    if text.startswith("${"):
+        var, _, rest = text[2:].partition("}")
+        if rest.startswith(":") and ":-" in var:
+            default = var.split(":-", 1)[1]
+            if default in LOOPBACK_HOSTS:
+                return False
     return True
 
 

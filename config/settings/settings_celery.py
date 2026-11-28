@@ -22,8 +22,15 @@ import os
 # See incident hub-visitor-pool-celery-broker-db-mismatch (2026-07-11).
 #
 # Dedicated override var; default DB 1 matches the worker/beat --broker.
-CELERY_BROKER_URL = os.getenv(
-    "SCITEX_HUB_CELERY_BROKER_URL", "redis://redis:6379/1"
+#
+# The worker and beat containers no longer pass --broker on their command
+# line: they read this same setting, so producer and consumers cannot drift
+# apart, and the Redis password (SCITEX_HUB_REDIS_PASSWORD, see _redis_auth)
+# never has to appear in a process's argv.
+from config.settings._redis_auth import authenticated_redis_url  # noqa: E402
+
+CELERY_BROKER_URL = authenticated_redis_url(
+    os.getenv("SCITEX_HUB_CELERY_BROKER_URL", "redis://redis:6379/1")
 )
 CELERY_RESULT_BACKEND = "django-db"
 CELERY_CACHE_BACKEND = "django-cache"

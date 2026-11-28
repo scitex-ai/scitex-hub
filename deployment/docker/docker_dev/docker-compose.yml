@@ -121,7 +121,7 @@ services:
       # Mount host's actual slurm.conf for consistency with munge auth
       - /etc/slurm/slurm.conf:/etc/slurm/slurm.conf:ro
       - /etc/munge:/etc/munge:ro
-      - /run/munge:/run/munge
+      - /run/munge:/run/munge:ro
       - /var/log/slurm:/var/log/slurm
       # Mount host passwd for SLURM UID synchronization (prevents "Security violation" errors)
       - /etc/passwd:/host/etc/passwd:ro
@@ -245,8 +245,7 @@ services:
   # PostgreSQL Database
   # ============================================
   postgres:
-    image: postgres:15-alpine
-
+    image: postgres:15.19-alpine@sha256:fe0737ba566a2c5b2a28f34433c0a423261900ec17b9bf7ad115e1aae7e57f1b
     volumes:
       - postgres_data:/var/lib/postgresql/data
       # Init scripts run on first startup (creates umami database)
@@ -293,8 +292,7 @@ services:
   # Redis Cache
   # ============================================
   redis:
-    image: redis:7-alpine
-
+    image: redis:7.4.11-alpine@sha256:858f009f9709ce576febc734aa78b8f6d624b82571f9ddb6bda4377c833b3499
     volumes:
       - redis_data:/data
 
@@ -410,7 +408,7 @@ services:
     # them under --pool=threads, so leaving them in place is dead config that
     # reads as an active mitigation for the very wedge they failed to fix.
     command: >
-      celery -A config --broker=redis://redis:6379/1 worker
+      celery -A config worker
       --loglevel=info
       --queues=celery,ai_queue,search_queue,compute_queue
       --pool=threads
@@ -524,13 +522,13 @@ services:
     entrypoint: ["/app/deployment/docker/docker_dev/entrypoint.sh"]
 
     # Run Celery beat scheduler
-    command: celery -A config --broker=redis://redis:6379/1 beat --loglevel=info --scheduler=django_celery_beat.schedulers:DatabaseScheduler
+    command: celery -A config beat --loglevel=info --scheduler=django_celery_beat.schedulers:DatabaseScheduler
 
     restart: unless-stopped
 
     # Override Dockerfile healthcheck (beat doesn't serve HTTP, check redis connectivity via python)
     healthcheck:
-      test: ["CMD", "python", "-c", "import redis; r = redis.Redis(host='redis', port=6379); r.ping()"]
+      test: ["CMD", "python", "-c", "import os, redis; redis.Redis(host='redis', port=6379, password=os.environ.get('SCITEX_HUB_REDIS_PASSWORD') or None).ping()"]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -545,16 +543,17 @@ services:
   # Gitea Git Server
   # ============================================
   gitea:
-    image: gitea/gitea:latest
-
+    image: gitea/gitea:1.27.2@sha256:d20286ca2b2e170fdf628e7231b8a31a3220ade39ff462b55041d43d1fc757dd
     volumes:
       - gitea_data:/data
       - /etc/timezone:/etc/timezone:ro
       - /etc/localtime:/etc/localtime:ro
 
     ports:
-      - "${SCITEX_HUB_GITEA_HTTP_PORT_DEV:-3001}:3000"
-      - "${SCITEX_HUB_GITEA_SSH_PORT_DEV}:22"
+      - "127.0.0.1:${SCITEX_HUB_GITEA_HTTP_PORT_DEV:-3001}:3000"
+      # Git over SSH is user-facing, key-authenticated: public on purpose
+      # (listed in test_compose_publishes_on_loopback_and_pins_images.py).
+      - "0.0.0.0:${SCITEX_HUB_GITEA_SSH_PORT_DEV}:22"
 
     env_file:
       - .env
@@ -608,15 +607,14 @@ services:
   # Umami Analytics (Privacy-focused)
   # ============================================
   umami:
-    image: ghcr.io/umami-software/umami:postgresql-latest
-
+    image: ghcr.io/umami-software/umami@sha256:87312d334d009ee67ee0d2fba8fed01435547cc468e452243aef5133a9984d48
     ports:
-      - "${SCITEX_HUB_UMAMI_PORT_DEV:-3300}:3000"
+      - "127.0.0.1:${SCITEX_HUB_UMAMI_PORT_DEV:-3300}:3000"
 
     environment:
       - DATABASE_URL=postgresql://${SCITEX_HUB_POSTGRES_USER:-scitex_dev}:${SCITEX_HUB_POSTGRES_PASSWORD:-scitex_dev_2025}@postgres:5432/umami
       - DATABASE_TYPE=postgresql
-      - APP_SECRET=${SCITEX_HUB_UMAMI_APP_SECRET:-scitex-umami-secret-2026}
+      - APP_SECRET=${SCITEX_HUB_UMAMI_APP_SECRET:?required — set a long random value in the env file}
       - DISABLE_TELEMETRY=1
       - CLIENT_IP_HEADER=X-Forwarded-For
       - IGNORE_IP=${SCITEX_HUB_UMAMI_IGNORE_IP:-}
