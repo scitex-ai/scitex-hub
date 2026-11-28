@@ -177,6 +177,7 @@ def ensure_writer_workspace(project_root: Path) -> Optional[Path]:
     manuscript directory the Writer opens exists afterwards.
     """
     from apps.infra.project_app.services.writer_workspace_layout import (
+        ensure_writer_workspace_at,
         get_manuscript_path,
     )
 
@@ -185,15 +186,11 @@ def ensure_writer_workspace(project_root: Path) -> Optional[Path]:
         return None if value in (None, "", "null") else value
 
     try:
-        from scitex_writer import ensure_workspace
-
-        workspace = Path(
-            ensure_workspace(
-                project_root,
-                git_strategy="parent",
-                branch=_setting("SCITEX_WRITER_TEMPLATE_BRANCH"),
-                tag=_setting("SCITEX_WRITER_TEMPLATE_TAG"),
-            )
+        workspace = ensure_writer_workspace_at(
+            project_root,
+            git_strategy="parent",
+            branch=_setting("SCITEX_WRITER_TEMPLATE_BRANCH"),
+            tag=_setting("SCITEX_WRITER_TEMPLATE_TAG"),
         )
     except Exception:
         logger.exception("Writer workspace initialization failed")

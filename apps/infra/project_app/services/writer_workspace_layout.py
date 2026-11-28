@@ -75,6 +75,19 @@ def get_compiled_pdf_path(project_root) -> Path:
     return get_manuscript_path(project_root) / COMPILED_PDF_NAME
 
 
+def ensure_writer_workspace_at(project_root, **options) -> Path:
+    """Create the workspace, or complete one that holds only content.
+
+    Delegates to ``scitex_writer.ensure_workspace`` (the leaf owns what a
+    complete workspace is): a missing workspace is created from the template;
+    one that ships manuscript text without the engine gets the engine
+    installed around it, adding only what is missing.
+    """
+    from scitex_writer import ensure_workspace
+
+    return Path(ensure_workspace(project_root, **options))
+
+
 def is_writer_initialized(project_root) -> bool:
     """True when the Writer workspace has its manuscript directory."""
     return get_manuscript_path(project_root).exists()
