@@ -15,6 +15,8 @@ from django.conf import settings
 from django.core.cache import cache
 from django.http import JsonResponse
 
+from apps.client_ip import get_client_ip  # noqa: F401  (re-exported for callers)
+
 logger = logging.getLogger(__name__)
 
 # Default rate limits by tier
@@ -43,14 +45,6 @@ ENDPOINT_LIMITS = {
     # Header command palette: one request per debounced keystroke.
     "api_header_search": {"requests": 120, "window": 60},
 }
-
-
-def get_client_ip(request):
-    """Extract client IP from request, handling proxies."""
-    x_forwarded_for = request.META.get("HTTP_X_FORWARDED_FOR")
-    if x_forwarded_for:
-        return x_forwarded_for.split(",")[0].strip()
-    return request.META.get("REMOTE_ADDR", "unknown")
 
 
 def get_rate_limit_key(request, endpoint_name=None):
