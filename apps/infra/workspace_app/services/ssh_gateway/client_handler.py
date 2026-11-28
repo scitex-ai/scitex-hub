@@ -1,7 +1,13 @@
 """SSH client connection handler.
 
-Orchestrates auth → workspace setup → broker spawn → I/O forwarding.
+admission (throttle) -> key auth -> spend gate -> broker spawn -> I/O.
+
+The shell is spawned by the Terminal Broker exactly like the web terminal:
+inside the user's SLURM allocation under Apptainer, with the environment the
+broker builds for user processes. The gateway never starts a shell itself.
 """
+
+from __future__ import annotations
 
 import asyncio
 import logging
@@ -11,156 +17,174 @@ import paramiko
 
 from .broker_client import SyncBrokerClient
 from .io_forwarding import forward_io_broker
-from .key_registration import handle_password_session
-from .server_interface import SSHGateway
+from .server_interface import SSHGateway, log_auth_event
+from .throttle import GatewayThrottle
 
 logger = logging.getLogger(__name__)
 
+BANNER_TIMEOUT_SECONDS = 15
+AUTH_TIMEOUT_SECONDS = 30
+CHANNEL_TIMEOUT_SECONDS = 20
 
-def handle_client(client: socket.socket, addr: tuple, host_key: paramiko.RSAKey):
-    """Handle a single SSH client connection."""
-    logger.info(f"New connection from {addr[0]}:{addr[1]}")
 
+def _refuse(channel: paramiko.Channel, message: str) -> None:
+    try:
+        channel.send(f"\x1b[1;31m{message}\x1b[0m\r\n".encode())
+    finally:
+        channel.close()
+
+
+def handle_client(
+    client: socket.socket,
+    addr: tuple,
+    host_key: paramiko.PKey,
+    throttle: GatewayThrottle,
+):
+    """Handle one TCP connection. ``throttle.admit`` was already granted."""
+    source = addr[0]
+    server = SSHGateway(source=source, throttle=throttle)
+    transport = None
+    authenticated = False
     try:
         transport = paramiko.Transport(client)
+        transport.banner_timeout = BANNER_TIMEOUT_SECONDS
+        transport.auth_timeout = AUTH_TIMEOUT_SECONDS
         transport.add_server_key(host_key)
-
-        server = SSHGateway()
         transport.start_server(server=server)
 
-        channel = transport.accept(20)
-        if channel is None:
-            logger.warning(f"No channel established for {addr[0]}")
+        channel = transport.accept(CHANNEL_TIMEOUT_SECONDS)
+        authenticated = bool(
+            transport.is_authenticated()
+            and server.user is not None
+            and transport.get_username() == server.username
+        )
+        if channel is None or not authenticated:
+            if channel is not None:
+                channel.close()
             return
+
+        throttle.record_success(source, server.username)
+        log_auth_event("login", source, server.username, key=server.key_title)
 
         server.event.wait(10)
-        if not server.user:
-            logger.warning(f"No authenticated user for {addr[0]}")
-            channel.close()
+        if not server.event.is_set():
+            _refuse(channel, "Only interactive shells are supported.")
             return
-
-        # Password-only auth → key registration, no shell
-        if server.auth_method == "password":
-            logger.info(f"Password session for {server.username} — key registration")
-            handle_password_session(channel, server.user)
-            return
-
-        # Public key auth → full shell via Terminal Broker
         _start_shell_session(channel, server)
+        log_auth_event("logout", source, server.username)
 
     except paramiko.SSHException as e:
-        error_msg = str(e)
-        if "Error reading SSH protocol banner" in error_msg:
-            if addr[0] == "127.0.0.1":
-                logger.debug(f"Health check probe from {addr[0]}")
-            else:
-                logger.warning(f"No SSH handshake from {addr[0]}")
+        if "Error reading SSH protocol banner" in str(e):
+            logger.debug("No SSH handshake from %s", source)
         else:
-            logger.error(f"SSH error for {addr[0]}: {e}", exc_info=True)
-    except Exception as e:
-        logger.error(f"Error handling {addr[0]}: {e}", exc_info=True)
+            logger.warning("SSH error for %s: %s", source, e)
+    except Exception:
+        logger.exception("Error handling %s", source)
     finally:
+        if not authenticated and server.attempted_username is not None:
+            for key in throttle.record_failed_connection(
+                source, server.attempted_username
+            ):
+                log_auth_event("ban", source, server.attempted_username, key=key)
+        if transport is not None:
+            transport.close()
         try:
             client.close()
         except Exception:
             pass
 
 
-def _start_shell_session(channel: paramiko.Channel, server: SSHGateway):
-    """Set up workspace and start a shell session via Terminal Broker."""
-    from apps.workspace.console_app.views.terminal.config import USER_DATA_ROOT
+def _start_shell_session(channel: paramiko.Channel, server: SSHGateway) -> None:
+    """Spawn the user's shell through the Terminal Broker and forward I/O."""
+    from apps.infra.project_app.models import Project
+    from apps.infra.spend_app.services import gate
+    from apps.infra.spend_app.services.enforcement import require_terminal
+    from apps.workspace.console_app.views.terminal._runtime_preflight import (
+        TerminalConfigurationError,
+        validate_terminal_host_paths,
+    )
+    from apps.workspace.console_app.views.terminal.config import (
+        SLURM_CONTAINER_PATH,
+        SLURM_USER_DATA_ROOT,
+        USER_DATA_ROOT,
+    )
     from apps.workspace.console_app.views.terminal.execution import (
         ContainerNotFoundError,
+        check_slurm_status,
         select_container,
     )
     from apps.workspace.console_app.views.terminal.workspace import ensure_workspace
-    from apps.infra.project_app.models import Project
 
+    user = server.user
     username = server.username
-    logger.info(f"Shell session starting for user: {username}")
 
-    # Look up home project
-    project = (
-        Project.objects.select_related("owner")
-        .filter(owner=server.user, is_home=True)
-        .first()
-    )
-    if not project:
-        project = (
-            Project.objects.select_related("owner").filter(owner=server.user).first()
-        )
-    if not project:
-        channel.send(b"\x1b[1;31mNo projects found. Create one first.\x1b[0m\r\n")
-        channel.close()
+    try:
+        require_terminal(user)
+    except gate.Refused as e:
+        _refuse(channel, e.message)
         return
 
-    # Prepare paths
+    project = (
+        Project.objects.filter(owner=user, is_home=True).first()
+        or Project.objects.filter(owner=user).first()
+    )
+    if project is None:
+        _refuse(channel, "No projects found. Create one in the Hub first.")
+        return
+
     user_data_dir = USER_DATA_ROOT / username
     project_dir = user_data_dir / "proj" / project.slug
-
-    # Ensure workspace (sync wrapper)
     try:
-        loop = asyncio.new_event_loop()
-        loop.run_until_complete(ensure_workspace(user_data_dir, username, project.slug))
-        loop.close()
-    except Exception as e:
-        logger.error(f"Workspace setup failed: {e}")
-        channel.send(f"\x1b[1;31mWorkspace setup failed: {e}\x1b[0m\r\n".encode())
-        channel.close()
+        validate_terminal_host_paths(SLURM_CONTAINER_PATH, str(SLURM_USER_DATA_ROOT))
+        asyncio.run(ensure_workspace(user_data_dir, username, project.slug))
+        select_container(user_data_dir, project_dir)
+    except (TerminalConfigurationError, ContainerNotFoundError) as e:
+        logger.error("Shell setup refused for %s: %s", username, e)
+        _refuse(channel, "Your workspace is not available right now.")
+        return
+    except Exception:
+        logger.exception("Workspace setup failed for %s", username)
+        _refuse(channel, "Workspace setup failed.")
         return
 
-    # Select container
-    try:
-        container_path = select_container(user_data_dir, project_dir)
-    except ContainerNotFoundError as e:
-        channel.send(f"\x1b[1;31m{e}\x1b[0m\r\n".encode())
-        channel.close()
+    slurm_available, slurm_status = check_slurm_status()
+    if not slurm_available:
+        logger.warning("SLURM unavailable for SSH login: %s", slurm_status)
+        _refuse(channel, "Computing resources are temporarily unavailable.")
         return
 
-    # Connect to Terminal Broker
     broker_client = SyncBrokerClient()
     try:
         broker_client.connect()
-    except (ConnectionRefusedError, FileNotFoundError) as e:
-        logger.error(f"Cannot connect to Terminal Broker: {e}")
-        channel.send(
-            b"\x1b[1;31mTerminal Broker not available. "
-            b"Contact administrator.\x1b[0m\r\n"
-        )
-        channel.close()
+    except OSError as e:
+        logger.error("Cannot connect to Terminal Broker: %s", e)
+        _refuse(channel, "Terminal service not available.")
         return
 
+    slurm_user_dir = SLURM_USER_DATA_ROOT / username
     resp = broker_client.spawn(
         username=username,
-        user_data_dir=str(user_data_dir),
-        project_dir=str(project_dir),
-        container_path=container_path,
+        user_data_dir=str(slurm_user_dir),
+        project_dir=str(slurm_user_dir / "proj" / project.slug),
+        container_path=SLURM_CONTAINER_PATH,
         project_slug=project.slug,
         screen_session=f"ssh-{id(channel) % 10000}",
     )
-
     if resp.get("status") != "ok":
-        error = resp.get("error", "Unknown error")
-        logger.error(f"Broker spawn failed: {error}")
-        channel.send(f"\x1b[1;31mFailed to start terminal: {error}\x1b[0m\r\n".encode())
+        logger.error("Broker spawn failed for %s: %s", username, resp.get("error"))
         broker_client.close()
-        channel.close()
+        _refuse(channel, "Failed to start your terminal.")
         return
 
-    # Initial terminal size
     broker_client.resize(server.pty_height, server.pty_width)
-
-    # Enable resize forwarding from SSHGateway
     server._broker_client = broker_client
-
     channel.send(
-        f"\r\nWelcome to SciTeX Hub, {username}!\r\n"
-        f"Project: {project.slug}\r\n\r\n".encode()
+        f"\r\nWelcome to SciTeX Hub, {username}!\r\nProject: {project.slug}\r\n\r\n".encode()
     )
-
-    forward_io_broker(channel, broker_client)
-    broker_client.close()
-    logger.info(f"Session ended for user: {username}")
+    try:
+        forward_io_broker(channel, broker_client)
+    finally:
+        broker_client.close()
 
 
 # EOF

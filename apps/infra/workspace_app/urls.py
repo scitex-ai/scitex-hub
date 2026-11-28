@@ -19,6 +19,12 @@ urlpatterns = [
     path("stop/", views.stop_workspace, name="stop"),
     path("api/status/", views.workspace_status_api, name="status_api"),
     path("api/exec/", views.exec_command, name="exec"),
+    # nginx auth_request target for the SSH-over-WebSocket bridge (/ws/ssh/)
+    path(
+        "api/ssh-bridge/authorize/",
+        views.ssh_bridge_authorize,
+        name="ssh_bridge_authorize",
+    ),
     # SPA module entry (e.g. /workspace/writer/, /workspace/scholar/)
     # Must be last to avoid shadowing the routes above
     path("<str:module>/", views.workspace_shell, name="shell_module"),

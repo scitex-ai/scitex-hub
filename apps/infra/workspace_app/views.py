@@ -126,6 +126,27 @@ def exec_command(request, *args, **kwargs):
     )
 
 
+def ssh_bridge_authorize(request):
+    """nginx ``auth_request`` target for the SSH-over-WebSocket bridge.
+
+    204 when the request carries a signed-in Hub session or an active API key
+    (``Authorization: Bearer ...``, for ``websocat -H`` in an ssh
+    ProxyCommand); 401 otherwise. The SSH gateway behind the bridge then still
+    requires one of the user's registered keys.
+    """
+    from django.http import HttpResponse
+
+    from apps.infra.accounts_app.auth import authenticate_api_key
+
+    user = getattr(request, "user", None)
+    if user is not None and user.is_authenticated and user.is_active:
+        return HttpResponse(status=204)
+    api_key = authenticate_api_key(request)
+    if api_key is not None and api_key.user.is_active:
+        return HttpResponse(status=204)
+    return HttpResponse(status=401)
+
+
 def workspace_shell(request, module="chat"):
     """Shell page — renders once. Modules load via AJAX into right pane.
 
