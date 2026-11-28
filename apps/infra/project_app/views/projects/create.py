@@ -13,7 +13,6 @@ import logging
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import redirect, render
-from django.utils.safestring import mark_safe
 
 from ...models import Project, RemoteCredential
 from .create_handlers import (
@@ -129,7 +128,7 @@ def project_create(request):
             request, request.user, unique_slug
         )
         if not is_available:
-            messages.error(request, mark_safe(gitea_msg))
+            messages.error(request, gitea_msg)
             remote_credentials = RemoteCredential.objects.filter(
                 user=request.user, is_active=True
             ).order_by("name")

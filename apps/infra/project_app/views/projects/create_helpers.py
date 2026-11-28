@@ -9,6 +9,7 @@ Utilities for project creation validation and initialization.
 import logging
 import re
 
+from django.utils.html import format_html
 from django.utils.text import slugify
 
 from ...models import Project
@@ -84,10 +85,13 @@ def verify_gitea_availability(request, user, unique_slug):
         try:
             existing_repo = client.get_repository(owner=user.username, repo=unique_slug)
             if existing_repo:
-                error_msg = (
-                    f'Repository "{unique_slug}" already exists in Gitea. '
-                    f"This is likely an orphaned repository from a previous project. "
-                    f'Please visit your <a href="/{user.username}/settings/repositories/">repository maintenance page</a> to clean it up.'
+                error_msg = format_html(
+                    'Repository "{}" already exists in Gitea. '
+                    "This is likely an orphaned repository from a previous project. "
+                    'Please visit your <a href="/{}/settings/repositories/">'
+                    "repository maintenance page</a> to clean it up.",
+                    unique_slug,
+                    user.username,
                 )
                 return False, error_msg
         except GiteaAPIError:
