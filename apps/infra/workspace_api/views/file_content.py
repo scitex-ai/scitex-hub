@@ -11,6 +11,8 @@ from django.views.decorators.http import require_http_methods
 from apps.infra.project_app.models import Project
 from apps.infra.project_app.services.filesystem.permissions import (
     canonical_repository_relative_path,
+    is_hidden_repository_path,
+    is_project_member,
     resolve_repository_path,
 )
 from apps.security import safe_log_field
@@ -45,12 +47,14 @@ def api_get_file_content(request, file_path):
         return JsonResponse({"error": "Project not found"}, status=404)
 
     # Check permissions
-    if not (
-        request.user == project.owner
-        or request.user in project.collaborators.all()
-        or project.visibility == "public"
-    ):
+    member = is_project_member(request.user, project)
+    if not (member or project.visibility == "public"):
         return JsonResponse({"error": "Unauthorized"}, status=403)
+    # Public visibility covers the project's published files only: hidden
+    # paths (per-user tool config such as .mcp.json or .agents/) are for the
+    # owner and collaborators. Answer 404 so existence is not disclosed.
+    if not member and is_hidden_repository_path(canonical_path):
+        return JsonResponse({"error": "File not found"}, status=404)
 
     try:
         # TRIP projects: on-demand SSH file access
@@ -101,7 +105,6 @@ def api_get_file_content(request, file_path):
                 {"success": False, "error": "Project directory not found"},
                 status=404,
             )
-
 
         # Security check: canonical component-wise containment (a prefix match is NOT
         # containment -- project_path/"../proj-other" string-prefix-matches

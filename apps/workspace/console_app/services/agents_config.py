@@ -12,6 +12,11 @@ Auto-generate AI tool configs for user projects.
 - ~/.claude/skills/ — Claude Code platform skills
 
 All are auto-generated on terminal connect and are idempotent (no-op if exists).
+
+None of these files carries a credential. They live inside the user's
+project (and may be pushed with it), so on-site MCP auth gets its per-user
+key from the terminal session's environment instead (see
+``scitex_hub._mcp_tools.api.issue_onsite_credentials``).
 """
 
 from __future__ import annotations
@@ -23,6 +28,74 @@ from pathlib import Path
 logger = logging.getLogger(__name__)
 
 AGENTS_SCHEMA_VERSION = 3
+
+# Generated per-user files that must never be committed with the project.
+GITIGNORED_GENERATED_FILES = (
+    ".agents/agents.json",
+    ".agents/local.json",
+    ".mcp.json",
+)
+
+
+def _credential_env_names() -> tuple[str, ...]:
+    from scitex_hub._mcp_tools.api import (
+        ONSITE_KEY_ENV,
+        ONSITE_KEY_EPOCH_ENV,
+        ONSITE_SECRET_ENV,
+    )
+
+    return (ONSITE_SECRET_ENV, ONSITE_KEY_ENV, ONSITE_KEY_EPOCH_ENV)
+
+
+def _strip_credentials(node) -> bool:
+    """Remove on-site credential env entries anywhere in a parsed config."""
+    changed = False
+    if isinstance(node, dict):
+        for name in _credential_env_names():
+            if name in node:
+                del node[name]
+                changed = True
+        for value in node.values():
+            changed = _strip_credentials(value) or changed
+    elif isinstance(node, list):
+        for value in node:
+            changed = _strip_credentials(value) or changed
+    return changed
+
+
+def purge_credentials_from_config(path: str | Path) -> bool:
+    """Rewrite a generated JSON config without any on-site credential.
+
+    Configs written by earlier versions could carry the on-site secret in
+    an ``env`` block. Returns True when the file was changed.
+    """
+    path = Path(path)
+    if not path.is_file():
+        return False
+    try:
+        data = json.loads(path.read_text())
+    except (OSError, ValueError):
+        return False
+    if not _strip_credentials(data):
+        return False
+    path.write_text(json.dumps(data, indent=2) + "\n")
+    logger.info("Removed on-site credentials from %s", path)
+    return True
+
+
+def _ensure_gitignored(project_path: Path) -> None:
+    """Append the generated per-user files to the project's .gitignore."""
+    gitignore = project_path / ".gitignore"
+    content = gitignore.read_text() if gitignore.exists() else ""
+    present = {line.strip() for line in content.splitlines()}
+    missing = [f for f in GITIGNORED_GENERATED_FILES if f not in present]
+    if not missing:
+        return
+    block = "# Generated per-user AI agent config (do not commit)\n"
+    block += "".join(f"{f}\n" for f in missing)
+    if content and not content.endswith("\n"):
+        content += "\n"
+    gitignore.write_text(content + ("\n" if content else "") + block)
 
 
 def _build_agents_json(
@@ -44,7 +117,7 @@ def _build_agents_json(
     # agents use cloud_on_site_capture_page instead (via CLOUD group)
     env["SCITEX_MCP_USE_CAPTURE"] = "0"
 
-    # On-site auth: skip API key, authenticate via trusted header
+    # On-site MCP settings (non-secret; the key comes from the session env)
     from scitex_hub._mcp_tools.api import get_on_site_env
 
     env.update(get_on_site_env(username=username))
@@ -153,6 +226,8 @@ def ensure_agents_config(
     config_file = agents_dir / "agents.json"
 
     if config_file.exists() and not force:
+        purge_credentials_from_config(config_file)
+        _ensure_gitignored(project_path)
         return False
 
     try:
@@ -173,16 +248,8 @@ def ensure_agents_config(
         if not agents_md.exists():
             agents_md.write_text(_build_agents_md(project_name))
 
-        # Ensure .agents/local.json is gitignored
-        gitignore = project_path / ".gitignore"
-        gitignore_line = ".agents/local.json"
-        if gitignore.exists():
-            content = gitignore.read_text()
-            if gitignore_line not in content:
-                with gitignore.open("a") as f:
-                    f.write(f"\n# AI agent secrets\n{gitignore_line}\n")
-        else:
-            gitignore.write_text(f"# AI agent secrets\n{gitignore_line}\n")
+        # Keep the generated per-user files out of the project's history
+        _ensure_gitignored(project_path)
 
         logger.info("Created .agents/ config for project at %s", project_path)
         return True
@@ -235,7 +302,7 @@ def _build_mcp_json(mcp_env: dict[str, str] | None = None, username: str = "") -
     # agents use cloud_on_site_capture_page instead (via CLOUD group)
     env["SCITEX_MCP_USE_CAPTURE"] = "0"
 
-    # On-site auth: skip API key, authenticate via trusted header
+    # On-site MCP settings (non-secret; the key comes from the session env)
     from scitex_hub._mcp_tools.api import get_on_site_env
 
     env.update(get_on_site_env(username=username))
@@ -308,6 +375,8 @@ def ensure_claude_config(
         if project_path:
             project_path = Path(project_path)
             mcp_json = project_path / ".mcp.json"
+            if mcp_json.exists() and not force:
+                purge_credentials_from_config(mcp_json)
             if not mcp_json.exists() or force:
                 mcp_json.write_text(
                     json.dumps(_build_mcp_json(mcp_env, username=username), indent=2)
