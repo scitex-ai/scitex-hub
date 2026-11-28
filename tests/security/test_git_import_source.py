@@ -84,6 +84,15 @@ def fixture_repo(tmp_path):
 # --------------------------------------------------------------------------- #
 # validate_git_source — forms that must be refused                             #
 # --------------------------------------------------------------------------- #
+def _refusal(call, *args, **kwargs):
+    """Return the GitSourceRejected raised by ``call``, or None."""
+    try:
+        call(*args, **kwargs)
+    except GitSourceRejected as exc:
+        return exc
+    return None
+
+
 @pytest.mark.parametrize(
     "url",
     [
@@ -112,15 +121,6 @@ def fixture_repo(tmp_path):
         "https://github.com/owner/repo.git\n--upload-pack=x",
     ],
 )
-def _refusal(call, *args, **kwargs):
-    """Return the GitSourceRejected raised by ``call``, or None."""
-    try:
-        call(*args, **kwargs)
-    except GitSourceRejected as exc:
-        return exc
-    return None
-
-
 def test_rejects_unsafe_source(url):
     # Arrange
     kwargs = {"follow_redirects": False}
