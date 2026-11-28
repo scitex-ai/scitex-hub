@@ -14,8 +14,37 @@ from . import snapshot
 from .installation import private_exception_log, run_install
 
 
+UV_CACHE_ENV = "SCITEX_HUB_PREFLIGHT_UV_CACHE"
+UV_CACHE_TARGET = "/preflight-uv-cache"
+
+
+def uv_cache_args(environ):
+    """docker-create arguments that give the install a persistent uv cache.
+
+    Without one, every preflight downloads the cohort's wheels again (torch
+    and CUDA wheels are several GB), which is what pushed the install past its
+    deadline. ``SCITEX_HUB_PREFLIGHT_UV_CACHE`` names an absolute host
+    directory; unset means no cache, exactly as before. The cache holds only
+    downloaded distributions, never an installed environment, so a stale entry
+    cannot change what the check verifies.
+    """
+    path = (environ.get(UV_CACHE_ENV) or "").strip()
+    if not path:
+        return []
+    if not os.path.isabs(path) or not os.path.isdir(path):
+        raise TargetUnreachable(
+            "{0} must name an existing absolute directory".format(UV_CACHE_ENV)
+        )
+    return [
+        "--mount",
+        "type=bind,src={0},dst={1}".format(path, UV_CACHE_TARGET),
+        "--env",
+        "SCITEX_PREFLIGHT_UV_CACHE_DIR=" + UV_CACHE_TARGET,
+    ]
+
+
 class DirectBindTarget(Target):
-    def __init__(self, context, timeout):
+    def __init__(self, context, timeout, docker_timeout=60):
         self.token = uuid.uuid4().hex
         self.workspace = Path(tempfile.mkdtemp(prefix="scitex-hub-preflight-"))
         self.workspace.chmod(0o700)
@@ -31,6 +60,9 @@ class DirectBindTarget(Target):
         self.pending_create = False
         self.stage = "inspect image"
         self.timeout = timeout
+        # Deadline for each docker management call (inspect/create/run/rm/volume):
+        # under host IO contention these take far longer than their idle cost.
+        self.docker_timeout = docker_timeout
         super().__init__(
             "direct-bind", "prospective image and normal editable cohort", [], True
         )
@@ -80,7 +112,7 @@ class DirectBindTarget(Target):
             check=True,
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
-            timeout=30,
+            timeout=self.docker_timeout,
         )
         self.created_volume = True
         mounts = []
@@ -92,6 +124,7 @@ class DirectBindTarget(Target):
         for path in objects:
             mounts += ["--mount", "type=bind,src={0},dst={0},readonly".format(path)]
         mounts += ["--mount", "type=volume,src={0},dst=/preflight".format(self.volume)]
+        mounts += uv_cache_args(os.environ)
         driver = Path(__file__).with_name("profile.py").resolve()
         create = [
             "docker",
@@ -128,7 +161,7 @@ class DirectBindTarget(Target):
             check=True,
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
-            timeout=30,
+            timeout=self.docker_timeout,
         )
         self.pending_create = False
         self.stage = "start owned preparation container"
@@ -137,7 +170,7 @@ class DirectBindTarget(Target):
             check=True,
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
-            timeout=30,
+            timeout=self.docker_timeout,
         )
         install = [
             "docker",
@@ -160,14 +193,14 @@ class DirectBindTarget(Target):
             check=True,
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
-            timeout=30,
+            timeout=self.docker_timeout,
         )
         self.stage = "verify owned network"
         document = json.loads(
             subprocess.check_output(
                 ["docker", "inspect", self.install_name],
                 stderr=subprocess.PIPE,
-                timeout=30,
+                timeout=self.docker_timeout,
             )
         )[0]
         if document["NetworkSettings"]["Networks"]:
@@ -209,7 +242,7 @@ class DirectBindTarget(Target):
                 ["docker", "inspect", name],
                 stdout=subprocess.PIPE,
                 stderr=subprocess.PIPE,
-                timeout=30,
+                timeout=self.docker_timeout,
             )
             if value.returncode and name == self.install_name and self.pending_create:
                 from .pending_creation import preserve_pending_creation
@@ -229,14 +262,14 @@ class DirectBindTarget(Target):
                     check=True,
                     stdout=subprocess.PIPE,
                     stderr=subprocess.PIPE,
-                    timeout=60,
+                    timeout=self.docker_timeout,
                 )
         if self.created_volume:
             volume = json.loads(
                 subprocess.check_output(
                     ["docker", "volume", "inspect", self.volume],
                     stderr=subprocess.PIPE,
-                    timeout=30,
+                    timeout=self.docker_timeout,
                 )
             )[0]
             if volume.get("Labels", {}).get("scitex.hub.preflight") != self.token:
@@ -246,7 +279,7 @@ class DirectBindTarget(Target):
                 check=True,
                 stdout=subprocess.PIPE,
                 stderr=subprocess.PIPE,
-                timeout=60,
+                timeout=self.docker_timeout,
             )
             self.created_volume = False
         if self.image is not None:
@@ -286,14 +319,14 @@ for directory,names,files in os.walk(root,followlinks=False):
                 check=True,
                 stdout=subprocess.PIPE,
                 stderr=subprocess.PIPE,
-                timeout=60,
+                timeout=self.docker_timeout,
             )
         shutil.rmtree(self.workspace)
 
 
-def prepare(context, timeout):
+def prepare(context, timeout, docker_timeout=60):
     try:
-        return DirectBindTarget(context, timeout)
+        return DirectBindTarget(context, timeout, docker_timeout)
     except TargetUnreachable:
         raise
     except Exception as exc:
