@@ -182,7 +182,7 @@ def shared_session_page(request, token):
     """Public read-only HTML page for a shared chat session."""
     import re
 
-    import bleach
+    from apps.user_content import render_user_markdown
 
     session = get_object_or_404(ChatSession, share_token=token, is_shared=True)
     messages = list(
@@ -191,47 +191,10 @@ def shared_session_page(request, token):
         )
     )
     # Render markdown server-side for shared page
-    try:
-        import markdown
-
-        md = markdown.Markdown(extensions=["extra", "nl2br"])
-        for msg in messages:
-            raw = msg["text"]
-            # Collapse excessive newlines
-            raw = re.sub(r"\n{3,}", "\n\n", raw)
-            html = md.convert(raw)
-            msg["text_html"] = bleach.clean(
-                html,
-                tags=bleach.ALLOWED_TAGS
-                | {
-                    "p",
-                    "br",
-                    "h1",
-                    "h2",
-                    "h3",
-                    "h4",
-                    "pre",
-                    "code",
-                    "ul",
-                    "ol",
-                    "li",
-                    "strong",
-                    "em",
-                    "table",
-                    "thead",
-                    "tbody",
-                    "tr",
-                    "th",
-                    "td",
-                    "hr",
-                    "img",
-                },
-                attributes={"a": ["href", "title"], "img": ["src", "alt"]},
-            )
-            md.reset()
-    except ImportError:
-        for msg in messages:
-            msg["text_html"] = msg["text"]
+    for msg in messages:
+        # Collapse excessive newlines
+        raw = re.sub(r"\n{3,}", "\n\n", msg["text"] or "")
+        msg["text_html"] = render_user_markdown(raw, extensions=["extra", "nl2br"])
 
     return render(
         request,

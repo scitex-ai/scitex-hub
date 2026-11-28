@@ -144,15 +144,12 @@ def _render_readme(app_module):
         readme_path = project_dir / name
         if readme_path.is_file():
             try:
-                import markdown
+                from apps.user_content import render_user_markdown
 
                 raw = readme_path.read_text(encoding="utf-8")
-                return markdown.markdown(
+                return render_user_markdown(
                     raw, extensions=["fenced_code", "tables", "toc"]
                 )
-            except ImportError:
-                # markdown lib not installed — return raw text
-                return f"<pre>{readme_path.read_text(encoding='utf-8')}</pre>"
             except Exception:
                 return ""
     return ""

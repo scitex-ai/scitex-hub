@@ -222,12 +222,10 @@ def get_readme_content(project_path):
         readme_path = project_path / "README.md"
         if readme_path.exists():
             readme_content = readme_path.read_text(encoding="utf-8")
-            # Convert markdown to HTML
-            import markdown
+            from apps.user_content import render_user_markdown
 
-            readme_html = markdown.markdown(
-                readme_content,
-                extensions=["fenced_code", "tables", "nl2br"],
+            readme_html = render_user_markdown(
+                readme_content, extensions=["fenced_code", "tables", "nl2br"]
             )
     except Exception:
         pass

@@ -45,8 +45,8 @@ setTimeout(function() {
         .then(function(r) { return r.json(); })
         .then(function(data) {
           if (data.content) {
-            var html = (typeof marked !== 'undefined' && marked.parse)
-              ? marked.parse(data.content)
+            var html = (typeof marked !== 'undefined' && marked.parse && typeof DOMPurify !== 'undefined')
+              ? DOMPurify.sanitize(marked.parse(data.content))
               : '\x3cpre>' + data.content.replace(/&/g, '&amp;').replace(/\x3c/g, '&lt;').replace(/\x3e/g, '&gt;') + '\x3c/pre>';
             detail.innerHTML = '\x3cdiv class="stx-app-miller__detail-content">' + html + '\x3c/div>';
           } else {
