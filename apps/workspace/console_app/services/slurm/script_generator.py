@@ -75,11 +75,18 @@ def create_batch_script(
 
     # Environment variable NAMES must be valid shell identifiers; VALUES are
     # shell-quoted so no metacharacter can break out of the `export`.
+    # The requested variables are meant for the job's code inside Apptainer,
+    # not for the batch script itself, which runs on the compute node outside
+    # the container: exporting PATH, LD_PRELOAD or BASH_ENV there would let a
+    # tenant choose which host binaries the script runs. They are therefore
+    # exported only under Apptainer's APPTAINERENV_ prefix, which no host
+    # program reads and which Apptainer injects into the container (also
+    # under --cleanenv) with the prefix removed.
     env_lines = []
     for k, v in (env_vars or {}).items():
         if not isinstance(k, str) or not _ENV_KEY_RE.match(k):
             raise ValueError(f"Invalid environment variable name: {k!r}")
-        env_lines.append(f"export {k}={shlex.quote(str(v))}")
+        env_lines.append(f"export APPTAINERENV_{k}={shlex.quote(str(v))}")
     env_exports = "\n".join(env_lines)
 
     # Ensure output directory exists
