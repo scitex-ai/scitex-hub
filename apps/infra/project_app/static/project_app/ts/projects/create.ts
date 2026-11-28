@@ -123,6 +123,47 @@
       );
       return;
     }
+    showCreationProgress();
+  });
+
+  // =============================================================================
+  // Creation progress (hub#1273): a template project takes 20-40 s to build.
+  // Show that it is working, count the seconds, say so when it runs long, and
+  // block a second submit (which would race the first for the same name).
+  // =============================================================================
+
+  const progressPanel = document.getElementById(
+    "create-progress",
+  ) as HTMLElement | null;
+  let progressTimer: number | undefined;
+
+  function showCreationProgress(): void {
+    if (submitButton) {
+      submitButton.disabled = true;
+      submitButton.setAttribute("aria-busy", "true");
+    }
+    if (!progressPanel) return;
+    progressPanel.hidden = false;
+    const seconds = document.getElementById("create-progress-seconds");
+    const detail = document.getElementById("create-progress-detail");
+    const slowAfter = Number(progressPanel.dataset.slowAfterSeconds || "90");
+    const started = Date.now();
+    progressTimer = window.setInterval(() => {
+      const elapsed = Math.floor((Date.now() - started) / 1000);
+      if (seconds) seconds.textContent = String(elapsed);
+      if (elapsed >= slowAfter && detail && progressPanel.dataset.slowMessage) {
+        detail.textContent = progressPanel.dataset.slowMessage;
+      }
+    }, 1000);
+  }
+
+  // Back/forward cache restores the page mid-"Creating": reset it.
+  window.addEventListener("pageshow", (event: PageTransitionEvent) => {
+    if (!event.persisted) return;
+    window.clearInterval(progressTimer);
+    if (progressPanel) progressPanel.hidden = true;
+    if (submitButton) submitButton.removeAttribute("aria-busy");
+    nameInput?.dispatchEvent(new Event("input"));
   });
 
   nameInput?.addEventListener("input", function (this: HTMLInputElement) {
@@ -237,6 +278,12 @@
       }
     }, 500);
   });
+
+  // A form the server sent back (a failed creation keeps the user's input)
+  // arrives with a name already typed: check it, so the button reflects it.
+  if (nameInput && nameInput.value.trim()) {
+    nameInput.dispatchEvent(new Event("input"));
+  }
 
   // =============================================================================
   // Template Selection

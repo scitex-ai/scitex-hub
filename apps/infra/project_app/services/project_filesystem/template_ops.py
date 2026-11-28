@@ -78,10 +78,19 @@ class TemplateOperationsManager:
     def copy_from_example_template(
         self, project_path: Path, project: Project, template_type: str = "research"
     ) -> bool:
-        """Copy template structure from local or remote source."""
+        """Copy template structure from local or remote source.
+
+        A new project's path normally already holds its fresh Gitea clone
+        (the post_save signal makes it). The scaffold is then written INTO
+        that clone, which only a creation that flagged
+        ``_template_scaffold_pending`` may ask for: an existing project's
+        directory is never overwritten. Until hub#1273 only the research
+        template carried that flag, so the Recommended (minimal) template
+        refused its own clone and every new user's first project failed.
+        """
         try:
             if project_path.exists() and not getattr(
-                project, "_research_template_pending", False
+                project, "_template_scaffold_pending", False
             ):
                 logger.info(
                     f"Project path already exists: {project_path}, skipping template"
@@ -91,27 +100,48 @@ class TemplateOperationsManager:
             if not project_path.parent.exists():
                 project_path.parent.mkdir(parents=True, exist_ok=True)
 
-            from scitex_template import clone_template
+            from scitex_template import clone_template_result
 
             git_strategy = "child" if template_type in ("minimal", "research") else None
+            # The minimal template IS the Writer workspace; it follows the
+            # deployment's Writer template version like WriterService does.
+            version = {}
+            if template_type == "minimal":
+                version = {
+                    "branch": _writer_setting("SCITEX_WRITER_TEMPLATE_BRANCH"),
+                    "tag": _writer_setting("SCITEX_WRITER_TEMPLATE_TAG"),
+                }
+
+            def clone(target, strategy):
+                outcome = clone_template_result(
+                    template_id=template_type,
+                    project_dir=str(target),
+                    git_strategy=strategy,
+                    **version,
+                )
+                if not outcome:
+                    logger.error(
+                        "Template %s failed at %s: %s",
+                        template_type,
+                        project_path,
+                        outcome.reason,
+                    )
+                return bool(outcome)
 
             if project_path.exists():
                 from .new_repository_template import populate_new_repository
 
                 success = populate_new_repository(
-                    project_path,
-                    lambda target: clone_template(
-                        template_id=template_type,
-                        project_dir=str(target),
-                        git_strategy=None,
-                    ),
+                    project_path, lambda target: clone(target, None)
                 )
+                if not success:
+                    logger.error(
+                        "Could not apply the %s template to the new clone %s",
+                        template_type,
+                        project_path,
+                    )
             else:
-                success = clone_template(
-                    template_id=template_type,
-                    project_dir=str(project_path),
-                    git_strategy=git_strategy,
-                )
+                success = clone(project_path, git_strategy)
 
             if success:
                 self._customize_after_clone(project_path, project, template_type)
@@ -167,6 +197,11 @@ class TemplateOperationsManager:
         return True, workspace
 
 
+def _writer_setting(name):
+    value = getattr(settings, name, None)
+    return None if value in (None, "", "null") else value
+
+
 def ensure_writer_workspace(project_root: Path) -> Optional[Path]:
     """Ready the Writer workspace under ``project_root``; ``None`` if it is not.
 
@@ -181,16 +216,12 @@ def ensure_writer_workspace(project_root: Path) -> Optional[Path]:
         get_manuscript_path,
     )
 
-    def _setting(name):
-        value = getattr(settings, name, None)
-        return None if value in (None, "", "null") else value
-
     try:
         workspace = ensure_writer_workspace_at(
             project_root,
             git_strategy="parent",
-            branch=_setting("SCITEX_WRITER_TEMPLATE_BRANCH"),
-            tag=_setting("SCITEX_WRITER_TEMPLATE_TAG"),
+            branch=_writer_setting("SCITEX_WRITER_TEMPLATE_BRANCH"),
+            tag=_writer_setting("SCITEX_WRITER_TEMPLATE_TAG"),
         )
     except Exception:
         logger.exception("Writer workspace initialization failed")

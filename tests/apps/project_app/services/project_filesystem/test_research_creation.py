@@ -1,9 +1,13 @@
-"""A new Full project receives its scaffold without losing its Gitea origin."""
+"""A template scaffold lands only in an untouched new Gitea clone.
+
+The full path -- every /new/ tab against a real Gitea and the real template
+packages -- is tests/apps/project_app/views/projects/test_create.py. These
+pin the guards of the overlay step itself, without a server.
+"""
 
 import subprocess
 from pathlib import Path
 from types import SimpleNamespace
-from unittest.mock import Mock
 
 import pytest
 
@@ -32,56 +36,43 @@ def repository(tmp_path):
     return root
 
 
-def populate(target):
-    target.mkdir()
-    (target / "README.md").write_text("Research showcase\n")
-    scripts = target / "scripts" / "mnist"
-    scripts.mkdir(parents=True)
-    (scripts / "01_fetch_mnist.py").write_text("# research scaffold\n")
-    (target / "pipeline.py").symlink_to("scripts/mnist/01_fetch_mnist.py")
-    manifest = target / ".scitex" / "template" / "MANIFEST.yaml"
-    manifest.parent.mkdir(parents=True)
-    manifest.write_text("template:\n  id: research\n")
-    return True
+class Scaffold:
+    """A template stand-in that writes a small research tree and counts calls."""
+
+    def __init__(self, result=True):
+        self.result = result
+        self.targets = []
+
+    def __call__(self, target):
+        self.targets.append(target)
+        target = Path(target)
+        target.mkdir()
+        (target / "README.md").write_text("Research showcase\n")
+        scripts = target / "scripts" / "mnist"
+        scripts.mkdir(parents=True)
+        (scripts / "01_fetch_mnist.py").write_text("# research scaffold\n")
+        (target / "pipeline.py").symlink_to("scripts/mnist/01_fetch_mnist.py")
+        return self.result
 
 
-@pytest.mark.guards(
-    defect="Gitea cloned before Full template creation, which skipped existing paths"
-)
-def test_new_project_gets_research_scaffold(repository, monkeypatch):
+def test_scaffold_overlays_new_clone_and_keeps_its_identity(repository):
     # Arrange
-    import scitex_template
-
-    from apps.infra.project_app.services.project_filesystem.template_ops import (
-        TemplateOperationsManager,
+    from apps.infra.project_app.services.project_filesystem.new_repository_template import (
+        populate_new_repository,
     )
 
-    observed = []
-
-    def clone(**kwargs):
-        observed.append(kwargs)
-        return populate(Path(kwargs["project_dir"]))
-
-    monkeypatch.setattr(scitex_template, "clone_template", clone)
-    manager = TemplateOperationsManager(None)
-    manager._customize_after_clone = Mock()
-    project = SimpleNamespace(_research_template_pending=True)
     initial_commit = git(repository, "rev-parse", "HEAD")
 
     # Act
-    success = manager.copy_from_example_template(repository, project, "research")
+    success = populate_new_repository(repository, Scaffold())
     # Assert
     assert (
         success,
-        observed[0]["template_id"] if observed else None,
         (repository / "scripts/mnist/01_fetch_mnist.py").is_file(),
-        (repository / ".scitex/template/MANIFEST.yaml").is_file(),
         (repository / "pipeline.py").is_symlink(),
         git(repository, "rev-parse", "HEAD"),
         git(repository, "remote", "get-url", "origin"),
     ) == (
-        True,
-        "research",
         True,
         True,
         True,
@@ -102,12 +93,12 @@ def test_refuses_existing_research_contents(repository, existing):
     authored.write_text("authored research\n")
     git(repository, "add", ".")
     git(repository, "commit", "-m", "Research")
-    callback = Mock(side_effect=populate)
+    scaffold = Scaffold()
 
     # Act
-    success = populate_new_repository(repository, callback)
+    success = populate_new_repository(repository, scaffold)
     # Assert
-    assert (success, callback.call_count, authored.read_text()) == (
+    assert (success, len(scaffold.targets), authored.read_text()) == (
         False,
         0,
         "authored research\n",
@@ -121,12 +112,12 @@ def test_refuses_modified_initial_readme(repository):
     )
 
     (repository / "README.md").write_text("Authored text\n")
-    callback = Mock(side_effect=populate)
+    scaffold = Scaffold()
 
     # Act
-    success = populate_new_repository(repository, callback)
+    success = populate_new_repository(repository, scaffold)
     # Assert
-    assert (success, callback.call_count, (repository / "README.md").read_text()) == (
+    assert (success, len(scaffold.targets), (repository / "README.md").read_text()) == (
         False,
         0,
         "Authored text\n",
@@ -141,12 +132,8 @@ def test_failed_fetch_preserves_initial_repository(repository):
 
     before = (repository / "README.md").read_bytes()
 
-    def fail(target):
-        populate(target)
-        return False
-
     # Act
-    success = populate_new_repository(repository, fail)
+    success = populate_new_repository(repository, Scaffold(result=False))
     # Assert
     assert (
         success,
@@ -155,7 +142,8 @@ def test_failed_fetch_preserves_initial_repository(repository):
     ) == (False, before, "")
 
 
-def test_existing_project_cannot_request_overlay(repository):
+@pytest.mark.parametrize("template_type", ["minimal", "research"])
+def test_existing_project_cannot_request_overlay(repository, template_type):
     # Arrange
     from apps.infra.project_app.services.project_filesystem.template_ops import (
         TemplateOperationsManager,
@@ -164,10 +152,34 @@ def test_existing_project_cannot_request_overlay(repository):
     manager = TemplateOperationsManager(None)
     # Act
     success = manager.copy_from_example_template(
-        repository, SimpleNamespace(), "research"
+        repository, SimpleNamespace(), template_type
     )
     # Assert
     assert not success
+
+
+class RefusingTemplates:
+    """Template operations whose scaffold always fails; records README writes."""
+
+    def __init__(self):
+        self.readmes = []
+
+    def copy_from_example_template(self, project_path, project, template_type):
+        return False
+
+    def create_minimal_readme(self, project, project_path):
+        self.readmes.append(project_path)
+
+
+class UnsavedProject:
+    slug = "acceptance-research"
+    is_org_owned = False
+
+    def __init__(self):
+        self.saves = 0
+
+    def save(self, *args, **kwargs):
+        self.saves += 1
 
 
 def test_failed_template_does_not_report_empty_project_as_success(tmp_path):
@@ -177,17 +189,15 @@ def test_failed_template_does_not_report_empty_project_as_success(tmp_path):
     )
 
     manager = object.__new__(ProjectOpsManager)
-    manager._get_effective_base_path = Mock(return_value=tmp_path)
-    manager._ensure_directory = Mock(return_value=True)
-    manager.template_ops = Mock()
-    manager.template_ops.copy_from_example_template.return_value = False
-    project = SimpleNamespace(slug="acceptance-research", save=Mock())
+    manager.base_path = tmp_path
+    manager.template_ops = RefusingTemplates()
+    project = UnsavedProject()
 
     # Act
     result = manager.create_project_directory(project, use_template=True)
     # Assert
-    assert (
-        result,
-        manager.template_ops.create_minimal_readme.call_count,
-        project.save.call_count,
-    ) == ((False, None), 0, 0)
+    assert (result, manager.template_ops.readmes, project.saves) == (
+        (False, None),
+        [],
+        0,
+    )

@@ -11,6 +11,29 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- The Recommended "SciTeX Minimal" template creates the project again
+  (#1273). Gitea's post_save clone seeded the generic Writer structure into
+  the new project's path, and the template step then refused that path as
+  "already exists"; only the research template was exempt. Every template
+  creation now flags the clone as the template's, the scaffold is written into
+  it and published to the repository, like the research template.
+- A failed creation leaves nothing behind (#1274): the row, its Gitea
+  repository and the working tree are removed on every failure path
+  (unexpected exceptions included), and `/new/` comes back with the name,
+  description, visibility and tab the user chose and the reason. A folder at
+  the target path that no project owns is moved aside to
+  `data/users/<owner>/.project-leftovers/` before creating, and the name check
+  reports it (`"leftover": true`) instead of calling the name simply free.
+- `/new/` shows a progress panel with elapsed seconds while the creation runs,
+  says so when it runs long, and blocks a second submit; the git calls in the
+  creation path are time-bounded.
+- New CI workflow `project-create-every-template` creates a project from every
+  tab `/new/` offers against a throwaway Gitea
+  (`scripts/testing/start_test_gitea.sh`) and the released template packages,
+  on every PR and nightly, so a template cannot silently break again.
+
 ### Changed
 
 - Outgoing mail follows the per-purpose routing policy of 2026-11-27

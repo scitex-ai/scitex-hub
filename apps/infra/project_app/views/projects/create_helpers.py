@@ -15,6 +15,23 @@ from ...models import Project
 
 logger = logging.getLogger(__name__)
 
+# The /new/ tabs that build a project on the Hub from a template or from
+# nothing: tab -> (init_type, template_type), exactly what the tab's hidden
+# fields post (TAB_CONFIG in create.html). "import" and "remote" are the other
+# tabs; they need an outside repository or host. The view maps a failed POST
+# back to its tab with this, and tests/apps/project_app/views/projects/
+# test_create.py creates a project from every entry end to end.
+LOCAL_CREATION_TABS = {
+    "minimal": ("template", "minimal"),
+    "full": ("template", "research"),
+    "app": ("template", "app"),
+    "blank": ("gitea", ""),
+}
+
+# Templates whose scaffold the template step writes into the fresh Gitea clone
+# itself; the post_save clone must leave that clone untouched for them.
+SCAFFOLD_TEMPLATES = ("minimal", "research")
+
 
 def get_available_templates():
     """Get available project templates from scitex package (source of truth)."""

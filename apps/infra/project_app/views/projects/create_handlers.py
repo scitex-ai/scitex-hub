@@ -4,6 +4,11 @@
 Project Creation Type Handlers
 
 Handle different project initialization types (gitea, github, template, git, empty).
+
+Each handler returns True on success. On failure it records the reason with
+``messages.error`` and returns False; it never deletes anything itself. The
+view (create.py) owns the rollback, so every failure removes the row, the
+Gitea repository AND the working tree the same way (hub#1274).
 """
 
 import logging
@@ -13,6 +18,28 @@ from django.conf import settings
 from django.contrib import messages
 
 logger = logging.getLogger(__name__)
+
+TEMPLATE_LABELS = {"minimal": "SciTeX Minimal", "research": "SciTeX Full"}
+
+
+def _publish(request, project_dir, message, label):
+    """Commit the scaffold in the new clone and push it to the project's repository.
+
+    A scaffold that exists only on the Hub's disk is not a created project:
+    the repository (what clones, the Gitea UI and backups see) would still be
+    Gitea's bare README.
+    """
+    from apps.infra.project_app.services.git_service import git_commit_and_push
+
+    published, detail = git_commit_and_push(project_dir, message, branch="HEAD")
+    if not published:
+        logger.error("Publishing the %s scaffold failed: %s", label, detail)
+        messages.error(
+            request,
+            f'The "{label}" files were created but could not be saved to the '
+            "project's repository.",
+        )
+    return published
 
 
 def handle_gitea_creation(request, project):
@@ -56,7 +83,6 @@ def handle_gitea_creation(request, project):
                 f"Gitea repository created but clone failed: {result}",
             )
             logger.error(f"Clone failed for {project.slug}: {result}")
-            project.delete()
             return False
 
     except Exception as e:
@@ -69,7 +95,6 @@ def handle_gitea_creation(request, project):
         else:
             messages.error(request, f"Failed to create repository: {error_msg}")
         logger.error(f"Gitea creation failed for {project.slug}: {e}")
-        project.delete()
         return False
 
 
@@ -77,7 +102,6 @@ def handle_github_import(request, project, manager, git_url):
     """Handle GitHub/GitLab import."""
     if not git_url:
         messages.error(request, "Repository URL is required for importing")
-        project.delete()
         return False
 
     try:
@@ -92,68 +116,60 @@ def handle_github_import(request, project, manager, git_url):
             return True
         else:
             messages.error(request, f"Failed to clone repository: {error_msg}")
-            project.delete()
             return False
 
     except Exception as e:
         messages.error(request, f"Failed to import from Git: {str(e)}")
-        project.delete()
         return False
 
 
 def handle_template_creation(request, project, manager, template_type):
-    """Handle template-based project creation."""
+    """Handle template-based project creation.
+
+    The template step writes its scaffold into the fresh Gitea clone, so the
+    result is published back to the repository; a project whose files exist
+    only on the Hub's disk is not a created project.
+    """
+    label = TEMPLATE_LABELS.get(template_type, template_type)
     success, path = manager.create_project_directory(
         project, use_template=True, template_type=template_type
     )
-    if success:
-        if getattr(project, "_research_template_pending", False):
-            from apps.infra.project_app.services.git_service import git_commit_and_push
-
-            published, detail = git_commit_and_push(
-                path,
-                "Initialize research template",
-                branch="HEAD",
-            )
-            if not published:
-                logger.error("Research scaffold publication failed: %s", detail)
-                messages.error(
-                    request,
-                    "Research template was created locally but could not be published. "
-                    "The local project has been retained.",
-                )
-                return False
-        if template_type == "minimal":
-            from apps.infra.project_app.services.first_project_samples import (
-                try_seed_first_project_samples,
-            )
-
-            try_seed_first_project_samples(
-                manager.get_project_root_path(project) or path
-            )
-        messages.success(
+    if not success:
+        messages.error(
             request,
-            f'Project "{project.name}" created with {template_type} template',
+            f'Could not create the project from the "{label}" template.',
         )
-        return True
-    else:
-        messages.error(request, "Failed to create project with template")
-        project.delete()
         return False
+
+    if template_type == "minimal":
+        from apps.infra.project_app.services.first_project_samples import (
+            try_seed_first_project_samples,
+        )
+
+        try_seed_first_project_samples(manager.get_project_root_path(project) or path)
+
+    if getattr(project, "_template_scaffold_pending", False) and not _publish(
+        request, path, f"Initialize {label} template", label
+    ):
+        return False
+
+    messages.success(
+        request,
+        f'Project "{project.name}" created with the {label} template',
+    )
+    return True
 
 
 def handle_git_clone(request, project, manager, git_url):
     """Handle Git repository cloning."""
     if not git_url:
         messages.error(request, "Repository URL is required for cloning from Git")
-        project.delete()
         return False
 
     # Create empty directory first
     success, path = manager.create_project_directory(project, use_template=False)
     if not success:
         messages.error(request, "Failed to create project directory")
-        project.delete()
         return False
 
     # Clone from Git repository
@@ -176,7 +192,6 @@ def handle_empty_creation(request, project, manager):
         return True
     else:
         messages.error(request, "Failed to create project directory")
-        project.delete()
         return False
 
 
@@ -187,7 +202,6 @@ def handle_app_template_creation(request, project, manager):
     success, path = manager.create_project_directory(project, use_template=False)
     if not success:
         messages.error(request, "Failed to create project directory")
-        project.delete()
         return False
 
     project_dir = Path(path) if isinstance(path, str) else path
@@ -228,12 +242,12 @@ def handle_app_template_creation(request, project, manager):
         )
         logger.info("Scaffolded %d files for app %s", len(created), app_name)
     except Exception as e:
-        logger.error("App scaffold failed for %s: %s", app_name, e)
-        messages.warning(
-            request,
-            f"Project created but scaffold incomplete: {e}",
-        )
-        return True
+        logger.exception("App scaffold failed for %s", app_name)
+        messages.error(request, f"Could not create the app scaffold: {e}")
+        return False
+
+    if not _publish(request, project_dir, "Initialize SciTeX app scaffold", "app"):
+        return False
 
     # Mark as app project from creation (not just at submission)
     project.is_app = True

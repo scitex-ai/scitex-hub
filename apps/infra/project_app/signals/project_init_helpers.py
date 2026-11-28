@@ -106,12 +106,17 @@ def _initialize_scitex_structure(project, project_dir):
             logger.error(f"clone_scitex_minimal returned False for {project.slug}")
 
         # Commit the new structure
-        subprocess.run(["git", "add", "-A"], cwd=project_dir, capture_output=True)
+        # Bounded: this runs inside the user's "Create project" request, and
+        # an unbounded git call is a page that never answers.
+        subprocess.run(
+            ["git", "add", "-A"], cwd=project_dir, capture_output=True, timeout=60
+        )
         result = subprocess.run(
             ["git", "commit", "-m", "Initialize scitex writer structure"],
             cwd=project_dir,
             capture_output=True,
             text=True,
+            timeout=60,
         )
 
         if result.returncode == 0:
@@ -138,6 +143,7 @@ def _initialize_scitex_structure(project, project_dir):
                 cwd=project_dir,
                 capture_output=True,
                 text=True,
+                timeout=60,
                 env=build_gitea_auth_env(),
             )
 

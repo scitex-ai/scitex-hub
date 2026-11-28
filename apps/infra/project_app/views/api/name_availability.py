@@ -97,6 +97,24 @@ def api_check_name_availability(request):
             logger.warning(f"Gitea availability check failed: {e}")
             pass  # Continue, assume available
 
+        # Check 3: the working tree. A folder no project owns -- what a failed
+        # creation used to leave -- does not block the name: creating moves it
+        # aside first (project_creation.find_leftover / move_leftover_aside).
+        # Say so, rather than call the name simply free (hub#1274).
+        from ...services.project_creation import find_leftover
+
+        if find_leftover(request.user, slug) is not None:
+            return JsonResponse(
+                {
+                    "available": True,
+                    "leftover": True,
+                    "message": (
+                        f'"{name}" is available. Files left by an earlier '
+                        "unfinished attempt will be moved aside when you create it."
+                    ),
+                }
+            )
+
     return JsonResponse({"available": True, "message": f'"{name}" is available'})
 
 

@@ -1,0 +1,84 @@
+# Create a project from EVERY tab /new/ offers, end to end, against a real
+# Gitea and the real template packages (hub#1273).
+#
+# The "Recommended" template failed for every new user for a week while each
+# piece's unit tests stayed green: no test created a project the way a user
+# does. tests/apps/project_app/views/projects/test_create.py does, and also
+# pins the all-or-nothing rollback and the leftover-folder reconciliation
+# (hub#1274). The main pytest job runs without a Gitea server on purpose, so
+# that module skips there; this job starts one and sets
+# SCITEX_HUB_REQUIRE_LIVE_GITEA=1, which turns the skip into a failure -- it
+# cannot pass by not running.
+name: project-create-every-template
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
+  schedule:
+    # Templates come from released packages (scitex-template, scitex-writer):
+    # a new release can break creation with no commit here.
+    - cron: "30 17 * * *"
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+permissions:
+  contents: read
+
+jobs:
+  create-every-template:
+    name: project-create-every-template
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_DB: scitex_test
+          POSTGRES_USER: scitex
+          POSTGRES_PASSWORD: scitex_test_pass  # pragma: allowlist secret
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v7
+        with:
+          cache-dependency-glob: pyproject.toml
+      - name: Install dependencies
+        run: |
+          set -euo pipefail
+          uv venv --seed --python 3.12 .venv
+          uv pip install --python .venv/bin/python -e ".[all,dev]"
+      - name: Start a throwaway Gitea
+        run: |
+          set -euo pipefail
+          scripts/testing/start_test_gitea.sh "$RUNNER_TEMP/gitea" 3999
+          cat "$RUNNER_TEMP/gitea/env" >> "$GITHUB_ENV"
+      - name: Create a project from every offered tab
+        env:
+          SCITEX_HUB_REQUIRE_LIVE_GITEA: "1"
+          SCITEX_HUB_DJANGO_SECRET_KEY: ci-only-not-a-secret-0123456789abcdefghij  # pragma: allowlist secret
+          SCITEX_HUB_GITEA_SSH_PORT_DEV: "2222"
+          SCITEX_HUB_DB_NAME_DEV: scitex_test
+          SCITEX_HUB_DB_USER_DEV: scitex
+          SCITEX_HUB_DB_PASSWORD_DEV: scitex_test_pass  # pragma: allowlist secret
+          SCITEX_HUB_DB_HOST_DEV: localhost
+          SCITEX_HUB_DB_PORT_DEV: "5432"
+          SCITEX_STORE_DSN: postgresql://scitex:scitex_test_pass@localhost:5432/scitex_test?connect_timeout=5  # pragma: allowlist secret
+          SCITEX_HUB_TEST_MODE: "1"
+        run: |
+          set -euo pipefail
+          export PATH="$PWD/.venv/bin:$PATH"
+          .venv/bin/python -m pytest tests/apps/project_app/views/projects/test_create.py -p no:randomly
+      - name: Gitea log on failure
+        if: failure()
+        run: tail -n 200 "$RUNNER_TEMP/gitea/web.log" "$RUNNER_TEMP/gitea/log/"*.log 2>/dev/null || true

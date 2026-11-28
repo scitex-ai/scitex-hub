@@ -175,9 +175,10 @@ def _clone_gitea_repo_to_data_dir(project):
             # _setup_project_venv(project, project_dir)
 
             # Initialize scitex structure (writer + scholar + integration)
-            # Skip for app projects — they don't need writer/scholar
+            # Skip for app projects — they don't need writer/scholar — and for
+            # a template creation, whose template step owns this clone.
             if not project.is_app and not getattr(
-                project, "_research_template_pending", False
+                project, "_template_scaffold_pending", False
             ):
                 _initialize_scitex_structure(project, project_dir)
 
@@ -203,7 +204,7 @@ def on_project_created_init_bibliography(sender, instance, created, **kwargs):
     if (
         not created
         or not instance.git_clone_path
-        or getattr(instance, "_research_template_pending", False)
+        or getattr(instance, "_template_scaffold_pending", False)
     ):
         return
 
