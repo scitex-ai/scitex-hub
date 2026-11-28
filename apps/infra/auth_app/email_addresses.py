@@ -14,6 +14,8 @@ import logging
 from allauth.account.models import EmailAddress
 from django.db import IntegrityError, transaction
 
+from apps.security import safe_log_field
+
 logger = logging.getLogger(__name__)
 
 
@@ -76,7 +78,7 @@ def record_verified(user, email: str) -> EmailAddress | None:
         logger.warning(
             "Could not record %s as verified for user %s: the address is "
             "already verified on another account.",
-            address,
+            safe_log_field(address),
             user.pk,
         )
         return None

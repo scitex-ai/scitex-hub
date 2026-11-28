@@ -11,6 +11,8 @@ from django.views.decorators.http import require_http_methods
 from apps.infra.project_app.services.email_service import EmailService
 from apps.infra.public_app.services.billing_provider import post_signup_redirect_url
 
+from apps.security import safe_log_field
+
 from .email_addresses import record_verified
 from .models import EmailVerification
 
@@ -185,7 +187,10 @@ def verify_email_api(request):
                 del request.session["pending_email_change"]
 
                 logger.info(
-                    f"Email changed from {old_email} to {email} for user {user.username}"
+                    "Email changed from %s to %s for user %s",
+                    safe_log_field(old_email),
+                    safe_log_field(email),
+                    safe_log_field(user.username),
                 )
                 return JsonResponse(
                     {
@@ -213,7 +218,7 @@ def verify_email_api(request):
                     f"Failed to send welcome email to {user.email}: {str(e)}"
                 )
 
-            logger.info(f"Email verified successfully for {email}")
+            logger.info("Email verified successfully for %s", safe_log_field(email))
             return JsonResponse(
                 {
                     "success": True,
