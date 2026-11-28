@@ -93,6 +93,18 @@ class TemplateOperationsManager:
 
             git_strategy = "child" if template_type in ("minimal", "research") else None
 
+            writer_options = {}
+            if getattr(project, "_initialize_research_writer", False):
+                from django.conf import settings
+
+                writer_options = {
+                    "initialize_writer": True,
+                    "writer_branch": getattr(
+                        settings, "SCITEX_WRITER_TEMPLATE_BRANCH", None
+                    ),
+                    "writer_tag": getattr(settings, "SCITEX_WRITER_TEMPLATE_TAG", None),
+                }
+
             if project_path.exists():
                 from .new_repository_template import populate_new_repository
 
@@ -102,6 +114,7 @@ class TemplateOperationsManager:
                         template_id=template_type,
                         project_dir=str(target),
                         git_strategy=None,
+                        **writer_options,
                     ),
                 )
             else:
@@ -109,6 +122,7 @@ class TemplateOperationsManager:
                     template_id=template_type,
                     project_dir=str(project_path),
                     git_strategy=git_strategy,
+                    **writer_options,
                 )
 
             if success:

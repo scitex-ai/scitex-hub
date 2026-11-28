@@ -65,7 +65,9 @@ def test_new_project_gets_research_scaffold(repository, monkeypatch):
     monkeypatch.setattr(scitex_template, "clone_template", clone)
     manager = TemplateOperationsManager(None)
     manager._customize_after_clone = Mock()
-    project = SimpleNamespace(_research_template_pending=True)
+    project = SimpleNamespace(
+        _research_template_pending=True, _initialize_research_writer=True
+    )
     initial_commit = git(repository, "rev-parse", "HEAD")
 
     # Act
@@ -74,6 +76,7 @@ def test_new_project_gets_research_scaffold(repository, monkeypatch):
     assert (
         success,
         observed[0]["template_id"] if observed else None,
+        observed[0]["initialize_writer"] if observed else None,
         (repository / "scripts/mnist/01_fetch_mnist.py").is_file(),
         (repository / ".scitex/template/MANIFEST.yaml").is_file(),
         (repository / "pipeline.py").is_symlink(),
@@ -82,6 +85,7 @@ def test_new_project_gets_research_scaffold(repository, monkeypatch):
     ) == (
         True,
         "research",
+        True,
         True,
         True,
         True,
