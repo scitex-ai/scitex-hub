@@ -11,6 +11,7 @@ from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
 
+from apps.infra.gitea_app.webhook_auth import require_gitea_signature
 from apps.infra.project_app.models import Project
 from apps.infra.project_app.services.app_validator import validate_app
 
@@ -19,11 +20,15 @@ logger = logging.getLogger(__name__)
 
 @csrf_exempt
 @require_POST
+@require_gitea_signature
 def webhook_push(request, username, slug):
     """Handle Gitea push webhook — auto-validate app on push.
 
     POST /<username>/<slug>/api/webhook/push/
-    Gitea sends this on every push event if configured.
+    Gitea sends this on every push event if configured. Like every Gitea →
+    Hub webhook it must carry a valid ``X-Gitea-Signature`` (HMAC-SHA256 of
+    the body under ``SCITEX_HUB_GITEA_WEBHOOK_SECRET``); requests without one,
+    or with the secret unconfigured, are refused before any lookup.
     """
     try:
         project = Project.objects.get(owner__username=username, slug=slug)
