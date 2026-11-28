@@ -88,7 +88,7 @@ def api_check_name_availability(request):
                         }
                     )
             except GiteaAPIError as e:
-                if "404" in str(e) or "not found" in str(e).lower():
+                if e.status_code == 404 or "404" in str(e):
                     pass  # Continue, name is available
                 else:
                     logger.warning(f"Gitea check failed for {name}: {e}")
