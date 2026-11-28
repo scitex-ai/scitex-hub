@@ -69,9 +69,14 @@ function scanDir(
   }
 }
 
+// Development only. Production serves the built manifest and runs no Vite
+// server; a dev server there would serve project files straight from disk.
+if (process.env.SCITEX_HUB_ENV === "prod") {
+  throw new Error("[vite:devapp] the dev app Vite server does not run in production");
+}
+
 const devEntries = getDevAppEntries(__dirname);
 const hasEntries = Object.keys(devEntries).length > 0;
-const isProd = process.env.SCITEX_HUB_ENV === "prod";
 
 if (hasEntries) {
   console.log(
@@ -86,9 +91,7 @@ if (hasEntries) {
 
 export default defineConfig({
   root: ".",
-  // In production, nginx proxies /_vite_dev_app/ to this server
-  // base must match so Vite serves files and HMR WebSocket on the proxy path
-  base: isProd ? "/_vite_dev_app/" : "/",
+  base: "/",
   publicDir: false,
   logLevel: "info",
 
@@ -96,9 +99,8 @@ export default defineConfig({
     port: 5174,
     strictPort: true,
     host: "0.0.0.0",
-    // In dev: direct browser access at 127.0.0.1:5174
-    // In prod: HMR auto-detects from import.meta.url (loaded via nginx proxy)
-    ...(isProd ? {} : { hmr: { port: 5174, host: "127.0.0.1" } }),
+    // Direct browser access at 127.0.0.1:5174 (development only)
+    hmr: { port: 5174, host: "127.0.0.1" },
     cors: true,
     watch: {
       usePolling: true,
