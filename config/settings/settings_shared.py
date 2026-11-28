@@ -408,7 +408,13 @@ DATABASES = {
 # ---------------------------------------
 # Cache + Sessions
 # ---------------------------------------
-REDIS_URL = _getenv_alias("SCITEX_HUB_REDIS_URL", "redis://127.0.0.1:6379/1")
+from ._redis_auth import authenticated_redis_url  # noqa: E402
+
+# The URL stays password-free in the env file; SCITEX_HUB_REDIS_PASSWORD is
+# added here when the deployment sets one (see _redis_auth).
+REDIS_URL = authenticated_redis_url(
+    _getenv_alias("SCITEX_HUB_REDIS_URL", "redis://127.0.0.1:6379/1")
+)
 
 try:
     import redis as _redis
@@ -446,7 +452,9 @@ SESSION_COOKIE_AGE = 86400
 try:
     import redis as _redis2
 
-    _redis_url2 = _getenv_alias("SCITEX_HUB_REDIS_URL", "redis://127.0.0.1:6379/2")
+    _redis_url2 = authenticated_redis_url(
+        _getenv_alias("SCITEX_HUB_REDIS_URL", "redis://127.0.0.1:6379/2")
+    )
     # Same fast-fail timeouts as the cache probe above — never block
     # settings import on an unreachable Redis.
     _redis2.from_url(_redis_url2, socket_connect_timeout=0.5, socket_timeout=0.5).ping()

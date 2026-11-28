@@ -34,7 +34,7 @@ services:
   # PostgreSQL Database
   # ============================================
   postgres:
-    image: postgres:15-alpine
+    image: postgres:15.15-alpine@sha256:aa7b1ef595e165f0b780162e3a41edd0a7ed3ea672eb8a0f81615ba725e62bc5
     volumes:
       - postgres_data:/var/lib/postgresql/data
       - ./common/postgres/init-umami-db.sql:/docker-entrypoint-initdb.d/init-umami-db.sql:ro
@@ -54,7 +54,7 @@ services:
   # PgBouncer Connection Pooler
   # ============================================
   pgbouncer:
-    image: edoburu/pgbouncer:v1.25.1-p0
+    image: edoburu/pgbouncer:v1.25.1-p0@sha256:c7bfcaa24de830e29588bb9ad1eb39cebaf07c27149e1974445899b695634bb4
     volumes:
       - ./common/pgbouncer/pgbouncer.ini:/etc/pgbouncer/pgbouncer.ini:ro
       - ./common/pgbouncer/userlist.txt:/etc/pgbouncer/userlist.txt:ro
@@ -107,7 +107,7 @@ services:
   # Redis Cache
   # ============================================
   redis:
-    image: redis:7-alpine
+    image: redis:7.4.7-alpine@sha256:ee64a64eaab618d88051c3ade8f6352d11531fcf79d9a4818b9b183d8c1d18ba
     volumes:
       - redis_data:/data
     restart: unless-stopped
@@ -119,7 +119,7 @@ services:
   # Gitea Git Server
   # ============================================
   gitea:
-    image: gitea/gitea:latest
+    image: gitea/gitea:1.25.2@sha256:534428e78fc00d3ac8647f3467a3f91252acf23a46ea0c872f03191e3c878f7d
     volumes:
       - gitea_data:/data
       - /etc/timezone:/etc/timezone:ro
@@ -152,13 +152,13 @@ services:
   # Umami Analytics (Privacy-focused)
   # ============================================
   umami:
-    image: ghcr.io/umami-software/umami:postgresql-latest
+    image: ghcr.io/umami-software/umami@sha256:28f263fe06f79ebffa5a6a6e9bd33b7a278e9342a88e0bdac812416c9f9e4361
     env_file:
       - ./envs/.env.${SCITEX_ENV:-dev}
     environment:
       DATABASE_URL: postgresql://${SCITEX_HUB_POSTGRES_USER:-scitex}:${SCITEX_HUB_POSTGRES_PASSWORD:-scitex_2025}@postgres:5432/umami
       DATABASE_TYPE: postgresql
-      APP_SECRET: ${SCITEX_HUB_UMAMI_APP_SECRET:-scitex-umami-secret-2026}
+      APP_SECRET: ${SCITEX_HUB_UMAMI_APP_SECRET:?required — set a long random value in the env file}
       DISABLE_TELEMETRY: 1
       CLIENT_IP_HEADER: X-Forwarded-For
       IGNORE_IP: ${SCITEX_HUB_UMAMI_IGNORE_IP:-}

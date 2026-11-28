@@ -83,7 +83,7 @@ services:
 
       # SLURM access (connects to host SLURM for job scheduling)
       - /etc/slurm/slurm.conf:/etc/slurm/slurm.conf:ro
-      - /run/munge:/run/munge
+      - /run/munge:/run/munge:ro
       - /var/log/slurm:/var/log/slurm
       - /var/spool/slurmctld:/var/spool/slurmctld:ro
       # Mount host passwd for SLURM UID synchronization (prevents "Security violation" errors)
@@ -118,7 +118,9 @@ services:
       - /home/ywatanabe/.scitex/orochi/shared/agents:/app/agents-orochi:ro
 
     ports:
-      - "${SCITEX_HUB_SSH_PORT_PROD:-2200}:2200"  # SSH gateway for user workspaces
+      # Loopback only. The web route reaches the gateway as django:2200 over the
+      # compose network (ws_ssh_proxy), which a host publish is not needed for.
+      - "127.0.0.1:${SCITEX_HUB_SSH_PORT_PROD:-2200}:2200"  # SSH gateway for user workspaces
 
     expose:
       - "8000"
@@ -188,7 +190,7 @@ services:
       start_period: 720s
 
   postgres:
-    image: postgres:15-alpine
+    image: postgres:15.15-alpine@sha256:aa7b1ef595e165f0b780162e3a41edd0a7ed3ea672eb8a0f81615ba725e62bc5
     volumes:
       - postgres_data:/var/lib/postgresql/data
       # Init scripts run on first startup (creates umami database)
@@ -217,7 +219,7 @@ services:
 
   # PgBouncer connection pooler - prevents "too many clients" errors
   pgbouncer:
-    image: edoburu/pgbouncer:v1.25.1-p0
+    image: edoburu/pgbouncer:v1.25.1-p0@sha256:c7bfcaa24de830e29588bb9ad1eb39cebaf07c27149e1974445899b695634bb4
     volumes:
       - ../common/pgbouncer/pgbouncer.ini:/etc/pgbouncer/pgbouncer.ini:ro
       - ../common/pgbouncer/userlist.txt:/etc/pgbouncer/userlist.txt
@@ -267,15 +269,29 @@ services:
       retries: 5
 
   redis:
-    image: redis:7-alpine
+    image: redis:7.4.7-alpine@sha256:ee64a64eaab618d88051c3ade8f6352d11531fcf79d9a4818b9b183d8c1d18ba
     volumes:
       - redis_data:/data
-    command: redis-server --appendonly yes
+    # Redis holds Django's sessions and the Celery broker, so it requires a
+    # password. The password comes from the env file like every other secret
+    # here and reaches redis-server as config on STDIN ("-"), never in argv:
+    # `ps` on the host shows only `redis-server *:6379`. The image entrypoint
+    # still drops to the redis user. Django and Celery read the same variable
+    # (config/settings/redis_auth.py).
+    environment:
+      SCITEX_HUB_REDIS_PASSWORD: ${SCITEX_HUB_REDIS_PASSWORD:?required — set a long random value in ../envs/.env.prod}
+    command:
+      - sh
+      - -c
+      - |
+        exec docker-entrypoint.sh redis-server - --appendonly yes <<EOF
+        requirepass $$SCITEX_HUB_REDIS_PASSWORD
+        EOF
     restart: always
     networks:
       - scitex-network
     healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
+      test: ["CMD-SHELL", "REDISCLI_AUTH=\"$$SCITEX_HUB_REDIS_PASSWORD\" redis-cli ping | grep -q PONG"]
       interval: 10s
       timeout: 3s
       retries: 5
@@ -381,7 +397,7 @@ services:
     #
     # Regression gate: tests/develop/test_celery_worker_pool.py
     command: >
-      celery -A config --broker=redis://redis:6379/1 worker
+      celery -A config worker
       --loglevel=info
       --queues=celery,ai_queue,search_queue,compute_queue
       --pool=threads
@@ -400,7 +416,7 @@ services:
       - ${SCITEX_SLURM_USER_DATA_ROOT:-/opt/scitex/data/users}:/app/data/users
       - ../../../deployment/singularity:/app/singularity:ro
       - /etc/slurm/slurm.conf:/etc/slurm/slurm.conf:ro
-      - /run/munge:/run/munge
+      - /run/munge:/run/munge:ro
       - /var/log/slurm:/var/log/slurm
       # Mount host passwd for SLURM UID synchronization
       - /etc/passwd:/host/etc/passwd:ro
@@ -478,7 +494,7 @@ services:
     # tini — same reason as the workers above (the compose entrypoint override
     # otherwise discards the image's tini and leaves celery as PID 1).
     entrypoint: ["/usr/bin/tini", "--", "/image-runtime.sh", "/entrypoint.sh"]
-    command: celery -A config --broker=redis://redis:6379/1 beat --loglevel=info --scheduler=django_celery_beat.schedulers:DatabaseScheduler
+    command: celery -A config beat --loglevel=info --scheduler=django_celery_beat.schedulers:DatabaseScheduler
 
     volumes:
       - apps_volume:/app/.apps
@@ -512,7 +528,7 @@ services:
       - scitex-network
 
     healthcheck:
-      test: ["CMD", "python", "-c", "import redis; r = redis.Redis(host='redis', port=6379); r.ping()"]
+      test: ["CMD", "python", "-c", "import os, redis; redis.Redis(host='redis', port=6379, password=os.environ.get('SCITEX_HUB_REDIS_PASSWORD') or None).ping()"]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -522,13 +538,14 @@ services:
 
   # Umami - Privacy-focused web analytics
   umami:
-    image: ghcr.io/umami-software/umami:postgresql-latest
+    image: ghcr.io/umami-software/umami@sha256:28f263fe06f79ebffa5a6a6e9bd33b7a278e9342a88e0bdac812416c9f9e4361
     ports:
-      - "${SCITEX_HUB_UMAMI_PORT_PROD:-3300}:3000"
+      # Loopback only: visitors reach umami through nginx (umami:3000).
+      - "127.0.0.1:${SCITEX_HUB_UMAMI_PORT_PROD:-3300}:3000"
     environment:
       - DATABASE_URL=postgresql://${SCITEX_HUB_POSTGRES_USER:?required — pass --env-file ../envs/.env.prod}:${SCITEX_HUB_POSTGRES_PASSWORD:?required — pass --env-file ../envs/.env.prod}@postgres:5432/umami
       - DATABASE_TYPE=postgresql
-      - APP_SECRET=${SCITEX_HUB_UMAMI_APP_SECRET:-scitex-umami-secret-2026}
+      - APP_SECRET=${SCITEX_HUB_UMAMI_APP_SECRET:?required — set a long random value in the env file}
       - DISABLE_TELEMETRY=1
       - CLIENT_IP_HEADER=X-Forwarded-For
       - IGNORE_IP=${SCITEX_HUB_UMAMI_IGNORE_IP:-}
@@ -569,7 +586,7 @@ services:
 
   # Gitea - Git server (core feature)
   gitea:
-    image: gitea/gitea:latest
+    image: gitea/gitea:1.25.2@sha256:534428e78fc00d3ac8647f3467a3f91252acf23a46ea0c872f03191e3c878f7d
     volumes:
       - gitea_data:/data
       - /etc/timezone:/etc/timezone:ro
@@ -583,8 +600,15 @@ services:
       # its network namespace and listens on :3000 (gitea itself is on
       # 127.0.0.1:3001). The tunnel route gitea:3000 and Django's gitea URL
       # therefore pass through gitea_front without any change of their own.
-      - "${SCITEX_HUB_GITEA_HTTP_PORT_PROD:-3000}:3000"  # HTTP (configurable via .env)
-      - "${SCITEX_HUB_GITEA_SSH_PORT_PROD:?required — pass --env-file ../envs/.env.prod}:22"
+      # HTTP on loopback only: the tunnel and Django use gitea:3000 on the
+      # compose network.
+      - "127.0.0.1:${SCITEX_HUB_GITEA_HTTP_PORT_PROD:-3000}:3000"
+      # Git over SSH is a user-facing service (the hub shows ssh:// clone
+      # URLs) and Gitea authenticates it by key, so it is published on all
+      # interfaces on purpose. It is the one public publish in this file;
+      # tests/config/test_compose_publishes_on_loopback_and_pins_images.py
+      # lists it explicitly.
+      - "0.0.0.0:${SCITEX_HUB_GITEA_SSH_PORT_PROD:?required — pass --env-file ../envs/.env.prod}:22"
     env_file:
       - ../envs/.env.prod
     environment:
@@ -647,7 +671,7 @@ services:
   # Recreate it together with gitea (a container that shares a namespace
   # cannot outlive it):  up -d --no-deps --force-recreate gitea gitea_front
   gitea_front:
-    image: nginx:alpine
+    image: nginx:1.29.3-alpine@sha256:b3c656d55d7ad751196f21b7fd2e8d4da9cb430e32f646adcf92441b72f82b14
     network_mode: "service:gitea"
     volumes:
       - ../common/gitea/front/nginx.conf:/etc/nginx/nginx.conf:ro
@@ -672,7 +696,7 @@ services:
 
   # Internal Nginx (not exposed to internet - Cloudflare Tunnel handles that)
   nginx:
-    image: nginx:alpine
+    image: nginx:1.29.3-alpine@sha256:b3c656d55d7ad751196f21b7fd2e8d4da9cb430e32f646adcf92441b72f82b14
     volumes:
       - ../common/nginx/nginx_prod.conf:/etc/nginx/nginx.conf:ro
       - ../common/nginx/bots.conf:/etc/nginx/bots.conf:ro
@@ -696,7 +720,7 @@ services:
 
   # Cloudflare Tunnel (replaces traditional port forwarding!)
   cloudflared:
-    image: cloudflare/cloudflared:latest
+    image: cloudflare/cloudflared:2026.10.4@sha256:c6c7ae1d5dfdcb094ad344ed68ccffc26635c9c6be80965664c33baf064b0515
     # The token goes in the ENVIRONMENT, never on the command line.
     # `--token <secret>` placed it in argv, where a bare `ps aux` by any user on
     # the host prints it in full -- which is how it landed in an agent transcript
@@ -746,7 +770,11 @@ services:
           memory: 1G
           cpus: '1.0'
     ports:
-      - "${SCITEX_HUB_OPENALEX_PORT_PROD:-31292}:31292"
+      # Loopback unless SCITEX_HUB_OPENALEX_BIND_PROD names an address. Other
+      # fleet hosts that read this index set it to the host's private overlay
+      # address; the relay has no authentication of its own, so it must never
+      # listen on every interface.
+      - "${SCITEX_HUB_OPENALEX_BIND_PROD:-127.0.0.1}:${SCITEX_HUB_OPENALEX_PORT_PROD:-31292}:31292"
     volumes:
       # data/openalex.db in the repo is a SYMLINK into openalex-local.bak/data and
       # does not resolve inside the container -- mount the REAL directory (the live
@@ -780,7 +808,7 @@ services:
   # previously hand-run autoheal container did not survive the power-off
   # reboot; defining it here with restart:always makes it boot-persistent.
   autoheal:
-    image: willfarrell/autoheal:latest
+    image: willfarrell/autoheal@sha256:a386431d4b453553cb734927e474b5420f0b2a6dc2b423258d01a2364d345917
     restart: always
     environment:
       - AUTOHEAL_CONTAINER_LABEL=autoheal

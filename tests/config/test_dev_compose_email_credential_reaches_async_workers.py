@@ -35,6 +35,8 @@ def _compose_environment(
         "HOME": str(tmp_path),
         "PATH": os.environ["PATH"],
         "XDG_CONFIG_HOME": str(tmp_path / "config"),
+        # Required by the file (no fallback); any value renders.
+        "SCITEX_HUB_UMAMI_APP_SECRET": "render-only-placeholder",
     }
     if value is not None:
         environment[CREDENTIAL] = value

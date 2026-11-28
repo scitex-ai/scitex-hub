@@ -31,7 +31,9 @@
 # Redis target: SCITEX_HUB_CELERY_BROKER_URL when set, else the compose
 # workers' hardcoded broker redis://redis:6379/1 — the same resolution as
 # CELERY_BROKER_URL in config/settings/settings_celery.py, so reader and
-# writer always share one redis DB.
+# writer always share one redis DB. SCITEX_HUB_REDIS_PASSWORD, when set, is
+# passed as the client's password (not spliced into the URL), so the error
+# message below can name the broker without disclosing it.
 
 set -euo pipefail
 
@@ -67,7 +69,10 @@ broker_url = os.environ.get(
 
 try:
     client = redis.Redis.from_url(
-        broker_url, socket_connect_timeout=5, socket_timeout=5
+        broker_url,
+        password=os.environ.get("SCITEX_HUB_REDIS_PASSWORD") or None,
+        socket_connect_timeout=5,
+        socket_timeout=5,
     )
     raw_value = client.get(key)
 except Exception as exc:

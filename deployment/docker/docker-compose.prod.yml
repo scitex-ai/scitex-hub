@@ -19,7 +19,7 @@ services:
   # Autoheal - Restarts unhealthy containers
   # ============================================
   autoheal:
-    image: willfarrell/autoheal:latest
+    image: willfarrell/autoheal@sha256:a386431d4b453553cb734927e474b5420f0b2a6dc2b423258d01a2364d345917
     environment:
       AUTOHEAL_CONTAINER_LABEL: all
       AUTOHEAL_INTERVAL: 60
@@ -69,7 +69,7 @@ services:
       # SLURM access
       - /etc/slurm/slurm.conf:/etc/slurm/slurm.conf:ro
       - /etc/munge:/etc/munge:ro
-      - /run/munge:/run/munge
+      - /run/munge:/run/munge:ro
       - /var/log/slurm:/var/log/slurm
       - /var/spool/slurmctld:/var/spool/slurmctld:ro
       - /etc/passwd:/host/etc/passwd:ro
@@ -80,7 +80,7 @@ services:
       # Live-editable announcement banner
       - ../../apps/infra/public_app/templates/public_app/landing_partials/landing_announcement.html:/app/apps/infra/public_app/templates/public_app/landing_partials/landing_announcement.html:ro
     ports:
-      - "${SCITEX_HUB_SSH_PORT:-2200}:2200"
+      - "127.0.0.1:${SCITEX_HUB_SSH_PORT:-2200}:2200"
     expose:
       - "8000"
     env_file:
@@ -165,7 +165,7 @@ services:
     # them under --pool=threads, so leaving them in place is dead config that
     # reads as an active mitigation for the very wedge they failed to fix.
     command: >
-      celery -A config --broker=redis://redis:6379/1 worker
+      celery -A config worker
       --loglevel=info
       --queues=celery,ai_queue,search_queue,compute_queue
       --pool=threads
@@ -191,7 +191,7 @@ services:
       - ../../deployment/singularity:/app/singularity:ro
       - /etc/slurm/slurm.conf:/etc/slurm/slurm.conf:ro
       - /etc/munge:/etc/munge:ro
-      - /run/munge:/run/munge
+      - /run/munge:/run/munge:ro
       - /var/log/slurm:/var/log/slurm
       - /etc/passwd:/host/etc/passwd:ro
       - /home/ywatanabe/proj/scitex-code/src/scitex/scholar/citation_graph:/usr/local/lib/python3.11/site-packages/scitex/scholar/citation_graph:ro
@@ -246,7 +246,7 @@ services:
   celery_beat:
     image: scitex-hub-prod-django:latest
     entrypoint: ["/entrypoint.sh"]
-    command: celery -A config --broker=redis://redis:6379/1 beat --loglevel=info --scheduler=django_celery_beat.schedulers:DatabaseScheduler
+    command: celery -A config beat --loglevel=info --scheduler=django_celery_beat.schedulers:DatabaseScheduler
     deploy:
       resources:
         limits:
@@ -274,7 +274,7 @@ services:
         condition: service_started
     restart: always
     healthcheck:
-      test: ["CMD", "python", "-c", "import redis; r = redis.Redis(host='redis', port=6379); r.ping()"]
+      test: ["CMD", "python", "-c", "import os, redis; redis.Redis(host='redis', port=6379, password=os.environ.get('SCITEX_HUB_REDIS_PASSWORD') or None).ping()"]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -289,8 +289,8 @@ services:
   # ============================================
   gitea:
     ports:
-      - "${SCITEX_HUB_GITEA_HTTP_PORT:-3000}:3000"
-      - "${SCITEX_HUB_GITEA_SSH_PORT}:22"
+      - "127.0.0.1:${SCITEX_HUB_GITEA_HTTP_PORT:-3000}:3000"
+      - "0.0.0.0:${SCITEX_HUB_GITEA_SSH_PORT}:22"
     deploy:
       resources:
         limits:
@@ -303,7 +303,7 @@ services:
   # ============================================
   umami:
     ports:
-      - "${SCITEX_HUB_UMAMI_PORT:-3300}:3000"
+      - "127.0.0.1:${SCITEX_HUB_UMAMI_PORT:-3300}:3000"
     deploy:
       resources:
         limits:
@@ -350,7 +350,7 @@ services:
   # Nginx Reverse Proxy (Prod only)
   # ============================================
   nginx:
-    image: nginx:alpine
+    image: nginx:1.29.3-alpine@sha256:b3c656d55d7ad751196f21b7fd2e8d4da9cb430e32f646adcf92441b72f82b14
     deploy:
       resources:
         limits:
@@ -381,7 +381,7 @@ services:
   # Cloudflare Tunnel (Prod only)
   # ============================================
   cloudflared:
-    image: cloudflare/cloudflared:latest
+    image: cloudflare/cloudflared:2026.10.4@sha256:c6c7ae1d5dfdcb094ad344ed68ccffc26635c9c6be80965664c33baf064b0515
     deploy:
       resources:
         limits:

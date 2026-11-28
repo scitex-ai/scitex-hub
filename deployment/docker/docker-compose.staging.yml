@@ -57,7 +57,7 @@ services:
       # host daemon with prod, so holding it here is the same hole.
       # SLURM access (optional - can be disabled for staging)
       - /etc/slurm/slurm.conf:/etc/slurm/slurm.conf:ro
-      - /run/munge:/run/munge
+      - /run/munge:/run/munge:ro
       - /var/log/slurm:/var/log/slurm
       - /var/spool/slurmctld:/var/spool/slurmctld:ro
       - /etc/passwd:/host/etc/passwd:ro
@@ -72,7 +72,7 @@ services:
       # Callers on the host (incl. host-network cloudflared) still reach
       # 127.0.0.1:31294.
       - "127.0.0.1:${SCITEX_HUB_HTTP_PORT:-31294}:8000"   # Staging port (3129X scheme)
-      - "${SCITEX_HUB_SSH_PORT:-2213}:2200"     # Staging SSH
+      - "127.0.0.1:${SCITEX_HUB_SSH_PORT:-2213}:2200"     # Staging SSH (loopback only)
     env_file:
       - ./envs/.env.staging
     environment:
@@ -151,7 +151,22 @@ services:
   redis:
     ports:
       - "127.0.0.1:6380:6379"   # Staging redis port — loopback only; never reachable off-host
-    command: redis-server --appendonly yes
+    # Password required; given to redis-server on STDIN, never in argv. Same
+    # contract as docker_prod/docker-compose.yml (see the note there).
+    environment:
+      SCITEX_HUB_REDIS_PASSWORD: ${SCITEX_HUB_REDIS_PASSWORD:?required — set a long random value in envs/.env.staging}
+    command:
+      - sh
+      - -c
+      - |
+        exec docker-entrypoint.sh redis-server - --appendonly yes <<EOF
+        requirepass $$SCITEX_HUB_REDIS_PASSWORD
+        EOF
+    healthcheck:
+      test: ["CMD-SHELL", "REDISCLI_AUTH=\"$$SCITEX_HUB_REDIS_PASSWORD\" redis-cli ping | grep -q PONG"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
     restart: unless-stopped
 
   # ============================================
@@ -181,7 +196,7 @@ services:
     # them under --pool=threads, so leaving them in place is dead config that
     # reads as an active mitigation for the very wedge they failed to fix.
     command: >
-      celery -A config --broker=redis://redis:6379/1 worker
+      celery -A config worker
       --loglevel=info
       --queues=celery,ai_queue,search_queue,compute_queue
       --pool=threads
@@ -199,7 +214,7 @@ services:
       - ${SCITEX_SLURM_USER_DATA_ROOT:-/opt/scitex/data/users}:/app/data/users
       - ../../deployment/singularity:/app/singularity:ro
       - /etc/slurm/slurm.conf:/etc/slurm/slurm.conf:ro
-      - /run/munge:/run/munge
+      - /run/munge:/run/munge:ro
       - /var/log/slurm:/var/log/slurm
       - /var/spool/slurmctld:/var/spool/slurmctld:ro
       - /etc/passwd:/host/etc/passwd:ro
@@ -260,7 +275,7 @@ services:
     # tini FIRST — see the django service above. Measured 2026-08-03: PID 1 was
     # `celery`, while the equivalent PROD beat correctly ran tini.
     entrypoint: ["/usr/bin/tini", "--", "/entrypoint.sh"]
-    command: celery -A config --broker=redis://redis:6379/1 beat --loglevel=info --scheduler=django_celery_beat.schedulers:DatabaseScheduler
+    command: celery -A config beat --loglevel=info --scheduler=django_celery_beat.schedulers:DatabaseScheduler
     volumes:
       - apps_volume:/app/.apps
       - uv_cache_volume:/app/.cache/uv
@@ -285,7 +300,7 @@ services:
         condition: service_started
     restart: unless-stopped
     healthcheck:
-      test: ["CMD", "python", "-c", "import redis; r = redis.Redis(host='redis', port=6379); r.ping()"]
+      test: ["CMD", "python", "-c", "import os, redis; redis.Redis(host='redis', port=6379, password=os.environ.get('SCITEX_HUB_REDIS_PASSWORD') or None).ping()"]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -300,8 +315,9 @@ services:
   # ============================================
   gitea:
     ports:
-      - "${SCITEX_HUB_GITEA_HTTP_PORT:-3013}:3000"   # Staging gitea HTTP
-      - "${SCITEX_HUB_GITEA_SSH_PORT:-2232}:22"      # Staging gitea SSH
+      # Loopback only: staging is not a service for outside users.
+      - "127.0.0.1:${SCITEX_HUB_GITEA_HTTP_PORT:-3013}:3000"   # Staging gitea HTTP
+      - "127.0.0.1:${SCITEX_HUB_GITEA_SSH_PORT:-2232}:22"      # Staging gitea SSH
     restart: unless-stopped
 
   # ============================================
@@ -309,7 +325,7 @@ services:
   # ============================================
   umami:
     ports:
-      - "${SCITEX_HUB_UMAMI_PORT:-3313}:3000"   # Staging umami port
+      - "127.0.0.1:${SCITEX_HUB_UMAMI_PORT:-3313}:3000"   # Staging umami port (loopback only)
     restart: unless-stopped
 
 # ============================================
