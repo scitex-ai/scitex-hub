@@ -15,6 +15,7 @@ from django.views.generic import RedirectView
 
 from .. import workspace_api as workspace_api_views
 from ..views import api as api_views
+from ..views.retired_execution import retired_execution
 from ..views.terminal.providers_api import api_terminal_providers
 
 urlpatterns = [
@@ -67,7 +68,7 @@ urlpatterns = [
     ),
     path(
         "api/notebooks/<uuid:notebook_id>/execute/",
-        api_views.NotebookExecutionAPI.as_view(),
+        retired_execution,
         name="api_notebook_execute",
     ),
     path(

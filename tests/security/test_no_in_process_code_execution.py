@@ -24,6 +24,7 @@ ROUTES = [
     "/apps/console/execute/",
     "/apps/console/analysis/run/",
     f"/apps/console/notebooks/{NB}/execute/",
+    f"/apps/console/api/notebooks/{NB}/execute/",
     "/apps/console/environments/env1/setup/",
     "/apps/console/environments/env1/execute/",
     "/apps/console/workflows/wf1/execute/",
