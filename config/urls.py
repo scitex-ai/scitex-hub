@@ -15,9 +15,9 @@ from django.conf.urls.static import static
 from django.contrib import admin
 from django.urls import include, path, re_path
 from django.views.generic import RedirectView
-from django.views.static import serve
 
 from apps.infra.auth_app.oauth_views import userinfo as oauth_userinfo  # noqa: E402
+from apps.infra.platform_app.views.media import serve_media
 from apps.infra.project_app.views import (
     accept_invitation,
     decline_invitation,
@@ -38,6 +38,19 @@ from config.urls_mounts import (  # noqa: E402
     _sdk_creator_patterns,
     _writer_old_direct_patterns,
 )
+
+
+def _dev_tools_patterns():
+    """The /dev/ developer toolbox, mounted only when explicitly enabled.
+
+    ``settings.DEV_TOOLS_ENABLED`` is off by default (DEBUG does not turn it
+    on) and production settings refuse it. When mounted, every route is still
+    staff-only (apps.workspace.dev_app.access). Unmounted, /dev/... is a 404.
+    """
+    if not getattr(settings, "DEV_TOOLS_ENABLED", False):
+        return []
+    return [path("dev/", include(("apps.workspace.dev_app.urls", "dev_app")))]
+
 
 urlpatterns = [
     # Language selection. Django's set_language view writes the chosen language
@@ -77,6 +90,8 @@ urlpatterns = [
     ),
     # --- Health ---
     path("healthz/", healthz, name="healthz"),
+    # --- Uploaded media: authorised per file (public assets included) ---
+    re_path(r"^media/(?P<path>.+)$", serve_media, name="media"),
     # --- Root + Core Panes ---
     path("", root_dispatch, name="root"),
     path("chat/", root_dispatch, name="pane-chat", kwargs={"pane": "chat"}),
@@ -295,7 +310,7 @@ urlpatterns = [
     # --- Legacy redirects (/<app>/ → /apps/<app>/) ---
     path("", include("config.urls_legacy_redirects")),
     # --- Other apps ---
-    path("dev/", include(("apps.workspace.dev_app.urls", "dev_app"))),
+    *_dev_tools_patterns(),
     path("apps/docs/", include(("apps.workspace.docs_app.urls", "docs_app"))),
     path(
         "integrations/",
@@ -369,16 +384,5 @@ if settings.DEBUG:
             path("__reload__/", include("django_browser_reload.urls")),
         )
     urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
-    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
-
-# --- Production media fallback ---
-if not settings.DEBUG:
-    urlpatterns += [
-        re_path(
-            r"^media/(?P<path>.*)$",
-            serve,
-            {"document_root": settings.MEDIA_ROOT},
-        ),
-    ]
 
 # EOF

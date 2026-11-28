@@ -281,10 +281,17 @@ class ConsoleInterceptor {
     const logs = this.buffer.splice(0, this.maxBatchSize);
 
     try {
+      // The sink is a session-authenticated, CSRF-protected staff endpoint.
+      const csrfToken =
+        document.querySelector<HTMLInputElement>(
+          "input[name=csrfmiddlewaretoken]",
+        )?.value || "";
       const response = await fetch(this.apiEndpoint, {
         method: "POST",
+        credentials: "same-origin",
         headers: {
           "Content-Type": "application/json",
+          "X-CSRFToken": csrfToken,
         },
         body: JSON.stringify({ logs }),
       });

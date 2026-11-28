@@ -3,18 +3,20 @@ Workspace API Views - File content retrieval for the editor.
 """
 
 import logging
-import mimetypes
 from pathlib import Path
 
-from django.http import FileResponse, JsonResponse
+from django.http import JsonResponse
 from django.views.decorators.http import require_http_methods
 
 from apps.infra.project_app.models import Project
 from apps.infra.project_app.services.filesystem.permissions import (
     canonical_repository_relative_path,
+    is_hidden_repository_path,
+    is_project_member,
     resolve_repository_path,
 )
 from apps.security import safe_log_field
+from apps.user_content import user_file_response
 
 logger = logging.getLogger(__name__)
 
@@ -45,12 +47,14 @@ def api_get_file_content(request, file_path):
         return JsonResponse({"error": "Project not found"}, status=404)
 
     # Check permissions
-    if not (
-        request.user == project.owner
-        or request.user in project.collaborators.all()
-        or project.visibility == "public"
-    ):
+    member = is_project_member(request.user, project)
+    if not (member or project.visibility == "public"):
         return JsonResponse({"error": "Unauthorized"}, status=403)
+    # Public visibility covers the project's published files only: hidden
+    # paths (per-user tool config such as .mcp.json or .agents/) are for the
+    # owner and collaborators. Answer 404 so existence is not disclosed.
+    if not member and is_hidden_repository_path(canonical_path):
+        return JsonResponse({"error": "File not found"}, status=404)
 
     try:
         # TRIP projects: on-demand SSH file access
@@ -59,8 +63,6 @@ def api_get_file_content(request, file_path):
             and hasattr(project, "remote_config")
             and project.remote_config.connection_mode == "trip"
         ):
-            from django.http import HttpResponse
-
             from apps.infra.project_app.services.trip_backend import get_trip_backend
 
             backend = get_trip_backend(project)
@@ -69,19 +71,11 @@ def api_get_file_content(request, file_path):
             if not backend.is_file(file_path):
                 return JsonResponse({"error": "Not a file"}, status=400)
             if raw:
-                data = backend.read_file_bytes(file_path)
-                content_type, _ = mimetypes.guess_type(file_path)
-                if content_type is None:
-                    content_type = "application/octet-stream"
-                response = HttpResponse(data, content_type=content_type)
-                filename = (
-                    file_path.rsplit("/", 1)[-1] if "/" in file_path else file_path
+                return user_file_response(
+                    backend.read_file_bytes(file_path),
+                    file_path.rsplit("/", 1)[-1],
+                    download=download,
                 )
-                disposition = "attachment" if download else "inline"
-                response["Content-Disposition"] = (
-                    f'{disposition}; filename="{filename}"'
-                )
-                return response
             content = backend.read_file(file_path)
             return JsonResponse(
                 {
@@ -111,7 +105,6 @@ def api_get_file_content(request, file_path):
                 {"success": False, "error": "Project directory not found"},
                 status=404,
             )
-
 
         # Security check: canonical component-wise containment (a prefix match is NOT
         # containment -- project_path/"../proj-other" string-prefix-matches
@@ -157,22 +150,7 @@ def api_get_file_content(request, file_path):
 
 def _serve_raw_file(file_path: Path, original_path: str, download: bool = False):
     """Serve a file as raw content (for images, PDFs, etc.)."""
-    content_type, _ = mimetypes.guess_type(str(file_path))
-    if content_type is None:
-        content_type = "application/octet-stream"
-
-    response = FileResponse(
-        open(file_path, "rb"),
-        content_type=content_type,
-    )
-
-    filename = file_path.name
-    if download:
-        response["Content-Disposition"] = f'attachment; filename="{filename}"'
-    else:
-        response["Content-Disposition"] = f'inline; filename="{filename}"'
-
-    return response
+    return user_file_response(open(file_path, "rb"), file_path.name, download=download)
 
 
 def _detect_language(file_path, content=None):

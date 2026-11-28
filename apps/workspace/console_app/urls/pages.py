@@ -18,6 +18,7 @@ from django.urls import path
 from apps.infra.workspace_app.views import workspace_shell
 
 from .. import default_workspace_views, views
+from ..views.retired_execution import retired_execution
 
 urlpatterns = [
     # Default workspace for logged-in users without project
@@ -35,9 +36,9 @@ urlpatterns = [
     path("pricing/", views.pricing, name="pricing"),
     # Core functionality
     path("editor/", views.editor, name="editor"),
-    path("execute/", views.execute_code, name="execute_code"),
+    path("execute/", retired_execution, name="execute_code"),
     path("analysis/", views.analysis, name="analysis"),
-    path("analysis/run/", views.run_analysis, name="run_analysis"),
+    path("analysis/run/", retired_execution, name="run_analysis"),
     path("templates/", views.templates, name="templates"),
     # Job management
     path("jobs/", views.jobs, name="jobs"),
@@ -51,7 +52,7 @@ urlpatterns = [
     path("notebooks/create/", views.create_notebook, name="create_notebook"),
     path(
         "notebooks/<uuid:notebook_id>/execute/",
-        views.execute_notebook,
+        retired_execution,
         name="execute_notebook",
     ),
     # Environment management
@@ -64,12 +65,12 @@ urlpatterns = [
     ),
     path(
         "environments/<str:env_id>/setup/",
-        views.setup_environment,
+        retired_execution,
         name="setup_environment",
     ),
     path(
         "environments/<str:env_id>/execute/",
-        views.execute_in_environment,
+        retired_execution,
         name="execute_in_environment",
     ),
     # Workflow management
@@ -78,7 +79,7 @@ urlpatterns = [
     path("workflows/<str:workflow_id>/", views.workflow_detail, name="workflow_detail"),
     path(
         "workflows/<str:workflow_id>/execute/",
-        views.execute_workflow,
+        retired_execution,
         name="execute_workflow",
     ),
     # Data visualization pipeline

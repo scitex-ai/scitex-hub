@@ -6,12 +6,12 @@ Handles Git repository cloning and integration with SSH key management.
 
 import os
 import shutil
-import subprocess
 import tempfile
 from pathlib import Path
 from typing import Optional, Tuple
 import logging
 
+from ...git_source_safety import clone_tenant_source
 from ...models import Project
 
 logger = logging.getLogger(__name__)
@@ -60,16 +60,10 @@ class GitOperationsManager:
             with tempfile.TemporaryDirectory() as temp_dir:
                 temp_clone_path = Path(temp_dir) / "repo"
 
-                result = subprocess.run(
-                    ["git", "clone", git_url, str(temp_clone_path)],
-                    capture_output=True,
-                    text=True,
-                    timeout=300,
-                    env=env,
+                ok, error_msg = clone_tenant_source(
+                    git_url, temp_clone_path, env=env
                 )
-
-                if result.returncode != 0:
-                    error_msg = result.stderr or result.stdout or "Unknown error"
+                if not ok:
                     return False, error_msg
 
                 # Remove existing files
@@ -92,8 +86,6 @@ class GitOperationsManager:
 
             return True, None
 
-        except subprocess.TimeoutExpired:
-            return False, "Git clone operation timed out (max 5 minutes)"
         except FileNotFoundError:
             return False, "Git command not found. Please ensure Git is installed."
         except Exception as e:

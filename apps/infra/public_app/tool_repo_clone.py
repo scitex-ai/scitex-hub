@@ -8,16 +8,24 @@ import json
 import logging
 import os
 import shutil
-import subprocess
+import shlex
 import tempfile
 from pathlib import Path
 
 from django.http import JsonResponse
 from django.views.decorators.http import require_http_methods
 
+from apps.infra.project_app.git_source_safety import (
+    GitSourceRejected,
+    run_git_clone,
+    validate_git_source,
+)
+
 from .tool_repo_utils import _convert_https_to_ssh, _get_user_ssh_key, parse_github_url
 
 logger = logging.getLogger(__name__)
+
+_SUPPORTED_HOSTS = ("github.com", "gitlab.com", "bitbucket.org")
 
 # Store temp paths for cleanup (in production, use Redis/cache)
 _temp_repos = {}
@@ -55,19 +63,25 @@ def api_clone_and_analyze(request):
         # Parse URL to extract git_url, branch, and subdirectory
         git_url, branch, subdirectory = parse_github_url(original_url)
 
-        # Validate URL
-        is_ssh = git_url.startswith("git@")
-        supported_domains = ["github.com", "gitlab.com", "bitbucket.org"]
-        if not is_ssh and not any(domain in git_url for domain in supported_domains):
+        # Auto-convert HTTPS to SSH if user wants SSH
+        if use_ssh and git_url.startswith("https://"):
+            git_url = _convert_https_to_ssh(git_url)
+
+        # Validate URL: exact supported host, public address, safe transport
+        try:
+            source = validate_git_source(
+                git_url, ssh_hosts=_SUPPORTED_HOSTS, https_hosts=_SUPPORTED_HOSTS
+            )
+        except GitSourceRejected as exc:
+            return JsonResponse({"error": f"Repository URL not accepted: {exc}"}, status=400)
+        if source.host not in _SUPPORTED_HOSTS:
             return JsonResponse(
                 {"error": "Only GitHub, GitLab, and Bitbucket URLs are supported"},
                 status=400,
             )
-
-        # Auto-convert HTTPS to SSH if user wants SSH
-        if use_ssh and not is_ssh and git_url.startswith("https://"):
-            git_url = _convert_https_to_ssh(git_url)
-            is_ssh = True
+        is_ssh = source.protocol == "ssh"
+        if branch is not None and (not branch or branch.startswith("-")):
+            return JsonResponse({"error": "Invalid branch name"}, status=400)
 
         # If using SSH, get user's SSH key
         ssh_key_path = None
@@ -78,7 +92,7 @@ def api_clone_and_analyze(request):
             ssh_key_path = result
 
         # Clone and analyze repository
-        return _clone_repository(git_url, branch, subdirectory, ssh_key_path, is_ssh)
+        return _clone_repository(source, branch, subdirectory, ssh_key_path)
 
     except Exception as e:
         logger.error(f"Error in clone_and_analyze: {e}")
@@ -110,43 +124,42 @@ def _validate_ssh_auth(request, git_url):
     )
 
 
-def _clone_repository(git_url, branch, subdirectory, ssh_key_path, is_ssh):
+def _clone_repository(source, branch, subdirectory, ssh_key_path):
     """Clone repository and analyze its contents."""
     temp_dir = tempfile.mkdtemp(prefix="scitex_repo_")
     temp_path = Path(temp_dir)
 
     try:
-        # Build git clone command
-        clone_cmd = ["git", "clone", "--depth", "1"]
+        extra_args = ["--depth", "1"]
         if branch:
-            clone_cmd.extend(["--branch", branch])
-        clone_cmd.extend([git_url, str(temp_path)])
+            extra_args.append(f"--branch={branch}")
 
         # Setup SSH environment if needed
         env = os.environ.copy()
         if ssh_key_path:
             env["GIT_SSH_COMMAND"] = (
-                f"ssh -i {ssh_key_path} -o StrictHostKeyChecking=no"
+                f"ssh -i {shlex.quote(str(ssh_key_path))} "
+                "-o StrictHostKeyChecking=accept-new -o UserKnownHostsFile=/dev/null"
             )
 
-        # Clone repository
-        result = subprocess.run(
-            clone_cmd,
-            capture_output=True,
-            text=True,
-            timeout=60,
-            env=env,
+        # Clone into the (empty) temp dir
+        ok, error_msg = run_git_clone(
+            source, temp_path, env=env, extra_args=extra_args, timeout=60
         )
-
-        if result.returncode != 0:
+        if not ok:
             shutil.rmtree(temp_path, ignore_errors=True)
-            return _handle_clone_error(result.stderr)
+            if "timed out" in error_msg:
+                return JsonResponse(
+                    {"error": "Clone timeout (>60s). Repository may be too large."},
+                    status=400,
+                )
+            return _handle_clone_error(error_msg)
 
         # Determine analysis path
         analysis_path = temp_path
         if subdirectory:
-            subdir_path = temp_path / subdirectory
-            if not subdir_path.exists():
+            subdir_path = (temp_path / subdirectory).resolve()
+            if not subdir_path.is_relative_to(temp_path.resolve()) or not subdir_path.exists():
                 shutil.rmtree(temp_path, ignore_errors=True)
                 return JsonResponse(
                     {"error": f'Subdirectory "{subdirectory}" not found in repository'},
@@ -176,11 +189,6 @@ def _clone_repository(git_url, branch, subdirectory, ssh_key_path, is_ssh):
             }
         )
 
-    except subprocess.TimeoutExpired:
-        shutil.rmtree(temp_path, ignore_errors=True)
-        return JsonResponse(
-            {"error": "Clone timeout (>60s). Repository may be too large."}, status=400
-        )
     except Exception as e:
         shutil.rmtree(temp_path, ignore_errors=True)
         logger.error(f"Error cloning repository: {e}")

@@ -73,6 +73,10 @@ services:
       # Singularity/Apptainer container for secure user code execution
       - ../../../deployment/singularity:/app/singularity:ro
 
+      # OpenID Connect id_token signing key (RSA PEM). Default /dev/null =
+      # no key = OIDC off. See docs/ops/oidc-signing-key.md.
+      - ${SCITEX_HUB_OIDC_RSA_KEY_HOST_FILE:-/dev/null}:/run/secrets/scitex-hub-oidc-rsa-key:ro
+
       # Docker socket REMOVED 2026-08-25 (security).
       # It was mounted for the server-status page's container list. But this
       # container is internet-facing and runs as root: holding the socket makes
@@ -129,6 +133,7 @@ services:
       - SCITEX_OROCHI_AGENTS_DIR=/app/agents-orochi
       - SCITEX_HUB_DJANGO_SETTINGS_MODULE=config.settings.settings_prod
       - SCITEX_HUB_ENV=prod
+      - SCITEX_HUB_OIDC_RSA_PRIVATE_KEY_FILE=/run/secrets/scitex-hub-oidc-rsa-key
       - PYTHONPATH=/home/scitex/.local/lib/python3.11/site-packages:/app
       - CROSSREF_LOCAL_DB=/data/crossref/crossref.db
       - CROSSREF_LOCAL_MODE=db

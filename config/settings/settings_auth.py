@@ -4,8 +4,8 @@
 
 import os
 import socket
-from urllib.parse import urlparse
 from datetime import timedelta
+from urllib.parse import urlparse
 
 from config.social_apps import orcid_base_domain, with_credential_apps
 
@@ -61,9 +61,7 @@ SITE_ID = 1
 #: `SITE_URL` here resolves in this module's own namespace and would be a
 #: NameError, and importing it back would be a circular import into a
 #: half-initialised module. The env var is the same single source either way.
-_SITE_URL = (
-    os.getenv("SCITEX_HUB_SITE_URL", "") or os.getenv("SITE_URL", "")
-).strip()
+_SITE_URL = (os.getenv("SCITEX_HUB_SITE_URL", "") or os.getenv("SITE_URL", "")).strip()
 SITE_DOMAIN = urlparse(_SITE_URL).netloc.strip() if _SITE_URL else ""
 
 #: Human-readable label for the same Site row. Cosmetic, unlike SITE_DOMAIN.
@@ -148,6 +146,49 @@ SCITEX_INSTANCE_NAME = os.getenv("SCITEX_INSTANCE_NAME") or socket.gethostname()
 # OAuth2 Provider (django-oauth-toolkit)
 # Allows external apps (e.g. orochi.scitex.ai) to "Sign in with SciTeX"
 # ---------------------------------------
+def read_oidc_rsa_private_key(environ=None) -> str:
+    """Return the PEM of the OpenID Connect id_token signing key, or "".
+
+    The key is read from the file named by ``SCITEX_HUB_OIDC_RSA_PRIVATE_KEY_FILE``
+    (the deployment's private secret store mounts it; it is never an inline
+    environment value). Unset, or an empty file such as Compose's ``/dev/null``
+    default, means no key: OIDC stays off and the discovery documents
+    (``/oauth/.well-known/openid-configuration``, ``/oauth/.well-known/jwks.json``)
+    are unavailable. A file that is present but unreadable or not an RSA
+    private key fails loudly at startup. Key material never appears in errors.
+    """
+    env = os.environ if environ is None else environ
+    path = env.get("SCITEX_HUB_OIDC_RSA_PRIVATE_KEY_FILE", "").strip()
+    if not path:
+        return ""
+    from django.core.exceptions import ImproperlyConfigured
+
+    try:
+        with open(path, encoding="utf-8") as fh:
+            pem = fh.read().strip()
+    except (OSError, UnicodeDecodeError):
+        raise ImproperlyConfigured(
+            "SCITEX_HUB_OIDC_RSA_PRIVATE_KEY_FILE is not readable"
+        ) from None
+    if not pem:
+        return ""
+    from jwcrypto import jwk
+
+    try:
+        key = jwk.JWK.from_pem(pem.encode("utf-8"))
+    except Exception:
+        raise ImproperlyConfigured(
+            "SCITEX_HUB_OIDC_RSA_PRIVATE_KEY_FILE does not hold a PEM private key"
+        ) from None
+    if key.get("kty") != "RSA" or not key.has_private:
+        raise ImproperlyConfigured(
+            "SCITEX_HUB_OIDC_RSA_PRIVATE_KEY_FILE must hold an RSA private key"
+        )
+    return pem
+
+
+_OIDC_RSA_PRIVATE_KEY = read_oidc_rsa_private_key()
+
 OAUTH2_PROVIDER = {
     "SCOPES": {
         "openid": "OpenID Connect",
@@ -155,7 +196,15 @@ OAUTH2_PROVIDER = {
         "email": "Email address",
     },
     "DEFAULT_SCOPES": ["openid", "profile", "email"],
-    "OIDC_ENABLED": False,
+    # OpenID Connect (id_tokens + discovery documents) is on exactly when a
+    # signing key is configured. Without one, django-oauth-toolkit's OIDC
+    # views raise ImproperlyConfigured under DEBUG (a 500) and 404 otherwise.
+    "OIDC_ENABLED": bool(_OIDC_RSA_PRIVATE_KEY),
+    "OIDC_RSA_PRIVATE_KEY": _OIDC_RSA_PRIVATE_KEY,
+    # The issuer is this deployment's public address (the one SCITEX_HUB_SITE_URL
+    # already names), not whatever scheme/host a proxied request arrives with.
+    # Empty -> django-oauth-toolkit derives it from the request (local dev).
+    "OIDC_ISS_ENDPOINT": f"{_SITE_URL.rstrip('/')}/oauth" if _SITE_URL else "",
     "OAUTH2_VALIDATOR_CLASS": "apps.infra.auth_app.oauth_validator.SciTexOAuth2Validator",
     "ACCESS_TOKEN_EXPIRE_SECONDS": 3600,
     "REFRESH_TOKEN_EXPIRE_SECONDS": 86400 * 30,

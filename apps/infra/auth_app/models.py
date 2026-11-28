@@ -442,52 +442,6 @@ class EmailVerification(models.Model):
             return True
 
 
-# Signal handlers for automatic profile creation and Gitea sync
-class AuthenticatedDevice(models.Model):
-    """
-    Tracks which users have authenticated on a specific device/browser.
-    Enables multi-account switching like Google/GitHub.
-    """
-
-    device_id = models.CharField(
-        max_length=64,
-        unique=True,
-        db_index=True,
-        help_text="Unique identifier for this browser/device",
-    )
-    created_at = models.DateTimeField(auto_now_add=True)
-    last_used = models.DateTimeField(auto_now=True)
-
-    class Meta:
-        ordering = ["-last_used"]
-
-    def __str__(self):
-        return f"Device {self.device_id[:8]}..."
-
-
-class DeviceAccount(models.Model):
-    """
-    Links a user account to a device.
-    Allows switching between accounts authenticated on same device.
-    """
-
-    device = models.ForeignKey(
-        AuthenticatedDevice, on_delete=models.CASCADE, related_name="accounts"
-    )
-    user = models.ForeignKey(
-        User, on_delete=models.CASCADE, related_name="authenticated_devices"
-    )
-    authenticated_at = models.DateTimeField(auto_now_add=True)
-    last_used = models.DateTimeField(auto_now=True)
-
-    class Meta:
-        unique_together = ("device", "user")
-        ordering = ["-last_used"]
-
-    def __str__(self):
-        return f"{self.user.username} on device {self.device.device_id[:8]}..."
-
-
 class LoginHistory(models.Model):
     """
     Tracks all user login events for security auditing.
@@ -537,12 +491,11 @@ class LoginHistory(models.Model):
         Usage:
             LoginHistory.log_login(user, request, method='email')
         """
-        # Get IP address (handle proxies)
-        x_forwarded_for = request.META.get("HTTP_X_FORWARDED_FOR")
-        if x_forwarded_for:
-            ip_address = x_forwarded_for.split(",")[0].strip()
-        else:
-            ip_address = request.META.get("REMOTE_ADDR")
+        from apps.client_ip import UNKNOWN_IP, get_client_ip
+
+        ip_address = get_client_ip(request)
+        if ip_address == UNKNOWN_IP:
+            ip_address = None
 
         # Get user agent
         user_agent = request.META.get("HTTP_USER_AGENT", "")[:500]  # Limit length

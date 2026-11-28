@@ -16,6 +16,8 @@ from urllib.parse import urlsplit
 from django.conf import settings
 from django.http import Http404, HttpResponsePermanentRedirect
 
+from apps.client_ip import get_client_ip
+
 logger = logging.getLogger("scitex_hub.security")
 
 
@@ -148,16 +150,6 @@ class SecurityHeadersMiddleware:
 # ── Django admin ────────────────────────────────────────────────────────
 
 
-def client_ip(request) -> str:
-    """The visitor's address: CF-Connecting-IP, then X-Real-IP (nginx), then
-    the socket peer. Both headers are set by our own edge, not the client."""
-    for key in ("HTTP_CF_CONNECTING_IP", "HTTP_X_REAL_IP", "REMOTE_ADDR"):
-        value = request.META.get(key, "").strip()
-        if value:
-            return value
-    return ""
-
-
 def ip_in_networks(ip: str, networks: list[str]) -> bool:
     try:
         addr = ipaddress.ip_address(ip)
@@ -192,7 +184,7 @@ class AdminAccessMiddleware:
                 and user.is_staff
             )
             if allowed and self.networks:
-                allowed = ip_in_networks(client_ip(request), self.networks)
+                allowed = ip_in_networks(get_client_ip(request), self.networks)
             if not allowed:
                 raise Http404()
         return self.get_response(request)

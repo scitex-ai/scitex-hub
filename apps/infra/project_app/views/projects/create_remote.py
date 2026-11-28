@@ -11,7 +11,7 @@ import logging
 from django.contrib import messages
 from django.shortcuts import redirect
 from django.utils import timezone
-from django.utils.safestring import mark_safe
+from django.utils.html import format_html
 
 from ...models import Project, RemoteCredential, RemoteProjectConfig
 from ...ssh_safety import validate_remote_path
@@ -120,9 +120,10 @@ def _test_ssh_connection(request, credential, remote_path):
         if result == "NOT_FOUND":
             messages.warning(
                 request,
-                mark_safe(
-                    f"Remote directory not found: <code>{remote_path}</code><br>"
-                    f"The directory will be created when you access the project."
+                format_html(
+                    "Remote directory not found: <code>{}</code><br>"
+                    "The directory will be created when you access the project.",
+                    remote_path,
                 ),
             )
 
@@ -192,9 +193,13 @@ def _create_remote_project_db(
 
         messages.success(
             request,
-            mark_safe(
-                f'✅ Remote project "{name}" created successfully!<br>'
-                f"Files will be accessed from: {credential.ssh_username}@{credential.ssh_host}:{remote_path}"
+            format_html(
+                '✅ Remote project "{}" created successfully!<br>'
+                "Files will be accessed from: {}@{}:{}",
+                name,
+                credential.ssh_username,
+                credential.ssh_host,
+                remote_path,
             ),
         )
 

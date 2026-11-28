@@ -325,6 +325,21 @@ def test_staff_inside_the_allowed_networks_reaches_the_admin():
     assert response.status_code == 200
 
 
+@override_settings(ADMIN_ALLOWED_NETWORKS=["192.0.2.0/24"])
+def test_a_forwarded_ip_from_an_untrusted_peer_is_not_honoured():
+    # Arrange: the peer is not a trusted proxy, so its CF-Connecting-IP is
+    # ignored and the gate keys on the peer address itself (apps.client_ip).
+    request = _admin_request(
+        _user(is_staff=True),
+        REMOTE_ADDR="198.51.100.7",
+        HTTP_CF_CONNECTING_IP="192.0.2.10",
+    )
+    # Act
+    raised = _raised_type(lambda: AdminAccessMiddleware(_ok)(request))
+    # Assert
+    assert raised is Http404
+
+
 @override_settings(ADMIN_ALLOWED_NETWORKS=["not-a-network"])
 def test_a_malformed_network_fails_loud_at_startup():
     # Arrange: nothing beyond the fixtures/settings

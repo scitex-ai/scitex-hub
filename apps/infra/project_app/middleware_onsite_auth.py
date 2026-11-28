@@ -29,12 +29,15 @@ class OnSiteAuthMiddleware:
     """Authenticate MCP tool requests from on-site agents (same container).
 
     When the MCP server runs alongside Django (on-site), it SIGNS each
-    request with the shared on-site secret and sends the triple
-    ``X-SciTeX-OnSite`` / ``X-SciTeX-OnSite-Ts`` / ``X-SciTeX-OnSite-Sig``
-    instead of Bearer-token auth.
+    request with the session's PER-USER on-site key and sends
+    ``X-SciTeX-OnSite`` / ``-Ts`` / ``-Key-Epoch`` / ``-Sig`` instead of
+    Bearer-token auth.
 
-    Trust comes from POSSESSION OF THE SHARED SECRET, and from nothing
-    else.
+    Trust comes from a signature made with the CLAIMED user's own key,
+    which the verifier re-derives from the server-only master secret
+    (``HMAC(master, audience|username|epoch)``). A key issued to one user
+    therefore cannot authenticate any other user, keys age out, and the
+    master itself is never handed to agents or written to user files.
 
     The previous implementation trusted a bare ``X-SciTeX-OnSite:
     <username>`` header whenever the request "looked internal", where
@@ -86,7 +89,7 @@ class OnSiteAuthMiddleware:
 
     @staticmethod
     def _secret() -> str:
-        """Shared on-site secret; ``""`` disables on-site auth entirely."""
+        """Server-only master secret; ``""`` disables on-site auth entirely."""
         from django.conf import settings
 
         return getattr(settings, "ONSITE_AUTH_SECRET", "") or ""

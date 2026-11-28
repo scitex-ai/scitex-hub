@@ -17,8 +17,9 @@ from datetime import datetime
 from pathlib import Path
 
 from django.contrib import messages
-from django.http import HttpResponse
 from django.shortcuts import redirect, render
+
+from apps.user_content import user_file_response
 
 from .file_view_utils import build_breadcrumbs
 
@@ -55,11 +56,12 @@ def handle_raw_mode(full_file_path, file_name, file_ext, mode):
     }
     content_type = _MIME_MAP.get(file_ext, "text/plain; charset=utf-8")
 
-    with open(full_file_path, "rb") as f:
-        response = HttpResponse(f.read(), content_type=content_type)
-        disposition = "attachment" if mode == "download" else "inline"
-        response["Content-Disposition"] = f'{disposition}; filename="{file_name}"'
-        return response
+    return user_file_response(
+        open(full_file_path, "rb"),
+        file_name,
+        content_type=content_type,
+        download=mode == "download",
+    )
 
 
 def handle_blame_mode(

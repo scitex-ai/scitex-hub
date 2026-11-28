@@ -71,6 +71,14 @@ def _require_production_credential(name):
 # settings to the public; troubleshoot from logs instead.
 DEBUG = False
 
+# Developer endpoints (/dev/) are never mounted in production. Refuse to start
+# rather than silently ignore an environment that asks for them.
+if DEV_TOOLS_ENABLED:
+    raise ImproperlyConfigured(
+        "SCITEX_HUB_DEV_TOOLS_ENABLED must not be set in production settings"
+    )
+DEV_TOOLS_ENABLED = False
+
 # ---------------------------------------
 # SciTeX Settings
 # ---------------------------------------
