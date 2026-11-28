@@ -117,19 +117,13 @@ def submit_job(
         label=job_name,
     )
 
-    # Submit to SLURM
+    # Submit to SLURM. sbatch exports the caller's environment into the job,
+    # so it gets the allowlisted user environment, never the server's.
     cmd = ["sbatch", str(batch_file)]
+    job_env = user_process_env()
 
     try:
-        # sbatch exports the caller's environment into the job: hand it
-        # the allowlisted user environment, never the server's.
-        result = subprocess.run(
-            cmd,
-            capture_output=True,
-            text=True,
-            check=True,
-            env=user_process_env(),
-        )
+        result = subprocess.run(cmd, capture_output=True, text=True, check=True, env=job_env)  # fmt: skip
         # Parse output: "Submitted batch job 12345"
         job_id = int(result.stdout.strip().split()[-1])
     except (subprocess.CalledProcessError, ValueError, IndexError):
