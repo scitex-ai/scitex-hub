@@ -74,8 +74,17 @@ LOGGING = {
         # goes out, its repeats are dropped for the window and counted into
         # the next message. Without it, one crash-looping view delivers
         # hundreds of identical emails and the operator mutes the channel.
+        #
+        # The window is shared across every worker through the default cache
+        # and defaults to one hour: the same subject reaches the inbox at most
+        # once per hour (operator, 2026-11-27).
         "suppress_repeated_errors": {
             "()": "config.settings._suppress_repeated_errors.SuppressRepeatedErrors",
+            "window_seconds": int(
+                os.getenv("SCITEX_HUB_ADMIN_MAIL_REPEAT_WINDOW_SECONDS", "3600")
+                or "3600"
+            ),
+            "cache_alias": "default",
         },
     },
     "handlers": {

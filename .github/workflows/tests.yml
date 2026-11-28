@@ -46,6 +46,7 @@ jobs:
       runs_on: '["self-hosted","Linux","X64","scitex-org-cpu"]'
 
   typescript-check:
+    timeout-minutes: 20
     name: TypeScript Compilation & Linting
     # Needs BOTH node and Python, which is why it waited: a failure here
     # could not have told us which half was at fault. Both are now proven
@@ -137,6 +138,7 @@ jobs:
         run: bash scripts/maintenance/normalize_workspace_ownership.sh
 
   vitest:
+    timeout-minutes: 15
     name: Vitest Unit Tests
     # Was the NODE CANARY for the spartan migration — that migration is
     # reversed as of 2026-08-10 (operator ruling 2026-08-05, "stop Spartan
@@ -205,7 +207,16 @@ jobs:
         run: bash scripts/maintenance/normalize_workspace_ownership.sh
 
   terminal-tests:
+    timeout-minutes: 20
     name: "Terminal Broker & Session Tests (Python)"
+    # Not on pull requests into develop: these directories are part of
+    # `pytest tests/`, which the REQUIRED pytest-matrix-on-ubuntu-py3.12 job
+    # runs on every such PR (with postgres), so a second docker runner per PR
+    # bought no coverage while PRs queued for hours for the 7 scitex-docker
+    # runners (2026-11-27). Pushes, nightly, dispatch and PRs into main still
+    # run it; test-summary below accepts "skipped" ONLY for a PR into develop.
+    # tests/config/test_pr_ci_scope.py pins this predicate and the coverage.
+    if: ${{ !(github.event_name == 'pull_request' && github.base_ref == 'develop') }}
     # Same-repo runs: scitex-docker (scitex-compute-03/04) inside a throwaway
     # job container (no host $HOME, postgres by service name). Fork PRs: hosted.
     runs-on: >-
@@ -217,6 +228,26 @@ jobs:
         ${{ (github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name != github.repository)
             && '' || 'buildpack-deps:noble' }}
       options: --user 1000:1000 --cpus 4 --memory 8g
+
+    # terminal_broker/test_alloc_workload.py records WorkloadSession rows, so
+    # this job needs a real database. Without one every test there ERRORed
+    # with "connection to server at 127.0.0.1, port 5433 failed" (settings_dev's
+    # default) on every run since that file landed. Same service as
+    # security-regression below.
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_DB: scitex_test
+          POSTGRES_USER: scitex
+          POSTGRES_PASSWORD: scitex_test_pass  # pragma: allowlist secret
+        ports:
+          - 5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
 
     steps:
       # Backstop for the runs-on predicate: never check out fork code on our hardware.
@@ -275,6 +306,12 @@ jobs:
         env:
           SCITEX_HUB_DJANGO_SECRET_KEY: ci-test-key  # pragma: allowlist secret
           SCITEX_HUB_GITEA_SSH_PORT_DEV: "2222"
+          SCITEX_HUB_DB_NAME_DEV: scitex_test
+          SCITEX_HUB_DB_USER_DEV: scitex
+          SCITEX_HUB_DB_PASSWORD_DEV: scitex_test_pass  # pragma: allowlist secret
+          SCITEX_HUB_DB_HOST_DEV: ${{ job.container.id && 'postgres' || 'localhost' }}
+          SCITEX_HUB_DB_PORT_DEV: ${{ job.container.id && '5432' || job.services.postgres.ports['5432'] }}
+          SCITEX_HUB_TEST_MODE: "1"
         run: |
           python -m pytest \
             tests/apps/console_app/views/terminal/ \
@@ -289,7 +326,15 @@ jobs:
         run: bash scripts/maintenance/normalize_workspace_ownership.sh
 
   security-regression:
+    timeout-minutes: 25
     name: "Security Regression Gates (tests/security/)"
+    # Not on pull requests into develop, for the same reason as terminal-tests:
+    # tests/security/ is part of `pytest tests/`, which the REQUIRED
+    # pytest-matrix-on-ubuntu-py3.12 job runs on every such PR -- so on a PR
+    # these gates now block the merge (this job never was a required check).
+    # Pushes, nightly, dispatch and PRs into main still run this narrower,
+    # serial, `-m security` view of them.
+    if: ${{ !(github.event_name == 'pull_request' && github.base_ref == 'develop') }}
     # Same-repo runs: scitex-docker (scitex-compute-03/04) inside a throwaway
     # job container (no host $HOME, postgres by service name). Fork PRs: hosted.
     runs-on: >-
@@ -420,6 +465,7 @@ jobs:
         run: bash scripts/maintenance/normalize_workspace_ownership.sh
 
   test-summary:
+    timeout-minutes: 10
     name: Test Summary
     # Pure bash over `needs.*.result` — no checkout, no Python, no node, no
     # network. Nothing here can depend on a hosted-runner preinstall, which
@@ -454,6 +500,11 @@ jobs:
           TEST_RESULT="${{ needs.vitest.result }}"
           TERMINAL_RESULT="${{ needs.terminal-tests.result }}"
           SECURITY_RESULT="${{ needs.security-regression.result }}"
+          # The ONE legitimate skip: terminal-tests and security-regression
+          # carry `if:` predicates that skip them on a pull request into
+          # develop, where the required full suite runs both directories.
+          # Same predicate, evaluated here by GitHub, not by the job itself.
+          PR_INTO_DEVELOP="${{ github.event_name == 'pull_request' && github.base_ref == 'develop' }}"
 
           echo "TypeScript: $TS_RESULT"
           echo "Vitest: $TEST_RESULT"
@@ -463,10 +514,12 @@ jobs:
           # Every leg below uses `!= "success"`, never `== "failure"`.
           # A job result is one of success / failure / cancelled /
           # skipped, so `== "failure"` lets a cancelled or skipped job
-          # pass the summary — a gate that cannot fail. None of these
-          # three jobs carries an `if:` condition or a paths filter, so
-          # there is no legitimate skip to tolerate: anything other than
-          # success means the check did not actually run green.
+          # pass the summary — a gate that cannot fail. TypeScript and
+          # Vitest carry no `if:` condition or paths filter, so there is no
+          # legitimate skip to tolerate: anything other than success means
+          # the check did not actually run green. Terminal and security
+          # tolerate "skipped" only when PR_INTO_DEVELOP is true; a skip on
+          # any other event, or a cancel on any event, still fails.
           if [ "$TS_RESULT" != "success" ]; then
             echo "TypeScript checks did not pass (result: $TS_RESULT)"
             exit 1
@@ -477,14 +530,18 @@ jobs:
             exit 1
           fi
 
-          if [ "$TERMINAL_RESULT" != "success" ]; then
+          if [ "$TERMINAL_RESULT" != "success" ] && \
+             ! { [ "$PR_INTO_DEVELOP" = "true" ] && [ "$TERMINAL_RESULT" = "skipped" ]; }; then
             echo "Terminal tests did not pass (result: $TERMINAL_RESULT)"
             exit 1
           fi
 
           # A security regression gate that is skipped or cancelled is
-          # not a gate — only "success" is acceptable here.
-          if [ "$SECURITY_RESULT" != "success" ]; then
+          # not a gate — only "success" is acceptable here, except the
+          # by-design skip on a PR into develop (the required full suite
+          # runs tests/security/ there).
+          if [ "$SECURITY_RESULT" != "success" ] && \
+             ! { [ "$PR_INTO_DEVELOP" = "true" ] && [ "$SECURITY_RESULT" = "skipped" ]; }; then
             echo "Security regression gates did not pass (result: $SECURITY_RESULT)"
             exit 1
           fi

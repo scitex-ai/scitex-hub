@@ -57,6 +57,7 @@ class TerminalBroker:
         self.running = False
         self.lock = threading.Lock()
         self._monitor = None
+        self._reaper = None
         signal.signal(signal.SIGCHLD, self._sigchld_handler)
 
     def _sigchld_handler(self, signum, frame):
@@ -92,6 +93,12 @@ class TerminalBroker:
 
             self._monitor = AllocationMonitor(self)
             self._monitor.start()
+
+        # Idle auto-stop + spend-cap stop, in both modes (idle_reaper.py).
+        from .idle_reaper import IdleReaper
+
+        self._reaper = IdleReaper(self)
+        self._reaper.start()
 
         logger.info(f"Terminal broker listening on {self.socket_path}")
 
@@ -322,6 +329,9 @@ class TerminalBroker:
         if self._monitor:
             self._monitor.stop()
             self._monitor = None
+        if self._reaper:
+            self._reaper.stop()
+            self._reaper = None
 
         with self.lock:
             for session in list(self.sessions.values()):

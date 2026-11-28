@@ -11,12 +11,14 @@ from apps.infra.project_app.models import Project
 from apps.infra.project_app.services.filesystem.permissions import (
     validate_path_in_project,
 )
+from apps.infra.spend_app.decorators import storage_write
 
 logger = logging.getLogger(__name__)
 
 
 @login_required
 @require_http_methods(["POST"])
+@storage_write
 def api_save_file(request):
     """Save file content (supports both local and remote projects)."""
     try:

@@ -57,6 +57,7 @@ def job_submit(request, app: str) -> JsonResponse:
     params     : dict — arbitrary params forwarded to the job handler
     """
     from apps.infra.platform_app.services.jobqueue import jobqueue
+    from apps.infra.spend_app.services.gate import Refused, refusal_json
 
     body = _parse_body(request)
     job_name = body.get("job_name", "")
@@ -74,6 +75,8 @@ def job_submit(request, app: str) -> JsonResponse:
             owner=request.user,
             params=params,
         )
+    except Refused as exc:
+        return refusal_json(exc)
     except Exception as exc:
         logger.exception("job_submit failed for app=%s job=%s", app, job_name)
         return JsonResponse({"error": str(exc)}, status=500)

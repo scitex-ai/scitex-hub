@@ -11,6 +11,7 @@ import socket
 import threading
 import time
 
+from . import _alloc_workload
 from ._alloc_cooldown import _get_cooldown, _hard_fail_info
 from ._handler_utils import respawn_pty, send_state
 from .allocation import Allocation
@@ -37,6 +38,9 @@ def _make_shell_exit_cb(broker, client: socket.socket):
         with broker.lock:
             alloc = broker.allocations.get(shell.allocation_id)
         if alloc and not alloc.check_alive():
+            # The Hub now knows the job ended (timeout, node failure, ...),
+            # but not why: no stop was recorded for it.
+            _alloc_workload.record_ended(alloc, reason="lost")
             reason = alloc.get_failure_reason()
             shell.state = SessionState.DEAD
             alloc.decrement_shells()

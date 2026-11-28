@@ -83,6 +83,7 @@ rule and empirical verification table.
 - [23_mobile-testing.md](23_mobile-testing.md) — Mobile responsive testing — Playwright, viewport
 
 ### Architecture (30–39)
+- [35_clew-cloud-store.md](35_clew-cloud-store.md) — Installed Clew GUI, private store configuration and HTTP/PG/browser validation
 - [30_infrastructure.md](30_infrastructure.md) — Docker, setup, deploy, MCP server
 - [31_development-environment.md](31_development-environment.md) — Docker dev setup, hot reload, access URLs
 - [32_vite-frontend.md](32_vite-frontend.md) — Vite HMR, entry points, template tags

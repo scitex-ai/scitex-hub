@@ -1,11 +1,11 @@
-import base64
 import uuid
 
-from cryptography.fernet import Fernet
-from django.conf import settings
+from cryptography.fernet import InvalidToken
 from django.contrib.auth.models import User
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
+
+from apps import field_encryption
 
 
 class Collection(models.Model):
@@ -380,23 +380,20 @@ class UserPreference(models.Model):
     def __str__(self):
         return f"Preferences for {self.user.username}"
 
-    def _get_encryption_key(self):
-        """Get or create encryption key for this user"""
-        # Use user-specific key derived from settings secret key and user ID
-        key_material = (
-            f"{settings.SCITEX_HUB_DJANGO_SECRET_KEY}-{self.user.id}".encode()
-        )
-        # Create a 32-byte key for Fernet
-        key = base64.urlsafe_b64encode(key_material[:32].ljust(32, b"0"))
-        return Fernet(key)
+    # Columns holding field_encryption ciphertext (reencrypt_encrypted_fields).
+    ENCRYPTED_FIELDS = (
+        "pubmed_api_key",
+        "google_scholar_api_key",
+        "semantic_scholar_api_key",
+        "crossref_api_key",
+    )
 
     def set_api_key(self, source, api_key):
         """Encrypt and store API key for a specific source"""
         if not api_key:
             return
 
-        fernet = self._get_encryption_key()
-        encrypted_key = fernet.encrypt(api_key.encode()).decode()
+        encrypted_key = field_encryption.encrypt(api_key)
 
         if source == "pubmed":
             self.pubmed_api_key = encrypted_key
@@ -426,9 +423,9 @@ class UserPreference(models.Model):
             return None
 
         try:
-            fernet = self._get_encryption_key()
-            return fernet.decrypt(encrypted_key.encode()).decode()
-        except Exception:
+            return field_encryption.decrypt(encrypted_key)
+        except InvalidToken:
+            # Unreadable ciphertext reads as "no key": the UI asks again.
             return None
 
     def has_api_key(self, source):

@@ -233,13 +233,13 @@ def test_every_catalogue_attribute_renders_as_one_phrase() -> None:
     """The 特商法 page states サービスの内容 from each row's attributes. An
     attribute name or value the renderer does not know raises here — at CI,
     when the catalogue is committed — rather than on the legal page."""
-    from apps.infra.public_app.pricing import included_items
+    from apps.infra.public_app.pricing import displayed_attributes, included_items
 
     seen = 0
     for row in _catalogue():
         attributes = row.get("attributes", {})
         items = included_items(attributes)
-        assert len(items) == len(attributes), (row["id"], items)
+        assert len(items) == len(displayed_attributes(attributes)), (row["id"], items)
         assert all(item.strip() for item in items), (row["id"], items)
         seen += len(items)
     assert seen, "Control: no row carries attributes, so nothing was rendered."

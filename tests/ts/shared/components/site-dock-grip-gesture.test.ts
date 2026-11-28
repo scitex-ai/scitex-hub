@@ -5,7 +5,7 @@
 import { beforeEach, describe, expect, it } from "vitest";
 
 import { SiteDock } from "@/components/site-dock";
-import { MINIMIZED_CLASS } from "@/components/_site-dock/minimize";
+import { MINIMIZED_CLASS, MINIMIZED_KEY } from "@/components/_site-dock/minimize";
 
 function pointer(
   target: HTMLElement,
@@ -48,6 +48,21 @@ describe("site dock grip gesture", () => {
   beforeEach(() => {
     window.localStorage.clear();
     window.sessionStorage.clear();
+    // Start from a user who opened the dock; it renders collapsed by default.
+    window.localStorage.setItem(MINIMIZED_KEY, "0");
+  });
+
+  it("a fresh device shows the collapsed pill", () => {
+    window.localStorage.clear();
+    const { dock } = makeDock();
+    expect(dock.classList.contains(MINIMIZED_CLASS)).toBe(true);
+  });
+
+  it("a tap on the collapsed pill opens the dock and remembers it", () => {
+    window.localStorage.clear();
+    const { dock, grip } = makeDock();
+    tap(grip);
+    expect([dock.classList.contains(MINIMIZED_CLASS), window.localStorage.getItem(MINIMIZED_KEY)]).toEqual([false, "0"]);
   });
 
   it("a single tap minimizes the dock", () => {

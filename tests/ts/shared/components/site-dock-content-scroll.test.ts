@@ -29,7 +29,8 @@ function tap(grip: HTMLElement): void {
 }
 
 describe("phone content-scroll dock visibility", () => {
-  beforeEach(() => { viewport(390); localStorage.clear(); sessionStorage.clear(); });
+  // These cases start from a user who opened the dock (it renders collapsed by default).
+  beforeEach(() => { viewport(390); localStorage.clear(); sessionStorage.clear(); localStorage.setItem(MINIMIZED_KEY, "0"); });
   afterEach(() => { viewport(originalWidth); document.body.innerHTML = ""; });
 
   it("captures a nested content scroll and preserves even a legacy expanded preference", () => {

@@ -23,6 +23,7 @@ from __future__ import annotations
 
 import threading
 from datetime import timedelta
+from urllib.parse import quote_plus
 
 import pytest
 from django.contrib.auth.models import User
@@ -162,7 +163,13 @@ def test_every_lifecycle_answers_with_the_same_public_response(monkeypatch):
             # what you sent is not a leak. Everything else is compared verbatim —
             # status, the rest of the redirect target, message level and message
             # body are all things the caller did NOT supply.
-            location = response.get("Location", "").replace(email, "<EMAIL>")
+            # The redirect URL-ENCODES it (scitex-hub#1234: a raw "+" arrived
+            # as a space), so the encoded form is what gets normalised.
+            location = (
+                response.get("Location", "")
+                .replace(quote_plus(email), "<EMAIL>")
+                .replace(email, "<EMAIL>")
+            )
             signatures.append(
                 (
                     response.status_code,

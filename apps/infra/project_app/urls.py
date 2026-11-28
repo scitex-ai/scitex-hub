@@ -73,7 +73,7 @@ urlpatterns = [
     path("<slug:slug>/live/", views.project_live_viewer, name="live_viewer"),
     # "v2/" (not "api/") on purpose: HANDLERS keys already carry their own
     # "api/" prefix (e.g. "api/claims"), matching the convention
-    # writer_app/urls/writer_django.py uses for the authenticated
+    # the writer leaf's own urlconf uses for its authenticated
     # "v2/<path:endpoint>" route. An "api/" segment here would double up to
     # ".../live/api/api/claims".
     path(

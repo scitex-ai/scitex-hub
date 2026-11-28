@@ -67,9 +67,7 @@ SITE_NAME = "SciTeX®"
 # Translation therefore happens at the USE SITE, in the context processor, where
 # there is a request and an active language. See config/context_processors.py.
 SITE_TAGLINE = gettext_noop("Open-source Ecosystem for Scientific Research")
-SITE_TAGLINE_SECONDARY = gettext_noop(
-    ""
-)
+SITE_TAGLINE_SECONDARY = gettext_noop("")
 SITE_DESCRIPTION = gettext_noop(
     "Python toolkit + MCP server for literature search, "
     "statistics, visualization, and manuscript writing."
@@ -106,7 +104,26 @@ CONTACT_EMAIL = f"info@{CONTACT_DOMAIN}"
 LEGAL_EMAIL = f"legal@{CONTACT_DOMAIN}"
 PRIVACY_EMAIL = CONTACT_EMAIL
 RECRUIT_EMAIL = f"recruit@{CONTACT_DOMAIN}"
-NOREPLY_EMAIL = f"noreply@{CONTACT_DOMAIN}"
+# The Hub's sending mailbox. Hyphenated, because that is the mailbox that exists
+# and that the Hub's SMTP account logs in as (``~/.pw/no-reply@scitex.ai.gpg``);
+# the unhyphenated spelling used before 2026-11-27 was a From: the server never
+# authenticated.
+NOREPLY_EMAIL = f"no-reply@{CONTACT_DOMAIN}"
+
+# Where system/ops alerts go: Django ADMINS error mail, the site-down and flood
+# alarms, storage and CI/infra alerts. NOT the operator's personal inbox — the
+# operator decided on 2026-11-27, after his inbox was flooded with Django error
+# mail, that every outgoing message has a dedicated address per purpose:
+#
+#   Purpose                          From                 To
+#   system/ops alerts                no-reply@            dev@
+#   user-facing mail (signup, OTP)   no-reply@            the user
+#   agent -> operator notices        agent@ ("SciTeX      ywatanabe@
+#                                    Agent (<agent>)")
+#   inquiry alerts (contact form)    no-reply@            info@ (+ the operator)
+#
+# docs/ops/mail-routing.md is the prose version of this table.
+OPS_ALERT_EMAIL = f"dev@{CONTACT_DOMAIN}"
 
 # ywatanabe@scitex.ai is DELIBERATELY ABSENT. It appears on 17 public sites and
 # the operator ruled it correct as their personal contact (2026-07-30), so it is
@@ -228,6 +245,27 @@ FAVICON_DARK_BY_ENV = {
 }
 
 
+# ---------------------------------------------------------------------------
+# Mail: the brand mark as mail clients see it
+# ---------------------------------------------------------------------------
+# Static-relative paths; callers prefix them with SITE_URL + "/static/", since
+# a mail body needs absolute URLs. Both are the PRODUCTION favicon above (white
+# snake on navy), so the inbox matches the tab:
+#
+#   EMAIL_HEADER_ICON  PNG render of FAVICON_BY_ENV[production] for the header
+#                      of the Hub's HTML mails. PNG, not SVG: Gmail and
+#                      Outlook do not display SVG images in a message body.
+#   BIMI_LOGO          SVG Tiny PS (the BIMI profile: square, solid background,
+#                      no CSS) with the favicon's exact snake paths, for the
+#                      `default._bimi` DNS record. Served at a stable URL.
+#
+# tests/config/test_mail_brand_icons.py pins both to the favicon, so a brand
+# change that regenerates the favicon fails until these follow.
+_MAIL_IMAGE_DIR = "shared/images"
+EMAIL_HEADER_ICON = f"{_MAIL_IMAGE_DIR}/email/scitex-icon-white-bg-navy-192.png"
+BIMI_LOGO = f"{_MAIL_IMAGE_DIR}/bimi/scitex-bimi.svg"
+
+
 def favicon_for_env(env):
     """Return the static-relative favicon path for ``env``.
 
@@ -295,7 +333,10 @@ APP_NAMES = {
 # These app tabs identify the tool, not the ambient project selection.
 # This title-only policy does not change project scoping or permissions.
 APP_TITLE_ONLY_PREFIXES = (
-    "/apps/storage/", "/apps/stats/", "/apps/figrecipe/", "/apps/sdk/",
+    "/apps/storage/",
+    "/apps/stats/",
+    "/apps/figrecipe/",
+    "/apps/sdk/",
 )
 
 # Hub sections that are not products, but still need a stable tab label.

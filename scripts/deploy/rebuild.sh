@@ -324,11 +324,28 @@ fi
 
 # Step 6: Purge Cloudflare cache
 echo -e "${CYAN}  6. Purging Cloudflare cache...${NC}"
+# The purge reads the same env file compose used. Its stderr is NOT discarded:
+# until 2026-11-27 `2>/dev/null || echo skipped` hid every failure, including
+# the script never finding its env file, so prod was never purged. Exit 2 means
+# "not configured for this env" (expected on dev); any other failure is loud and
+# is repeated in the final summary. It does not fail the rebuild: the new
+# containers are already serving, and a stale edge cache is not an outage.
 CACHE_PURGE_SCRIPT="$PROJECT_ROOT/deployment/docker/common/scripts/cloudflare_cache_purge.sh"
+CACHE_PURGE_FAILED=0
 if [ -x "$CACHE_PURGE_SCRIPT" ]; then
-    "$CACHE_PURGE_SCRIPT" all 2>/dev/null || echo -e "${YELLOW}   ⚠️ Cache purge skipped (no API credentials)${NC}"
+    set +e
+    CLOUDFLARE_ENV_FILE="$PROJECT_ROOT/deployment/docker/envs/.env.${ENV}" "$CACHE_PURGE_SCRIPT" all
+    CACHE_PURGE_RC=$?
+    set -e
+    if [ "$CACHE_PURGE_RC" = 2 ]; then
+        echo -e "${YELLOW}   ⚠️ Cache purge not configured for '${ENV}' — skipped${NC}"
+    elif [ "$CACHE_PURGE_RC" != 0 ]; then
+        echo -e "${RED}   ❌ Cache purge FAILED (exit ${CACHE_PURGE_RC}) — see the Cloudflare error above${NC}" >&2
+        CACHE_PURGE_FAILED=1
+    fi
 else
-    echo -e "${YELLOW}   ⚠️ Cache purge script not found${NC}"
+    echo -e "${RED}   ❌ Cache purge script missing or not executable: ${CACHE_PURGE_SCRIPT}${NC}" >&2
+    CACHE_PURGE_FAILED=1
 fi
 
 # ==============================================================================
@@ -446,7 +463,23 @@ else
     echo -e "${YELLOW}   ⚠️ No verify URL for env '${ENV}' — service check SKIPPED${NC}" >&2
 fi
 
-# Deployment verification ends at service health and public HTTP checks;
+# 7d. Can the deployment send mail? (scitex-hub#1234)
+# A site that serves 200 but cannot log in to SMTP has a dead signup: no
+# verification code arrives, and the reply is deliberately the same either way,
+# so nobody sees the failure. On prod that held for three months (SMTP 535).
+# check_mail_delivery connects and authenticates WITHOUT sending, and prints
+# only the stage and status code, never the account or password.
+echo "   Checking mail delivery (login only, nothing is sent)"
+if docker exec -w /app "scitex-hub-${ENV}-django-1" python manage.py check_mail_delivery; then
+    echo -e "${GREEN}   Mail backend accepts login${NC}"
+else
+    echo -e "${RED}   ❌ Mail backend REFUSED — sign-up verification and notifications cannot be delivered${NC}" >&2
+    echo -e "${YELLOW}      Fix the SCITEX_HUB_EMAIL_* values in the ${ENV} env file, then rerun:${NC}" >&2
+    echo -e "${YELLOW}      docker exec -w /app scitex-hub-${ENV}-django-1 python manage.py check_mail_delivery${NC}" >&2
+    VERIFY_FAILED=1
+fi
+
+# Deployment verification ends at service health, public HTTP and mail checks;
 # authenticated workspace acceptance is exercised by the application tests.
 
 echo ""
@@ -457,5 +490,9 @@ if [ "$VERIFY_FAILED" != "0" ]; then
 fi
 
 echo -e "${GREEN}✅ ${ENV} rebuild complete — verified serving${NC}"
+if [ "$CACHE_PURGE_FAILED" != "0" ]; then
+    echo -e "${RED}⚠️  BUT the Cloudflare cache purge FAILED — the edge may serve stale assets.${NC}" >&2
+    echo -e "${YELLOW}   Retry: CLOUDFLARE_ENV_FILE=deployment/docker/envs/.env.${ENV} deployment/docker/common/scripts/cloudflare_cache_purge.sh all${NC}" >&2
+fi
 echo ""
 echo -e "${CYAN}Check status with:${NC} make ENV=${ENV} status"

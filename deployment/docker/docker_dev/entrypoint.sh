@@ -296,15 +296,18 @@ if [ ! -f "$MIGRATION_SENTINEL" ]; then
     # Mark migrations as done (persists in /app/logs volume)
     touch "$MIGRATION_SENTINEL"
 
-    # Sync Unix user accounts (Linux UID isolation)
-    echo_info "Syncing Unix user accounts (UID isolation)..."
-    python manage.py sync_unix_users 2>&1 | grep -v "ERRO\|WARN" || true
-    echo_success "Unix user accounts synced"
 else
     # Hot-reload restart - skip migrations
     echo_info "Hot-reload restart detected - skipping migrations"
     wait_for_database # Still wait for DB to be ready
 fi
+
+# Accounts live in each container's writable layer; the migration marker lives
+# on a shared persistent mount. A recreated role needs its accounts even when
+# another role already wrote the marker. Preserve existing file ownership and
+# private modes rather than running the command's historical recursive repair.
+echo_info "Ensuring container Unix accounts without changing user data..."
+python manage.py sync_unix_users --accounts-only
 
 # ============================================
 # Initialize Test User (Development Only - First Start Only)

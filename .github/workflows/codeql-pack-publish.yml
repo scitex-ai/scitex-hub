@@ -74,6 +74,7 @@ permissions:
 
 jobs:
   publish:
+    timeout-minutes: 20
     name: codeql pack publish
     # Self-hosted, matching every other job in this repo — including
     # codeql-analysis.yml, the workflow this pack exists to serve. The audit

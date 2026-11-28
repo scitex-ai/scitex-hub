@@ -14,33 +14,23 @@ Writer's instance of that convention (Scholar #1074 / FigRecipe #1075
 template): the exact hub-native route set that used to be served at
 /apps/writer/, now served ONLY at /apps/writer/old-direct/ as the
 parity/fallback reference while v1 parity is open (/apps/writer/ itself is
-relit by the working Writer leaf through the SITE-3 wrapper in
-writer_django.py).
+served by the Writer leaf through the generic plugin mount).
 
 WHAT LIVES HERE (byte-identical to the pre-cutover user-path mount):
 
 * feature pages — ``api/``, ``editor/``, ``compilation/``,
   ``version-control/``, ``arxiv/``, ``collaboration/`` + the ``""`` index
   adapter. KEPT: the hub adapter surface the leaf is measured against.
-* ``writer_django.v2_urlpatterns`` — ``editor-v2/``, ``viewer-v2/``,
-  ``v2/<path:endpoint>`` behind the SITE-3 jail guard. KEPT: these ARE the
-  guard (WorkingDirScopedView server-side `working_dir` override + login +
-  Origin check) applied to the leaf views — the parity reference for the
-  default path, which rebinds the SAME function objects to the leaf paths.
 
-The mount itself lives in config/urls.py (dev-gated there, and listed
-BEFORE the default mount ON PURPOSE: the leaf urlconf carries a
-``<path:endpoint>`` catch-all, so a default-first order would swallow every
-old-direct URL into the leaf dispatcher); this module only assembles the
-patterns and owns the gate predicate so both the mount and the tests read
-one definition.
+The leaf's own ``editor-v2/``, ``viewer-v2/`` and ``v2/<path:endpoint>``
+routes are served by the leaf at /apps/writer/ like every other leaf route;
+there is no hub-side copy of them any more.
 
-FAIL-CLOSED NOTE (writer-specific, differs from scholar/figrecipe): the v2
-paths are leaf-BACKED (SITE-3 views over leaf views), not hub-native views.
-When the leaf is unimportable, `v2_urlpatterns` is [] — the v2 reference
-goes dark WITH the leaf (no silent fallback, CCT 2768) while the hub-native
-feature surface below still serves. That is the honest shape: there is no
-hub-native equivalent of v2 to fall back TO.
+The mount itself lives in config/urls.py (dev-gated there); the generic
+plugin mount hoists it AHEAD of the leaf mount, because the leaf urlconf
+carries a ``<path:endpoint>`` catch-all that would otherwise swallow every
+old-direct URL. This module only assembles the patterns and owns the gate
+predicate so both the mount and the tests read one definition.
 
 NOT MOVED (kept with reasons, same as the cutover leaves them):
 
@@ -57,13 +47,11 @@ from __future__ import annotations
 from django.conf import settings
 from django.urls import include, path
 
-from .writer_django import v2_urlpatterns
-
 app_name = "writer_app"
 
 # The complete pre-cutover hub-native surface, byte-identical routes, order,
 # and include shape (string includes, exactly as urls/__init__.py mounted
-# them — the v2 insert sat at position 1, ahead of editor/). Nested tuple
+# them). Nested tuple
 # includes are NOT used here on purpose: they would nest a second
 # "writer_app" namespace under the old-direct mount's own "writer_app" and
 # break every reverse("writer_app:...") the parity reference exists to keep
@@ -71,7 +59,6 @@ app_name = "writer_app"
 # writer's prefixed groups keep their string includes instead).
 urlpatterns = [
     path("api/", include("apps.workspace.writer_app.urls.api")),
-    path("", include(v2_urlpatterns)),
     path("editor/", include("apps.workspace.writer_app.urls.editor")),
     path("compilation/", include("apps.workspace.writer_app.urls.compilation")),
     path(

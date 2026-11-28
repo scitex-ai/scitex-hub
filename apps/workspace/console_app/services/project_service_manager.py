@@ -14,7 +14,7 @@ import psutil
 from django.core.exceptions import PermissionDenied, ValidationError
 from django.utils import timezone
 
-from apps.workspace.console_app.models import ProjectService
+from apps.workspace.console_app.models import ProjectService, WorkloadSession
 
 logger = logging.getLogger(__name__)
 
@@ -112,7 +112,13 @@ class ProjectServiceManager:
         if existing:
             return existing  # Return existing service
 
-        # 4. Check service limits
+        # 4. Spend controls: a new service is new billable compute. Refused at
+        # the monthly cap or on a restricted account (spend_app.services.gate).
+        from apps.infra.spend_app.services import gate
+
+        gate.require_compute(user)  # raises gate.Refused (the view answers 402)
+
+        # 5. Check service limits
         active_services_count = ProjectService.objects.filter(
             project=project, status__in=["starting", "running"]
         ).count()
@@ -144,6 +150,15 @@ class ProjectServiceManager:
             config=config or {},
         )
 
+        if service.status == "running":
+            from .workload_sessions import begin_service_workload
+
+            begin_service_workload(
+                user,
+                project_id=project.pk,
+                service_id=service.service_id,
+                label=service_type,
+            )
         return service
 
     def stop_service(self, user, service_id: str) -> bool:
@@ -183,7 +198,19 @@ class ProjectServiceManager:
         service.stopped_at = timezone.now()
         service.save(update_fields=["status", "stopped_at"])
 
+        self._close_service_workload(service, WorkloadSession.StopReason.USER)
         return True
+
+    @staticmethod
+    def _close_service_workload(service, reason: str) -> None:
+        from .workload_sessions import close_workloads
+
+        close_workloads(
+            service.user,
+            workload=WorkloadSession.WORKLOAD_SERVICE,
+            reason=reason,
+            scheduler_job_id=str(service.service_id),
+        )
 
     def cleanup_idle_services(self, idle_hours: int = 4) -> int:
         """
@@ -217,6 +244,10 @@ class ProjectServiceManager:
                 service.status = "stopped"
                 service.stopped_at = timezone.now()
                 service.save(update_fields=["status", "stopped_at"])
+                # Stop its allocation clock too, or it bills forever.
+                self._close_service_workload(
+                    service, WorkloadSession.StopReason.IDLE
+                )
                 count += 1
             except Exception as e:
                 print(f"Error cleaning up service {service.service_id}: {e}")

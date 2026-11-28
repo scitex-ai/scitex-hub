@@ -33,6 +33,7 @@ concurrency:
 
 jobs:
   safety-check:
+    timeout-minutes: 20
     name: Python Dependency Security Check
     runs-on: ubuntu-latest
     steps:
@@ -72,6 +73,7 @@ jobs:
           safety check --file requirements.txt
 
   bandit:
+    timeout-minutes: 20
     name: Python Security Linting
     runs-on: ubuntu-latest
     steps:
@@ -133,6 +135,7 @@ jobs:
           path: bandit-report.json
 
   django-check:
+    timeout-minutes: 20
     name: Django Security Check
     runs-on: ubuntu-latest
     steps:

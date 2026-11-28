@@ -13,6 +13,7 @@ from django.utils.encoding import force_str
 from django.utils.http import urlsafe_base64_decode
 
 from apps.security import safe_log_field
+from config import branding
 
 #: ONE response for EVERY password-reset outcome: address known, unknown, or a
 #: send that failed. The code used two DIFFERENT success messages, so a caller
@@ -120,13 +121,11 @@ The SciTeX Team
             <!DOCTYPE html>
             <html>
             <head>
-                <link rel="icon" type="image/png" href="{site_url}/static/shared/images/favicon.png">
-                <link rel="shortcut icon" type="image/png" href="{site_url}/static/shared/images/favicon.png">
             </head>
             <body>
             <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
                 <div style="text-align: left; margin-bottom: 30px;">
-                    <img src="{site_url}/static/shared/images/scitex_logos/scitex-logo-cropped.png" alt="SciTeX Logo" style="height: 60px; margin-bottom: 20px;">
+                    <img src="{site_url}/static/{branding.EMAIL_HEADER_ICON}" alt="SciTeX" width="48" height="48" style="height: 48px; width: 48px; margin-bottom: 20px;">
                     <h2 style="margin-top: 20px;">Password Reset Request</h2>
                 </div>
 

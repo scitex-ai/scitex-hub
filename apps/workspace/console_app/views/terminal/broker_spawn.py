@@ -204,6 +204,8 @@ async def spawn_via_broker(consumer):
 
         pipeline.pass_stage("apptainer")
         pipeline.pass_stage("shell")
+        # The broker recorded the launch (the allocation's or the srun
+        # shell's WorkloadSession row); nothing more to write here.
         logger.info(f"Terminal session started via broker: {session_id}")
 
     except Exception as e:
@@ -288,6 +290,23 @@ async def spawn_direct(consumer):
         )
         return
 
+    # Record the srun job before forking it (the child execs immediately).
+    from apps.workspace.console_app.services.workload_sessions import (
+        begin_terminal_workload,
+    )
+
+    try:
+        row, tags = await asyncio.to_thread(
+            begin_terminal_workload,
+            username,
+            project_slug,
+            {"scitex.terminal_mode": "direct"},
+        )
+    except Exception as exc:
+        await send_decline(consumer, "workload recording", exc, code=4010)
+        return
+    consumer.workload_session_id = str(row.session_id)
+
     # Block signals during PTY fork to prevent "Interrupted system call"
     old_mask = signal.pthread_sigmask(
         signal.SIG_BLOCK,
@@ -311,6 +330,7 @@ async def spawn_direct(consumer):
                     container_path,
                     project_slug,
                     screen_session=consumer.screen_session,
+                    tags=tags,
                 )
             except Exception as e:
                 import sys
@@ -347,7 +367,22 @@ async def _read_pty_direct(consumer):
     except Exception as e:
         logger.error(f"PTY read error: {e}")
     finally:
+        await _record_direct_ended(consumer)
         await consumer.close()
+
+
+async def _record_direct_ended(consumer):
+    """The PTY closed, so its srun job ended: close the WorkloadSession row."""
+    from apps.workspace.console_app.services.workload_sessions import (
+        mark_stopped_by_session,
+    )
+
+    try:
+        await asyncio.to_thread(
+            mark_stopped_by_session, getattr(consumer, "workload_session_id", None)
+        )
+    except Exception:
+        logger.exception("Could not record the end of a direct terminal job")
 
 
 # EOF

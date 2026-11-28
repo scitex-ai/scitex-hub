@@ -19,6 +19,26 @@ SITE_URL = getattr(settings, "SITE_URL", "http://127.0.0.1:8000")
 # is, so the email bodies below can interpolate it like any other value.
 CONTACT_EMAIL = branding.CONTACT_EMAIL
 
+# The navy brand mark at the top of every HTML mail (config/branding.py).
+EMAIL_HEADER_ICON_URL = f"{SITE_URL}/static/{branding.EMAIL_HEADER_ICON}"
+
+
+def _code_validity_minutes() -> int:
+    """The OTP lifetime, read from the model that ENFORCES it (never retyped)."""
+    from apps.infra.auth_app.models import CODE_VALIDITY
+
+    return int(CODE_VALIDITY.total_seconds() // 60)
+
+
+def _verify_page_url(email: str) -> str:
+    """Absolute link to the verification page, pre-filled with the address."""
+    from urllib.parse import urlencode
+
+    from django.urls import reverse
+
+    base = (getattr(settings, "SITE_URL", "") or SITE_URL).rstrip("/")
+    return f"{base}{reverse('auth_app:verify_email')}?{urlencode({'email': email})}"
+
 
 class EmailService:
     """Service for sending emails including OTP verification"""
@@ -35,7 +55,7 @@ class EmailService:
                     "otp_code": otp_code,
                     "email": email,
                     "site_name": "SciTeX",
-                    "expires_minutes": 10,
+                    "expires_minutes": _code_validity_minutes(),
                     "verification_type": "account registration",
                 }
             elif verification_type == "password_reset":
@@ -45,7 +65,7 @@ class EmailService:
                     "otp_code": otp_code,
                     "email": email,
                     "site_name": "SciTeX",
-                    "expires_minutes": 10,
+                    "expires_minutes": _code_validity_minutes(),
                     "verification_type": "password reset",
                 }
             elif verification_type == "email_change":
@@ -55,24 +75,39 @@ class EmailService:
                     "otp_code": otp_code,
                     "email": email,
                     "site_name": "SciTeX",
-                    "expires_minutes": 10,
+                    "expires_minutes": _code_validity_minutes(),
                     "verification_type": "email address change",
                 }
             else:
                 raise ValueError(f"Unknown verification type: {verification_type}")
+
+            # The page the code is entered on. Signup only: the reset and
+            # email-change flows have their own pages. Absolute, from SITE_URL,
+            # because a mail client has no base URL to resolve a relative one.
+            verify_link_html = verify_link_text = ""
+            expiry_hint = "If the code has expired, request a new one"
+            if verification_type == "signup":
+                expiry_hint = (
+                    "If the code has expired, request a new one on the "
+                    "verification page, or sign in again and a new code is sent"
+                )
+                verify_url = _verify_page_url(email)
+                verify_link_html = (
+                    f'<p style="text-align: center;"><a href="{verify_url}">'
+                    "Open the verification page</a></p>"
+                )
+                verify_link_text = f"\n            Enter it at: {verify_url}\n"
 
             # Create fallback plain text email if template doesn't exist
             html_message = f"""
             <!DOCTYPE html>
             <html>
             <head>
-                <link rel="icon" type="image/png" href="https://scitex.ai/static/shared/images/favicon.png">
-                <link rel="shortcut icon" type="image/png" href="https://scitex.ai/static/shared/images/favicon.png">
             </head>
             <body>
             <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
                 <div style="text-align: left; margin-bottom: 30px;">
-                    <img src="{SITE_URL}/static/shared/images/scitex_logos/scitex-logo-cropped.png" alt="SciTeX Logo" style="height: 60px; margin-bottom: 20px;">
+                    <img src="{EMAIL_HEADER_ICON_URL}" alt="SciTeX" width="48" height="48" style="height: 48px; width: 48px; margin-bottom: 20px;">
                     <h2 style="margin-top: 20px;">Email Verification</h2>
                 </div>
 
@@ -86,10 +121,11 @@ class EmailService:
                         </div>
                     </div>
 
+                    {verify_link_html}
                     <p><strong>Important:</strong></p>
                     <ul>
                         <li>This code expires in {context["expires_minutes"]} minutes</li>
-                        <li>Your account must be verified within 1 hour or it will be deleted</li>
+                        <li>{expiry_hint}</li>
                         <li>Do not share this code with anyone</li>
                     </ul>
                 </div>
@@ -114,10 +150,10 @@ class EmailService:
             Use this verification code to complete your {context["verification_type"]}:
 
             {otp_code}
-
+            {verify_link_text}
             Important:
             - This code expires in {context["expires_minutes"]} minutes
-            - Your account must be verified within 1 hour or it will be deleted
+            - {expiry_hint}
             - Do not share this code with anyone
 
             If you didn't request this verification, please ignore this email.
@@ -158,13 +194,11 @@ class EmailService:
             <!DOCTYPE html>
             <html>
             <head>
-                <link rel="icon" type="image/png" href="https://scitex.ai/static/shared/images/favicon.png">
-                <link rel="shortcut icon" type="image/png" href="https://scitex.ai/static/shared/images/favicon.png">
             </head>
             <body>
             <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
                 <div style="text-align: left; margin-bottom: 30px;">
-                    <img src="{SITE_URL}/static/shared/images/scitex_logos/scitex-logo-cropped.png" alt="SciTeX Logo" style="height: 60px; margin-bottom: 20px;">
+                    <img src="{EMAIL_HEADER_ICON_URL}" alt="SciTeX" width="48" height="48" style="height: 48px; width: 48px; margin-bottom: 20px;">
                     <h2 style="margin-top: 20px;">Welcome to Scientific Excellence!</h2>
                 </div>
 
@@ -255,13 +289,11 @@ class EmailService:
             <!DOCTYPE html>
             <html>
             <head>
-                <link rel="icon" type="image/png" href="https://scitex.ai/static/shared/images/favicon.png">
-                <link rel="shortcut icon" type="image/png" href="https://scitex.ai/static/shared/images/favicon.png">
             </head>
             <body>
             <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
                 <div style="text-align: left; margin-bottom: 30px;">
-                    <img src="{SITE_URL}/static/shared/images/scitex_logos/scitex-logo-cropped.png" alt="SciTeX Logo" style="height: 60px; margin-bottom: 20px;">
+                    <img src="{EMAIL_HEADER_ICON_URL}" alt="SciTeX" width="48" height="48" style="height: 48px; width: 48px; margin-bottom: 20px;">
                     <h2 style="margin-top: 20px; color: #e74c3c;">Account Deletion Scheduled</h2>
                 </div>
 
@@ -368,7 +400,7 @@ class EmailService:
             <body>
             <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
                 <div style="text-align: left; margin-bottom: 30px;">
-                    <img src="{SITE_URL}/static/shared/images/scitex_logos/scitex-logo-cropped.png" alt="SciTeX Logo" style="height: 60px; margin-bottom: 20px;">
+                    <img src="{EMAIL_HEADER_ICON_URL}" alt="SciTeX" width="48" height="48" style="height: 48px; width: 48px; margin-bottom: 20px;">
                     <h2 style="margin-top: 20px;">App Submission Received</h2>
                 </div>
                 <div style="background: #f8f9fa; padding: 20px; border-radius: 8px; margin-bottom: 20px;">
@@ -443,7 +475,7 @@ class EmailService:
             <body>
             <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
                 <div style="text-align: left; margin-bottom: 30px;">
-                    <img src="{SITE_URL}/static/shared/images/scitex_logos/scitex-logo-cropped.png" alt="SciTeX Logo" style="height: 60px; margin-bottom: 20px;">
+                    <img src="{EMAIL_HEADER_ICON_URL}" alt="SciTeX" width="48" height="48" style="height: 48px; width: 48px; margin-bottom: 20px;">
                     <h2 style="margin-top: 20px;">App Review Complete</h2>
                 </div>
                 <div style="background: #f8f9fa; padding: 20px; border-radius: 8px; margin-bottom: 20px;">

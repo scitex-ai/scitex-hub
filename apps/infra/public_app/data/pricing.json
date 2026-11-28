@@ -7,6 +7,40 @@
   "tax_note": "All displayed prices include tax.",
   "updated": "2026-09-14",
   "ssot_version": "Provisional v1.0",
+  "_billing_policy": "Operator decisions 2026-11-27 (a-h) and the same-day API-billing decision, mirrored from the scitex-affairs catalog's billing_policy; the affairs repo's scripts/pricing/check_drift.py compares it key by key. a: a lab/organisation may pay for its members' usage (payers). b: backup copies never count toward the user's storage. c: SciTeX pays the egress of anonymous downloads of public projects (promotion cost) up to a cap; the cap is NOT decided (null) and nothing is sponsored until it is. d: ingress is free. f: one flat markup on every external service; payg_margin_pct, compute.external_fee_percent and api.agents_fee_percent must equal it. g: prices are displayed tax-inclusive for Japan; no qualified-invoice registration. h: USD is the currency of record and overseas customers are accepted from launch. API calls are not billed; usage draws credits from the plan grant and prepaid top-ups. spend_app.services.catalog.billing_policy() is the one reader and raises on a missing or inconsistent key.",
+  "billing_policy": {
+    "decided": "2026-11-27",
+    "currency_of_record": "USD",
+    "overseas_customers_accepted": true,
+    "markets": {
+      "JP": {
+        "display_currency": "JPY",
+        "tax_inclusive_display": true
+      },
+      "overseas": {
+        "display_currency": "USD"
+      }
+    },
+    "qualified_invoice_issuer": false,
+    "payers": [
+      "individual",
+      "organization"
+    ],
+    "storage_counts_backups": false,
+    "ingress": "free",
+    "public_anonymous_download_egress": {
+      "paid_by": "scitex",
+      "purpose": "promotion",
+      "monthly_cap_gb": null
+    },
+    "api_calls_billed": false,
+    "credit_sources": [
+      "plan_grant",
+      "prepaid_topup"
+    ],
+    "external_services_markup_percent": 20,
+    "coupons": "planned"
+  },
   "_published_prices_are_the_tokushoho_list": "The price list the 特定商取引法 page publishes. A row is published iff `available_from` (YYYY-MM) is SET and <= the current month; a future month keeps the row in the catalogue and off the page. `withheld` (a stated reason) holds a row back whatever its date says.",
   "published_prices": [
     {
@@ -37,6 +71,12 @@
         "idle_reclaim": {
           "pause_after_days": 7,
           "delete_after_days": 30
+        },
+        "spend_cap": {
+          "default_usd": 0,
+          "max_usd": 0,
+          "unit": "USD/billing-cycle",
+          "scope": "usage beyond the plan fee"
         }
       },
       "description": "For trying SciTeX. No credit card required; limited workspace."
@@ -52,7 +92,7 @@
       "attributes": {
         "free_trial": {
           "days": 30,
-          "storage_gb": 10,
+          "storage_gb": 32,
           "compute_credit": 3
         },
         "workspace_limits": {
@@ -72,7 +112,13 @@
         },
         "overage": "metered",
         "monthly_limit_set_by": "user",
-        "eligibility": "University or research-institution email address (students, graduate students, faculty, researchers)"
+        "eligibility": "University or research-institution email address (students, graduate students, faculty, researchers)",
+        "spend_cap": {
+          "default_usd": 10,
+          "max_usd": 200,
+          "unit": "USD/billing-cycle",
+          "scope": "usage beyond the plan fee"
+        }
       },
       "description": "For eligible academic and research users."
     },
@@ -87,7 +133,7 @@
       "attributes": {
         "free_trial": {
           "days": 30,
-          "storage_gb": 10,
+          "storage_gb": 32,
           "compute_credit": 3
         },
         "workspace_limits": {
@@ -106,7 +152,13 @@
           "amount": 100
         },
         "overage": "metered",
-        "monthly_limit_set_by": "user"
+        "monthly_limit_set_by": "user",
+        "spend_cap": {
+          "default_usd": 20,
+          "max_usd": 500,
+          "unit": "USD/billing-cycle",
+          "scope": "usage beyond the plan fee"
+        }
       },
       "description": "For general and commercial users. Hosted at scitex.ai."
     },

@@ -196,9 +196,11 @@ Rules, evidenced by `tests/templates/test_site_dock_overlay_contract.py`
 3. **Focus avoidance is the dock's own job** — `site-dock.ts`
    `avoidFocusedControl` lifts the dock (`--site-dock-focus-shift`) when
    keyboard focus lands under it; inputs never need per-page hacks.
-4. **Minimize is the user escape hatch** — grip tap collapses the dock to
-   a 94x44 pill (`site-dock--minimized`, persisted per device); Enter on
-   the grip restores. Verified live 2026-10-22 on /apps/sdk/ and
+4. **Collapsed by default** — the dock renders as a 94x44 pill
+   (`site-dock--minimized`) so it never covers page content until asked
+   for (2026-11-26). A tap / Enter on the pill opens the dock; a grip tap
+   collapses it again. The choice is persisted per device
+   (`stx-site-dock-minimized`: `"0"` open, `"1"` or absent collapsed). Verified live 2026-10-22 on /apps/sdk/ and
    /apps/figrecipe/.
 5. **Highlight rule** — app leaf routes map to the global Apps
    destination (`active_dock_key`, operator 2026-09-17), EXCEPT tool

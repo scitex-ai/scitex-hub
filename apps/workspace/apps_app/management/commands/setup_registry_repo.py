@@ -131,77 +131,65 @@ class Command(BaseCommand):
 
     # ------------------------------------------------------------------
     def _register_org_webhook(self, client):
-        """Register an org-level webhook on scitex-apps for PR events.
-
-        Idempotent: skips if a webhook with the same URL already exists.
-        """
-        from apps.infra.gitea_app.api_client import GiteaAPIError
-
-        django_url = "http://django:8000"
-        webhook_url = f"{django_url}/api/apps/webhook/"
-
-        # Check for existing webhook to avoid duplicates
-        try:
-            hooks = client.list_org_webhooks(APPS_ORG)
-            for hook in hooks:
-                if hook.get("config", {}).get("url") == webhook_url:
-                    self.stdout.write(f"Org webhook already registered: {webhook_url}")
-                    return
-        except GiteaAPIError:
-            pass  # no hooks yet, proceed
-
-        try:
-            client.create_org_webhook(
-                org=APPS_ORG,
-                url=webhook_url,
-                events=["pull_request"],
-                content_type="json",
-                secret="",
-                active=True,
-            )
-            self.stdout.write(
-                self.style.SUCCESS(f"Registered org webhook: {webhook_url}")
-            )
-        except GiteaAPIError as exc:
-            self.stderr.write(f"Org webhook registration failed: {exc}")
+        """Register the scitex-apps PR-merge webhook (merge → app approval)."""
+        self._ensure_signed_webhook(
+            client, APPS_ORG, "/api/apps/webhook/", ["pull_request"]
+        )
 
     # ------------------------------------------------------------------
     def _register_sync_webhook(self, client, org_name: str):
-        """Register a member-sync webhook on an org (Gitea → Django).
+        """Register a member-sync webhook on an org (Gitea → Django)."""
+        self._ensure_signed_webhook(
+            client, org_name, "/api/gitea/webhook/sync/", ["member"]
+        )
 
-        Idempotent: skips if a webhook with the same URL already exists.
+    # ------------------------------------------------------------------
+    def _ensure_signed_webhook(self, client, org_name, path, events):
+        """Create the org webhook, or re-sign an existing one, with the secret.
+
+        The Hub rejects unsigned Gitea webhooks, so a hook without the shared
+        secret is useless. Idempotent: an existing hook with the same URL is
+        updated in place (its secret is set) instead of being duplicated.
         """
-        from apps.infra.gitea_app.api_client import GiteaAPIError
+        from django.core.management.base import CommandError
 
-        django_url = "http://django:8000"
-        webhook_url = f"{django_url}/api/gitea/webhook/sync/"
+        from apps.infra.gitea_app.api_client import GiteaAPIError
+        from apps.infra.gitea_app.webhook_auth import SECRET_NAME, gitea_webhook_secret
+
+        secret = gitea_webhook_secret()
+        if not secret:
+            raise CommandError(
+                f"{SECRET_NAME} is not set; the Hub would reject every webhook."
+            )
+        webhook_url = f"http://django:8000{path}"
+        config = {"url": webhook_url, "content_type": "json", "secret": secret}
 
         try:
             hooks = client.list_org_webhooks(org_name)
-            for hook in hooks:
-                if hook.get("config", {}).get("url") == webhook_url:
-                    self.stdout.write(
-                        f"Sync webhook already registered on {org_name}: {webhook_url}"
-                    )
-                    return
         except GiteaAPIError:
-            pass  # no hooks yet, proceed
+            hooks = []  # no hooks yet, proceed
 
         try:
+            for hook in hooks:
+                if hook.get("config", {}).get("url") == webhook_url:
+                    client.edit_org_webhook(org_name, hook["id"], config)
+                    self.stdout.write(
+                        f"Webhook on {org_name} re-signed: {webhook_url}"
+                    )
+                    return
             client.create_org_webhook(
                 org=org_name,
                 url=webhook_url,
-                events=["member"],
+                events=events,
                 content_type="json",
+                secret=secret,
                 active=True,
             )
             self.stdout.write(
-                self.style.SUCCESS(
-                    f"Registered sync webhook on {org_name}: {webhook_url}"
-                )
+                self.style.SUCCESS(f"Registered webhook on {org_name}: {webhook_url}")
             )
         except GiteaAPIError as exc:
-            self.stderr.write(f"Sync webhook registration failed on {org_name}: {exc}")
+            self.stderr.write(f"Webhook registration failed on {org_name}: {exc}")
 
 
 # EOF

@@ -4,7 +4,7 @@
 
 Gap this closes
 ----------------
-``apps/workspace/writer_app/urls/writer_django.py`` wraps
+The (since retired) hub writer wrapper ``writer_app/urls/writer_django.py`` wrapped
 ``scitex_writer._django.views.{editor_page,viewer_page,api_dispatch}`` for
 the authenticated ``/apps/writer/{editor,viewer}-v2/`` routes, but every one
 of those views is ``@login_required`` unconditionally. There was therefore
